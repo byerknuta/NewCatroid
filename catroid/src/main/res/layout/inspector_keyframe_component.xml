@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <!-- Настройки анимации -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <CheckBox
+            android:id="@+id/keyframe_autostart"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Auto Start"
+            android:textColor="@color/white"
+            android:buttonTint="@color/white"/>
+
+        <CheckBox
+            android:id="@+id/keyframe_loop"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Looping"
+            android:textColor="@color/white"
+            android:buttonTint="@color/white"/>
+    </LinearLayout>
+
+    <!-- Кнопки управления в редакторе -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/btn_keyframe_play"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_media_play"
+            android:background="?attr/selectableItemBackgroundBorderless"/>
+
+        <ImageButton
+            android:id="@+id/btn_keyframe_stop"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_media_pause"
+            android:background="?attr/selectableItemBackgroundBorderless"/>
+
+        <SeekBar
+            android:id="@+id/keyframe_timeline_slider"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"/>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Keyframes:"
+        android:textColor="@color/white"
+        android:layout_marginTop="8dp"
+        android:textStyle="bold"/>
+
+    <!-- Сюда будем программно добавлять строки с кейфреймами -->
+    <LinearLayout
+        android:id="@+id/keyframe_list_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"/>
+
+    <Button
+        android:id="@+id/btn_add_keyframe"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="+ Add Keyframe at Current Position"
+        style="@style/Widget.App.Button.Outlined"
+        android:layout_marginTop="8dp"/>
+
+</LinearLayout>

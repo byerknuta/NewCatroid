@@ -10,10 +10,8 @@ public class SceneData {
     public float skyB = 0.3f;
 
     public String skyboxPath = null;
-
-    public boolean fogEnabled = false;
-    public float fogDensity = 0.01f;
-    public float fogR = 0.5f, fogG = 0.5f, fogB = 0.5f;
+    public float shadowSize = 100f;
+    public float shadowResolution = 2048f;
 
     public float ambientIntensity = 1;
 

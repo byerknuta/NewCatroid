@@ -234,6 +234,12 @@ public class InternFormulaKeyboardAdapter {
 				return buildSingleParameterFunction(Functions.VIDEO_TIME, STRING,"myVideoPlayer");
 			case R.string.formula_3d_pos_x:
 				return buildSingleParameterFunction(Functions.GET_3D_POSITION_X, STRING, "myObject");
+            case R.string.formula_collision_list:
+                return buildSingleParameterFunction(Functions.COLLISION_LIST, STRING, "myObject");
+            case R.string.formula_intersect_list:
+                return buildSingleParameterFunction(Functions.INTERSECT_LIST, STRING, "myObject");
+            case R.string.formula_delta:
+                return buildFunctionWithoutParametersAndBrackets(Functions.DELTA);
 			case R.string.formula_3d_touches:
 				return buildDoubleParameterFunction(Functions.OBJECT_TOUCHES_OBJECT, STRING, "object1", STRING, "object2");
 			case R.string.formula_3d_intersects:

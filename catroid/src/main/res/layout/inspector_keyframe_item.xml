@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Time:"
+        android:textColor="@color/white"/>
+
+    <EditText
+        android:id="@+id/edit_keyframe_time"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:inputType="numberDecimal"
+        android:textColor="@color/white"
+        android:imeOptions="actionDone"
+        android:maxLines="1"
+        android:textSize="14sp"
+        android:layout_marginStart="4dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ease:"
+        android:textColor="@color/white"
+        android:layout_marginStart="8dp"/>
+
+    <Spinner
+        android:id="@+id/spinner_keyframe_easing"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"/>
+
+    <ImageButton
+        android:id="@+id/btn_delete_keyframe"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:src="@android:drawable/ic_menu_delete"
+        android:background="?attr/selectableItemBackgroundBorderless"/>
+</LinearLayout>

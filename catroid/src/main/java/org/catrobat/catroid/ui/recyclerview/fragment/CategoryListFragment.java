@@ -217,11 +217,12 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_find_parameter);
 
 	private static final List<Integer> THREED_FUNCTIONS = asList(
+            R.string.formula_delta,
 			R.string.formula_3d_pos_x, R.string.formula_3d_pos_y, R.string.formula_3d_pos_z,
 			R.string.formula_3d_rot_yaw, R.string.formula_3d_rot_pitch, R.string.formula_3d_rot_roll,
 			R.string.formula_3d_scale_x, R.string.formula_3d_scale_y, R.string.formula_3d_scale_z,
 			R.string.formula_3d_velo_x, R.string.formula_3d_velo_y, R.string.formula_3d_velo_z,
-			R.string.formula_3d_distance, R.string.formula_3d_touches, R.string.formula_3d_intersects,
+			R.string.formula_3d_distance, R.string.formula_3d_touches, R.string.formula_3d_intersects, R.string.formula_collision_list, R.string.formula_intersect_list,
 			R.string.formula_cam_pos_x, R.string.formula_cam_pos_y, R.string.formula_cam_pos_z,
 			R.string.formula_cam_dir_x, R.string.formula_cam_dir_y, R.string.formula_cam_dir_z,
 			R.string.formula_cam_rot_pitch, R.string.formula_cam_rot_yaw, R.string.formula_cam_rot_roll,
@@ -230,10 +231,11 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_ray_normal_y, R.string.formula_ray_normal_z
 	);
 	private static final List<Integer> THREED_PARAMS = asList(
+            R.string.formula_no_param,
 			R.string.formula_3d_single_param, R.string.formula_3d_single_param, R.string.formula_3d_single_param,
 			R.string.formula_3d_single_param, R.string.formula_3d_single_param, R.string.formula_3d_single_param,
 			R.string.formula_3d_single_param, R.string.formula_3d_single_param, R.string.formula_3d_single_param,
-			R.string.formula_3d_single_param, R.string.formula_3d_single_param, R.string.formula_3d_single_param, R.string.formula_3d_touches_param, R.string.formula_3d_intersects_param,
+			R.string.formula_3d_single_param, R.string.formula_3d_single_param, R.string.formula_3d_single_param, R.string.formula_3d_touches_param, R.string.formula_3d_intersects_param, R.string.formula_3d_single_param, R.string.formula_3d_single_param,
 			R.string.formula_3d_double_param, R.string.formula_no_param, R.string.formula_no_param, R.string.formula_no_param,
 			R.string.formula_no_param, R.string.formula_no_param, R.string.formula_no_param, R.string.formula_no_param,
 			R.string.formula_no_param, R.string.formula_no_param,

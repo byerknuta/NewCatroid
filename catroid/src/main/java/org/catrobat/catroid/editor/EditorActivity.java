@@ -524,6 +524,45 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
         Button selectSkyboxButton = dialogView.findViewById(R.id.btn_select_skybox);
         ImageButton clearSkyboxButton = dialogView.findViewById(R.id.btn_clear_skybox);
 
+        EditText shadowDistEdit = dialogView.findViewById(R.id.edit_shadow_distance);
+        android.widget.Spinner shadowResSpinner = dialogView.findViewById(R.id.spinner_shadow_resolution);
+        Button applyShadowsBtn = dialogView.findViewById(R.id.btn_apply_shadows);
+
+
+        String[] resolutions = {"128", "256", "512", "1024", "2048", "4096", "8192", "16384", "32768"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, resolutions);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        shadowResSpinner.setAdapter(adapter);
+
+
+        if (threeDManager != null) {
+            shadowDistEdit.setText(String.valueOf(threeDManager.getShadowSize()));
+
+            String currentRes = String.valueOf((int) threeDManager.getShadowResolution());
+            for (int i = 0; i < resolutions.length; i++) {
+                if (resolutions[i].equals(currentRes)) {
+                    shadowResSpinner.setSelection(i);
+                    break;
+                }
+            }
+        }
+
+        applyShadowsBtn.setOnClickListener(v -> {
+            try {
+                float size = Float.parseFloat(shadowDistEdit.getText().toString());
+                int res = Integer.parseInt(shadowResSpinner.getSelectedItem().toString());
+
+
+                if (threeDManager != null) {
+                    threeDManager.setShadowSettings(size, res);
+                    Toast.makeText(this, "Shadow settings applied.", Toast.LENGTH_SHORT).show();
+                }
+            } catch (Exception e) {
+                Toast.makeText(this, "Invalid shadow values.", Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+            }
+        });
+
 
         float currentIntensity = sceneManager.ambientIntensity;
         com.badlogic.gdx.graphics.Color skyColor = new Color(sceneManager.skyR, sceneManager.skyG, sceneManager.skyB, 1f);

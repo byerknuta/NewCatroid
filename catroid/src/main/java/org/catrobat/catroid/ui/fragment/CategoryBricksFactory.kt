@@ -178,6 +178,7 @@ import org.catrobat.catroid.content.bricks.JumpingSumoSoundBrick
 import org.catrobat.catroid.content.bricks.JumpingSumoTakingPictureBrick
 import org.catrobat.catroid.content.bricks.JumpingSumoTurnBrick
 import org.catrobat.catroid.content.bricks.KeyEventBrick
+import org.catrobat.catroid.content.bricks.KeyframeAnimationBrick
 import org.catrobat.catroid.content.bricks.LaunchProjectBrick
 import org.catrobat.catroid.content.bricks.LegoEv3MotorMoveBrick
 import org.catrobat.catroid.content.bricks.LegoEv3MotorStopBrick
@@ -352,15 +353,18 @@ import org.catrobat.catroid.content.bricks.SetPointLightBrick
 import org.catrobat.catroid.content.bricks.SetPositiveBrick
 import org.catrobat.catroid.content.bricks.SetPostProcessingBrick
 import org.catrobat.catroid.content.bricks.SetRestitutionBrick
+import org.catrobat.catroid.content.bricks.SetRotationLockBrick
 import org.catrobat.catroid.content.bricks.SetRotationStyleBrick
 import org.catrobat.catroid.content.bricks.SetSaveScenesBrick
 import org.catrobat.catroid.content.bricks.SetShaderCodeBrick
 import org.catrobat.catroid.content.bricks.SetShaderUniformFloatBrick
 import org.catrobat.catroid.content.bricks.SetShaderUniformVec3Brick
+import org.catrobat.catroid.content.bricks.SetShadowsBrick
 import org.catrobat.catroid.content.bricks.SetSizeToBrick
 import org.catrobat.catroid.content.bricks.SetSkyColorBrick
 import org.catrobat.catroid.content.bricks.SetSkyboxBrick
 import org.catrobat.catroid.content.bricks.SetSoundVolumeBrick
+import org.catrobat.catroid.content.bricks.SetSpawnInvisibleBrick
 import org.catrobat.catroid.content.bricks.SetSpotLightBrick
 import org.catrobat.catroid.content.bricks.SetStopSoundsBrick
 import org.catrobat.catroid.content.bricks.SetTempoBrick
@@ -368,6 +372,7 @@ import org.catrobat.catroid.content.bricks.SetThirdPersonCameraBrick
 import org.catrobat.catroid.content.bricks.SetThreadColorBrick
 import org.catrobat.catroid.content.bricks.SetTransparencyBrick
 import org.catrobat.catroid.content.bricks.SetVariableBrick
+import org.catrobat.catroid.content.bricks.SetVariableEasingBrick
 import org.catrobat.catroid.content.bricks.SetVelocityBrick
 import org.catrobat.catroid.content.bricks.SetViewPositionBrick
 import org.catrobat.catroid.content.bricks.SetVolumeToBrick
@@ -877,6 +882,7 @@ void main() {
         val dataBrickList: MutableList<Brick> = ArrayList()
         dataBrickList.add(SetVariableBrick(BrickValues.SET_VARIABLE))
         dataBrickList.add(ChangeVariableBrick(BrickValues.CHANGE_VARIABLE))
+        dataBrickList.add(SetVariableEasingBrick(1, 0f, 10f, 0f, 100f))
         dataBrickList.add(ShowTextBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION))
         dataBrickList.add(ShowTextColorSizeAlignmentBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
         dataBrickList.add(ShowVarFontBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR, "font.ttf"))
@@ -1285,6 +1291,7 @@ void main() {
         threedBrickList.add(CreateSphereBrick("myObject"))
         threedBrickList.add(Remove3dObjectBrick("myObject"))
         threedBrickList.add(CloneObjectBrick("myObject", "clonedObject"))
+        threedBrickList.add(SetSpawnInvisibleBrick("myObject"))
         threedBrickList.add(SetActiveBrick("myObject", true))
         threedBrickList.add(SetObjectColorBrick("myObject", 1.0, 0.0, 0.0))
         threedBrickList.add(SetObjectTextureBrick("myObject", "texture.png"))
@@ -1293,6 +1300,7 @@ void main() {
         threedBrickList.add(Set3dScaleBrick("myObject", 2.0, 1.0, 1.5))
         threedBrickList.add(ObjectLookAtBrick("myObject", 0.0, 0.0, 0.0))
         threedBrickList.add(SetPhysicsStateBrick("myObject", 2, 0, 1.0))
+        threedBrickList.add(SetRotationLockBrick("myObject", true, false, true))
         threedBrickList.add(Set3dGravityBrick(0.0, -9.81, 0.0))
         threedBrickList.add(Set3dVelocityBrick("myObject", 0.0, 25.0, 0.0))
         threedBrickList.add(Apply3dForceBrick("myObject", 5.0, 0.0, 0.0))
@@ -1355,9 +1363,11 @@ void main() {
         threedBrickList.add(SetShaderUniformVec3Brick("lightColor", 0.4, 1.0, 0.4))
         threedBrickList.add(SetShaderUniformFloatBrick("meaningOfLife", 42.0))
         threedBrickList.add(EnablePbrRenderBrick(1))
+        //threedBrickList.add(SetShadowsBrick(Formula(1)))
         threedBrickList.add(SetMaterialBrick("myObject", 255.0, 0.0, 255.0, 255.0, 100.0, 0.0, "none.png", "none.png", "none.png"))
         threedBrickList.add(PlayAnimationBrick("myObject", "idle", -1, 1.0, 0.2))
         threedBrickList.add(StopAnimationBrick("myObject"))
+        threedBrickList.add(KeyframeAnimationBrick())
         threedBrickList.add(SetAnisotropicFilterBrick("myObject", 2.0))
         threedBrickList.add(SetPointLightBrick("sun", 100.0, 100.0, 0.0, 255, 255, 230, 5.0, 300.0))
         threedBrickList.add(SetSpotLightBrick("sun", 100.0, 100.0, 0.0, 0.3, -0.4, 0.2, 255, 255, 230, 5.0, 60.0, 1.0, 300.0))

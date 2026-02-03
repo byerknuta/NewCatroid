@@ -8,6 +8,7 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
@@ -30,17 +31,22 @@ import org.catrobat.catroid.raptor.TransformComponent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 
 public class SceneManager {
 
+    private final Queue<GameObject> loadingQueue = new LinkedList<>();
+
+    private static final long MAX_LOADING_TIME_PER_FRAME_MS = 8;
+
     public final ThreeDManager engine;
     private final Map<String, GameObject> gameObjects = new ConcurrentHashMap<>();
-    private final BoundingBox tempBoundingBox = new BoundingBox();
 
     private boolean isEditorMode = false;
 
@@ -57,6 +63,42 @@ public class SceneManager {
 
     public String skyboxPath;
     private FogComponent cachedFogComponent = null;
+
+    private static class BoneAttachment {
+        String childId;
+        String parentModelId;
+        String boneName;
+
+
+        Vector3 localPosOffset = new Vector3();
+        Quaternion localRotOffset = new Quaternion();
+
+        public BoneAttachment(String child, String parent, String bone) {
+            this.childId = child;
+            this.parentModelId = parent;
+            this.boneName = bone;
+        }
+    }
+
+
+    private final List<BoneAttachment> activeAttachments = new ArrayList<>();
+
+
+
+    public void attachObjectToBone(String childId, String parentId, String boneName, float offsetX, float offsetY, float offsetZ) {
+
+        detachObject(childId);
+
+        BoneAttachment attachment = new BoneAttachment(childId, parentId, boneName);
+        attachment.localPosOffset.set(offsetX, offsetY, offsetZ);
+
+        activeAttachments.add(attachment);
+    }
+
+
+    public void detachObject(String childId) {
+        activeAttachments.removeIf(a -> a.childId.equals(childId));
+    }
 
     public void setEditorMode(boolean isEditor) {
         this.isEditorMode = isEditor;
@@ -118,6 +160,12 @@ public class SceneManager {
     }
 
     public void update(float delta) {
+        processLoadingQueue();
+
+        if (!isEditorMode) {
+            updateKeyframeAnimations(delta);
+        }
+
         if (!isEditorMode) {
             synchronizeTransformsFromEngine();
         }
@@ -138,6 +186,153 @@ public class SceneManager {
             Quaternion worldRot = cameraWorldTransform.getRotation(new Quaternion(), true);
             engine.setCameraPosition(worldPos.x, worldPos.y, worldPos.z);
             engine.setCameraRotation(worldRot);
+        }
+
+        for (BoneAttachment att : activeAttachments) {
+            GameObject child = findGameObject(att.childId);
+            if (child == null) continue;
+
+            ModelInstance parentModel = engine.getModelInstance(att.parentModelId);
+            if (parentModel == null) continue;
+
+
+            com.badlogic.gdx.graphics.g3d.model.Node bone = parentModel.getNode(att.boneName);
+            if (bone != null) {
+
+
+
+                child.transform.worldTransform.set(bone.globalTransform);
+
+
+                child.transform.worldTransform.translate(att.localPosOffset);
+
+
+                engine.setWorldTransform(child.id, child.transform.worldTransform);
+
+
+                child.transform.worldTransform.getTranslation(child.transform.position);
+                child.transform.worldTransform.getRotation(child.transform.rotation, true);
+            }
+        }
+    }
+
+    private final Vector3 tmpKeyframePos = new Vector3();
+    private final Quaternion tmpKeyframeRot = new Quaternion();
+    private final Vector3 tmpKeyframeScale = new Vector3();
+
+    private void updateKeyframeAnimations(float delta) {
+        for (GameObject go : gameObjects.values()) {
+            KeyframeComponent anim = go.getComponent(KeyframeComponent.class);
+            if (anim == null || !anim.isPlaying || anim.keyframes.size() < 2) {
+                continue;
+            }
+
+
+            anim.currentTime += delta;
+            float duration = anim.getDuration();
+
+
+            if (anim.currentTime > duration) {
+                if (anim.looping) {
+                    anim.currentTime = anim.currentTime % duration;
+                } else {
+                    anim.isPlaying = false;
+                    anim.currentTime = duration;
+                }
+            }
+
+
+            KeyframeData startFrame = null;
+            KeyframeData endFrame = null;
+            for (KeyframeData frame : anim.keyframes) {
+                if (frame.time <= anim.currentTime) {
+                    startFrame = frame;
+                } else {
+                    endFrame = frame;
+                    break;
+                }
+            }
+
+
+            if (endFrame == null) {
+                go.transform.position.set(startFrame.position);
+                go.transform.rotation.set(startFrame.rotation);
+                go.transform.scale.set(startFrame.scale);
+                continue;
+            }
+
+
+            float frameDuration = endFrame.time - startFrame.time;
+            float timeIntoFrame = anim.currentTime - startFrame.time;
+            float alpha = (frameDuration > 0.0001f) ? MathUtils.clamp(timeIntoFrame / frameDuration, 0f, 1f) : 1f;
+
+
+            float easedAlpha = org.catrobat.catroid.content.EasingFunctions.calculate(
+                    startFrame.easingToNext, alpha, 1.0f, 0.0f, 1.0f
+            );
+
+
+            tmpKeyframePos.set(startFrame.position).lerp(endFrame.position, easedAlpha);
+            tmpKeyframeRot.set(startFrame.rotation).slerp(endFrame.rotation, easedAlpha);
+            tmpKeyframeScale.set(startFrame.scale).lerp(endFrame.scale, easedAlpha);
+
+            go.transform.position.set(tmpKeyframePos);
+            go.transform.rotation.set(tmpKeyframeRot);
+            go.transform.scale.set(tmpKeyframeScale);
+        }
+    }
+
+
+
+    public void playKeyframeAnimation(String objectId) {
+        GameObject go = findGameObject(objectId);
+        if (go == null) return;
+        KeyframeComponent anim = go.getComponent(KeyframeComponent.class);
+        if (anim != null) {
+            anim.isPlaying = true;
+        }
+    }
+
+    public void stopKeyframeAnimation(String objectId) {
+        GameObject go = findGameObject(objectId);
+        if (go == null) return;
+        KeyframeComponent anim = go.getComponent(KeyframeComponent.class);
+        if (anim != null) {
+            anim.isPlaying = false;
+        }
+    }
+
+    public void setKeyframeAnimationTime(String objectId, float time) {
+        GameObject go = findGameObject(objectId);
+        if (go == null) return;
+        KeyframeComponent anim = go.getComponent(KeyframeComponent.class);
+        if (anim != null) {
+            anim.currentTime = time;
+
+            updateKeyframeAnimations(0);
+            updateWorldTransforms();
+        }
+    }
+
+    private void processLoadingQueue() {
+        if (loadingQueue.isEmpty()) return;
+
+        long startTime = System.currentTimeMillis();
+
+
+        while (!loadingQueue.isEmpty()) {
+
+            if (System.currentTimeMillis() - startTime > MAX_LOADING_TIME_PER_FRAME_MS) {
+                break;
+            }
+
+            GameObject go = loadingQueue.poll();
+            if (go != null) {
+
+                gameObjects.put(go.id, go);
+
+                rebuildGameObject_internal(go);
+            }
         }
     }
 
@@ -230,11 +425,16 @@ public class SceneManager {
             }
             String sceneJson = fileHandle.readString();
             json.setUsePrototypes(false);
+            json.setIgnoreUnknownFields(true);
             SceneData sceneData = json.fromJson(SceneData.class, sceneJson);
 
             if (sceneData == null) { return; }
             setBackgroundLightIntensity(sceneData.ambientIntensity);
             setSkyColor(sceneData.skyR, sceneData.skyG, sceneData.skyB);
+            float size = (sceneData.shadowSize > 0) ? sceneData.shadowSize : 100f;
+            float res = (sceneData.shadowResolution > 0) ? sceneData.shadowResolution : 2048f;
+
+            engine.setShadowSettings(size, (int) res);
             if (sceneData.gameObjects == null) { return; }
 
 
@@ -545,6 +745,8 @@ public class SceneManager {
         sceneData.skyB = this.skyB;
         sceneData.skyboxPath = this.skyboxPath;
         sceneData.ambientIntensity = this.ambientIntensity;
+        sceneData.shadowSize = engine.getShadowSize();
+        sceneData.shadowResolution = engine.getShadowResolution();
         return sceneData;
     }
 
@@ -556,6 +758,10 @@ public class SceneManager {
 
         setBackgroundLightIntensity(sceneData.ambientIntensity);
         setSkyColor(sceneData.skyR, sceneData.skyG, sceneData.skyB);
+        float size = (sceneData.shadowSize > 0) ? sceneData.shadowSize : 100f;
+        float res = (sceneData.shadowResolution > 0) ? sceneData.shadowResolution : 2048f;
+
+        engine.setShadowSettings(size, (int) res);
 
         if (sceneData.gameObjects == null) return;
 
@@ -849,10 +1055,13 @@ public class SceneManager {
         sceneData.skyB = skyB;
         sceneData.skyboxPath = skyboxPath;
         sceneData.ambientIntensity = ambientIntensity;
+        sceneData.shadowSize = engine.getShadowSize();
+        sceneData.shadowResolution = engine.getShadowResolution();
         sceneData.renderSettings = engine.getSceneSettings();
 
         json.setOutputType(JsonWriter.OutputType.json);
         json.setUsePrototypes(false);
+        json.setIgnoreUnknownFields(true);
 
         String sceneJson = json.prettyPrint(sceneData);
 
@@ -869,11 +1078,16 @@ public class SceneManager {
 
         String sceneJson = fileHandle.readString();
         json.setUsePrototypes(false);
+        json.setIgnoreUnknownFields(true);
         SceneData sceneData = json.fromJson(SceneData.class, sceneJson);
 
 
         setBackgroundLightIntensity(sceneData.ambientIntensity);
         setSkyColor(sceneData.skyR, sceneData.skyG, sceneData.skyB);
+        float size = (sceneData.shadowSize > 0) ? sceneData.shadowSize : 100f;
+        float res = (sceneData.shadowResolution > 0) ? sceneData.shadowResolution : 2048f;
+
+        engine.setShadowSettings(size, (int) res);
 
         if (sceneData == null || sceneData.gameObjects == null) { return; }
 
@@ -993,6 +1207,26 @@ public class SceneManager {
         if (particle != null) {
             engine.createParticleProxy(go.id);
             engine.updateParticleEffect(go.id, particle, go.transform.worldTransform);
+        }
+
+        KeyframeComponent anim = go.getComponent(KeyframeComponent.class);
+        if (anim != null && !anim.keyframes.isEmpty()) {
+
+            KeyframeData firstFrame = anim.keyframes.get(0);
+
+
+            go.transform.position.set(firstFrame.position);
+            go.transform.rotation.set(firstFrame.rotation);
+            go.transform.scale.set(firstFrame.scale);
+
+
+            engine.setWorldTransform(go.id, go.transform.toMatrix());
+
+
+            if (anim.autoStart && !isEditorMode) {
+                anim.isPlaying = true;
+                anim.currentTime = 0f;
+            }
         }
     }
 
@@ -1262,6 +1496,10 @@ public class SceneManager {
         }
     }
 
+    public boolean isLoading() {
+        return !loadingQueue.isEmpty();
+    }
+
     public void setMaterialComponent(GameObject go, MaterialComponent component) {
         Gdx.app.postRunnable(() -> {
             go.components.removeIf(c -> c instanceof MaterialComponent);
@@ -1417,6 +1655,7 @@ public class SceneManager {
             }
             String sceneJson = fileHandle.readString();
             json.setUsePrototypes(false);
+            json.setIgnoreUnknownFields(true);
             SceneData sceneData = json.fromJson(SceneData.class, sceneJson);
             if (sceneData == null || sceneData.gameObjects == null) { return; }
 

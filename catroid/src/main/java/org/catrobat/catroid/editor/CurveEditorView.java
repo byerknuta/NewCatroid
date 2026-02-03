@@ -10,15 +10,13 @@ import android.view.View;
 
 import org.catrobat.catroid.raptor.ParticleCurvePoint;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class CurveEditorView extends View {
 
     private List<ParticleCurvePoint<Float>> points;
-    private Paint linePaint, pointPaint, gridPaint, bgPaint;
+    private Paint linePaint, pointPaint, gridPaint, bgPaint, zeroLinePaint;
     private int selectedIndex = -1;
     private Runnable onUpdateListener;
 
@@ -45,31 +43,48 @@ public class CurveEditorView extends View {
         gridPaint.setColor(0x40FFFFFF);
         gridPaint.setStrokeWidth(2f);
 
+
+        zeroLinePaint = new Paint();
+        zeroLinePaint.setColor(0x80FF0000);
+        zeroLinePaint.setStrokeWidth(3f);
+
         bgPaint = new Paint();
         bgPaint.setColor(0xFF202020);
     }
 
-    public void setData(List<ParticleCurvePoint<Float>> points, float maxExpectedValue, Runnable onUpdate) {
+
+    public void setData(List<ParticleCurvePoint<Float>> points, float min, float max, Runnable onUpdate) {
         this.points = points;
-        this.maxVal = Math.max(1f, maxExpectedValue);
+
+        if (min >= max) max = min + 1f;
+        this.minVal = min;
+        this.maxVal = max;
         this.onUpdateListener = onUpdate;
         invalidate();
     }
 
-    public void setMaxVal(float maxVal) {
-        this.maxVal = Math.max(0.1f, maxVal);
+
+    public void setRange(float min, float max) {
+        if (min >= max) max = min + 1f;
+        this.minVal = min;
+        this.maxVal = max;
         invalidate();
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-
         canvas.drawRect(0, 0, getWidth(), getHeight(), bgPaint);
 
-
-        float h = getHeight();
         float w = getWidth();
-        canvas.drawLine(0, h/2, w, h/2, gridPaint);
+        float h = getHeight();
+
+
+        if (minVal < 0 && maxVal > 0) {
+            float zeroY = mapY(0);
+            canvas.drawLine(0, zeroY, w, zeroY, zeroLinePaint);
+        }
+
+
         canvas.drawLine(w/2, 0, w/2, h, gridPaint);
 
         if (points == null || points.isEmpty()) return;
@@ -88,7 +103,6 @@ public class CurveEditorView extends View {
             float x = mapX(points.get(i).time);
             float y = mapY(points.get(i).value);
 
-
             if (i == selectedIndex) {
                 pointPaint.setColor(Color.YELLOW);
                 canvas.drawCircle(x, y, 16, pointPaint);
@@ -99,7 +113,6 @@ public class CurveEditorView extends View {
         }
     }
 
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (points == null) return false;
@@ -109,18 +122,13 @@ public class CurveEditorView extends View {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                // ВАЖНО: Запрещаем родительскому ScrollView перехватывать касания
                 getParent().requestDisallowInterceptTouchEvent(true);
-
-                // Ищем ближайшую точку
-                float minDist = 80f; // Чуть увеличил радиус для удобства
+                float minDist = 80f;
                 selectedIndex = -1;
                 for (int i = 0; i < points.size(); i++) {
                     float px = mapX(points.get(i).time);
                     float py = mapY(points.get(i).value);
-                    float dist = (float) Math.hypot(touchX - px, touchY - py);
-                    if (dist < minDist) {
-                        minDist = dist;
+                    if (Math.hypot(touchX - px, touchY - py) < minDist) {
                         selectedIndex = i;
                     }
                 }
@@ -129,31 +137,31 @@ public class CurveEditorView extends View {
 
             case MotionEvent.ACTION_MOVE:
                 if (selectedIndex != -1) {
-                    // Продолжаем запрещать перехват при движении
                     getParent().requestDisallowInterceptTouchEvent(true);
 
+
                     float newTime = touchX / getWidth();
-                    float newVal = 1f - (touchY / getHeight()); // Инверсия Y
-                    newVal *= maxVal; // Масштабируем
 
                     newTime = Math.max(0f, Math.min(1f, newTime));
 
-                    // Не даем значению уйти ниже 0 (если это не турбулентность, но пока ограничим 0)
-                    // Можно убрать Math.max(0, ...), если нужны отрицательные значения
-                    // newVal = Math.max(0f, newVal);
+
+
+                    float normalizedY = 1f - (touchY / getHeight());
+
+                    float newVal = minVal + (normalizedY * (maxVal - minVal));
+
+
+                    newVal = Math.max(minVal, Math.min(maxVal, newVal));
 
                     points.get(selectedIndex).time = newTime;
                     points.get(selectedIndex).value = newVal;
-
                     invalidate();
                 }
                 return true;
 
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                // Разрешаем прокрутку обратно
                 getParent().requestDisallowInterceptTouchEvent(false);
-
                 if (selectedIndex != -1) {
                     Collections.sort(points, (o1, o2) -> Float.compare(o1.time, o2.time));
                     selectedIndex = -1;
@@ -171,8 +179,33 @@ public class CurveEditorView extends View {
 
     private float mapY(float val) {
 
-        float norm = val / maxVal;
+        float range = maxVal - minVal;
+        if (Math.abs(range) < 0.0001f) range = 1f;
+
+
+        float norm = (val - minVal) / range;
+
 
         return getHeight() * (1f - norm);
+    }
+
+    public boolean deleteSelectedPoint() {
+        if (selectedIndex != -1 && selectedIndex < points.size()) {
+            points.remove(selectedIndex);
+
+
+            selectedIndex = -1;
+
+
+            if (onUpdateListener != null) onUpdateListener.run();
+            invalidate();
+            return true;
+        }
+        return false;
+    }
+
+
+    public boolean hasSelection() {
+        return selectedIndex != -1;
     }
 }

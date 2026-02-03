@@ -213,6 +213,9 @@ public class ThreeDManager implements Disposable {
     }
 
     public void resize(int width, int height) {
+        camera.viewportWidth = width;
+        camera.viewportHeight = height;
+        camera.update();
         if (vfxManager != null) {
             vfxManager.resize(width, height);
         }
@@ -399,6 +402,7 @@ public class ThreeDManager implements Disposable {
     private ShaderProgram fogShader;
     private Mesh fullscreenQuad;
     private final Matrix4 inverseProjectionView = new Matrix4();
+    private final java.util.Set<String> hiddenSpawnIds = new java.util.HashSet<>();
 
     public void init() {
         init(new SceneSettings());
@@ -542,6 +546,8 @@ public class ThreeDManager implements Disposable {
 
         createDefaultParticleTexture();
 
+        contactListCallback = new NameAccumulatingContactCallback();
+
         fogShader = new ShaderProgram(
                 Gdx.files.internal("shaders/fog.vs.glsl"),
                 Gdx.files.internal("shaders/fog.fs.glsl")
@@ -561,6 +567,10 @@ public class ThreeDManager implements Disposable {
                 -1f,  1f, 0f, 1f
         });
         fullscreenQuad.setIndices(new short[] { 0, 1, 2, 2, 3, 0 });
+    }
+
+    public void flagObjectForHiddenSpawn(String objectId) {
+        hiddenSpawnIds.add(objectId);
     }
 
     public void createParticleProxy(String ownerId) {
@@ -1084,8 +1094,8 @@ public class ThreeDManager implements Disposable {
 
                     BloomEffect effect = new OptimizedBloomEffect(b.size);
 
-                    // Теперь Passes можно ставить МАЛО, так как картинка маленькая.
-                    // 3-4 прохода на маленькой текстуре выглядят как 10-15 на большой.
+
+
                     effect.setBlurPasses(b.blurPasses);
 
 
@@ -1658,14 +1668,33 @@ public class ThreeDManager implements Disposable {
 
 
     public void setFog(float r, float g, float b, float density) {
+        ColorAttribute fogAttr = new ColorAttribute(ColorAttribute.Fog, r, g, b, 1.0f);
+
         if (density > 0) {
-            environment.set(new ColorAttribute(ColorAttribute.Fog, r, g, b, 1f));
+            if (sceneManager != null) {
+                sceneManager.environment.set(fogAttr);
+            }
+            environment.set(fogAttr);
             camera.far = 1f / density;
         } else {
-            environment.remove(ColorAttribute.Fog);
             camera.far = 1000f;
+            if (sceneManager != null) sceneManager.environment.remove(ColorAttribute.Fog);
+            environment.remove(ColorAttribute.Fog);
         }
         camera.update();
+    }
+
+    public void setAngularFactor(String objectId, float x, float y, float z) {
+        btRigidBody body = physicsBodies.get(objectId);
+        if (body != null) {
+
+
+
+            body.setAngularFactor(new Vector3(x, y, z));
+
+
+            body.activate();
+        }
     }
 
 
@@ -1737,13 +1766,137 @@ public class ThreeDManager implements Disposable {
         setPhysicsState(objectId, state, shape, mass);
     }
 
-    private int frameCounter = 0;
+    public void setShadowSettings(float size, int resolution) {
+        this.currentShadowSize = Math.max(1f, size);
+
+
+
+        if (this.currentShadowResolution != resolution) {
+            this.currentShadowResolution = resolution;
+
+            Gdx.app.postRunnable(() -> {
+                recreateShadowLight();
+            });
+        }
+    }
+
+    public float getShadowSize() { return currentShadowSize; }
+    public float getShadowResolution() { return (float) currentShadowResolution; }
+
+    private void recreateShadowLight() {
+        if (sceneManager == null) return;
+
+
+        if (pbrLight != null) {
+            sceneManager.environment.remove(pbrLight);
+            if (pbrLight instanceof Disposable) {
+                ((Disposable) pbrLight).dispose();
+            }
+        }
+
+
+        net.mgsx.gltf.scene3d.lights.DirectionalShadowLight shadowLight =
+                new net.mgsx.gltf.scene3d.lights.DirectionalShadowLight(
+                        currentShadowResolution,
+                        currentShadowResolution
+                );
+
+
+
+
+        shadowLight.direction.set(1, -1.5f, 1).nor();
+        shadowLight.color.set(Color.WHITE);
+        shadowLight.intensity = 5.0f;
+
+        sceneManager.environment.add(shadowLight);
+        pbrLight = shadowLight;
+
+
+        updateProceduralIBL();
+    }
+
+
+    private void updateShadowLight() {
+        if (pbrLight instanceof net.mgsx.gltf.scene3d.lights.DirectionalShadowLight) {
+            net.mgsx.gltf.scene3d.lights.DirectionalShadowLight sun =
+                    (net.mgsx.gltf.scene3d.lights.DirectionalShadowLight) pbrLight;
+
+
+            Vector3 center = new Vector3(camera.position);
+
+
+
+            Vector3 forward = new Vector3(camera.direction).scl(currentShadowSize * 0.4f);
+            forward.y = 0;
+            center.add(forward);
+
+
+
+            center.y = 0;
+
+            sun.setCenter(center);
+
+
+            Camera shadowCam = sun.getCamera();
+            shadowCam.viewportWidth = currentShadowSize;
+            shadowCam.viewportHeight = currentShadowSize;
+
+
+
+
+            float depthRange = currentShadowSize * 2f;
+
+
+            shadowCam.near = -depthRange / 2f;
+            shadowCam.far = depthRange / 2f;
+
+            shadowCam.update();
+        }
+    }
+
+    private static class BoneAttachment {
+        String childId;
+        String parentModelId;
+        String boneName;
+
+
+        Vector3 localPosOffset = new Vector3();
+        Quaternion localRotOffset = new Quaternion();
+
+        public BoneAttachment(String child, String parent, String bone) {
+            this.childId = child;
+            this.parentModelId = parent;
+            this.boneName = bone;
+        }
+    }
+
+
+    private final List<BoneAttachment> activeAttachments = new ArrayList<>();
+
+
+
+    public void attachObjectToBone(String childId, String parentId, String boneName, float offsetX, float offsetY, float offsetZ) {
+
+        detachObject(childId);
+
+        BoneAttachment attachment = new BoneAttachment(childId, parentId, boneName);
+        attachment.localPosOffset.set(offsetX, offsetY, offsetZ);
+
+        activeAttachments.add(attachment);
+    }
+
+
+    public void detachObject(String childId) {
+        activeAttachments.removeIf(a -> a.childId.equals(childId));
+    }
 
     public void update(float delta) {
         if (LOG_THREED_MANAGER_DEBUG) Log.d("TDM_DEBUG", "--- ThreeDManager.update() START (Delta: " + delta + ") ---");
         if (cameraTargetId != null) {
             updateThirdPersonCamera();
         }
+
+        updateShadowLight();
 
         for (com.badlogic.gdx.graphics.g3d.utils.AnimationController controller : animationControllers.values()) {
             controller.update(delta);
@@ -2786,6 +2939,22 @@ public class ThreeDManager implements Disposable {
                 ModelInstance instance = new ModelInstance(model);
                 sceneObjects.put(objectId, instance);
 
+                if (realisticMode) {
+                    net.mgsx.gltf.scene3d.attributes.PBRColorAttribute baseColor =
+                            net.mgsx.gltf.scene3d.attributes.PBRColorAttribute.createBaseColorFactor(com.badlogic.gdx.graphics.Color.WHITE);
+
+                    for (Material mat : instance.materials) {
+                        mat.set(baseColor);
+                        mat.set(net.mgsx.gltf.scene3d.attributes.PBRFloatAttribute.createMetallic(0.0f));
+                        mat.set(net.mgsx.gltf.scene3d.attributes.PBRFloatAttribute.createRoughness(1.0f));
+                    }
+
+                    net.mgsx.gltf.scene3d.scene.Scene pbrScene = new net.mgsx.gltf.scene3d.scene.Scene(instance);
+                    sceneManager.addScene(pbrScene);
+                }
+
+                if (hiddenSpawnIds.contains(objectId)) { hiddenSpawnIds.remove(objectId); setObjectVisibility(objectId, false); }
+
                 return true;
             }
 
@@ -2825,6 +2994,9 @@ public class ThreeDManager implements Disposable {
             controller.setAnimation(null);
         }
     }
+
+    private float currentShadowSize = 100f;
+    private int currentShadowResolution = 2048;
 
 
     private void setupDefaultLighting() {
@@ -3150,6 +3322,8 @@ public class ThreeDManager implements Disposable {
             sceneManager.addScene(new net.mgsx.gltf.scene3d.scene.Scene(instance));
         }
 
+        if (hiddenSpawnIds.contains(objectId)) { hiddenSpawnIds.remove(objectId); setObjectVisibility(objectId, false); }
+
         return true;
     }
 
@@ -3327,11 +3501,8 @@ public class ThreeDManager implements Disposable {
 
     public void setPosition(String objectId, float x, float y, float z) {
         if (manager != null && manager.findGameObject(objectId) != null) {
-
             GameObject go = manager.findGameObject(objectId);
             manager.setPosition(go, new Vector3(x, y, z));
-
-            return;
         }
 
 
@@ -3357,10 +3528,13 @@ public class ThreeDManager implements Disposable {
     }
 
     public void setRotation(String objectId, float yaw, float pitch, float roll) {
+        Quaternion newRotation = new Quaternion().setEulerAngles(yaw, pitch, roll);
+        if (manager != null && manager.findGameObject(objectId) != null) {
+            GameObject go = manager.findGameObject(objectId);
+            manager.setRotation(go, newRotation);
+        }
         ModelInstance instance = sceneObjects.get(objectId);
         if (instance == null) return;
-
-        Quaternion newRotation = new Quaternion().setEulerAngles(yaw, pitch, roll);
 
         Vector3 position = new Vector3();
         instance.transform.getTranslation(position);
@@ -3516,6 +3690,51 @@ public class ThreeDManager implements Disposable {
     }
 
 
+    public float getDeltaTime() {
+        return Gdx.graphics.getDeltaTime();
+    }
+
+    public void setShadowsEnabled(boolean enabled) {
+        if (sceneManager == null || pbrLight == null) return;
+
+        boolean isShadowLight = pbrLight instanceof net.mgsx.gltf.scene3d.lights.DirectionalShadowLight;
+
+        if (enabled && !isShadowLight) {
+
+            Color oldColor = pbrLight.color.cpy();
+            Vector3 oldDir = pbrLight.direction.cpy();
+            float oldIntensity = pbrLight.intensity;
+
+            sceneManager.environment.remove(pbrLight);
+            recreateShadowLight();
+
+
+            if (pbrLight != null) {
+                pbrLight.direction.set(oldDir);
+                pbrLight.color.set(oldColor);
+                pbrLight.intensity = oldIntensity;
+            }
+        }
+        else if (!enabled && isShadowLight) {
+
+            net.mgsx.gltf.scene3d.lights.DirectionalShadowLight shadowLight =
+                    (net.mgsx.gltf.scene3d.lights.DirectionalShadowLight) pbrLight;
+
+            net.mgsx.gltf.scene3d.lights.DirectionalLightEx simpleLight =
+                    new net.mgsx.gltf.scene3d.lights.DirectionalLightEx();
+
+            simpleLight.direction.set(shadowLight.direction);
+            simpleLight.color.set(shadowLight.color);
+            simpleLight.intensity = shadowLight.intensity;
+
+            sceneManager.environment.remove(shadowLight);
+            if (shadowLight instanceof Disposable) ((Disposable) shadowLight).dispose();
+
+            sceneManager.environment.add(simpleLight);
+            pbrLight = simpleLight;
+        }
+    }
+
     public boolean createCube(String objectId) {
         if (sceneObjects.containsKey(objectId)) return false;
 
@@ -3544,6 +3763,8 @@ public class ThreeDManager implements Disposable {
         if (realisticMode && sceneManager != null) {
             sceneManager.addScene(new net.mgsx.gltf.scene3d.scene.Scene(instance));
         }
+
+        if (hiddenSpawnIds.contains(objectId)) { hiddenSpawnIds.remove(objectId); setObjectVisibility(objectId, false); }
 
         return true;
     }
@@ -4043,5 +4264,96 @@ public class ThreeDManager implements Disposable {
             collided = true;
             return 0;
         }
+    }
+
+
+    private class NameAccumulatingContactCallback extends com.badlogic.gdx.physics.bullet.collision.ContactResultCallback {
+        public StringBuilder namesBuilder = new StringBuilder();
+        private String targetId;
+
+        public void setTargetId(String targetId) {
+            this.targetId = targetId;
+            namesBuilder.setLength(0);
+        }
+
+        @Override
+        public float addSingleResult(com.badlogic.gdx.physics.bullet.collision.btManifoldPoint cp,
+                                     com.badlogic.gdx.physics.bullet.collision.btCollisionObjectWrapper colObj0Wrap, int partId0, int index0,
+                                     com.badlogic.gdx.physics.bullet.collision.btCollisionObjectWrapper colObj1Wrap, int partId1, int index1) {
+
+
+            btCollisionObject obj0 = colObj0Wrap.getCollisionObject();
+            btCollisionObject obj1 = colObj1Wrap.getCollisionObject();
+
+
+            String hitName = null;
+
+
+            for (Map.Entry<String, btRigidBody> entry : physicsBodies.entrySet()) {
+                if (entry.getValue().equals(obj0) && !entry.getKey().equals(targetId)) {
+                    hitName = entry.getKey();
+                    break;
+                }
+            }
+
+            if (hitName == null) {
+                for (Map.Entry<String, btRigidBody> entry : physicsBodies.entrySet()) {
+                    if (entry.getValue().equals(obj1) && !entry.getKey().equals(targetId)) {
+                        hitName = entry.getKey();
+                        break;
+                    }
+                }
+            }
+
+
+            if (hitName != null && namesBuilder.indexOf(hitName) == -1) {
+                if (namesBuilder.length() > 0) namesBuilder.append("\n");
+                namesBuilder.append(hitName);
+            }
+
+            return 0;
+        }
+    }
+
+    private NameAccumulatingContactCallback contactListCallback;
+
+
+    public String getPhysicsCollisionsList(String objectId) {
+        btRigidBody body = physicsBodies.get(objectId);
+        if (body == null) return "";
+
+        contactListCallback.setTargetId(objectId);
+
+        dynamicsWorld.contactTest(body, contactListCallback);
+
+        return contactListCallback.namesBuilder.toString();
+    }
+
+    public String getIntersectionCollisionsList(String objectId) {
+        ModelInstance targetInstance = sceneObjects.get(objectId);
+        if (targetInstance == null) return "";
+
+        StringBuilder sb = new StringBuilder();
+
+
+        targetInstance.calculateBoundingBox(bounds1);
+        bounds1.mul(targetInstance.transform);
+
+        for (Map.Entry<String, ModelInstance> entry : sceneObjects.entrySet()) {
+            String otherId = entry.getKey();
+            if (otherId.equals(objectId)) continue;
+
+            ModelInstance otherInstance = entry.getValue();
+
+
+            otherInstance.calculateBoundingBox(bounds2);
+            bounds2.mul(otherInstance.transform);
+
+            if (bounds1.intersects(bounds2)) {
+                if (sb.length() > 0) sb.append("\n");
+                sb.append(otherId);
+            }
+        }
+        return sb.toString();
     }
 }

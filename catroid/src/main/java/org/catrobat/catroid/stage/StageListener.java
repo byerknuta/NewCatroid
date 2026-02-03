@@ -1989,6 +1989,48 @@ public class StageListener implements ApplicationListener {
 
 	@Override
 	public void resize(int width, int height) {
+        boolean isScreenLandscape = width > height;
+        boolean isVirtualLandscape = virtualWidth > virtualHeight;
+
+        if (isScreenLandscape != isVirtualLandscape) {
+            float temp = virtualWidth;
+            virtualWidth = virtualHeight;
+            virtualHeight = temp;
+
+            virtualWidthHalf = virtualWidth / 2f;
+            virtualHeightHalf = virtualHeight / 2f;
+
+            if (sceneFbo != null) sceneFbo.dispose();
+            sceneFbo = new FrameBuffer(Pixmap.Format.RGBA8888, Math.round(virtualWidth), Math.round(virtualHeight), false);
+
+            if (postProcessFbo != null) postProcessFbo.dispose();
+            postProcessFbo = new FrameBuffer(Pixmap.Format.RGBA8888, Math.round(virtualWidth), Math.round(virtualHeight), false);
+
+            if (fboRegion != null) {
+                fboRegion.setTexture(sceneFbo.getColorBufferTexture());
+            } else {
+                fboRegion = new TextureRegion(sceneFbo.getColorBufferTexture());
+            }
+            fboRegion.flip(false, true);
+            initScreenMode();
+
+            if (stage != null) {
+                stage.setViewport(viewPort);
+            }
+
+            if (cameraPositioner != null) {
+                cameraPositioner = new CameraPositioner(camera, virtualHeightHalf, virtualWidthHalf);
+            }
+
+            if (maxViewPort != null) {
+                passepartout = new Passepartout(
+                        width, height,
+                        maxViewPort.getWidth(), maxViewPort.getHeight(),
+                        virtualWidth, virtualHeight);
+            }
+        }
+        camera.viewportHeight = height;
+        camera.viewportWidth = width;
 		if (viewPort != null) {
 			viewPort.update(width, height, false);
 		}

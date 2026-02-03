@@ -238,6 +238,10 @@ public final class XstreamSerializer {
 		xstream.alias("brick", EvalWebBrick.class);
 		xstream.alias("brick", CreateSphereBrick.class);
 		xstream.alias("brick", Set3dPositionBrick.class);
+        xstream.alias("brick", KeyframeAnimationBrick.class);
+        xstream.alias("brick", SetSpawnInvisibleBrick.class);
+        xstream.alias("brick", SetShadowsBrick.class);
+        xstream.alias("brick", SetRotationLockBrick.class);
 		xstream.alias("brick", SetCameraPosition2Brick.class);
 		xstream.alias("brick", SetCameraRotation2Brick.class);
 		xstream.alias("brick", SetCameraZoomBrick.class);

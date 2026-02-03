@@ -27,9 +27,8 @@ class SetMaterialAction : TemporalAction() {
 
         val sceneManager = StageActivity.getActiveStageListener()?.sceneManager ?: return
         val go = sceneManager.findObjectByName(name)
-        if (go == null) return
 
-        var material = go.getComponent(MaterialComponent::class.java)
+        var material = go?.getComponent(MaterialComponent::class.java)
         if (material == null) {
             material = MaterialComponent()
         }
@@ -49,6 +48,10 @@ class SetMaterialAction : TemporalAction() {
         normalTexture?.interpretString(scope)?.let { material.normalTexturePath = it }
         metallicRoughnessTexture?.interpretString(scope)?.let { material.metallicRoughnessTexturePath = it }
 
-        sceneManager.setMaterialComponent(go, material)
+        if (go == null) {
+            StageActivity.getActiveStageListener().threeDManager.applyPBRMaterial(name, material)
+        } else {
+            sceneManager.setMaterialComponent(go, material)
+        }
     }
 }

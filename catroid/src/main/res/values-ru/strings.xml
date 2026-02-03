@@ -23,6 +23,32 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string formatted="false" name="brick_shadows_label">Включить тени</string>
+    <string formatted="false" name="recovery_desc">Сканировать память на наличие проектов, не отображаемых в меню</string>
+    <string formatted="false" name="recovery_btn">Найти потерянные проекты</string>
+    <string formatted="false" name="recovery">Восстановление</string>
+    <string formatted="false" name="plugins_desc">Управление установленными плагинами</string>
+    <string formatted="false" name="additions">Дополнения</string>
+    <string formatted="false" name="plugins">Плагины</string>
+    <string formatted="false" name="brick_easing_title">Анимация (Easing)</string>
+    <string formatted="false" name="brick_easing_type_label">Тип</string>
+    <string formatted="false" name="brick_easing_time_label">Текущее Время</string>
+    <string formatted="false" name="brick_easing_duration_label">Длительность</string>
+    <string formatted="false" name="brick_easing_start_label">Начало</string>
+    <string formatted="false" name="brick_easing_end_label">Конец</string>
+    <string formatted="false" name="brick_rotation_lock_title">Откл. физ. вращение</string>
+    <string formatted="false" name="brick_rotation_lock_axes">Оси:</string>
+    <string formatted="false" name="brick_spawn_invisible_text">Создать скрытым объект</string>
+    <string name="brick_keyframe_anim_title">Кейфрейм анимация</string>
+    <string name="brick_keyframe_anim_object">ID объекта</string>
+    <string name="brick_keyframe_anim_action">Действие</string>
+    <string name="brick_keyframe_anim_time">Время</string>
+
+    <string-array name="keyframe_actions">
+        <item>Запустить</item>
+        <item>Остановить</item>
+        <item>Перейти ко времени</item>
+    </string-array>
     <!-- New Objects -->
     <string formatted="false" name="brick_square">Создать квадрат</string>
     <string formatted="false" name="brick_square_name">Название</string>
@@ -630,6 +656,9 @@
     <string name="formula_vector_angle" formatted="false">угол_из_направления</string>
     <string name="formula_vector_dir_param" formatted="false">(60)</string>
     <string name="formula_vector_angle_param" formatted="false">(0.6, 1)</string>
+    <string name="formula_delta" formatted="false">дельта-тайм</string>
+    <string name="formula_intersect_list" formatted="false">список_пересечений_объекта</string>
+    <string name="formula_collision_list" formatted="false">список_столкновений_объекта</string>
     <string name="formula_3d_pos_x" formatted="false">3D_позиция_x</string>
     <string name="formula_3d_pos_y" formatted="false">3D_позиция_y</string>
     <string name="formula_3d_pos_z" formatted="false">3D_позиция_z</string>

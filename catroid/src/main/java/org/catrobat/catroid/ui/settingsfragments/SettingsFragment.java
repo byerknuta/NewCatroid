@@ -58,6 +58,7 @@ import org.catrobat.catroid.utils.SnackbarUtil;
 import org.catrobat.catroid.utils.git.TokenManager;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -153,8 +154,9 @@ public class SettingsFragment extends PreferenceFragment {
 
 	public static final String SETTINGS_USE_CATBLOCKS = "settings_use_catblocks";
 
-	private static final String GITHUB_CLIENT_ID = "Ov23liKoq3h0cTgAbVYA"; // ЗАМЕНИТЕ
+	private static final String GITHUB_CLIENT_ID = "Ov23liKoq3h0cTgAbVYA";
 	private static final String GITHUB_REDIRECT_URI = "newcatroid://github-callback";
+    public static final String SETTINGS_RECOVER_PROJECTS = "setting_recover_projects";
 
 	private Preference githubPreference;
 
@@ -255,10 +257,16 @@ public class SettingsFragment extends PreferenceFragment {
 			testPreference.setEnabled(BuildConfig.DEBUG);
 			screen.removePreference(testPreference);
 		}
+        Preference recoverPref = findPreference(SETTINGS_RECOVER_PROJECTS);
+        if (recoverPref != null) {
+            recoverPref.setOnPreferenceClickListener(preference -> {
+                showRecoveryDialog();
+                return true;
+            });
+        }
 
 		githubPreference = findPreference("setting_github_login");
 
-		// Устанавливаем обработчик нажатия
 		githubPreference.setOnPreferenceClickListener(preference -> {
 			boolean isLoggedIn = TokenManager.INSTANCE.getToken(getActivity()) != null;
 
@@ -284,21 +292,13 @@ public class SettingsFragment extends PreferenceFragment {
 	private void updateGitHubPreference() {
 		String token = TokenManager.INSTANCE.getToken(getActivity());
 		if (token != null) {
-			// Устанавливаем временный текст на время загрузки
 			githubPreference.setSummary("Загрузка данных пользователя...");
-			// Запускаем сетевой запрос в фоновом потоке
 			fetchGitHubUser(token);
 		} else {
 			githubPreference.setSummary(R.string.github_not_logged_in);
 		}
 	}
 
-	/**
-	 * Выполняет сетевой запрос к GitHub API для получения информации о пользователе.
-	 * Должен выполняться в фоновом потоке.
-	 *
-	 * @param token OAuth токен для аутентификации.
-	 */
 	private void fetchGitHubUser(final String token) {
 		new Thread(() -> {
 			OkHttpClient client = new OkHttpClient();
@@ -313,14 +313,12 @@ public class SettingsFragment extends PreferenceFragment {
 					JSONObject json = new JSONObject(responseBody);
 					String username = json.getString("login");
 
-					// Обновление UI должно происходить в главном потоке
 					if (getActivity() != null) {
 						getActivity().runOnUiThread(() -> {
 							githubPreference.setSummary(getString(R.string.github_logged_in_as, username));
 						});
 					}
 				} else {
-					// Если токен недействителен или другая ошибка
 					handleFailedFetch();
 				}
 			} catch (Exception e) {
@@ -330,16 +328,11 @@ public class SettingsFragment extends PreferenceFragment {
 		}).start();
 	}
 
-	/**
-	 * Обрабатывает ошибку при загрузке данных пользователя.
-	 * Устанавливает текст по умолчанию и, возможно, удаляет недействительный токен.
-	 */
+
 	private void handleFailedFetch() {
 		if (getActivity() != null) {
 			getActivity().runOnUiThread(() -> {
 				githubPreference.setSummary("Не удалось получить данные");
-				// Опционально: можно удалить невалидный токен
-				// TokenManager.INSTANCE.clearToken(getActivity());
 			});
 		}
 	}
@@ -353,6 +346,75 @@ public class SettingsFragment extends PreferenceFragment {
 		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(authUrl));
 		startActivity(intent);
 	}
+
+    private void showRecoveryDialog() {
+        List<org.catrobat.catroid.content.ProjectRecoveryManager.LostProjectInfo> lostProjects =
+                org.catrobat.catroid.content.ProjectRecoveryManager.scanForLostProjects(getActivity());
+
+        if (lostProjects.isEmpty()) {
+            android.widget.Toast.makeText(getActivity(), "Потерянных проектов не найдено", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String[] displayNames = new String[lostProjects.size()];
+        boolean[] checkedItems = new boolean[lostProjects.size()];
+
+        for (int i = 0; i < lostProjects.size(); i++) {
+            displayNames[i] = lostProjects.get(i).projectName + "\n(" + lostProjects.get(i).folderName + ")";
+            checkedItems[i] = true;
+        }
+
+        new AlertDialog.Builder(getActivity())
+                .setTitle("Найденные проекты (" + lostProjects.size() + ")")
+                .setMultiChoiceItems(displayNames, checkedItems, (dialog, which, isChecked) -> {
+                    checkedItems[which] = isChecked;
+                })
+                .setPositiveButton("Восстановить", (dialog, which) -> {
+                    performRecovery(lostProjects, checkedItems);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void performRecovery(List<org.catrobat.catroid.content.ProjectRecoveryManager.LostProjectInfo> projects, boolean[] checked) {
+        int count = 0;
+        for (int i = 0; i < projects.size(); i++) {
+            if (checked[i]) {
+                File codeXml = new File(projects.get(i).path, "code.xml");
+                if(codeXml.exists()) {
+                    boolean touched = codeXml.setLastModified(System.currentTimeMillis());
+                }
+
+                count++;
+            }
+        }
+
+        String message = "Обработано проектов: " + count + ". Приложение будет перезапущено для обновления списка.";
+
+        new AlertDialog.Builder(getActivity())
+                .setTitle("Готово")
+                .setMessage(message)
+                .setCancelable(false)
+                .setPositiveButton("OK", (d, w) -> {
+                    restartApp();
+                })
+                .show();
+    }
+
+    private void restartApp() {
+        Context context = getActivity();
+        if (context == null) return;
+
+        Intent intent = context.getPackageManager()
+                .getLaunchIntentForPackage(context.getPackageName());
+
+        if (intent != null) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            context.startActivity(intent);
+            android.os.Process.killProcess(android.os.Process.myPid());
+            System.exit(0);
+        }
+    }
 
 	private void showLogoutDialog() {
 		new AlertDialog.Builder(getActivity())

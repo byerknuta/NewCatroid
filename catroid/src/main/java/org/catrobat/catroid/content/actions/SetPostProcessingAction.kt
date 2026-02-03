@@ -130,6 +130,7 @@ class SetPostProcessingAction : TemporalAction() {
                 when (paramIdx) {
                     1 -> data.strength = valFloat         // Strength
                     4 -> data.blurPasses = max(1, valFloat.toInt()) // Blur Passes
+                    3 -> data.size = valFloat
                 }
             }
             is PostProcessingData.OldTv -> {
@@ -163,6 +164,7 @@ class SetPostProcessingAction : TemporalAction() {
                 when (paramIdx) {
                     1 -> data.amount = valFloat           // Amount
                     4 -> data.passes = max(1, valFloat.toInt()) // Blur Passes
+                    3 -> data.size = valFloat
                 }
             }
             is PostProcessingData.Zoom -> {

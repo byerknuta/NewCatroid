@@ -1,92 +1,173 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:padding="16dp">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Sky Color"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"/>
-    <Button
-        android:id="@+id/btn_sky_color"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_marginTop="8dp"
-        android:text="Select Color"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Ambient Light Intensity"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"/>
-    <SeekBar
-        android:id="@+id/seekbar_ambient_light"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:max="200" />
-    <TextView
-        android:id="@+id/text_ambient_value"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="1.0"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Skybox (HDRI)"
-        android:textColor="@color/white"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"/>
+    android:layout_height="wrap_content">
 
     <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginTop="8dp">
+        android:padding="16dp">
+
         <TextView
-            android:id="@+id/text_skybox_path"
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="None"
-            android:textColor="@color/white"
-            android:ellipsize="start"
-            android:singleLine="true"/>
-        <ImageButton
-            android:id="@+id/btn_clear_skybox"
-            android:layout_width="40dp"
+            android:text="Sky Color"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"/>
+        <Button
+            android:id="@+id/btn_sky_color"
+            android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:src="@drawable/ic_close"
-            style="@style/Widget.AppCompat.Button.Borderless"/>
+            android:layout_marginTop="8dp"
+            android:text="Select Color"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Ambient Light Intensity"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"/>
+        <SeekBar
+            android:id="@+id/seekbar_ambient_light"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:max="200" />
+        <TextView
+            android:id="@+id/text_ambient_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="1.0"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Skybox (HDRI)"
+            android:textColor="@color/white"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp">
+            <TextView
+                android:id="@+id/text_skybox_path"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="None"
+                android:textColor="@color/white"
+                android:ellipsize="start"
+                android:singleLine="true"/>
+            <ImageButton
+                android:id="@+id/btn_clear_skybox"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                app:tint="#FF5252"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_select_skybox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Select Skybox Texture"/>
+
+        <!-- НОВАЯ СЕКЦИЯ ТЕНЕЙ -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Shadows Settings"
+            android:textColor="@color/white"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Distance (Quality vs Area)"
+                android:textSize="12sp"/>
+
+            <EditText
+                android:id="@+id/edit_shadow_distance"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:text="100"
+                android:textColor="#000000"
+                android:textColorHint="#424242"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Small (50) for rooms, Large (500) for cities."
+            android:textSize="10sp"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Resolution (Sharpness)"
+                android:textSize="12sp"/>
+
+            <Spinner
+                android:id="@+id/spinner_shadow_resolution"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="120dp"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_apply_shadows"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Apply Shadow Settings"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"/>
+
+        <!-- КОНЕЦ СЕКЦИИ ТЕНЕЙ -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Performance (Requires Restart)"
+            android:textColor="@color/white"
+            android:layout_marginTop="24dp"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"/>
+
+        <!-- Предполагается, что этот include существует и содержит поля для Lights/Bones -->
+        <!-- Если его нет, верни поля ввода, которые были раньше -->
+        <include layout="@layout/dialog_scene_settings_performance"/>
+
+        <Button
+            android:id="@+id/btn_apply_performance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Apply &amp; Restart 3D Engine"/>
+
     </LinearLayout>
-
-    <Button
-        android:id="@+id/btn_select_skybox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Select Skybox Texture"/>
-
-    <TextView
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="Performance (Requires Restart)"
-    android:textColor="@color/white"
-    android:layout_marginTop="24dp"
-    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"/>
-
-    <include layout="@layout/dialog_scene_settings_performance"/>
-
-    <Button
-        android:id="@+id/btn_apply_performance"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Apply &amp; Restart 3D Engine"/>
-
-</LinearLayout>
+</ScrollView>

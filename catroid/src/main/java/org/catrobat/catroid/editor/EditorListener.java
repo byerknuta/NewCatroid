@@ -6,16 +6,27 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.VertexAttributes;
+import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.input.GestureDetector;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.DebugDrawer;
 
 import org.catrobat.catroid.raptor.CameraComponent;
 import org.catrobat.catroid.raptor.ColliderShapeData;
 import org.catrobat.catroid.raptor.GameObject;
+import org.catrobat.catroid.raptor.KeyframeComponent;
+import org.catrobat.catroid.raptor.KeyframeData;
 import org.catrobat.catroid.raptor.PhysicsComponent;
 import org.catrobat.catroid.raptor.SceneManager;
 import org.catrobat.catroid.raptor.ThreeDManager;
@@ -34,6 +45,10 @@ public class EditorListener extends ApplicationAdapter {
     private ModelBatch gizmoBatch;
     private boolean showColliders = false;
 
+    private Model keyframeProxyModel;
+    private ModelInstance keyframeProxyInstance;
+    private ModelBatch debugBatch;
+
     public EditorListener(EditorActivity activity) {
         this.activity = activity;
     }
@@ -42,6 +57,41 @@ public class EditorListener extends ApplicationAdapter {
     public void create() {
         resetEngine();
         activity.onEditorReady(sceneManager, threeDManager);
+
+        debugBatch = new ModelBatch();
+
+        ModelBuilder modelBuilder = new ModelBuilder();
+
+
+
+        Material cyanMaterial = new Material(ColorAttribute.createDiffuse(Color.CYAN));
+        long usage = VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
+        float size = 1f;
+        int divisions = 4;
+
+        modelBuilder.begin();
+
+
+        modelBuilder.part("top", GL20.GL_TRIANGLES, usage, cyanMaterial)
+                .cone(size, size, size, divisions);
+
+
+        Matrix4 transform = new Matrix4().setToTranslation(0, -size, 0).rotate(Vector3.X, 180);
+        com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder prt = modelBuilder.part("bottom", GL20.GL_TRIANGLES, usage, cyanMaterial);
+        prt.cone(size, size, size, divisions);
+        prt.setVertexTransform(transform);
+
+        keyframeProxyModel = modelBuilder.end();
+
+        keyframeProxyInstance = new ModelInstance(keyframeProxyModel);
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        if (threeDManager != null) {
+            threeDManager.resize(width, height);
+        }
+        super.resize(width, height);
     }
 
     public void resetEngine() {
@@ -81,7 +131,7 @@ public class EditorListener extends ApplicationAdapter {
             editorCamera.lookAt(0, 0, 0);
 
             cameraController = new EditorCameraController(editorCamera);
-            gizmo = new Gizmo(sceneManager, editorCamera);
+            gizmo = new Gizmo(activity, sceneManager, editorCamera);
 
             setupInputProcessor();
 
@@ -212,6 +262,8 @@ public class EditorListener extends ApplicationAdapter {
         threeDManager.update(Gdx.graphics.getDeltaTime());
         threeDManager.render();
 
+        renderKeyframeVisuals();
+
         DebugDrawer dd = threeDManager.getDebugDrawer();
         if (dd != null) {
             dd.begin(threeDManager.getCamera());
@@ -268,6 +320,46 @@ public class EditorListener extends ApplicationAdapter {
         }
     }
 
+    private Vector3 tempVec3 = new Vector3();
+
+    private void renderKeyframeVisuals() {
+        GameObject selectedObject = gizmo.getSelectedObject();
+        if (selectedObject == null || !selectedObject.hasComponent(KeyframeComponent.class)) {
+            return;
+        }
+
+        KeyframeComponent anim = selectedObject.getComponent(KeyframeComponent.class);
+
+        synchronized (anim.keyframes) {
+            if (anim.keyframes.isEmpty()) {
+                return;
+            }
+
+
+            debugBatch.begin(cameraController.camera);
+            for (KeyframeData frame : anim.keyframes) {
+                keyframeProxyInstance.transform.setToTranslation(frame.position).scale(0.5f, 0.5f, 0.5f);
+                debugBatch.render(keyframeProxyInstance);
+            }
+            debugBatch.end();
+
+
+            DebugDrawer debugDrawer = threeDManager.getDebugDrawer();
+            if (debugDrawer == null) return;
+
+            for (int i = 0; i < anim.keyframes.size() - 1; i++) {
+                Vector3 start = anim.keyframes.get(i).position;
+                Vector3 end = anim.keyframes.get(i + 1).position;
+
+
+                tempVec3.set(1f, 1f, 1f);
+                debugDrawer.begin(cameraController.camera);
+                debugDrawer.drawLine(start, end, tempVec3);
+                debugDrawer.end();
+            }
+        }
+    }
+
     @Override
     public void dispose() {
         if (threeDManager != null) {
@@ -276,6 +368,8 @@ public class EditorListener extends ApplicationAdapter {
         if (gizmoBatch != null) {
             gizmoBatch.dispose();
         }
+        if (debugBatch != null) debugBatch.dispose();
+        if (keyframeProxyModel != null) keyframeProxyModel.dispose();
     }
 
     public SceneManager getSceneManager() {

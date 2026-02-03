@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_set_variable_easing_layout"
+        style="@style/BrickContainer.UserVariables.Big">
+
+        <include layout="@layout/icon_brick_category_data" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_easing_title" />
+
+        <!-- Выбор переменной -->
+        <Spinner
+            android:id="@+id/set_variable_easing_variable_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textDirection="locale" />
+
+        <!-- Выбор типа анимации (ТЕПЕРЬ СПИННЕР) -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_easing_type_label"
+            app:layout_newLine="true"/>
+        <Spinner
+            android:id="@+id/set_variable_easing_type_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textDirection="locale" />
+
+        <!-- Время -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_easing_time_label"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_easing_time_edit"
+            style="@style/BrickEditText" />
+
+        <!-- Длительность -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_easing_duration_label"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_easing_duration_edit"
+            style="@style/BrickEditText" />
+
+        <!-- Старт -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_easing_start_label"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_easing_start_edit"
+            style="@style/BrickEditText" />
+
+        <!-- Конец -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_easing_end_label"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_easing_end_edit"
+            style="@style/BrickEditText" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

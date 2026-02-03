@@ -20,6 +20,7 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import org.catrobat.catroid.raptor.ColliderShapeData;
 import org.catrobat.catroid.raptor.GameObject;
+import org.catrobat.catroid.raptor.KeyframeData;
 import org.catrobat.catroid.raptor.PhysicsComponent;
 import org.catrobat.catroid.raptor.SceneManager;
 
@@ -29,6 +30,7 @@ public class Gizmo {
 
     private final SceneManager sceneManager;
     private final Camera camera;
+    private final EditorActivity activity;
 
     private ModelInstance gizmoTranslateX, gizmoTranslateY, gizmoTranslateZ;
     private ModelInstance gizmoRotateX, gizmoRotateY, gizmoRotateZ;
@@ -37,20 +39,22 @@ public class Gizmo {
     private final BoundingBox boxX = new BoundingBox(), boxY = new BoundingBox(), boxZ = new BoundingBox();
 
     private EditorTool currentTool = EditorTool.TRANSLATE;
-    private GameObject selectedObject = null;
     private Axis selectedAxis = Axis.NONE;
+
+
+    private GameObject selectedObject = null;
+    private ColliderShapeData selectedCollider = null;
+    private KeyframeData selectedKeyframe = null;
 
     private final Vector3 intersectionPoint = new Vector3();
     private final Plane dragPlane = new Plane();
     private final Vector3 dragStartPoint = new Vector3();
     private final Vector3 dragCurrentPoint = new Vector3();
-
     private final Quaternion lastObjectRotation = new Quaternion();
-    private ColliderShapeData selectedCollider = null;
 
-    private final Vector3 initialDragPoint = new Vector3();
 
-    public Gizmo(SceneManager sceneManager, Camera camera) {
+    public Gizmo(EditorActivity activity, SceneManager sceneManager, Camera camera) {
+        this.activity = activity;
         this.sceneManager = sceneManager;
         this.camera = camera;
         createModels();
@@ -79,32 +83,41 @@ public class Gizmo {
         Model cubeModel = modelBuilder.createBox(0.2f, 0.2f, 0.2f, new Material(), usage);
         gizmoScaleBoxX = new ModelInstance(cubeModel);
         gizmoScaleBoxX.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
-
         gizmoScaleBoxY = new ModelInstance(cubeModel);
         gizmoScaleBoxY.materials.get(0).set(ColorAttribute.createDiffuse(Color.GREEN));
-
         gizmoScaleBoxZ = new ModelInstance(cubeModel);
         gizmoScaleBoxZ.materials.get(0).set(ColorAttribute.createDiffuse(Color.BLUE));
 
         Model stickModel = modelBuilder.createCylinder(0.05f, 1f, 0.05f, 8, new Material(ColorAttribute.createDiffuse(Color.WHITE)), usage);
-
         gizmoScaleLineX = new ModelInstance(stickModel);
         gizmoScaleLineX.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
-
         gizmoScaleLineY = new ModelInstance(stickModel);
         gizmoScaleLineY.materials.get(0).set(ColorAttribute.createDiffuse(Color.GREEN));
-
         gizmoScaleLineZ = new ModelInstance(stickModel);
         gizmoScaleLineZ.materials.get(0).set(ColorAttribute.createDiffuse(Color.BLUE));
+    }
+
+
+    public void setSelectedObject(GameObject go) {
+        this.selectedObject = go;
+        this.selectedCollider = null;
+        this.selectedKeyframe = null;
     }
 
     public void setSelected(GameObject go, ColliderShapeData collider) {
         this.selectedObject = go;
         this.selectedCollider = collider;
+        this.selectedKeyframe = null;
     }
 
-    public void setSelectedObject(GameObject go) {
-        this.selectedObject = go;
+    public void setSelectedKeyframe(GameObject owner, KeyframeData frame) {
+        this.selectedObject = owner;
+        this.selectedCollider = null;
+        this.selectedKeyframe = frame;
+    }
+
+    public KeyframeData getSelectedKeyframe() {
+        return selectedKeyframe;
     }
 
     public void setCurrentTool(EditorTool tool) {
@@ -115,14 +128,35 @@ public class Gizmo {
         return selectedAxis != Axis.NONE;
     }
 
+
+
+    private Vector3 getGizmoPosition() {
+        if (selectedKeyframe != null) {
+            return selectedKeyframe.position;
+        }
+        if (selectedObject == null) {
+            return Vector3.Zero;
+        }
+
+        Vector3 objectWorldPosition = selectedObject.transform.worldTransform.getTranslation(new Vector3());
+
+        if (selectedCollider != null) {
+            Vector3 localOffset = selectedCollider.centerOffset;
+            Quaternion worldRotation = selectedObject.transform.worldTransform.getRotation(new Quaternion());
+            Vector3 rotatedOffset = worldRotation.transform(new Vector3(localOffset));
+
+            return objectWorldPosition.add(rotatedOffset);
+        }
+
+        return objectWorldPosition;
+    }
+
     public void render(ModelBatch batch) {
         if (selectedObject == null || currentTool == EditorTool.HAND) return;
 
         Vector3 pos = getGizmoPosition();
-
         Gdx.gl.glClear(GL20.GL_DEPTH_BUFFER_BIT);
         batch.begin(camera);
-
         float distance = camera.position.dst(pos);
         float scale = distance * 0.15f;
 
@@ -134,53 +168,23 @@ public class Gizmo {
                 break;
             case ROTATE:
                 float ringScale = scale * 0.6f;
-                gizmoRotateX.transform.setToTranslation(pos)
-                        .scl(ringScale)
-                        .rotate(Vector3.Z, 90);
-
-                gizmoRotateY.transform.setToTranslation(pos)
-                        .scl(ringScale);
-
-                gizmoRotateZ.transform.setToTranslation(pos)
-                        .scl(ringScale)
-                        .rotate(Vector3.X, 90);
-
+                gizmoRotateX.transform.setToTranslation(pos).scl(ringScale).rotate(Vector3.Z, 90);
+                gizmoRotateY.transform.setToTranslation(pos).scl(ringScale);
+                gizmoRotateZ.transform.setToTranslation(pos).scl(ringScale).rotate(Vector3.X, 90);
                 batch.render(gizmoRotateX);
                 batch.render(gizmoRotateY);
                 batch.render(gizmoRotateZ);
                 break;
-
             case SCALE:
-                gizmoScaleLineX.transform.setToTranslation(pos)
-                        .scl(scale)
-                        .rotate(Vector3.Z, -90)
-                        .translate(0, 0.5f, 0);
-
-                gizmoScaleLineY.transform.setToTranslation(pos)
-                        .scl(scale)
-                        .translate(0, 0.5f, 0);
-
-                gizmoScaleLineZ.transform.setToTranslation(pos)
-                        .scl(scale)
-                        .rotate(Vector3.X, 90)
-                        .translate(0, 0.5f, 0);
-
+                gizmoScaleLineX.transform.setToTranslation(pos).scl(scale).rotate(Vector3.Z, -90).translate(0, 0.5f, 0);
+                gizmoScaleLineY.transform.setToTranslation(pos).scl(scale).translate(0, 0.5f, 0);
+                gizmoScaleLineZ.transform.setToTranslation(pos).scl(scale).rotate(Vector3.X, 90).translate(0, 0.5f, 0);
                 batch.render(gizmoScaleLineX);
                 batch.render(gizmoScaleLineY);
                 batch.render(gizmoScaleLineZ);
-
-                gizmoScaleBoxX.transform.setToTranslation(pos)
-                        .translate(scale, 0, 0)
-                        .scl(scale);
-
-                gizmoScaleBoxY.transform.setToTranslation(pos)
-                        .translate(0, scale, 0)
-                        .scl(scale);
-
-                gizmoScaleBoxZ.transform.setToTranslation(pos)
-                        .translate(0, 0, scale)
-                        .scl(scale);
-
+                gizmoScaleBoxX.transform.setToTranslation(pos).translate(scale, 0, 0).scl(scale);
+                gizmoScaleBoxY.transform.setToTranslation(pos).translate(0, scale, 0).scl(scale);
+                gizmoScaleBoxZ.transform.setToTranslation(pos).translate(0, 0, scale).scl(scale);
                 batch.render(gizmoScaleBoxX);
                 batch.render(gizmoScaleBoxY);
                 batch.render(gizmoScaleBoxZ);
@@ -243,6 +247,44 @@ public class Gizmo {
             }
             sceneManager.setPhysicsComponent(selectedObject, physics);
 
+        } else if (selectedKeyframe != null) {
+            switch (currentTool) {
+                case TRANSLATE: {
+                    float projection = dragVector.dot(axisVector);
+                    selectedKeyframe.position.add(axisVector.cpy().scl(projection));
+                    break;
+                }
+                case SCALE: {
+                    float projection = dragVector.dot(axisVector);
+                    float scaleAmount = projection * 0.1f;
+                    selectedKeyframe.scale.add(axisVector.cpy().scl(scaleAmount));
+                    break;
+                }
+                case ROTATE: {
+                    Vector3 currentVec = dragCurrentPoint.cpy().sub(getGizmoPosition());
+                    Vector3 startVec = dragStartPoint.cpy().sub(getGizmoPosition());
+
+                    Vector3 planeNormal = axisVector;
+                    Vector3 projectedStart = startVec.cpy().sub(planeNormal.cpy().scl(startVec.dot(planeNormal)));
+                    Vector3 projectedCurrent = currentVec.cpy().sub(planeNormal.cpy().scl(currentVec.dot(planeNormal)));
+
+                    projectedStart.nor();
+                    projectedCurrent.nor();
+
+                    float angle = (float) Math.toDegrees(Math.acos(projectedStart.dot(projectedCurrent)));
+
+                    if (Float.isNaN(angle) || angle < 0.01f) break;
+
+                    Vector3 cross = projectedStart.crs(projectedCurrent);
+                    float sign = Math.signum(cross.dot(axisVector));
+
+                    Quaternion deltaRotation = new Quaternion(axisVector, angle * sign);
+                    selectedKeyframe.rotation.mulLeft(deltaRotation);
+                    break;
+                }
+            }
+
+            activity.runOnUiThread(() -> activity.getInspectorManager().populateInspector(selectedObject));
         } else {
             switch (currentTool) {
                 case TRANSLATE: {
@@ -355,7 +397,7 @@ public class Gizmo {
         selectedAxis = Axis.NONE;
     }
 
-    private Vector3 getGizmoPosition() {
+    /*private Vector3 getGizmoPosition() {
         if (selectedObject == null) {
             return Vector3.Zero;
         }
@@ -384,7 +426,7 @@ public class Gizmo {
 
 
         return objectWorldPosition;
-    }
+    }*/
 
     public GameObject getSelectedObject() {
         return selectedObject;

@@ -177,12 +177,12 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="Дополнения">
+    <PreferenceCategory android:title="@string/additions">
 
         <PreferenceScreen
             android:key="setting_plugins_screen"
-            android:title="Плагины"
-            android:summary="Управление установленными плагинами"
+            android:title="@string/plugins"
+            android:summary="@string/plugins_desc"
             android:icon="@android:drawable/ic_menu_add" />
 
     </PreferenceCategory>
@@ -194,5 +194,13 @@
         android:key="setting_enable_crash_reports"
         android:summary="@string/preference_description_crash_reports"
         android:title="@string/preference_title_enable_crash_reports" />
+
+
+    <PreferenceCategory android:title="@string/recovery">
+        <Preference
+            android:key="setting_recover_projects"
+            android:title="@string/recovery_btn"
+            android:summary="@string/recovery_desc" />
+    </PreferenceCategory>
 
 </PreferenceScreen>

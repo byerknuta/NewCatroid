@@ -19,6 +19,8 @@ class SetActiveAction : TemporalAction() {
 
         if (gameObject != null) {
             sceneManager.setObjectActive(gameObject, activeState)
+        } else {
+            StageActivity.getActiveStageListener().threeDManager.setObjectVisibility(name, activeState)
         }
     }
 }

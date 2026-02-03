@@ -673,6 +673,24 @@ public class FormulaElement implements Serializable {
 				Vector3 pos = manager.getPosition(id);
 				return (pos != null) ? pos.x : 0.0;
 			}
+            case INTERSECT_LIST: {
+                ThreeDManager manager = getThreeDManager();
+                if (manager == null) return 0.0;
+                String id = String.valueOf(arguments.get(0));
+                return manager.getIntersectionCollisionsList(id);
+            }
+            case COLLISION_LIST: {
+                ThreeDManager manager = getThreeDManager();
+                if (manager == null) return 0.0;
+                String id = String.valueOf(arguments.get(0));
+                return manager.getPhysicsCollisionsList(id);
+            }
+            case DELTA: {
+                ThreeDManager manager = getThreeDManager();
+                if (manager == null) return -1;
+                //Log.d("GDX", String.valueOf(Gdx.graphics.getDeltaTime()));
+                return String.valueOf(manager.getDeltaTime());
+            }
 			case OBJECT_TOUCHES_OBJECT: {
 				ThreeDManager manager = getThreeDManager();
 				if (manager == null) return Conversions.FALSE;

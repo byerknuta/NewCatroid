@@ -3740,4 +3740,59 @@ public class ActionFactory extends Actions {
 		action.setParticleId(particleId);
 		return action;
 	}
+
+    public Action createSetShadowsAction(Sprite sprite, SequenceAction sequence, Formula enabledFormula) {
+        SetShadowsAction action = action(SetShadowsAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setEnabledFormula(enabledFormula);
+        return action;
+    }
+
+    public Action createSetVariableEasingAction(Sprite sprite, SequenceAction sequence,
+                                                UserVariable variable,
+                                                int typeIndex,
+                                                Formula time, Formula duration,
+                                                Formula start, Formula end) {
+        SetVariableEasingAction action = action(SetVariableEasingAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+
+        action.setScope(scope);
+        action.setUserVariable(variable);
+        action.setTypeIndex(typeIndex);
+        action.setTimeFormula(time);
+        action.setDurationFormula(duration);
+        action.setStartFormula(start);
+        action.setEndFormula(end);
+
+        return action;
+    }
+
+    public Action createSetRotationLockAction(Sprite sprite, SequenceAction sequence, Formula objectId) {
+        SetRotationLockAction action = action(SetRotationLockAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectId(objectId);
+        return action;
+    }
+
+    public Action createSetSpawnInvisibleAction(Sprite sprite, SequenceAction sequence, Formula objectId) {
+        org.catrobat.catroid.content.actions.SetSpawnInvisibleAction action =
+                action(org.catrobat.catroid.content.actions.SetSpawnInvisibleAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectId(objectId);
+        return action;
+    }
+
+    public Action createKeyframeAnimationAction(Sprite sprite, SequenceAction sequence,
+                                                Formula objectId, int actionType, Formula time) {
+        KeyframeAnimationAction action = action(KeyframeAnimationAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectId(objectId);
+        action.setActionType(actionType);
+        action.setTimeFormula(time);
+        return action;
+    }
 }

@@ -34,6 +34,8 @@ import org.catrobat.catroid.raptor.CameraComponent;
 import org.catrobat.catroid.raptor.ColliderShapeData;
 import org.catrobat.catroid.raptor.FogComponent;
 import org.catrobat.catroid.raptor.GameObject;
+import org.catrobat.catroid.raptor.KeyframeComponent;
+import org.catrobat.catroid.raptor.KeyframeData;
 import org.catrobat.catroid.raptor.LightComponent;
 import org.catrobat.catroid.raptor.MaterialComponent;
 import org.catrobat.catroid.raptor.ParticleComponent;
@@ -93,6 +95,7 @@ public class InspectorManager {
 
     public void populateInspector(GameObject go) {
         this.selectedObject = go;
+        //if (container == null) return;
         container.removeAllViews();
 
         if (go == null) {
@@ -144,6 +147,7 @@ public class InspectorManager {
         if (go.hasComponent(PostProcessingComponent.class)) createPostProcessingView(go);
         if (go.hasComponent(ParticleComponent.class)) createParticleView(go);
         if (go.hasComponent(FogComponent.class)) createFogView(go);
+        if (go.hasComponent(KeyframeComponent.class)) createKeyframeView(go);
         List<ScriptComponent> scripts = go.getComponents(ScriptComponent.class);
         for (ScriptComponent script : scripts) {
             createScriptView(go, script);
@@ -207,6 +211,172 @@ public class InspectorManager {
                 setWhiteTextToAllChildren((ViewGroup) child);
             }
         }
+    }
+
+    private final Vector3 tempPosition = new Vector3();
+    private final Quaternion tempRotation = new Quaternion();
+    private final Vector3 tempScale = new Vector3(1, 1, 1);
+    private boolean isPreviewingAnimation = false;
+
+    private void createKeyframeView(GameObject go) {
+        addComponentHeader("Keyframe Animation", true, false, () -> {
+            go.components.removeIf(c -> c instanceof KeyframeComponent);
+            populateInspector(go);
+        });
+
+        View view = inflater.inflate(R.layout.inspector_keyframe_component, container, false);
+        KeyframeComponent anim = go.getComponent(KeyframeComponent.class);
+
+
+        CheckBox autoStartCheck = view.findViewById(R.id.keyframe_autostart);
+        CheckBox loopCheck = view.findViewById(R.id.keyframe_loop);
+        autoStartCheck.setChecked(anim.autoStart);
+        loopCheck.setChecked(anim.looping);
+        autoStartCheck.setOnCheckedChangeListener((b, isChecked) -> anim.autoStart = isChecked);
+        loopCheck.setOnCheckedChangeListener((b, isChecked) -> anim.looping = isChecked);
+
+
+        ImageButton playBtn = view.findViewById(R.id.btn_keyframe_play);
+        ImageButton stopBtn = view.findViewById(R.id.btn_keyframe_stop);
+        SeekBar timelineSlider = view.findViewById(R.id.keyframe_timeline_slider);
+
+
+        playBtn.setOnClickListener(v -> {
+            if (!isPreviewingAnimation) {
+
+                KeyframeData kf = go.getComponent(KeyframeComponent.class).keyframes.get(0);
+                tempPosition.set(kf.position);
+                tempRotation.set(kf.rotation);
+                tempScale.set(kf.scale);
+                isPreviewingAnimation = true;
+            }
+            anim.isPlaying = true;
+            anim.currentTime = 0;
+            sceneManager.setEditorMode(false);
+        });
+
+        stopBtn.setOnClickListener(v -> {
+            anim.currentTime = 0;
+            anim.isPlaying = false;
+            sceneManager.setEditorMode(true);
+            if (isPreviewingAnimation) {
+
+                go.transform.position.set(tempPosition);
+                go.transform.rotation.set(tempRotation);
+                go.transform.scale.set(tempScale);
+                isPreviewingAnimation = false;
+                populateInspector(go);
+            }
+        });
+
+        timelineSlider.setMax(1000);
+        timelineSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    float time = (progress / 1000f) * anim.getDuration();
+                    sceneManager.setKeyframeAnimationTime(go.id, time);
+                    populateInspector(go);
+                }
+            }
+            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+
+        LinearLayout listContainer = view.findViewById(R.id.keyframe_list_container);
+        listContainer.removeAllViews();
+
+        ArrayAdapter<String> easingAdapter = new ArrayAdapter<>(activity,
+                R.layout.simple_spinner_item_white_text,
+                activity.getResources().getStringArray(R.array.brick_easing_types));
+        easingAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
+
+        for (int i = 0; i < anim.keyframes.size(); i++) {
+            KeyframeData frame = anim.keyframes.get(i);
+            View item = inflater.inflate(R.layout.inspector_keyframe_item, listContainer, false);
+
+            EditText timeEdit = item.findViewById(R.id.edit_keyframe_time);
+            Spinner easingSpinner = item.findViewById(R.id.spinner_keyframe_easing);
+            ImageButton deleteBtn = item.findViewById(R.id.btn_delete_keyframe);
+
+            timeEdit.setText(String.format(Locale.US, "%.2f", frame.time));
+
+
+            timeEdit.setOnFocusChangeListener((v, hasFocus) -> {
+                if (!hasFocus) {
+                    try {
+                        float newTime = Float.parseFloat(timeEdit.getText().toString());
+
+                        frame.time = Math.max(0, newTime);
+                        anim.sortKeyframes();
+
+                        activity.runOnUiThread(() -> populateInspector(go));
+                    } catch (Exception e) {
+                        timeEdit.setText(String.format(Locale.US, "%.2f", frame.time));
+                    }
+                }
+            });
+
+            timeEdit.setOnEditorActionListener((v, actionId, event) -> {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    timeEdit.clearFocus();
+                    return false;
+                }
+                return false;
+            });
+            easingSpinner.setAdapter(easingAdapter);
+            easingSpinner.setSelection(frame.easingToNext.ordinal());
+
+
+            if (i == 0) deleteBtn.setVisibility(View.GONE);
+
+            easingSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                    frame.easingToNext = org.catrobat.catroid.content.EasingFunctions.EasingType.values()[pos];
+                }
+                @Override public void onNothingSelected(AdapterView<?> parent) {}
+            });
+
+            deleteBtn.setOnClickListener(v -> {
+                anim.keyframes.remove(frame);
+                populateInspector(go);
+            });
+
+            item.setOnClickListener(v -> {
+
+                if (gizmo != null) {
+                    gizmo.setSelectedKeyframe(go, frame);
+                }
+
+                populateInspector(go);
+            });
+
+            if (gizmo != null && gizmo.getSelectedKeyframe() == frame) {
+                item.setBackgroundColor(0x559999FF);
+            }
+
+            listContainer.addView(item);
+        }
+
+
+        Button addBtn = view.findViewById(R.id.btn_add_keyframe);
+        addBtn.setOnClickListener(v -> {
+            KeyframeData newFrame = new KeyframeData();
+
+            newFrame.position.set(go.transform.position);
+            newFrame.rotation.set(go.transform.rotation);
+            newFrame.scale.set(go.transform.scale);
+
+            newFrame.time = anim.getDuration() + 1.0f;
+
+            anim.keyframes.add(newFrame);
+            anim.sortKeyframes();
+            populateInspector(go);
+        });
+
+        container.addView(view);
     }
 
     private int libGdxColorToAndroidColor(com.badlogic.gdx.graphics.Color gdxColor) {
@@ -741,7 +911,7 @@ public class InspectorManager {
             populateInspector(go);
         });
 
-        // Создаем контейнер для настроек
+
         LinearLayout mainLayout = new LinearLayout(activity);
         mainLayout.setOrientation(LinearLayout.VERTICAL);
         container.addView(mainLayout);
@@ -749,12 +919,12 @@ public class InspectorManager {
         ParticleComponent p = go.getComponent(ParticleComponent.class);
         p.migrateOldDataIfNeeded();
 
-        // 1. Basic Settings (Checkbox & Numerics)
+
         View basicView = inflater.inflate(R.layout.inspector_particle, mainLayout, false);
         setWhiteTextToAllChildren((ViewGroup) basicView);
         mainLayout.addView(basicView);
 
-        // Привязываем базовые поля через старый Layout (Looping, Duration...)
+
         CheckBox loopingCheck = basicView.findViewById(R.id.p_looping);
         loopingCheck.setChecked(p.looping);
         loopingCheck.setOnCheckedChangeListener((v, isChecked) -> { p.looping = isChecked; updateParticles(go); });
@@ -764,35 +934,35 @@ public class InspectorManager {
         setupFloatParam(basicView, R.id.p_max_particles, "Max Particles", p.maxParticles, v -> { p.maxParticles = (int)v; updateParticles(go); });
         setupFloatParam(basicView, R.id.p_emission_rate, "Rate/Sec", p.emissionRate, v -> { p.emissionRate = v; updateParticles(go); });
 
-        // СКРЫВАЕМ старые поля из XML, так как заменим их на крутые редакторы
+
         hideOldFields(basicView);
 
-        // 2. SPAWN SHAPE UI (Форма спавна)
+
         setupSpawnShapeUI(mainLayout, p, go);
 
-        // 3. VISUAL GRAPH EDITORS (Визуальные графики)
-        // Размер
-        setupFloatParam(mainLayout, R.id.p_start_size, "Base Size Multiplier", p.baseSize, v -> {p.baseSize = v; updateParticles(go);}); // Используем ID или создаем новый View
-        // Если setupFloatParam ищет ID внутри mainLayout, нужно добавить view туда.
-        // Но проще создать простое поле вручную:
+
+
+        setupFloatParam(mainLayout, R.id.p_start_size, "Base Size Multiplier", p.baseSize, v -> {p.baseSize = v; updateParticles(go);});
+
+
         addSimpleFloatInput(mainLayout, "Base Size", p.baseSize, v -> { p.baseSize = v; updateParticles(go); });
 
-        setupFloatGraphEditor(mainLayout, "Size over Lifetime", p.sizeGraph, go, 3f);
+        setupFloatGraphEditor(mainLayout, "Size over Lifetime", p.sizeGraph, go, 0f, 3f);
 
-        // Скорость & Силы
-        setupFloatGraphEditor(mainLayout, "Speed (Along Shape)", p.speedGraph, go, 20f);
-        setupFloatParam(basicView, R.id.p_cone_angle, "Spread Angle (0-180)", p.coneAngle, v -> { p.coneAngle = v; updateParticles(go); }); // Angle оставим, он важен
 
-        setupFloatGraphEditor(mainLayout, "Gravity (Y Axis)", p.gravityGraph, go, 20f);
-        setupFloatGraphEditor(mainLayout, "Vortex (Tornado)", p.vortexGraph, go, 10f);
-        setupFloatGraphEditor(mainLayout, "Turbulence (Chaos)", p.turbulenceGraph, go, 10f);
-        setupFloatGraphEditor(mainLayout, "Rotation (Deg/s)", p.rotationGraph, go, 180f);
+        setupFloatGraphEditor(mainLayout, "Speed (Along Shape)", p.speedGraph, go, 0, 10f);
+        setupFloatParam(basicView, R.id.p_cone_angle, "Spread Angle (0-180)", p.coneAngle, v -> { p.coneAngle = v; updateParticles(go); });
 
-        // 4. COLOR GRAPH (Список цветов)
+        setupFloatGraphEditor(mainLayout, "Gravity (Y Axis)", p.gravityGraph, go, -10f, 10f);
+        setupFloatGraphEditor(mainLayout, "Vortex (Tornado)", p.vortexGraph, go, -10f, 10f);
+        setupFloatGraphEditor(mainLayout, "Turbulence (Chaos)", p.turbulenceGraph, go, 0f, 10f);
+        setupFloatGraphEditor(mainLayout, "Rotation (Deg/s)", p.rotationGraph, go, -180f, 180f);
+
+
         setupColorGraphEditor(mainLayout, "Color over Lifetime", p.colorGraph, go);
 
-        // 5. TEXTURE (Рендерер)
-        // Используем логику из XML, которую мы уже inflat-или в basicView
+
+
         TextView pathText = basicView.findViewById(R.id.text_texture_path);
         Button selectButton = basicView.findViewById(R.id.btn_select_texture);
         ImageButton clearButton = basicView.findViewById(R.id.btn_clear_texture);
@@ -806,7 +976,7 @@ public class InspectorManager {
         additiveCheck.setOnCheckedChangeListener((v, isChecked) -> { p.isAdditive = isChecked; updateParticles(go); });
     }
 
-    // Вспомогательный метод скрыть старое
+
     private void hideOldFields(View view) {
         int[] ids = {R.id.p_start_speed, R.id.p_start_size, R.id.p_gravity, R.id.p_end_size, R.id.p_start_rotation, R.id.p_rotation_over_lifetime, R.id.p_cone_radius};
         for (int id : ids) {
@@ -815,11 +985,11 @@ public class InspectorManager {
         }
         View colorStart = view.findViewById(R.id.p_start_color);
         if(colorStart != null && colorStart.getParent() instanceof View) {
-            ((View)colorStart.getParent()).setVisibility(View.GONE); // Скрываем ряд кнопок цвета
+            ((View)colorStart.getParent()).setVisibility(View.GONE);
         }
     }
 
-    // Простой инпут для флоатов (без XML)
+
     private void addSimpleFloatInput(LinearLayout parent, String label, float val, FloatConsumer onChange) {
         View view = inflater.inflate(R.layout.inspector_param_float, parent, false);
         setWhiteTextToAllChildren((ViewGroup) view);
@@ -832,7 +1002,7 @@ public class InspectorManager {
         parent.addView(view);
     }
 
-    // --- НАСТРОЙКА ФОРМЫ СПАВНА ---
+
     private void setupSpawnShapeUI(LinearLayout container, ParticleComponent p, GameObject go) {
         TextView header = new TextView(activity);
         header.setText("Spawn Shape");
@@ -841,7 +1011,7 @@ public class InspectorManager {
         header.setPadding(0, 20, 0, 5);
         container.addView(header);
 
-        // Spinner (Enum)
+
         Spinner shapeSpinner = new Spinner(activity);
         ArrayAdapter<ParticleComponent.SpawnShape> adapter = new ArrayAdapter<>(activity, R.layout.simple_spinner_item_white_text, ParticleComponent.SpawnShape.values());
         adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
@@ -858,16 +1028,16 @@ public class InspectorManager {
         });
         container.addView(shapeSpinner);
 
-        // Dimensions (Vector3)
-        View vec3View = inflater.inflate(R.layout.inspector_transform, null); // Переиспользуем layout трансформа
-        // Но там заголовки Pos/Rot/Scale. Нам нужно только 1 ряд.
-        // Проще создать 3 поля вручную.
+
+        View vec3View = inflater.inflate(R.layout.inspector_transform, null);
+
+
 
         addSimpleFloatInput(container, "Size X (Radius/Width)", p.spawnSize.x, v -> { p.spawnSize.x = v; updateParticles(go); });
         addSimpleFloatInput(container, "Size Y (Height)", p.spawnSize.y, v -> { p.spawnSize.y = v; updateParticles(go); });
         addSimpleFloatInput(container, "Size Z (Depth)", p.spawnSize.z, v -> { p.spawnSize.z = v; updateParticles(go); });
 
-        // Surface Checkbox
+
         CheckBox surfaceCheck = new CheckBox(activity);
         surfaceCheck.setText("Spawn on Surface Only");
         surfaceCheck.setTextColor(Color.WHITE);
@@ -876,97 +1046,160 @@ public class InspectorManager {
         container.addView(surfaceCheck);
     }
 
-    // --- ВИЗУАЛЬНЫЙ РЕДАКТОР ГРАФИКА (Зеленая линия) ---
-    private void setupFloatGraphEditor(LinearLayout container, String title, List<org.catrobat.catroid.raptor.ParticleCurvePoint<Float>> graph, GameObject go, float defaultMaxVal) {
-        // Заголовок и настройки в одной строке
+
+    private void setupFloatGraphEditor(LinearLayout container, String title, List<org.catrobat.catroid.raptor.ParticleCurvePoint<Float>> graph, GameObject go, float defaultMin, float defaultMax) {
+
         LinearLayout headerLayout = new LinearLayout(activity);
         headerLayout.setOrientation(LinearLayout.HORIZONTAL);
         headerLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
-        headerLayout.setPadding(0, 20, 0, 5);
+        headerLayout.setPadding(0, 24, 0, 8);
+
 
         TextView header = new TextView(activity);
         header.setText(title);
         header.setTextColor(Color.WHITE);
         header.setTextSize(14);
-        // Занимает всё доступное место
+        header.setTypeface(null, android.graphics.Typeface.BOLD);
+
         LinearLayout.LayoutParams headerParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         header.setLayoutParams(headerParams);
         headerLayout.addView(header);
 
-        // Поле "Max Y"
+
+        android.widget.LinearLayout.LayoutParams labelParams = new android.widget.LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        labelParams.setMargins(16, 0, 4, 0);
+
+
+        TextView minLabel = new TextView(activity);
+        minLabel.setText("Min:");
+        minLabel.setTextColor(Color.GRAY);
+        minLabel.setTextSize(10);
+        minLabel.setLayoutParams(labelParams);
+        headerLayout.addView(minLabel);
+
+        EditText minEdit = new EditText(activity);
+        minEdit.setText(String.format(Locale.US, "%.1f", defaultMin));
+        minEdit.setTextColor(Color.WHITE);
+        minEdit.setTextSize(12);
+        minEdit.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        minEdit.setMinWidth(100);
+        headerLayout.addView(minEdit);
+
+
         TextView maxLabel = new TextView(activity);
         maxLabel.setText("Max:");
         maxLabel.setTextColor(Color.GRAY);
         maxLabel.setTextSize(10);
+        maxLabel.setLayoutParams(labelParams);
         headerLayout.addView(maxLabel);
 
         EditText maxEdit = new EditText(activity);
-        maxEdit.setText(String.format(Locale.US, "%.1f", defaultMaxVal));
+        maxEdit.setText(String.format(Locale.US, "%.1f", defaultMax));
         maxEdit.setTextColor(Color.WHITE);
         maxEdit.setTextSize(12);
-        maxEdit.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        maxEdit.setMinWidth(100); // Чтобы было куда нажать
+        maxEdit.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        maxEdit.setMinWidth(100);
         headerLayout.addView(maxEdit);
 
         container.addView(headerLayout);
 
-        // 1. График
+
         CurveEditorView graphView = new CurveEditorView(activity);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams graphParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 (int) (150 * activity.getResources().getDisplayMetrics().density));
-        params.setMargins(0, 0, 0, 8);
-        graphView.setLayoutParams(params);
+        graphParams.setMargins(0, 0, 0, 8);
+        graphView.setLayoutParams(graphParams);
 
-        // Listener для изменения масштаба
-        addSimpleTextListener(maxEdit, s -> {
+
+        Runnable updateRange = () -> {
             try {
-                float val = Float.parseFloat(s);
-                graphView.setMaxVal(val);
-            } catch (Exception e) {}
-        });
+                float min = Float.parseFloat(minEdit.getText().toString());
+                float max = Float.parseFloat(maxEdit.getText().toString());
 
-        graphView.setData(graph, defaultMaxVal, () -> updateParticles(go));
+                if (min >= max) max = min + 0.1f;
+                graphView.setRange(min, max);
+            } catch (Exception e) {}
+        };
+
+        addSimpleTextListener(minEdit, s -> updateRange.run());
+        addSimpleTextListener(maxEdit, s -> updateRange.run());
+
+
+        graphView.setData(graph, defaultMin, defaultMax, () -> updateParticles(go));
         container.addView(graphView);
 
-        // 2. Кнопки (Clear / Add)
+
         LinearLayout btnLayout = new LinearLayout(activity);
         btnLayout.setOrientation(LinearLayout.HORIZONTAL);
         btnLayout.setGravity(android.view.Gravity.END);
 
+
         Button clearBtn = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
         clearBtn.setText("Clear");
+        clearBtn.setTextColor(Color.parseColor("#FF8A80"));
         clearBtn.setOnClickListener(v -> {
             graph.clear();
-            // Получаем текущий макс из поля ввода, чтобы не сбросился масштаб
-            float currentMax = 10f;
-            try { currentMax = Float.parseFloat(maxEdit.getText().toString()); } catch(Exception e){}
+            float currentMin = 0f, currentMax = 1f;
+            try {
+                currentMin = Float.parseFloat(minEdit.getText().toString());
+                currentMax = Float.parseFloat(maxEdit.getText().toString());
+            } catch(Exception e){}
 
-            graphView.setData(graph, currentMax, () -> updateParticles(go));
+            graphView.setData(graph, currentMin, currentMax, () -> updateParticles(go));
             updateParticles(go);
         });
+
+
+        Button delSelBtn = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
+        delSelBtn.setText("Del Selected");
+        delSelBtn.setOnClickListener(v -> {
+            boolean deleted = graphView.deleteSelectedPoint();
+            if (!deleted) {
+                Toast.makeText(activity, "Select a point on graph first", Toast.LENGTH_SHORT).show();
+            } else {
+                updateParticles(go);
+            }
+        });
+
 
         Button addBtn = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
         addBtn.setText("Add Point");
         addBtn.setOnClickListener(v -> {
-            float currentMax = 10f;
-            try { currentMax = Float.parseFloat(maxEdit.getText().toString()); } catch(Exception e){}
+            float currentMin = 0f, currentMax = 1f;
+            try {
+                currentMin = Float.parseFloat(minEdit.getText().toString());
+                currentMax = Float.parseFloat(maxEdit.getText().toString());
+            } catch(Exception e){}
+
 
             float newTime = graph.isEmpty() ? 0.5f : graph.get(graph.size()-1).time + 0.2f;
             if (newTime > 1f) newTime = 1f;
-            float newVal = graph.isEmpty() ? currentMax / 2f : graph.get(graph.size()-1).value;
+
+
+            float midVal = (currentMin + currentMax) / 2f;
+
+            float newVal = graph.isEmpty() ? midVal : graph.get(graph.size()-1).value;
 
             graph.add(new org.catrobat.catroid.raptor.ParticleCurvePoint<>(newTime, newVal));
-            graphView.setData(graph, currentMax, () -> updateParticles(go));
+
+
+            graphView.setData(graph, currentMin, currentMax, () -> updateParticles(go));
             updateParticles(go);
         });
 
         btnLayout.addView(clearBtn);
+
+        View spacer1 = new View(activity); spacer1.setLayoutParams(new LinearLayout.LayoutParams(16, 1)); btnLayout.addView(spacer1);
+        btnLayout.addView(delSelBtn);
+        View spacer2 = new View(activity); spacer2.setLayoutParams(new LinearLayout.LayoutParams(16, 1)); btnLayout.addView(spacer2);
         btnLayout.addView(addBtn);
+
         container.addView(btnLayout);
     }
 
-    // --- РЕДАКТОР СПИСКА ЦВЕТОВ ---
+
     private void setupColorGraphEditor(LinearLayout container, String title, List<org.catrobat.catroid.raptor.ParticleCurvePoint<com.badlogic.gdx.graphics.Color>> graph, GameObject go) {
         TextView header = new TextView(activity);
         header.setText(title);
@@ -1477,7 +1710,7 @@ public class InspectorManager {
     }
 
     private void showAddComponentDialog(GameObject go) {
-        String[] components = {"Render", "Physics", "Light", "Animation", "Camera", "Material", "Post Processing", "Particle System"};
+        String[] components = {"Render", "Physics", "Light", "Animation", "Camera", "Material", "Post Processing", "Particle System", "Keyframe Animation"};
         new AlertDialog.Builder(activity)
                 .setTitle("Add Component")
                 .setItems(components, (dialog, which) -> {
@@ -1527,7 +1760,12 @@ public class InspectorManager {
                                 updateParticles(go);
                             }
                             break;
-                        /*case 8:
+                        case 8:
+                            if (!go.hasComponent(KeyframeComponent.class)) {
+                                go.addComponent(new KeyframeComponent());
+                            }
+                            break;
+                        /*case 9:
                             if (!go.hasComponent(FogComponent.class)) {
                                 go.addComponent(new FogComponent());
                             }

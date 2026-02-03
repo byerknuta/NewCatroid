@@ -21,6 +21,17 @@ public class GameObject {
     }
 
     public boolean addComponent(Component component) {
+        if (component instanceof KeyframeComponent) {
+            KeyframeComponent keyframeComp = (KeyframeComponent) component;
+            if (keyframeComp.keyframes.isEmpty()) {
+                KeyframeData initialFrame = new KeyframeData();
+                initialFrame.time = 0f;
+                initialFrame.position.set(this.transform.position);
+                initialFrame.rotation.set(this.transform.rotation);
+                initialFrame.scale.set(this.transform.scale);
+                keyframeComp.keyframes.add(initialFrame);
+            }
+        }
         components.add(component);
         return true;
     }
