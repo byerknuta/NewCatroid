@@ -196,12 +196,13 @@ public class SceneManager {
             if (parentModel == null) continue;
 
 
-            com.badlogic.gdx.graphics.g3d.model.Node bone = parentModel.getNode(att.boneName);
+            com.badlogic.gdx.graphics.g3d.model.Node bone = parentModel.getNode(att.boneName, true);
             if (bone != null) {
 
+                child.transform.worldTransform.set(parentModel.transform);
 
 
-                child.transform.worldTransform.set(bone.globalTransform);
+                child.transform.worldTransform.mul(bone.globalTransform);
 
 
                 child.transform.worldTransform.translate(att.localPosOffset);
@@ -212,6 +213,9 @@ public class SceneManager {
 
                 child.transform.worldTransform.getTranslation(child.transform.position);
                 child.transform.worldTransform.getRotation(child.transform.rotation, true);
+            } else {
+
+                Log.e("SceneManager", "ОШИБКА ПРИВЯЗКИ: Кость '" + att.boneName + "' не найдена в модели!");
             }
         }
     }
@@ -1114,7 +1118,9 @@ public class SceneManager {
         if (render != null && render.modelFileName != null && !render.modelFileName.isEmpty()) {
             String modelName = render.modelFileName;
             if (modelName.startsWith("primitive:")) {
-                if (modelName.equals("primitive:cube")) {
+                if (modelName.equals("primitive:cylinder")) {
+                    engine.createCylinder(go.id);
+                } else if (modelName.equals("primitive:cube")) {
                     engine.createCube(go.id);
                 } else if (modelName.equals("primitive:sphere")) {
                     engine.createSphere(go.id);

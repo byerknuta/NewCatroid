@@ -69,8 +69,13 @@
         android:src="@drawable/ic_plus"
         android:tint="@color/solid_white"
         android:theme="@style/Theme.AppCompat"
-        app:backgroundTint="@color/action_button"
-        app:elevation="10dp"
-        android:onClick="handleAddButton" />
+        android:onClick="handleAddButton"
+        android:layout_margin="12dp"
+        android:contentDescription="@string/main_menu_new"
+        app:tint="@color/solid_white"
+        app:backgroundTint="@color/button_background"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.NewCatroid.FAB"
+        app:fabCustomSize="65dp"
+        app:elevation="6dp" />
 
 </RelativeLayout>

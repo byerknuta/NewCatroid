@@ -23,6 +23,106 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string formatted="false" name="brick_threed_fixed_joint_title">Создать Фикс. Шарнир</string>
+    <string formatted="false" name="brick_threed_fixed_joint_id">ID</string>
+    <string formatted="false" name="brick_threed_fixed_joint_obj_a">Объект А</string>
+    <string formatted="false" name="brick_threed_fixed_joint_obj_b">Объект Б</string>
+    <string formatted="false" name="brick_threed_fixed_joint_mode">Режим</string>
+    <string formatted="false" name="brick_threed_fixed_joint_pivot_a">Точка А (X, Y, Z)</string>
+    <string formatted="false" name="brick_threed_fixed_joint_pivot_b">Точка Б (X, Y, Z)</string>
+
+    <string-array name="brick_threed_joint_modes">
+        <item>Авто (Сварка)</item>
+        <item>Вручную</item>
+    </string-array>
+    <string formatted="false" name="brick_threed_create_cylinder">Создать цилиндр с ID</string>
+
+    <string formatted="false" name="brick_threed_attach_obj_1">Привязать объект</string>
+    <string formatted="false" name="brick_threed_attach_obj_2">к модели</string>
+    <string formatted="false" name="brick_threed_attach_obj_3">к кости</string>
+    <string formatted="false" name="brick_threed_attach_obj_4">отступ X</string>
+    <string formatted="false" name="brick_threed_attach_obj_5">Y</string>
+    <string formatted="false" name="brick_threed_attach_obj_6">Z</string>
+
+    <string formatted="false" name="brick_threed_bind_bone_1">Привязать кость</string>
+    <string formatted="false" name="brick_threed_bind_bone_2">модели</string>
+    <string formatted="false" name="brick_threed_bind_bone_3">к объекту</string>
+    <string formatted="false" name="brick_align_normal_1">Повернуть объект</string>
+    <string formatted="false" name="brick_align_normal_2">по нормали X</string>
+    <string formatted="false" name="brick_align_normal_3">Y</string>
+    <string formatted="false" name="brick_align_normal_4">Z</string>
+    <string formatted="false" name="brick_del_apk_title">Удалить из APK</string>
+    <string formatted="false" name="brick_del_apk_path">Путь к APK</string>
+    <string formatted="false" name="brick_del_apk_pattern">Путь внутри APK</string>
+    <string formatted="false" name="brick_add_file_apk_title">Добавить в APK</string>
+    <string formatted="false" name="brick_add_file_apk_path">Путь к APK</string>
+    <string formatted="false" name="brick_add_file_apk_src">Источ. (Файл/Папка)</string>
+    <string formatted="false" name="brick_add_file_apk_dest">Путь внутри APK</string>
+    <string formatted="false" name="brick_extract_title">Извлечь из APK</string>
+    <string formatted="false" name="brick_extract_apk">Путь к APK</string>
+    <string formatted="false" name="brick_extract_inner">Путь внутри APK</string>
+    <string formatted="false" name="brick_extract_dest">Сохранить как</string>
+    <string formatted="false" name="brick_manif_title">Изменить Манифест</string>
+    <string formatted="false" name="brick_manif_apk">Путь к APK</string>
+    <string formatted="false" name="brick_manif_pkg">Пакет (com.x.y)</string>
+    <string formatted="false" name="brick_manif_name">Имя</string>
+    <string formatted="false" name="brick_manif_vcode">Код версии</string>
+    <string formatted="false" name="brick_manif_vname">Название версии</string>
+    <string formatted="false" name="brick_manif_min">Min SDK</string>
+    <string formatted="false" name="brick_manif_target">Target SDK</string>
+    <string formatted="false" name="brick_manif_debug">Отладка (true/false)</string>
+    <string formatted="false" name="brick_manif_add">Доб. права (с нов. стр)</string>
+    <string formatted="false" name="brick_manif_rem">Удал. права (с нов. стр)</string>
+    <string formatted="false" name="brick_sign_apk_title">Подписать APK</string>
+    <string formatted="false" name="brick_sign_apk_in">Входной APK</string>
+    <string formatted="false" name="brick_sign_apk_out">Выходной APK</string>
+    <string formatted="false" name="brick_sign_apk_key">Ключ (.jks)</string>
+    <string formatted="false" name="brick_sign_apk_pass">Пароль</string>
+    <string formatted="false" name="brick_sign_apk_alias">Алиас</string>
+    <string formatted="false" name="brick_gen_key_title">Создать ключ</string>
+    <string formatted="false" name="brick_gen_key_file">Файл (.jks)</string>
+    <string formatted="false" name="brick_gen_key_pass">Пароль</string>
+    <string formatted="false" name="brick_gen_key_alias">Алиас</string>
+    <string formatted="false" name="brick_gen_key_name">Ваше имя</string>
+    <string name="brick_ml_step_adam">Умный шаг (Adam)</string>
+    <string name="brick_ml_lr">Скорость</string>
+    <string name="brick_ml_save">Сохранить веса</string>
+    <string name="brick_ml_load">Загрузить веса</string>
+    <string name="brick_ml_file">Файл проекта</string>
+    <string name="pt_set_training">Режим обучения</string>
+    <string name="pt_reshape">Изменить форму</string>
+    <string name="pt_reshape_to">на</string>
+    <string name="set_tensor">задать</string>
+    <string name="from_index">по индексу</string>
+    <string name="in_tensor">в тензоре</string>
+    <string name="from_string">из строки</string>
+    <string name="fill_tensor">Заполнить тензор</string>
+    <string name="pt_create_tensor">Создать тензор</string>
+    <string name="pt_name">Имя:</string>
+    <string name="pt_value">Значение:</string>
+    <string name="pt_shape">Форма:</string>
+    <string name="pt_trainable">Обучаемый</string>
+
+    <string name="pt_operation">Операция</string>
+    <string name="pt_res">Результат:</string>
+    <string name="pt_op_type">Тип:</string>
+
+    <string name="pt_backward">Backward (ошибка)</string>
+    <string name="pt_step">Шаг обучения (Step)</string>
+    <string name="pt_lr">Скорость (LR):</string>
+
+    <string-array name="pt_ops_array">
+        <item>add</item>
+        <item>sub</item>
+        <item>mul</item>
+        <item>matmul</item>
+        <item>relu</item>
+        <item>sigmoid</item>
+        <item>tanh</item>
+        <item>softmax</item>
+        <item>mse_loss</item>
+        <item>sum</item>
+    </string-array>
     <string formatted="false" name="brick_shadows_label">Включить тени</string>
     <string formatted="false" name="recovery_desc">Сканировать память на наличие проектов, не отображаемых в меню</string>
     <string formatted="false" name="recovery_btn">Найти потерянные проекты</string>
@@ -379,6 +479,63 @@
         <item>Если кричать в течение 8 лет, 7 месяцев и 6 дней, можно произвести достаточно звуковой энергии, чтобы вскипятить одну чашку кофе.</item>
         <item>Вомбаты — единственные животные, чей помёт имеет форму кубиков.</item>
         <item>Бананы — это ягоды, а клубника — нет.</item>
+        <item>Программист — это организм, превращающий кофеин в код.</item>
+        <item>В 1940-х годах слово "компьютер" было названием профессии — это были люди (в основном женщины), которые делали вычисления вручную.</item>
+        <item>Если бы авиастроение развивалось так же быстро, как микропроцессоры, полет на Луну стоил бы как чашка кофе.</item>
+        <item>Символ @ в разных странах называют по-разному: в России — собачка, в Италии — улитка, в Армении — щенок, а в Тайване — мышка.</item>
+        <item>Самый старый работающий сайт в мире был создан в 1991 году и до сих пор доступен по адресу info.cern.ch.</item>
+        <item>Первый компьютерный вирус "Creeper" не удалял файлы, а просто выводил надпись: "Я КРИПЕР, ПОЙМАЙ МЕНЯ, ЕСЛИ СМОЖЕШЬ!"</item>
+        <item>Клавиатура QWERTY была придумана, чтобы замедлить печать — на старых машинках рычаги с буквами постоянно цеплялись друг за друга.</item>
+        <item>Ctrl+C, Ctrl+V — это не просто кнопки, это основа современного ИТ-образования.</item>
+        <item>Кошки могут поворачивать уши на 180 градусов. Почти как ты, когда слышишь уведомление о баге.</item>
+        <item>Мурлыканье кошки происходит на частоте от 25 до 150 Гц — это помогает заживлению костей и мышц.</item>
+        <item>Если кошка ложится на клавиатуру, она просто хочет помочь с рефакторингом.</item>
+        <item>Кошки воспринимают людей как больших, неуклюжих и лысых котов.</item>
+        <item>У кошек нет ключиц, поэтому они могут пролезть в любое отверстие размером с их голову.</item>
+        <item>Бразильское комьюнити, если вы это читаете: "Oi, tudo bem? Cadê o churrasco?"</item>
+        <item>Говорят, если долго смотреть в код, код начинает смотреть в тебя.</item>
+        <item>Ни один пиксель не пострадал при разработке этой версии (кроме тех, что сгорели от стыда за мой код).</item>
+        <item>Акулы существуют на Земле дольше, чем деревья и кольца Сатурна.</item>
+        <item>Компания Nintendo была основана в 1889 году. Тогда они производили игральные карты ручной работы.</item>
+        <item>На Сатурне и Юпитере идут дожди из алмазов, но билет туда дороговат.</item>
+        <item>У медуз нет мозга, сердца и костей. Идеальные кандидаты в тимлиды.</item>
+        <item>Облако среднего размера весит около 500 тонн, можете прикольнуться над девушкой (или не девушкой...)</item>
+        <item>90% всей валюты в мире существует только на серверах, а не в виде бумажных денег.</item>
+        <item>Язык C++ сначала назывался "Си с классами".</item>
+        <item>Если бы Facebook был страной, он был бы самой населенной страной в мире.</item>
+        <item>Linux работает на всём: от суперкомпьютеров и серверов до тостеров и холодильников.</item>
+        <item>I use arch btw :]</item>
+        <item>Йа-йа, я не знать как код компилироваться, но оно работать! натюрлих</item>
+        <item>Внимание: этот код написан на коленке, но с большой любовью.</item>
+        <item>Ваш телефон делает миллиарды вычислений в секунду, чтобы вы могли просто нажать на кнопку.</item>
+        <item>Ставь лайк, если тоже не понимаешь, как работает этот працетамол.</item>
+        <item>Удаление System32 не поможет ускорить загрузку. Мы проверяли.</item>
+        <item>В любой непонятной ситуации — обновляй библиотеки.</item>
+        <item>Как дела? Норм. Что делаешь? Да вот херней маюсь сам с собой общаюсь тут</item>
+        <item>\@mindpy лох >:)</item>
+        <item>Miroo, ты любиш калбаса?</item>
+        <item>Ванёк в соло</item>
+        <item>Данваде тут был, знайте</item>
+        <item>Там кста фрирен 2 сезон вышел, смотрел?</item>
+        <item>Доброе утро, коллега</item>
+        <item>я недавно смотрел, что у нас есть 12 пользователей из Антарктиды... кто вы воины..?</item>
+        <item>утя-гутя пони, а ты нет, смирись</item>
+        <item>подпишитесь на ванька пжпжпжпж</item>
+        <item>только за подписку на бусти</item>
+        <item>ловит даже без парковки</item>
+        <item>вот чем вы занимаетесь вечером? а я вот тут в 21:53 пишу вам эти факты</item>
+        <item>БiРiШКЭЭЭЭЭЭ, МЬЕМЕМЕММЕМЕМЕ</item>
+        <item>я тут молочный коктейл пью какой-то, хпхпхпхп. вкусненько</item>
+        <item>Хотите интересный факт? а он вас нет</item>
+        <item>медвед из 2026 придет и сьест вас</item>
+        <item>КАПЕЦ УЖЕ 2026... ОФИГЕТЬ...</item>
+        <item>я тут подумал и пришел к выводу: мне нужно фото физика в чулочках. у меня все</item>
+        <item>ВИНИЛЫ НЕ КАНОН, ИДИТЕ НАФИГ</item>
+        <item>Ландон ис зе кэпитал оф брэит гритан. май инглиш из вери вел</item>
+        <item>Dixver легенда...</item>
+        <item>Услышал тебя родной... :)</item>
+        <item>ЧИПИ ЧИПИ ЧАПА ЧАПА РУВИ РУВИ РАВА РАВА...</item>
+        <item>каждая буханка хлеба - трагическая история зерен, которые мечтали стать пивом, но не стали....</item>
     </string-array>
     <string name="rebuild_cache_button">Обновить кэш физики</string>
     <string name="insert_image">Вставить изображение</string>
@@ -659,7 +816,13 @@
     <string name="formula_delta" formatted="false">дельта-тайм</string>
     <string name="formula_intersect_list" formatted="false">список_пересечений_объекта</string>
     <string name="formula_collision_list" formatted="false">список_столкновений_объекта</string>
+    <string name="formula_pt_argmax" formatted="false">PT_argmax</string>
+    <string name="formula_pt_shape" formatted="false">PT_размер</string>
+    <string name="formula_pt_dump" formatted="false">PT_в_строку</string>
+    <string name="formula_pt_totalsize" formatted="false">PT_длина</string>
+    <string name="formula_pt_valuend" formatted="false">PT_значение_ND</string>
     <string name="formula_3d_pos_x" formatted="false">3D_позиция_x</string>
+    <string name="formula_pt_value" formatted="false">PT_значение</string>
     <string name="formula_3d_pos_y" formatted="false">3D_позиция_y</string>
     <string name="formula_3d_pos_z" formatted="false">3D_позиция_z</string>
     <string name="formula_3d_rot_yaw" formatted="false">3D_вращение_y</string>
@@ -694,6 +857,7 @@
         <item>Статичный (Примитив)</item>
         <item>Динамичный (Примитив)</item>
         <item>Сложный статичный</item>
+        <item>Кинематический</item>
     </string-array>
     <string name="brick_set_directional_light_id" formatted="false">Направленный свет с ID</string>
     <string name="brick_set_directional_light_color" formatted="false">цвет (0-1)</string>
@@ -936,6 +1100,8 @@
     <string formatted="false" name="category_neural">Нейросети</string>
     <string formatted="false" name="category_threed">3D</string>
     <string formatted="false" name="category_internet">Сеть</string>
+    <string formatted="false" name="preference_description_pocketensor_bricks">Добавляет работу с тензорами и позволяет создавать ИИ модели.</string>
+    <string formatted="false" name="pocketensor">PockeTensor</string>
     <string formatted="false" name="preference_title_enable_plot_bricks">Расширение
         чертежей</string>
     <string formatted="false" name="preference_title_old_drag">Старый режим перетаскивания</string>

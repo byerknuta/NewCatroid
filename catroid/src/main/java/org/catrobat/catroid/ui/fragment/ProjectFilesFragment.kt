@@ -55,9 +55,11 @@ import org.catrobat.catroid.ui.BottomBar.hideBottomBar
 import org.catrobat.catroid.ui.PROJECT_DIR
 import org.catrobat.catroid.ui.ProjectUploadActivity
 import org.catrobat.catroid.ui.adapter.FilesAdapter
+import org.catrobat.catroid.utils.SimpleTextEditorActivity
 import org.catrobat.catroid.utils.Utils
 import org.koin.android.ext.android.inject
 import java.io.File
+import java.io.FileOutputStream
 import kotlin.random.Random
 
 @LunoClass
@@ -74,6 +76,7 @@ class ProjectFilesFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var filesAdapter: FilesAdapter
     private var filesList = mutableListOf<String>()
+    private var fileToExport: File? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -118,7 +121,7 @@ class ProjectFilesFragment : Fragment() {
         filesAdapter = FilesAdapter(project, filesList,
             { fileName -> deleteFile(fileName) },
             { fileName -> copyFile(fileName) },
-            { fileName -> openFile(fileName) } // <-- ДОБАВЬТЕ onOpen
+            { fileName -> openFile(fileName) }
         )
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = filesAdapter
@@ -126,7 +129,7 @@ class ProjectFilesFragment : Fragment() {
 
     private fun handleCmd() {
         project?.filesDir?.absolutePath?.let { projectPath ->
-            // Создаем и показываем диалог
+
             val dialog = CommandPromptDialogFragment.newInstance(projectPath)
             dialog.show(parentFragmentManager, CommandPromptDialogFragment.TAG)
         } ?: run {
@@ -150,20 +153,31 @@ class ProjectFilesFragment : Fragment() {
                 return
             }
 
-            // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
-            // Используем authority из вашего AndroidManifest.xml
-            val authority = "${BuildConfig.APPLICATION_ID}.fileProvider"
-            val uri = FileProvider.getUriForFile(requireContext(), authority, file)
 
-            val intent = Intent(Intent.ACTION_VIEW)
-            val mimeType = context?.contentResolver?.getType(uri) ?: "*/*"
-            intent.setDataAndType(uri, mimeType)
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            val extension = file.extension.lowercase()
+            val editableExtensions = listOf("txt", "py", "json", "xml", "lua", "md", "csv", "log")
 
-            try {
+            if (extension in editableExtensions) {
+
+                val intent = Intent(requireContext(), SimpleTextEditorActivity::class.java)
+                intent.putExtra("FILE_PATH", file.absolutePath)
                 startActivity(intent)
-            } catch (e: ActivityNotFoundException) {
-                Toast.makeText(requireContext(), "Не найдено приложений для открытия этого файла", Toast.LENGTH_LONG).show()
+            } else {
+
+                try {
+                    val authority = "${BuildConfig.APPLICATION_ID}.fileProvider"
+                    val uri = FileProvider.getUriForFile(requireContext(), authority, file)
+
+                    val intent = Intent(Intent.ACTION_VIEW)
+                    val mimeType = context?.contentResolver?.getType(uri) ?: "*/*"
+                    intent.setDataAndType(uri, mimeType)
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    startActivity(intent)
+                } catch (e: ActivityNotFoundException) {
+                    Toast.makeText(requireContext(), "Нечем открыть этот файл", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(requireContext(), "Ошибка открытия: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -178,8 +192,8 @@ class ProjectFilesFragment : Fragment() {
             val dir = File(it.directory, "files")
             val file = File(dir.absolutePath, fileName)
             if (file.exists() && file.delete()) {
-                // Удаляем файл и обновляем список
-                updateFilesList(dir) // Предположим, что updateFilesList обновляет список файлов
+
+                updateFilesList(dir)
                 Toast.makeText(requireContext(), "Файл удален", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(requireContext(), "Ошибка при удалении файла", Toast.LENGTH_SHORT)
@@ -190,10 +204,10 @@ class ProjectFilesFragment : Fragment() {
 
     private fun updateFilesList(directory: File) {
         val newFiles = directory.listFiles()?.map { it.name } ?: emptyList()
-        val oldFiles = filesList.toList() // Создаем копию текущего списка
+        val oldFiles = filesList.toList()
 
         Log.d("ProjectFile", "Number of files: ${directory.listFiles()?.size}")
-        // Добавляем новые файлы
+
         newFiles.forEach { fileName ->
             if (!oldFiles.contains(fileName)) {
                 filesList.add(fileName)
@@ -201,7 +215,7 @@ class ProjectFilesFragment : Fragment() {
             }
         }
 
-        // Удаляем старые файлы
+
         oldFiles.forEach { fileName ->
             if (!newFiles.contains(fileName)) {
                 val position = filesList.indexOf(fileName)
@@ -214,8 +228,8 @@ class ProjectFilesFragment : Fragment() {
 
         Log.d("ProjectFile", "Files: $filesList")
 
-        // Дополнительно можно вызвать notifyDataSetChanged, если лучшее решение не подходит
-        // filesAdapter.notifyDataSetChanged()
+
+
     }
 
 
@@ -229,16 +243,68 @@ class ProjectFilesFragment : Fragment() {
         saveProjectSerial(project, requireContext())
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == ADD_FILE_REQUEST && resultCode == Activity.RESULT_OK) {
+            val uri: Uri? = data?.data
+            if (uri != null) {
+                saveFileToProject(uri)
+            }
+        }
+    }
+
+    private fun saveFileToProject(uri: Uri) {
+        val proj = project ?: return
+        val fileName = getFileName(uri)
+
+        // Определяем целевую директорию (папка "files" внутри проекта)
+        val filesDir = File(proj.directory, "files")
+
+        // Создаем директорию, если её нет
+        if (!filesDir.exists()) {
+            filesDir.mkdirs()
+        }
+
+        val destinationFile = File(filesDir, fileName)
+
+        try {
+            // Открываем поток чтения из полученного Uri
+            val inputStream = requireContext().contentResolver.openInputStream(uri)
+            if (inputStream == null) {
+                Toast.makeText(requireContext(), "Не удалось открыть файл", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Записываем данные в файл проекта
+            FileOutputStream(destinationFile).use { outputStream ->
+                inputStream.use { input ->
+                    input.copyTo(outputStream)
+                }
+            }
+
+            // Обновляем список файлов в интерфейсе
+            updateFilesList(filesDir)
+
+            Toast.makeText(requireContext(), getRandomMessage(), Toast.LENGTH_SHORT).show()
+            Log.d("ProjectFile", "File saved: ${destinationFile.absolutePath}")
+
+        } catch (e: Exception) {
+            Log.e("ProjectFile", "Error saving file", e)
+            Toast.makeText(requireContext(), "Ошибка при сохранении: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun handleAdd() {
-        // Открываем меню выбора файла
+
         val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-            type = "*/*" // Позволяет выбрать файл с любым расширением
+            type = "*/*"
             addCategory(Intent.CATEGORY_OPENABLE)
         }
 
-        // Проверяем, есть ли такая возможность
+
         val chooser = Intent.createChooser(intent, "Выберите файл")
-        startActivityForResult(chooser, ADD_FILE_REQUEST) // REQUEST_CODE - это константа, которую нужно определить
+        startActivityForResult(chooser, ADD_FILE_REQUEST)
     }
 
     override fun onResume() {
@@ -273,7 +339,7 @@ class ProjectFilesFragment : Fragment() {
             val params = ArrayList<Any>(listOf(toast))
             StageActivity.messageHandler.obtainMessage(StageActivity.SHOW_TOAST, params).sendToTarget()
         } else {
-            // Обработка ситуации, когда messageHandler равно null
+
             Log.e("ShowToast", "messageHandler is null!")
         }
     }
@@ -311,9 +377,9 @@ class ProjectFilesFragment : Fragment() {
             "Сделано! Готовы к новым подвигам?"
         )
 
-        // Генерируем случайный индекс
+
         val randomIndex = Random.nextInt(messages.size)
-        // Возвращаем случайное сообщение
+
         return messages[randomIndex]
     }
 
@@ -343,51 +409,11 @@ class ProjectFilesFragment : Fragment() {
         )
 
         val randomIndex = Random.nextInt(errorMessages.size)
-        // Возвращаем случайное сообщение
+
         return errorMessages[randomIndex]
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        data ?: return
-        /*if (requestCode == REQUEST_EXPORT_PROJECT && resultCode == Activity.RESULT_OK) {
-            val projectDestination = data.data ?: return
-            startAsyncProjectExport(projectDestination)
-        }*/
-        if (requestCode == ADD_FILE_REQUEST && resultCode == Activity.RESULT_OK) {
-            data?.data?.let { uri ->
-                // Получаем директорию проекта
-                val directory: File? = project?.directory
-                val filesDir = File(directory, "files")
 
-
-                // Создаем папку, если она не существует
-                if (!filesDir.exists()) {
-                    filesDir.mkdirs()
-                }
-
-                // Загрузка файла в папку
-                copyFileToDir(uri, filesDir)
-            }
-        }
-    }
-
-    private fun copyFileToDir(uri: Uri, dir: File) {
-        val inputStream = requireActivity().contentResolver.openInputStream(uri)
-        val outputFileName = getFileName(uri) // Получаем имя файла
-        val outputFile = File(dir, outputFileName)
-
-        // Копируем содержимое
-        inputStream.use { input ->
-            outputFile.outputStream().use { output ->
-                input?.copyTo(output)
-            }
-        }
-
-        updateFilesList(dir)
-    }
-
-    // Функция для получения имени файла из Uri
     private fun getFileName(uri: Uri): String {
         var fileName = ""
         if (uri.scheme == "content") {
@@ -401,7 +427,7 @@ class ProjectFilesFragment : Fragment() {
         } else if (uri.scheme == "file") {
             fileName = File(uri.path).name
         }
-        return fileName.ifEmpty { "неизвестный_файл" } // Возврат значения по умолчанию
+        return fileName.ifEmpty { "неизвестный_файл" }
     }
 
 

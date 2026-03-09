@@ -230,7 +230,7 @@ public class ThreeDManager implements Disposable {
         NONE,
         STATIC,
         DYNAMIC,
-        MESH_STATIC
+        KINEMATIC, MESH_STATIC
     }
 
     public enum PhysicsShape {
@@ -1951,6 +1951,27 @@ public class ThreeDManager implements Disposable {
                 Log.d("TDM_DEBUG", "      - '" + entry.getKey() + "' Physics Pos: " + physBodyPos);
             }
         }
+
+        Matrix4 tempBoneMat = new Matrix4();
+        for (BoneOverride override : boneOverrides) {
+            ModelInstance model = sceneObjects.get(override.modelId);
+            ModelInstance target = sceneObjects.get(override.targetId);
+            if (model != null && target != null) {
+
+                Node bone = model.getNode(override.boneName, true);
+                if (bone != null) {
+
+                    tempBoneMat.set(model.transform).inv().mul(target.transform);
+
+
+                    bone.globalTransform.set(tempBoneMat);
+                    model.calculateTransforms();
+                } else {
+                    Log.e("ThreeDManager", "ОШИБКА IK: Кость '" + override.boneName + "' не найдена!");
+                }
+            }
+        }
+
         if (!editorMode) {
             update3DAudio();
         }
@@ -2973,10 +2994,20 @@ public class ThreeDManager implements Disposable {
     public void playAnimation(String objectId, String animationName, int loops, float speed, float transitionTime) {
         AnimationController controller = animationControllers.get(objectId);
         if (controller != null) {
-            controller.animate(animationName, loops, speed, new AnimationController.AnimationListener() {
+            controller.animate(animationName, -1, speed, new AnimationController.AnimationListener() {
+                private int loopsRun = 0;
+
+                private final int targetLoops = (loops <= 0) ? -1 : loops;
+
                 @Override
                 public void onLoop(AnimationController.AnimationDesc animation) {
+                    loopsRun++;
 
+                    if (targetLoops != -1 && loopsRun >= targetLoops) {
+
+                        animation.speed = 0f;
+                        animation.time = animation.animation.duration;
+                    }
                 }
 
                 @Override
@@ -3070,7 +3101,7 @@ public class ThreeDManager implements Disposable {
                 createMeshPhysicsBody(objectId, instance);
             }
         } else {
-            createPrimitivePhysicsBody(objectId, instance, shape, bodyMass);
+            createPrimitivePhysicsBody(objectId, instance, shape, bodyMass, state);
         }
     }
 
@@ -3080,7 +3111,7 @@ public class ThreeDManager implements Disposable {
     }
 
 
-    private void createPrimitivePhysicsBody(String objectId, ModelInstance instance, PhysicsShape shapeType, float mass) {
+    private void createPrimitivePhysicsBody(String objectId, ModelInstance instance, PhysicsShape shapeType, float mass, PhysicsState state) {
         BoundingBox bbox = new BoundingBox();
         instance.calculateBoundingBox(bbox);
         Vector3 dimensions = bbox.getDimensions(new Vector3());
@@ -3124,6 +3155,11 @@ public class ThreeDManager implements Disposable {
         btRigidBody.btRigidBodyConstructionInfo bodyInfo =
                 new btRigidBody.btRigidBodyConstructionInfo(mass, motionState, compoundShape, localInertia);
         btRigidBody body = new btRigidBody(bodyInfo);
+
+        if (state == PhysicsState.KINEMATIC) {
+            body.setCollisionFlags(body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+            body.setActivationState(Collision.DISABLE_DEACTIVATION);
+        }
 
         if (mass > 0) {
             body.setAngularFactor(1f);
@@ -3290,6 +3326,46 @@ public class ThreeDManager implements Disposable {
 
     public ModelInstance getModelInstance(String objectId) {
         return sceneObjects.get(objectId);
+    }
+
+    public boolean createCylinder(String objectId) {
+        if (sceneObjects.containsKey(objectId)) return false;
+        final String CYL_MODEL_KEY = "__PRIMITIVE_CYLINDER__";
+        Model cylModel = loadedModels.get(CYL_MODEL_KEY);
+
+        if (cylModel == null) {
+            Material pbrMaterial = new Material(
+                    net.mgsx.gltf.scene3d.attributes.PBRColorAttribute.createBaseColorFactor(Color.WHITE)
+            );
+            long attributes = VertexAttributes.Usage.Position |
+                    VertexAttributes.Usage.Normal |
+                    VertexAttributes.Usage.TextureCoordinates;
+
+            com.badlogic.gdx.graphics.g3d.utils.ModelBuilder modelBuilder = new com.badlogic.gdx.graphics.g3d.utils.ModelBuilder();
+            modelBuilder.begin();
+
+            com.badlogic.gdx.graphics.g3d.model.Node node = modelBuilder.node();
+            node.id = "cylinder_node";
+            node.rotation.set(Vector3.X, 90);
+
+            com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder mpb = modelBuilder.part("cylinder",
+                    GL20.GL_TRIANGLES, attributes, pbrMaterial);
+            com.badlogic.gdx.graphics.g3d.utils.shapebuilders.CylinderShapeBuilder.build(mpb, 1f, 1f, 1f, 16);
+
+            cylModel = modelBuilder.end();
+            loadedModels.put(CYL_MODEL_KEY, cylModel);
+        }
+
+        ModelInstance instance = new ModelInstance(cylModel);
+        sceneObjects.put(objectId, instance);
+
+        if (realisticMode && sceneManager != null) {
+            sceneManager.addScene(new net.mgsx.gltf.scene3d.scene.Scene(instance));
+        }
+
+        if (hiddenSpawnIds.contains(objectId)) { hiddenSpawnIds.remove(objectId); setObjectVisibility(objectId, false); }
+
+        return true;
     }
 
 
@@ -3580,27 +3656,204 @@ public class ThreeDManager implements Disposable {
         ModelInstance instance = sceneObjects.get(id);
         if (instance == null) return;
 
+
+        GameObject go = null;
+        if (manager != null) {
+            manager.updateWorldTransforms();
+            go = manager.findGameObject(id);
+        }
+
+
+        Vector3 position = new Vector3();
+        Vector3 scale = new Vector3(1, 1, 1);
+
+        if (go != null) {
+            go.transform.worldTransform.getTranslation(position);
+            go.transform.worldTransform.getScale(scale);
+        } else {
+
+            instance.transform.getTranslation(position);
+            instance.transform.getScale(scale);
+        }
+
+
+        Vector3 target = new Vector3(x, y, z);
+        Vector3 forward = new Vector3(target).sub(position).nor();
+
+
+        if (forward.isZero()) return;
+
+
+
+        Vector3 up = new Vector3(Vector3.Y);
+
+        if (Math.abs(forward.y) > 0.999f) {
+            up.set(Vector3.Z);
+        }
+
+        Vector3 right = new Vector3(up).crs(forward).nor();
+        Vector3 newUp = new Vector3(forward).crs(right).nor();
+
+
+        Matrix4 rotMat = new Matrix4().idt();
+        rotMat.val[Matrix4.M00] = right.x;   rotMat.val[Matrix4.M10] = right.y;   rotMat.val[Matrix4.M20] = right.z;
+        rotMat.val[Matrix4.M01] = newUp.x;   rotMat.val[Matrix4.M11] = newUp.y;   rotMat.val[Matrix4.M21] = newUp.z;
+        rotMat.val[Matrix4.M02] = forward.x; rotMat.val[Matrix4.M12] = forward.y; rotMat.val[Matrix4.M22] = forward.z;
+
+        Quaternion worldRot = new Quaternion();
+        rotMat.getRotation(worldRot, true);
+
+
+        if (go != null) {
+
+            if (go.parentId != null) {
+                GameObject parent = manager.findGameObject(go.parentId);
+                if (parent != null) {
+                    Quaternion parentWorldRot = new Quaternion();
+                    parent.transform.worldTransform.getRotation(parentWorldRot, true);
+
+                    Quaternion localRot = parentWorldRot.conjugate().mul(worldRot);
+                    manager.setRotation(go, localRot);
+                } else {
+                    manager.setRotation(go, worldRot);
+                }
+            } else {
+                manager.setRotation(go, worldRot);
+            }
+
+            manager.updateWorldTransforms();
+            setWorldTransform(id, go.transform.worldTransform);
+
+        } else {
+
+            instance.transform.set(position, worldRot, scale);
+
+            btRigidBody body = physicsBodies.get(id);
+            if (body != null) {
+                com.badlogic.gdx.math.Matrix4 transform = body.getWorldTransform();
+                transform.getTranslation(position);
+                transform.set(position, worldRot);
+                body.setWorldTransform(transform);
+                if (body.getMotionState() != null) {
+                    body.getMotionState().setWorldTransform(transform);
+                }
+                body.activate();
+            }
+        }
+    }
+
+    public void alignObjectToNormal(String objectId, float nx, float ny, float nz) {
+        ModelInstance instance = sceneObjects.get(objectId);
+        if (instance == null) return;
+
+        Vector3 normal = new Vector3(nx, ny, nz).nor();
+
+        Vector3 forward = new Vector3(0, 0, 1);
+
+
+        Quaternion worldRot = new Quaternion();
+        if (forward.isCollinearOpposite(normal, 0.01f)) {
+            worldRot.setEulerAngles(180, 0, 0);
+        } else {
+            worldRot.setFromCross(forward, normal);
+        }
+
+
+
+
+        if (manager != null) {
+            GameObject go = manager.findGameObject(objectId);
+            if (go != null) {
+
+                if (go.parentId != null) {
+                    GameObject parent = manager.findGameObject(go.parentId);
+                    if (parent != null) {
+                        Quaternion parentWorldRot = new Quaternion();
+                        parent.transform.worldTransform.getRotation(parentWorldRot, true);
+
+                        Quaternion localRot = parentWorldRot.conjugate().mul(worldRot);
+                        manager.setRotation(go, localRot);
+                    } else {
+                        manager.setRotation(go, worldRot);
+                    }
+                } else {
+                    manager.setRotation(go, worldRot);
+                }
+
+
+                manager.updateWorldTransforms();
+                setWorldTransform(objectId, go.transform.worldTransform);
+                return;
+            }
+        }
+
+
+
+
         Vector3 position = new Vector3();
         instance.transform.getTranslation(position);
         Vector3 scale = new Vector3();
         instance.transform.getScale(scale);
 
-        instance.transform.setToLookAt(new Vector3(x, y, z), Vector3.Y);
-        Quaternion newRotation = new Quaternion();
-        instance.transform.getRotation(newRotation);
+        instance.transform.set(position, worldRot, scale);
 
-        instance.transform.set(position, newRotation, scale);
-
-        btRigidBody body = physicsBodies.get(id);
-        if (body != null) {
-            com.badlogic.gdx.math.Matrix4 transform = body.getWorldTransform();
-            transform.getTranslation(position);
-            transform.set(position, newRotation);
-
+        btRigidBody body = physicsBodies.get(objectId);
+        if (body != null && !editorMode) {
+            Matrix4 transform = body.getWorldTransform();
+            transform.set(position, worldRot);
             body.setWorldTransform(transform);
-            body.getMotionState().setWorldTransform(transform);
+            if (body.getMotionState() != null) body.getMotionState().setWorldTransform(transform);
             body.activate();
         }
+    }
+
+
+    public boolean createFixedConstraintWeld(String constraintId, String objectIdA, String objectIdB) {
+        if (physicsConstraints.containsKey(constraintId)) return false;
+
+        btRigidBody bodyA = physicsBodies.get(objectIdA);
+        btRigidBody bodyB = physicsBodies.get(objectIdB);
+
+        if (bodyA == null || bodyB == null) return false;
+
+        bodyA.activate();
+        bodyB.activate();
+
+
+        Matrix4 frameInA = new Matrix4().idt();
+
+
+
+        Matrix4 frameInB = new Matrix4(bodyB.getWorldTransform()).inv().mul(bodyA.getWorldTransform());
+
+        btFixedConstraint constraint = new btFixedConstraint(bodyA, bodyB, frameInA, frameInB);
+        dynamicsWorld.addConstraint(constraint, true);
+        physicsConstraints.put(constraintId, constraint);
+        return true;
+    }
+
+
+    public boolean createFixedConstraintManual(String constraintId, String objectIdA, String objectIdB,
+                                               float ax, float ay, float az,
+                                               float bx, float by, float bz) {
+        if (physicsConstraints.containsKey(constraintId)) return false;
+
+        btRigidBody bodyA = physicsBodies.get(objectIdA);
+        btRigidBody bodyB = physicsBodies.get(objectIdB);
+
+        if (bodyA == null || bodyB == null) return false;
+
+        bodyA.activate();
+        bodyB.activate();
+
+
+        Matrix4 frameInA = new Matrix4().setToTranslation(ax, ay, az);
+        Matrix4 frameInB = new Matrix4().setToTranslation(bx, by, bz);
+
+        btFixedConstraint constraint = new btFixedConstraint(bodyA, bodyB, frameInA, frameInB);
+        dynamicsWorld.addConstraint(constraint, true);
+        physicsConstraints.put(constraintId, constraint);
+        return true;
     }
 
 
@@ -3635,12 +3888,53 @@ public class ThreeDManager implements Disposable {
     }
 
 
-    public void setScale(String objectId, float scaleX, float scaleY, float scaleZ) {
+    /*public void setScale(String objectId, float scaleX, float scaleY, float scaleZ) {
         ModelInstance instance = sceneObjects.get(objectId);
         if (instance == null) return;
 
         Quaternion rotation = new Quaternion();
         instance.transform.getRotation(rotation);
+
+        Vector3 position = new Vector3();
+        instance.transform.getTranslation(position);
+        instance.transform.set(position, rotation, new Vector3(scaleX, scaleY, scaleZ));
+
+        btRigidBody body = physicsBodies.get(objectId);
+        if (body != null && !editorMode) {
+            float mass = (body.getInvMass() > 0f) ? 1f / body.getInvMass() : 0f;
+            float friction = body.getFriction();
+            float restitution = body.getRestitution();
+            Vector3 velocity = body.getLinearVelocity();
+            PhysicsState state = (mass > 0f) ? PhysicsState.DYNAMIC : PhysicsState.STATIC;
+
+            setPhysicsState(objectId, state, mass);
+
+            btRigidBody newBody = physicsBodies.get(objectId);
+            if (newBody != null) {
+                com.badlogic.gdx.math.Matrix4 transform = newBody.getWorldTransform();
+                transform.getTranslation(position);
+                transform.set(position, rotation);
+                newBody.setWorldTransform(transform);
+                newBody.getMotionState().setWorldTransform(transform);
+
+                newBody.setFriction(friction);
+                newBody.setRestitution(restitution);
+                if (state == PhysicsState.DYNAMIC) {
+                    newBody.setLinearVelocity(velocity);
+                }
+            }
+        }
+    }*/
+
+    public void setScale(String objectId, float scaleX, float scaleY, float scaleZ) {
+        ModelInstance instance = sceneObjects.get(objectId);
+        if (instance == null) return;
+
+        Quaternion rotation = new Quaternion();
+
+
+
+        instance.transform.getRotation(rotation, true);
 
         Vector3 position = new Vector3();
         instance.transform.getTranslation(position);
@@ -4355,5 +4649,18 @@ public class ThreeDManager implements Disposable {
             }
         }
         return sb.toString();
+    }
+
+    private static class BoneOverride {
+        String modelId; String boneName; String targetId;
+        public BoneOverride(String m, String b, String t) { modelId = m; boneName = b; targetId = t; }
+    }
+    private final List<BoneOverride> boneOverrides = new ArrayList<>();
+
+    public void bindBoneToObject(String modelId, String boneName, String targetId) {
+        boneOverrides.removeIf(b -> b.modelId.equals(modelId) && b.boneName.equals(boneName));
+        if (targetId != null && !targetId.isEmpty()) {
+            boneOverrides.add(new BoneOverride(modelId, boneName, targetId));
+        }
     }
 }

@@ -1,48 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="16dp"
-    android:gravity="center_vertical">
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginVertical="6dp"
+    app:cardBackgroundColor="@color/surface_card"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
 
-    <LinearLayout
-        android:layout_width="0dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:padding="12dp">
+
+        <ImageView
+            android:id="@+id/file_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/file_present_24px"
+            app:tint="@color/accent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:ignore="ContentDescription" />
 
         <TextView
             android:id="@+id/file_name"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            android:text="script.py"
+            android:textColor="@color/solid_white"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:text="имя_файла.txt"/>
+            android:fontFamily="sans-serif-medium"
+            android:ellipsize="middle"
+            android:singleLine="true"
+            app:layout_constraintStart_toEndOf="@id/file_icon"
+            app:layout_constraintEnd_toStartOf="@id/deleteButton"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/file_size"
+            app:layout_constraintVertical_chainStyle="packed"/>
 
         <TextView
             android:id="@+id/file_size"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:text="12 KB"
+            android:textColor="@color/spinner_icon_and_inactive_elements"
             android:textSize="12sp"
-            android:text="123 КБ"/>
-    </LinearLayout>
+            app:layout_constraintStart_toEndOf="@id/file_icon"
+            app:layout_constraintEnd_toStartOf="@id/deleteButton"
+            app:layout_constraintTop_toBottomOf="@id/file_name"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
-    <!-- Кнопка "Открыть" -->
-    <Button
-        android:id="@+id/openButton"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:text="@string/open"
-        android:layout_marginEnd="8dp"
-        android:backgroundTint="@color/brick_color_blue"/>
+        <ImageButton
+            android:id="@+id/deleteButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/delete_24px"
+            app:tint="#EF5350"
+            android:contentDescription="@string/delete"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
-    <!-- Кнопка "Удалить" -->
-    <Button
-        android:id="@+id/deleteButton"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:text="@string/delete"
-        android:backgroundTint="@color/red" />/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-</LinearLayout>
+</com.google.android.material.card.MaterialCardView>

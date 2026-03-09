@@ -1,6 +1,5 @@
 package org.catrobat.catroid.python
 
-// Файл: PythonCommandManager.kt
 import android.content.Context
 import android.os.Handler
 import android.os.Looper

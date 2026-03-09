@@ -21,24 +21,24 @@ import org.catrobat.catroid.ui.MainMenuActivity
 import java.io.File
 import java.util.regex.Pattern
 
-// ▼▼▼ НАЧАЛО: НАШ НОВЫЙ КЛАСС ДЛЯ ПОДСВЕТКИ СИНТАКСИСА ▼▼▼
+
 object SyntaxHighlighter {
 
-    // Определяем цвета (можешь настроить их как угодно)
+
     private val COLOR_ERROR = Color.RED
-    private val COLOR_WARNING = Color.rgb(255, 165, 0) // Оранжевый
-    private val COLOR_SUCCESS = Color.rgb(0, 180, 0)   // Темно-зеленый
+    private val COLOR_WARNING = Color.rgb(255, 165, 0)
+    private val COLOR_SUCCESS = Color.rgb(0, 180, 0)
     private val COLOR_INFO = Color.CYAN
 
-    // Определяем правила подсветки с помощью регулярных выражений
+
     private val RULES = listOf(
-        // Ошибки (ключевые слова, нечувствительные к регистру)
+
         Rule(Pattern.compile("\\b(error|traceback|exception|failed|fatal|failure|none)\\b", Pattern.CASE_INSENSITIVE), COLOR_ERROR, isBold = true),
-        // Предупреждения и загрузка
+
         Rule(Pattern.compile("\\b(warning|downloading|collecting|looking in indexes|looking in links)\\b", Pattern.CASE_INSENSITIVE), COLOR_WARNING),
-        // Успешное завершение
+
         Rule(Pattern.compile("\\b(success|successfully|installed|complete)\\b", Pattern.CASE_INSENSITIVE), COLOR_SUCCESS),
-        // Числа, версии и размеры файлов (например, 1.2.3, 50kB, 100)
+
         Rule(Pattern.compile("\\b(\\d+(\\.\\d+)*[kKmM]?[bB]?)\\b"), COLOR_SUCCESS)
     )
 
@@ -50,14 +50,14 @@ object SyntaxHighlighter {
         for (rule in RULES) {
             val matcher = rule.pattern.matcher(spannable)
             while (matcher.find()) {
-                // Применяем цвет
+
                 spannable.setSpan(
                     ForegroundColorSpan(rule.color),
                     matcher.start(),
                     matcher.end(),
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
                 )
-                // Применяем жирный шрифт, если нужно
+
                 if (rule.isBold) {
                     spannable.setSpan(
                         StyleSpan(Typeface.BOLD),
@@ -71,10 +71,10 @@ object SyntaxHighlighter {
         return spannable
     }
 
-    // Вспомогательный класс для хранения правил
+
     private data class Rule(val pattern: Pattern, val color: Int, val isBold: Boolean = false)
 }
-// ▲▲▲ КОНЕЦ: НАШ НОВЫЙ КЛАСС ДЛЯ ПОДСВЕТКИ СИНТАКСИСА ▲▲▲
+
 
 
 class CommandPromptDialogFragment : DialogFragment(), CommandOutputListener {
@@ -118,7 +118,7 @@ class CommandPromptDialogFragment : DialogFragment(), CommandOutputListener {
             false
         }
 
-        // Устанавливаем моноширинный шрифт для вывода, как в настоящих терминалах
+
         binding.terminalOutput.typeface = Typeface.MONOSPACE
 
         binding.terminalOutput.text = "Shell initialized.\n"
@@ -134,16 +134,16 @@ class CommandPromptDialogFragment : DialogFragment(), CommandOutputListener {
         commandManager.processCommand(command)
     }
 
-    // --- Реализация интерфейса CommandOutputListener ---
+
 
     override fun onOutput(output: String) {
-        // ▼▼▼ ГЛАВНОЕ ИЗМЕНЕНИЕ ЗДЕСЬ ▼▼▼
-        // 1. Пропускаем полученный текст через наш хайлайтер
+
+
         val styledOutput = SyntaxHighlighter.highlight(output)
 
-        // 2. Добавляем уже стилизованный текст в поле вывода
+
         binding.terminalOutput.append(styledOutput)
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
 
         binding.scrollView.post { binding.scrollView.fullScroll(View.FOCUS_DOWN) }
     }
@@ -153,7 +153,7 @@ class CommandPromptDialogFragment : DialogFragment(), CommandOutputListener {
         updatePrompt()
     }
 
-    // --- Вспомогательные функции ---
+
 
     private fun showLoading(isLoading: Boolean) {
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
@@ -164,7 +164,7 @@ class CommandPromptDialogFragment : DialogFragment(), CommandOutputListener {
         }
     }
 
-    // Сделаем displayPath свойством класса для удобства
+
     private val displayPath: String
         get() {
             val currentPath = commandManager.currentWorkingDirectory
@@ -185,7 +185,7 @@ class CommandPromptDialogFragment : DialogFragment(), CommandOutputListener {
         val TAG: String = CommandPromptDialogFragment::class.java.simpleName
         private const val ARG_PROJECT_PATH = "project_path"
 
-        // Фабричный метод для безопасного создания диалога с передачей аргументов
+
         fun newInstance(projectPath: String): CommandPromptDialogFragment {
             val args = Bundle().apply {
                 putString(ARG_PROJECT_PATH, projectPath)

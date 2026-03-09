@@ -47,8 +47,6 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!--uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" /-->
 
-    <!--<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove" />-->
-
     <uses-feature
         android:name="android.hardware.camera2"
         android:required="false" />
@@ -94,11 +92,8 @@
     <uses-permission
         android:name="android.permission.NEARBY_WIFI_DEVICES" />
 
-    <!-- Также добавьте это объявление службы mDNS внутри тега <application> -->
-    <!-- Это поможет системе понять, что вы ищете сервисы в локальной сети -->
 
     <queries>
-        <!-- Разрешает приложению находить сервисы Google Cast -->
         <intent>
             <action android:name="com.google.android.gms.cast.CATEGORY_CAST" />
         </intent>
@@ -121,6 +116,11 @@
             android:noHistory="true"
             android:configChanges="orientation|screenSize|keyboardHidden"/>
             <!--android:screenOrientation="portrait"-->
+
+        <activity
+            android:name=".utils.SimpleTextEditorActivity"
+            android:noHistory="true"
+            android:configChanges="orientation|screenSize|keyboardHidden"/>
 
         <activity
             android:name=".ui.MainMenuActivity"
@@ -321,10 +321,6 @@
             android:theme="@style/Theme.PaintroidFix"
             tools:replace="android:theme" />
 
-        <!--
-          Также можно добавить WelcomeActivity, если вы ее используете.
-          Но для креша важна именно MainActivity.
-        -->
         <activity
             android:name="org.catrobat.paintroid.WelcomeActivity"
             android:theme="@style/Theme.PaintroidFix"

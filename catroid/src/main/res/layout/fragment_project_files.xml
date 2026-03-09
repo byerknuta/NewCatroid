@@ -4,27 +4,30 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- RecyclerView для списка файлов. Он занимает всё пространство -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view_files"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingBottom="80dp"/> <!-- Добавляем отступ снизу, чтобы кнопка не перекрывала последний элемент -->
+        android:paddingBottom="80dp"/>
 
-    <!-- Плавающая кнопка добавления. Закреплена в правом нижнем углу родительского RelativeLayout -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/project_files_add"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
         android:layout_marginEnd="@dimen/material_design_spacing_large"
         android:layout_marginBottom="@dimen/material_design_spacing_large"
-        android:src="@drawable/ic_plus"
         android:tint="@color/solid_white"
-        app:backgroundTint="@color/action_button"
-        app:elevation="10dp" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="24dp"
+        android:contentDescription="@string/main_menu_new"
+        android:src="@drawable/ic_plus"
+        app:tint="@color/solid_white"
+        app:backgroundTint="@color/button_background"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.NewCatroid.FAB"
+        app:fabCustomSize="65dp"
+        app:elevation="6dp" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/project_files_cmd"
@@ -32,10 +35,16 @@
         android:layout_height="wrap_content"
         android:layout_above="@id/project_files_add"
         android:layout_alignEnd="@id/project_files_add"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="9dp"
         android:src="@drawable/code_24px"
         android:tint="@color/solid_white"
-        app:backgroundTint="@color/action_button"
-        app:elevation="10dp" />
+        android:layout_alignParentEnd="true"
+        android:layout_margin="24dp"
+        android:contentDescription="@string/main_menu_new"
+        app:tint="@color/solid_white"
+        app:backgroundTint="@color/button_background"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.NewCatroid.FAB"
+        app:fabCustomSize="65dp"
+        app:elevation="6dp" />
 
 </RelativeLayout>

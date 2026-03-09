@@ -129,7 +129,13 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GET_DIRECTION_X.name(), R.string.formula_vector_dir_x);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GET_DIRECTION_Y.name(), R.string.formula_vector_dir_y);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GET_ANGLE.name(), R.string.formula_vector_angle);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.PT_VALUE.name(), R.string.formula_pt_value);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GET_3D_POSITION_X.name(), R.string.formula_3d_pos_x);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.PT_TOTALSIZE.name(), R.string.formula_pt_totalsize);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.PT_DUMP.name(), R.string.formula_pt_dump);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.PT_ARGMAX.name(), R.string.formula_pt_argmax);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.PT_SHAPE.name(), R.string.pt_shape);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.PT_VALUEND.name(), R.string.formula_pt_valuend);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.INTERSECT_LIST.name(), R.string.formula_intersect_list);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.COLLISION_LIST.name(), R.string.formula_collision_list);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.DELTA.name(), R.string.formula_delta);

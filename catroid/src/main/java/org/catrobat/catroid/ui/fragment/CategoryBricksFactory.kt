@@ -34,6 +34,7 @@ import org.catrobat.catroid.content.WhenConditionScript
 import org.catrobat.catroid.content.WhenGamepadButtonScript
 import org.catrobat.catroid.content.actions.hideStatusBarAction
 import org.catrobat.catroid.content.bricks.AddEditBrick
+import org.catrobat.catroid.content.bricks.AddFileToApkBrick
 import org.catrobat.catroid.content.bricks.AddItemToUserListBrick
 import org.catrobat.catroid.content.bricks.AddRadioBrick
 import org.catrobat.catroid.content.bricks.Apply3dForceBrick
@@ -116,6 +117,7 @@ import org.catrobat.catroid.content.bricks.DeleteAllTablesBrick
 import org.catrobat.catroid.content.bricks.DeleteBaseBrick
 import org.catrobat.catroid.content.bricks.DeleteFilesBrick
 import org.catrobat.catroid.content.bricks.DeleteFloatBrick
+import org.catrobat.catroid.content.bricks.DeleteFromApkBrick
 import org.catrobat.catroid.content.bricks.DeleteItemOfUserListBrick
 import org.catrobat.catroid.content.bricks.DeleteLookBrick
 import org.catrobat.catroid.content.bricks.DeleteParticlesBrick
@@ -143,6 +145,7 @@ import org.catrobat.catroid.content.bricks.EnablePbrRenderBrick
 import org.catrobat.catroid.content.bricks.EvalWebBrick
 import org.catrobat.catroid.content.bricks.ExitStageBrick
 import org.catrobat.catroid.content.bricks.ExportProjectFileBrick
+import org.catrobat.catroid.content.bricks.ExtractFileBrick
 import org.catrobat.catroid.content.bricks.FadeParticleEffectBrick
 import org.catrobat.catroid.content.bricks.FileUrlBrick
 import org.catrobat.catroid.content.bricks.FilesUrlBrick
@@ -151,6 +154,7 @@ import org.catrobat.catroid.content.bricks.FlashBrick
 import org.catrobat.catroid.content.bricks.ForItemInUserListBrick
 import org.catrobat.catroid.content.bricks.ForVariableFromToBrick
 import org.catrobat.catroid.content.bricks.ForeverBrick
+import org.catrobat.catroid.content.bricks.GenerateKeyBrick
 import org.catrobat.catroid.content.bricks.GetZipFileNamesBrick
 import org.catrobat.catroid.content.bricks.GlideToBrick
 import org.catrobat.catroid.content.bricks.GoNStepsBackBrick
@@ -203,6 +207,9 @@ import org.catrobat.catroid.content.bricks.LookFromTableBrick
 import org.catrobat.catroid.content.bricks.LookRequestBrick
 import org.catrobat.catroid.content.bricks.LookToTableBrick
 import org.catrobat.catroid.content.bricks.LunoScriptBrick
+import org.catrobat.catroid.content.bricks.MLLoadBrick
+import org.catrobat.catroid.content.bricks.MLSaveBrick
+import org.catrobat.catroid.content.bricks.MLStepAdamBrick
 import org.catrobat.catroid.content.bricks.MouseEventBrick
 import org.catrobat.catroid.content.bricks.MoveDownloadsBrick
 import org.catrobat.catroid.content.bricks.MoveFilesBrick
@@ -251,6 +258,14 @@ import org.catrobat.catroid.content.bricks.PrepareMusicAs3DSoundBrick
 import org.catrobat.catroid.content.bricks.PrepareSoundBrick
 import org.catrobat.catroid.content.bricks.PrepareSoundBrick2
 import org.catrobat.catroid.content.bricks.PreviousLookBrick
+import org.catrobat.catroid.content.bricks.PtBackwardBrick
+import org.catrobat.catroid.content.bricks.PtCreateTensorBrick
+import org.catrobat.catroid.content.bricks.PtOpBrick
+import org.catrobat.catroid.content.bricks.PtReshapeBrick
+import org.catrobat.catroid.content.bricks.PtSetByIndexBrick
+import org.catrobat.catroid.content.bricks.PtSetTensorBrick
+import org.catrobat.catroid.content.bricks.PtSetTrainingBrick
+import org.catrobat.catroid.content.bricks.PtStepBrick
 import org.catrobat.catroid.content.bricks.PutFloatBrick
 import org.catrobat.catroid.content.bricks.RaspiIfLogicBeginBrick
 import org.catrobat.catroid.content.bricks.RaspiPwmBrick
@@ -391,6 +406,7 @@ import org.catrobat.catroid.content.bricks.ShowTextFontBrick
 import org.catrobat.catroid.content.bricks.ShowTextRotationBrick
 import org.catrobat.catroid.content.bricks.ShowToastBlock
 import org.catrobat.catroid.content.bricks.ShowVarFontBrick
+import org.catrobat.catroid.content.bricks.SignApkBrick
 import org.catrobat.catroid.content.bricks.SoundFileBrick
 import org.catrobat.catroid.content.bricks.SoundFilesBrick
 import org.catrobat.catroid.content.bricks.SpeakAndWaitBrick
@@ -421,6 +437,11 @@ import org.catrobat.catroid.content.bricks.TapForBrick
 import org.catrobat.catroid.content.bricks.TestBrick
 import org.catrobat.catroid.content.bricks.ThinkBubbleBrick
 import org.catrobat.catroid.content.bricks.ThinkForBubbleBrick
+import org.catrobat.catroid.content.bricks.ThreedAlignNormalBrick
+import org.catrobat.catroid.content.bricks.ThreedAttachObjectToBoneBrick
+import org.catrobat.catroid.content.bricks.ThreedBindBoneToObjectBrick
+import org.catrobat.catroid.content.bricks.ThreedCreateCylinderBrick
+import org.catrobat.catroid.content.bricks.ThreedCreateFixedConstraintBrick
 import org.catrobat.catroid.content.bricks.ToggleDisplayBrick
 import org.catrobat.catroid.content.bricks.TouchAndSlideBrick
 import org.catrobat.catroid.content.bricks.TripleStitchBrick
@@ -433,6 +454,7 @@ import org.catrobat.catroid.content.bricks.UnloadNNBrick
 import org.catrobat.catroid.content.bricks.UnlockMouseBrick
 import org.catrobat.catroid.content.bricks.UnpinFromCameraBrick
 import org.catrobat.catroid.content.bricks.UnzipBrick
+import org.catrobat.catroid.content.bricks.UpdateManifestBrick
 import org.catrobat.catroid.content.bricks.UploadFileBrick
 import org.catrobat.catroid.content.bricks.UserDefinedBrick
 import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrick
@@ -501,6 +523,7 @@ open class CategoryBricksFactory {
             context.getString(R.string.category_embroidery) -> return setupEmbroideryCategoryList(context)
             context.getString(R.string.category_plot) -> return setupPlotCategoryList(context)
             context.getString(R.string.category_neural) -> return setupNeuralCategoryList(context)
+            context.getString(R.string.pocketensor) -> return setupPocketensorCategoryList(context)
             context.getString(R.string.category_file) -> return setupFileCategoryList(context)
             context.getString(R.string.category_threed) -> return setupThreedCategoryList(context)
             context.getString(R.string.category_internet) -> return setupInternetCategoryList(context)
@@ -1238,6 +1261,24 @@ void main() {
         return neuralBrickList
     }
 
+    private fun setupPocketensorCategoryList(context: Context): List<Brick> {
+        val pocketensorBrickList: MutableList<Brick> = ArrayList()
+
+        pocketensorBrickList.add(PtSetTrainingBrick(1))
+        pocketensorBrickList.add(PtCreateTensorBrick("tensor", "10,4", 0f, true))
+        pocketensorBrickList.add(PtOpBrick())
+        pocketensorBrickList.add(PtBackwardBrick("loss"))
+        pocketensorBrickList.add(PtStepBrick(0.01f))
+        pocketensorBrickList.add(MLStepAdamBrick(Formula(0.01f)))
+        pocketensorBrickList.add(PtSetTensorBrick("tensor", "1,2,3"))
+        pocketensorBrickList.add(PtSetByIndexBrick("tensor", 0, 1f))
+        pocketensorBrickList.add(PtReshapeBrick("tensor", "20,2"))
+        pocketensorBrickList.add(MLSaveBrick("model.bin"))
+        pocketensorBrickList.add(MLLoadBrick("model.bin"))
+
+        return pocketensorBrickList
+    }
+
     private fun setupFileCategoryList(context: Context): List<Brick> {
         val fileBrickList: MutableList<Brick> = ArrayList()
 
@@ -1280,6 +1321,13 @@ void main() {
         fileBrickList.add(RunVm2Brick("-kernel \"%PROJECT_FILES%/bzImage\" -initrd \"%PROJECT_FILES%/core.gz\" -append \"console=ttyS0 quiet\""))
         fileBrickList.add(RunVMBrick("1024", "2", "myDisk.qcow2", "flash.iso"))
 
+        fileBrickList.add(GenerateKeyBrick("keystore.jks", "123456", "alias", "KEBAB_337"))
+        fileBrickList.add(SignApkBrick("input.apk", "output.apk", "keystore.jks", "123456", "alias"))
+        fileBrickList.add(UpdateManifestBrick(Formula("input.apk"), Formula("com.example.app"), Formula("My App"), Formula(1), Formula("v1.0"), Formula(24), Formula(33), Formula(1), Formula("INTERNET\nMANAGE_EXTERNAL_STORAGE"), Formula("")))
+        fileBrickList.add(ExtractFileBrick("input.apk", "assets/project.zip", "extracted_project.zip"))
+        fileBrickList.add(AddFileToApkBrick("input.apk", "assets/project.zip", "my_project.zip"))
+        fileBrickList.add(DeleteFromApkBrick("input.apk", "assets/image.png"))
+
         return fileBrickList
     }
 
@@ -1289,6 +1337,7 @@ void main() {
         threedBrickList.add(Create3dObjectBrick("myObject", "model.obj"))
         threedBrickList.add(CreateCubeBrick("myObject"))
         threedBrickList.add(CreateSphereBrick("myObject"))
+        threedBrickList.add(ThreedCreateCylinderBrick("myObject"))
         threedBrickList.add(Remove3dObjectBrick("myObject"))
         threedBrickList.add(CloneObjectBrick("myObject", "clonedObject"))
         threedBrickList.add(SetSpawnInvisibleBrick("myObject"))
@@ -1299,6 +1348,7 @@ void main() {
         threedBrickList.add(Set3dRotationBrick("myObject", 1.0, 0.0, 0.0))
         threedBrickList.add(Set3dScaleBrick("myObject", 2.0, 1.0, 1.5))
         threedBrickList.add(ObjectLookAtBrick("myObject", 0.0, 0.0, 0.0))
+        threedBrickList.add(ThreedAlignNormalBrick("myObject", -1.0, 0.0, 0.0))
         threedBrickList.add(SetPhysicsStateBrick("myObject", 2, 0, 1.0))
         threedBrickList.add(SetRotationLockBrick("myObject", true, false, true))
         threedBrickList.add(Set3dGravityBrick(0.0, -9.81, 0.0))
@@ -1310,6 +1360,7 @@ void main() {
         threedBrickList.add(SetParentBrick("child", "parent"))
         threedBrickList.add(RemoveParentBrick("child"))
         threedBrickList.add(CreatePointJointBrick("joint", "objA", "objB"))
+        threedBrickList.add(ThreedCreateFixedConstraintBrick("joint", "objA", "objB"))
         threedBrickList.add(RemoveJointBrick("joint"))
         threedBrickList.add(SetCameraPositionBrick(200.0, 200.0, 200.0))
         threedBrickList.add(CameraLookAtBrick(0.0, 0.0, 0.0))
@@ -1368,6 +1419,8 @@ void main() {
         threedBrickList.add(PlayAnimationBrick("myObject", "idle", -1, 1.0, 0.2))
         threedBrickList.add(StopAnimationBrick("myObject"))
         threedBrickList.add(KeyframeAnimationBrick())
+        threedBrickList.add(ThreedAttachObjectToBoneBrick("attachedObject", "hand", "Hand_R", 0.0, 0.0, 0.0))
+        threedBrickList.add(ThreedBindBoneToObjectBrick("Hand_R", "hand", "myObject"))
         threedBrickList.add(SetAnisotropicFilterBrick("myObject", 2.0))
         threedBrickList.add(SetPointLightBrick("sun", 100.0, 100.0, 0.0, 255, 255, 230, 5.0, 300.0))
         threedBrickList.add(SetSpotLightBrick("sun", 100.0, 100.0, 0.0, 0.3, -0.4, 0.2, 255, 255, 230, 5.0, 60.0, 1.0, 300.0))

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_sign_apk_layout"
+        style="@style/BrickContainer.File.Big">
+
+        <include layout="@layout/icon_brick_category_file" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_sign_apk_title" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_sign_apk_in"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_sign_apk_edit_in"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_sign_apk_out"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_sign_apk_edit_out"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_sign_apk_key"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_sign_apk_edit_key"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_sign_apk_pass"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_sign_apk_edit_pass"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_sign_apk_alias"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_sign_apk_edit_alias"
+            style="@style/BrickEditText" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

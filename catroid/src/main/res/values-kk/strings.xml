@@ -256,10 +256,6 @@
         <item quantity="one">Орындалуда: %d операция</item>
         <item quantity="other">Орындалуда: %d операциялар</item>
     </plurals>
-    <plurals name="status_completed_x_jobs">
-        <item quantity="one">Орындалды: %d операция</item>
-        <item quantity="other">Орындалды: %d операциялар</item>
-    </plurals>
     <string formatted="false" name="status_conversion_failed">Түрлендіру сәтсіз аяқталды!</string>
     <string formatted="false" name="status_downloading">Жүктелуде&#8230;</string>
     <string formatted="false" name="status_download_finished">Жүктеу аяқталды.</string>

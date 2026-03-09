@@ -23,6 +23,106 @@
   -->
 <resources  xmlns:tools="http://schemas.android.com/tools">
 
+    <string formatted="false" name="brick_threed_fixed_joint_title">Create Fixed Joint</string>
+    <string formatted="false" name="brick_threed_fixed_joint_id">ID</string>
+    <string formatted="false" name="brick_threed_fixed_joint_obj_a">Object A</string>
+    <string formatted="false" name="brick_threed_fixed_joint_obj_b">Object B</string>
+    <string formatted="false" name="brick_threed_fixed_joint_mode">Mode</string>
+    <string formatted="false" name="brick_threed_fixed_joint_pivot_a">Pivot A (X, Y, Z)</string>
+    <string formatted="false" name="brick_threed_fixed_joint_pivot_b">Pivot B (X, Y, Z)</string>
+
+    <string-array name="brick_threed_joint_modes">
+        <item>Auto (Weld)</item>
+        <item>Manual Offsets</item>
+    </string-array>
+    <string formatted="false" name="brick_threed_create_cylinder">Create cylinder with ID</string>
+
+    <string formatted="false" name="brick_threed_attach_obj_1">Attach object</string>
+    <string formatted="false" name="brick_threed_attach_obj_2">to model</string>
+    <string formatted="false" name="brick_threed_attach_obj_3">to bone</string>
+    <string formatted="false" name="brick_threed_attach_obj_4">offset X</string>
+    <string formatted="false" name="brick_threed_attach_obj_5">Y</string>
+    <string formatted="false" name="brick_threed_attach_obj_6">Z</string>
+
+    <string formatted="false" name="brick_threed_bind_bone_1">Bind bone</string>
+    <string formatted="false" name="brick_threed_bind_bone_2">of model</string>
+    <string formatted="false" name="brick_threed_bind_bone_3">to object</string>
+    <string formatted="false" name="brick_align_normal_1">Align object</string>
+    <string formatted="false" name="brick_align_normal_2">to surface normal X</string>
+    <string formatted="false" name="brick_align_normal_3">Y</string>
+    <string formatted="false" name="brick_align_normal_4">Z</string>
+    <string formatted="false" name="brick_del_apk_title">Delete from APK</string>
+    <string formatted="false" name="brick_del_apk_path">APK Path</string>
+    <string formatted="false" name="brick_del_apk_pattern">Path inside APK</string>
+    <string formatted="false" name="brick_add_file_apk_title">Add to APK</string>
+    <string formatted="false" name="brick_add_file_apk_path">APK Path</string>
+    <string formatted="false" name="brick_add_file_apk_src">Source (File/Dir)</string>
+    <string formatted="false" name="brick_add_file_apk_dest">Path inside APK</string>
+    <string formatted="false" name="brick_extract_title">Extract from APK</string>
+    <string formatted="false" name="brick_extract_apk">APK Path</string>
+    <string formatted="false" name="brick_extract_inner">Path inside APK</string>
+    <string formatted="false" name="brick_extract_dest">Save to</string>
+    <string formatted="false" name="brick_manif_title">Update AndroidManifest</string>
+    <string formatted="false" name="brick_manif_apk">APK Path</string>
+    <string formatted="false" name="brick_manif_pkg">Package (com.x.y)</string>
+    <string formatted="false" name="brick_manif_name">App Name</string>
+    <string formatted="false" name="brick_manif_vcode">Ver Code (Int)</string>
+    <string formatted="false" name="brick_manif_vname">Ver Name (1.0)</string>
+    <string formatted="false" name="brick_manif_min">Min SDK</string>
+    <string formatted="false" name="brick_manif_target">Target SDK</string>
+    <string formatted="false" name="brick_manif_debug">Debuggable (true/false)</string>
+    <string formatted="false" name="brick_manif_add">Add Perms (new line)</string>
+    <string formatted="false" name="brick_manif_rem">Rem Perms (new line)</string>
+    <string formatted="false" name="brick_sign_apk_title">Sign APK</string>
+    <string formatted="false" name="brick_sign_apk_in">Input APK</string>
+    <string formatted="false" name="brick_sign_apk_out">Output APK</string>
+    <string formatted="false" name="brick_sign_apk_key">KeyStore</string>
+    <string formatted="false" name="brick_sign_apk_pass">Password</string>
+    <string formatted="false" name="brick_sign_apk_alias">Alias</string>
+    <string formatted="false" name="brick_gen_key_title">Generate KeyStore</string>
+    <string formatted="false" name="brick_gen_key_file">File (.jks)</string>
+    <string formatted="false" name="brick_gen_key_pass">Password</string>
+    <string formatted="false" name="brick_gen_key_alias">Alias</string>
+    <string formatted="false" name="brick_gen_key_name">Owner Name</string>
+    <string name="brick_ml_step_adam">Smart step (Adam)</string>
+    <string name="brick_ml_lr">Learning rate</string>
+    <string name="brick_ml_save">Save weights</string>
+    <string name="brick_ml_load">Load weights</string>
+    <string name="brick_ml_file">Project file</string>
+    <string name="pt_set_training">Set Training mode</string>
+    <string name="pt_reshape">Change shape of</string>
+    <string name="pt_reshape_to">to</string>
+    <string name="set_tensor">set</string>
+    <string name="from_index">index</string>
+    <string name="in_tensor">In Tensor</string>
+    <string name="from_string">from string</string>
+    <string name="fill_tensor">fill Tensor</string>
+    <string name="pt_create_tensor">Create Tensor</string>
+    <string name="pt_name">Name</string>
+    <string name="pt_value">Value</string>
+    <string name="pt_shape">Shape</string>
+    <string name="pt_trainable">Trainable</string>
+
+    <string name="pt_operation">Operation</string>
+    <string name="pt_res">Result</string>
+    <string name="pt_op_type">Type</string>
+
+    <string name="pt_backward">Backward (error)</string>
+    <string name="pt_step">Learning step</string>
+    <string name="pt_lr">Learning rate</string>
+
+    <string-array name="pt_ops_array">
+        <item>add</item>
+        <item>sub</item>
+        <item>mul</item>
+        <item>matmul</item>
+        <item>relu</item>
+        <item>sigmoid</item>
+        <item>tanh</item>
+        <item>softmax</item>
+        <item>mse_loss</item>
+        <item>sum</item>
+    </string-array>
     <string formatted="false" name="recovery_desc">Scan memory for projects not displayed in the menu</string>
     <string formatted="false" name="recovery_btn">Recover lost projects</string>
     <string formatted="false" name="recovery">Recovery</string>
@@ -426,6 +526,63 @@
         <item>Если кричать в течение 8 лет, 7 месяцев и 6 дней, можно произвести достаточно звуковой энергии, чтобы вскипятить одну чашку кофе.</item>
         <item>Вомбаты — единственные животные, чей помёт имеет форму кубиков.</item>
         <item>Бананы — это ягоды, а клубника — нет.</item>
+        <item>Программист — это организм, превращающий кофеин в код.</item>
+        <item>В 1940-х годах слово "компьютер" было названием профессии — это были люди (в основном женщины), которые делали вычисления вручную.</item>
+        <item>Если бы авиастроение развивалось так же быстро, как микропроцессоры, полет на Луну стоил бы как чашка кофе.</item>
+        <item>Символ @ в разных странах называют по-разному: в России — собачка, в Италии — улитка, в Армении — щенок, а в Тайване — мышка.</item>
+        <item>Самый старый работающий сайт в мире был создан в 1991 году и до сих пор доступен по адресу info.cern.ch.</item>
+        <item>Первый компьютерный вирус "Creeper" не удалял файлы, а просто выводил надпись: "Я КРИПЕР, ПОЙМАЙ МЕНЯ, ЕСЛИ СМОЖЕШЬ!"</item>
+        <item>Клавиатура QWERTY была придумана, чтобы замедлить печать — на старых машинках рычаги с буквами постоянно цеплялись друг за друга.</item>
+        <item>Ctrl+C, Ctrl+V — это не просто кнопки, это основа современного ИТ-образования.</item>
+        <item>Кошки могут поворачивать уши на 180 градусов. Почти как ты, когда слышишь уведомление о баге.</item>
+        <item>Мурлыканье кошки происходит на частоте от 25 до 150 Гц — это помогает заживлению костей и мышц.</item>
+        <item>Если кошка ложится на клавиатуру, она просто хочет помочь с рефакторингом.</item>
+        <item>Кошки воспринимают людей как больших, неуклюжих и лысых котов.</item>
+        <item>У кошек нет ключиц, поэтому они могут пролезть в любое отверстие размером с их голову.</item>
+        <item>Бразильское комьюнити, если вы это читаете: "Oi, tudo bem? Cadê o churrasco?"</item>
+        <item>Говорят, если долго смотреть в код, код начинает смотреть в тебя.</item>
+        <item>Ни один пиксель не пострадал при разработке этой версии (кроме тех, что сгорели от стыда за мой код).</item>
+        <item>Акулы существуют на Земле дольше, чем деревья и кольца Сатурна.</item>
+        <item>Компания Nintendo была основана в 1889 году. Тогда они производили игральные карты ручной работы.</item>
+        <item>На Сатурне и Юпитере идут дожди из алмазов, но билет туда дороговат.</item>
+        <item>У медуз нет мозга, сердца и костей. Идеальные кандидаты в тимлиды.</item>
+        <item>Облако среднего размера весит около 500 тонн, можете прикольнуться над девушкой (или не девушкой...)</item>
+        <item>90% всей валюты в мире существует только на серверах, а не в виде бумажных денег.</item>
+        <item>Язык C++ сначала назывался "Си с классами".</item>
+        <item>Если бы Facebook был страной, он был бы самой населенной страной в мире.</item>
+        <item>Linux работает на всём: от суперкомпьютеров и серверов до тостеров и холодильников.</item>
+        <item>I use arch btw :]</item>
+        <item>Йа-йа, я не знать как код компилироваться, но оно работать! натюрлих</item>
+        <item>Внимание: этот код написан на коленке, но с большой любовью.</item>
+        <item>Ваш телефон делает миллиарды вычислений в секунду, чтобы вы могли просто нажать на кнопку.</item>
+        <item>Ставь лайк, если тоже не понимаешь, как работает этот працетамол.</item>
+        <item>Удаление System32 не поможет ускорить загрузку. Мы проверяли.</item>
+        <item>В любой непонятной ситуации — обновляй библиотеки.</item>
+        <item>Как дела? Норм. Что делаешь? Да вот херней маюсь сам с собой общаюсь тут</item>
+        <item>\@mindpy лох >:)</item>
+        <item>Miroo, ты любиш калбаса?</item>
+        <item>Ванёк в соло</item>
+        <item>Данваде тут был, знайте</item>
+        <item>Там кста фрирен 2 сезон вышел, смотрел?</item>
+        <item>Доброе утро, коллега</item>
+        <item>я недавно смотрел, что у нас есть 12 пользователей из Антарктиды... кто вы воины..?</item>
+        <item>утя-гутя пони, а ты нет, смирись</item>
+        <item>подпишитесь на ванька пжпжпжпж</item>
+        <item>только за подписку на бусти</item>
+        <item>ловит даже без парковки</item>
+        <item>вот чем вы занимаетесь вечером? а я вот тут в 21:53 пишу вам эти факты</item>
+        <item>БiРiШКЭЭЭЭЭЭ, МЬЕМЕМЕММЕМЕМЕ</item>
+        <item>я тут молочный коктейл пью какой-то, хпхпхпхп. вкусненько</item>
+        <item>Хотите интересный факт? а он вас нет</item>
+        <item>медвед из 2026 придет и сьест вас</item>
+        <item>КАПЕЦ УЖЕ 2026... ОФИГЕТЬ...</item>
+        <item>я тут подумал и пришел к выводу: мне нужно фото физика в чулочках. у меня все</item>
+        <item>ВИНИЛЫ НЕ КАНОН, ИДИТЕ НАФИГ</item>
+        <item>Ландон ис зе кэпитал оф брэит гритан. май инглиш из вери вел</item>
+        <item>Dixver легенда...</item>
+        <item>Услышал тебя родной... :)</item>
+        <item>ЧИПИ ЧИПИ ЧАПА ЧАПА РУВИ РУВИ РАВА РАВА...</item>
+        <item>каждая буханка хлеба - трагическая история зерен, которые мечтали стать пивом, но не стали....</item>
     </string-array>
     <string name="rebuild_cache_button">Update physics cache</string>
     <string name="insert_image">Insert image</string>
@@ -716,6 +873,18 @@
     <string name="formula_vector_dir_param" formatted="false">(60)</string>
     <string name="formula_vector_angle_param" formatted="false">(0.6, 1)</string>
     <string name="formula_3d_pos_x" formatted="false">3D position z</string>
+    <string name="formula_pt_totalsize" formatted="false">PT length</string>
+    <string name="formula_pt_dump" formatted="false">PT to string</string>
+    <string name="formula_pt_valuend" formatted="false">PT value ND</string>
+    <string name="formula_pt_argmax" formatted="false">PT argmax</string>
+    <string name="formula_pt_shape" formatted="false">PT shape</string>
+    <string name="formula_pt_value" formatted="false">PT value</string>
+    <string name="formula_pt_totalsize_param" formatted="false">(\'tensor\')</string>
+    <string name="formula_pt_dump_param" formatted="false">(\'tensor\')</string>
+    <string name="formula_pt_argmax_param" formatted="false">(\'tensor\')</string>
+    <string name="formula_pt_shape_param" formatted="false">(\'tensor\')</string>
+    <string name="formula_pt_value_param" formatted="false">(\'tensor\', index)</string>
+    <string name="formula_pt_valuennd_param" formatted="false">(\'tensor\', \'10,2\')</string>
     <string name="formula_intersect_list" formatted="false">object intercect list</string>
     <string name="formula_collision_list" formatted="false">object collision list</string>
     <string name="formula_delta" formatted="false">delta-time</string>
@@ -753,6 +922,7 @@
         <item>Static (Box)</item>
         <item>Dynamic (Box)</item>
         <item>Mesh Static (Complex)</item>
+        <item>Kinematic</item>
     </string-array>
     <string name="brick_set_directional_light_id" formatted="false">Set directional light ID</string>
     <string name="brick_set_directional_light_color" formatted="false">color (0-1)</string>
@@ -1222,6 +1392,8 @@
         for plotting machines</string>
     <string formatted="false" name="preference_description_internet_bricks">It expands the possibilities of interacting with the Internet and allows you to create local servers.</string>
     <string formatted="false" name="category_internet">Internet</string>
+    <string formatted="false" name="preference_description_pocketensor_bricks">Adds support for working with tensors and allows you to create AI models.</string>
+    <string formatted="false" name="pocketensor">PockeTensor</string>
     <string formatted="false" name="preference_title_enable_internet_bricks">Internet Extension</string>
     <string formatted="false" name="preference_description_neural_bricks">allows you to use Gemini models and create yur own neural networks</string>
     <string formatted="false" name="preference_title_enable_threed_bricks">3D Extension</string>

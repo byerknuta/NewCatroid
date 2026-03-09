@@ -43,6 +43,7 @@ import org.catrobat.catroid.formulaeditor.function.TextBlockFunctionProvider;
 import org.catrobat.catroid.formulaeditor.function.TouchFunctionProvider;
 import org.catrobat.catroid.libraries.LibraryManager;
 import org.catrobat.catroid.libraries.LoadedLibrary;
+import org.catrobat.catroid.ml.MLBridge;
 import org.catrobat.catroid.physics.PhysicsWorld;
 import org.catrobat.catroid.raptor.ThreeDManager;
 import org.catrobat.catroid.sensing.CollisionDetection;
@@ -673,6 +674,24 @@ public class FormulaElement implements Serializable {
 				Vector3 pos = manager.getPosition(id);
 				return (pos != null) ? pos.x : 0.0;
 			}
+            case PT_ARGMAX: {
+                return MLBridge.nativeArgMax(String.valueOf(arguments.get(0)));
+            }
+            case PT_DUMP: {
+                return MLBridge.nativeGetTensorAsString(String.valueOf(arguments.get(0)));
+            }
+            case PT_TOTALSIZE: {
+                return MLBridge.nativeGetTotalSize(String.valueOf(arguments.get(0)));
+            }
+            case PT_VALUE: {
+                return MLBridge.nativeGetTensorValueByIndex(String.valueOf(arguments.get(0)), (int) arguments.get(1));
+            }
+            case PT_SHAPE: {
+                return MLBridge.nativeGetShape(String.valueOf(arguments.get(0)));
+            }
+            case PT_VALUEND: {
+                return MLBridge.nativeGetValueND(String.valueOf(arguments.get(0)), String.valueOf(arguments.get(1)));
+            }
             case INTERSECT_LIST: {
                 ThreeDManager manager = getThreeDManager();
                 if (manager == null) return 0.0;

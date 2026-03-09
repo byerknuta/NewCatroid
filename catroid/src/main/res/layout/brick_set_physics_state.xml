@@ -42,7 +42,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             app:layout_newLine="true"
-            android:visibility="gone"> <!-- Будет видим для Static и Dynamic -->
+            android:visibility="gone">
 
             <TextView
                 style="@style/BrickText.SingleLine"

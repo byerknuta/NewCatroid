@@ -457,6 +457,7 @@
         <item>Estático (Primitivo)</item>
         <item>Dinâmico (Primitivo)</item>
         <item>Estático complexo</item>
+        <item>Kinematic</item>
     </string-array>
     <string name="brick_set_directional_light_id" formatted="false">Luz direcional com ID</string>
     <string name="brick_set_directional_light_color" formatted="false">cor (0-1)</string>

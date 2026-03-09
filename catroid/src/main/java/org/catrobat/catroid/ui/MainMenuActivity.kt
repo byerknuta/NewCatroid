@@ -64,6 +64,7 @@ import org.catrobat.catroid.io.ZipArchiver
 import org.catrobat.catroid.io.asynctask.ProjectLoader
 import org.catrobat.catroid.io.asynctask.ProjectLoader.ProjectLoadListener
 import org.catrobat.catroid.io.asynctask.ProjectSaver
+import org.catrobat.catroid.ml.MLBridge
 import org.catrobat.catroid.plugins.PluginEventBus
 import org.catrobat.catroid.python.PythonEngine
 import org.catrobat.catroid.stage.StageActivity
@@ -214,6 +215,8 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
         surveyCampaign?.showSurvey(this)
 
         PluginEventBus.getInstance().dispatch("Activity.onShow", "MainMenuActivity")
+
+        //MLBridge.test()
     }
 
     /*private fun testPython(): String {

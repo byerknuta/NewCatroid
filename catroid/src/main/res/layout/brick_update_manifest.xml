@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_update_manifest_layout"
+        style="@style/BrickContainer.File.Big">
+
+        <include layout="@layout/icon_brick_category_file" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_manif_title" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_manif_apk" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_manif_edit_apk" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_manif_pkg" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_manif_edit_pkg" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_manif_name" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_manif_edit_name" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_manif_vcode" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_manif_edit_vcode" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_manif_vname" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_manif_edit_vname" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_manif_min" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_manif_edit_min" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_manif_target" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_manif_edit_target" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_manif_debug" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_manif_edit_debug" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_manif_add" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_manif_edit_p_add" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_manif_rem" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_manif_edit_p_rem" style="@style/BrickEditText" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

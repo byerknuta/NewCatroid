@@ -30,6 +30,7 @@ public class SetPhysicsStateAction extends TemporalAction {
                 case 1: state = ThreeDManager.PhysicsState.STATIC; break;
                 case 2: state = ThreeDManager.PhysicsState.DYNAMIC; break;
                 case 3: state = ThreeDManager.PhysicsState.MESH_STATIC; break;
+                case 4: state = ThreeDManager.PhysicsState.KINEMATIC; break;
                 default: return;
             }
 

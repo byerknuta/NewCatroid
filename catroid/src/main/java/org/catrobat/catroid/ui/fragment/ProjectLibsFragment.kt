@@ -117,7 +117,7 @@ class ProjectLibsFragment : Fragment() {
         filesAdapter = FilesAdapter(project, filesList,
             { fileName -> deleteFile(fileName) },
             { fileName -> copyFile(fileName) },
-            { fileName -> openFile(fileName) } // <-- ДОБАВЬТЕ onOpen
+            { fileName -> openFile(fileName) }
         )
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = filesAdapter
@@ -133,16 +133,16 @@ class ProjectLibsFragment : Fragment() {
                 return
             }
 
-            // Используем FileProvider для безопасной передачи файла другим приложениям
-            // Убедитесь, что authority соответствует вашему файлу provider_paths.xml и AndroidManifest.xml
+
+
             val authority = "${BuildConfig.APPLICATION_ID}.provider"
             val uri = FileProvider.getUriForFile(requireContext(), authority, file)
 
             val intent = Intent(Intent.ACTION_VIEW)
-            // Определяем MIME-тип, чтобы система знала, какими приложениями открывать файл
+
             val mimeType = context?.contentResolver?.getType(uri) ?: "*/*"
             intent.setDataAndType(uri, mimeType)
-            // Даем временные права на чтение файла приложению, которое его откроет
+
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
             try {
@@ -169,8 +169,8 @@ class ProjectLibsFragment : Fragment() {
             val dir = File(it.directory, "libs")
             val file = File(dir.absolutePath, fileName)
             if (file.exists() && file.delete()) {
-                // Удаляем файл и обновляем список
-                updateFilesList(dir) // Предположим, что updateFilesList обновляет список файлов
+
+                updateFilesList(dir)
                 Toast.makeText(requireContext(), "Библиотека удалена", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(requireContext(), "Ошибка при удалении библиотеки", Toast.LENGTH_SHORT)
@@ -181,10 +181,10 @@ class ProjectLibsFragment : Fragment() {
 
     private fun updateFilesList(directory: File) {
         val newFiles = directory.listFiles()?.map { it.name } ?: emptyList()
-        val oldFiles = filesList.toList() // Создаем копию текущего списка
+        val oldFiles = filesList.toList()
 
         Log.d("ProjectFile", "Number of files: ${directory.listFiles()?.size}")
-        // Добавляем новые файлы
+
         newFiles.forEach { fileName ->
             if (!oldFiles.contains(fileName)) {
                 filesList.add(fileName)
@@ -192,7 +192,7 @@ class ProjectLibsFragment : Fragment() {
             }
         }
 
-        // Удаляем старые файлы
+
         oldFiles.forEach { fileName ->
             if (!newFiles.contains(fileName)) {
                 val position = filesList.indexOf(fileName)
@@ -205,7 +205,7 @@ class ProjectLibsFragment : Fragment() {
 
         Log.d("ProjectFile", "Files: $filesList")
 
-        // Дополнительно можно вызвать notifyDataSetChanged, если лучшее решение не подходит
+
         // filesAdapter.notifyDataSetChanged()
     }
 
@@ -221,15 +221,15 @@ class ProjectLibsFragment : Fragment() {
     }
 
     private fun handleAdd() {
-        // Открываем меню выбора файла
+
         val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-            type = "*/*" // Позволяет выбрать файл с любым расширением
+            type = "*/*"
             addCategory(Intent.CATEGORY_OPENABLE)
         }
 
-        // Проверяем, есть ли такая возможность
+
         val chooser = Intent.createChooser(intent, "Выберите файл .newlib")
-        startActivityForResult(chooser, ADD_FILE_REQUEST) // REQUEST_CODE - это константа, которую нужно определить
+        startActivityForResult(chooser, ADD_FILE_REQUEST)
     }
 
     override fun onResume() {
@@ -267,7 +267,7 @@ class ProjectLibsFragment : Fragment() {
             val params = ArrayList<Any>(listOf(toast))
             StageActivity.messageHandler.obtainMessage(StageActivity.SHOW_TOAST, params).sendToTarget()
         } else {
-            // Обработка ситуации, когда messageHandler равно null
+
             Log.e("ShowToast", "messageHandler is null!")
         }
     }
@@ -305,9 +305,9 @@ class ProjectLibsFragment : Fragment() {
             "Сделано! Готовы к новым подвигам?"
         )
 
-        // Генерируем случайный индекс
+
         val randomIndex = Random.nextInt(messages.size)
-        // Возвращаем случайное сообщение
+
         return messages[randomIndex]
     }
 
@@ -337,7 +337,7 @@ class ProjectLibsFragment : Fragment() {
         )
 
         val randomIndex = Random.nextInt(errorMessages.size)
-        // Возвращаем случайное сообщение
+
         return errorMessages[randomIndex]
     }
 
@@ -350,17 +350,17 @@ class ProjectLibsFragment : Fragment() {
         }*/
         if (requestCode == ADD_FILE_REQUEST && resultCode == Activity.RESULT_OK) {
             data?.data?.let { uri ->
-                // Получаем директорию проекта
+
                 val directory: File? = project?.directory
                 val filesDir = File(directory, "libs")
 
 
-                // Создаем папку, если она не существует
+
                 if (!filesDir.exists()) {
                     filesDir.mkdirs()
                 }
 
-                // Загрузка файла в папку
+
                 copyFileToDir(uri, filesDir)
             }
         }
@@ -368,10 +368,10 @@ class ProjectLibsFragment : Fragment() {
 
     private fun copyFileToDir(uri: Uri, dir: File) {
         val inputStream = requireActivity().contentResolver.openInputStream(uri)
-        val outputFileName = getFileName(uri) // Получаем имя файла
+        val outputFileName = getFileName(uri)
         val outputFile = File(dir, outputFileName)
 
-        // Копируем содержимое
+
         inputStream.use { input ->
             outputFile.outputStream().use { output ->
                 input?.copyTo(output)
@@ -381,7 +381,7 @@ class ProjectLibsFragment : Fragment() {
         updateFilesList(dir)
     }
 
-    // Функция для получения имени файла из Uri
+
     private fun getFileName(uri: Uri): String {
         var fileName = ""
         if (uri.scheme == "content") {
@@ -395,7 +395,7 @@ class ProjectLibsFragment : Fragment() {
         } else if (uri.scheme == "file") {
             fileName = File(uri.path).name
         }
-        return fileName.ifEmpty { "неизвестный_файл" } // Возврат значения по умолчанию
+        return fileName.ifEmpty { "неизвестный_файл" }
     }
 
 

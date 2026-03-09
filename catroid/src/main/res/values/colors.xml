@@ -138,4 +138,9 @@
      <color name="brick_color_neural">#5771f7</color>
     <color name="brick_color_threed">#fccb41</color>
 
+    <color name="surface_card">#003554</color> <!-- Чуть светлее фона, для карточек -->
+    <color name="surface_card_pressed">#004E7A</color> <!-- Цвет нажатия -->
+    <color name="text_secondary">#B0BEC5</color>
+    <color name="black_overlay">#66000000</color>
+
     </resources>

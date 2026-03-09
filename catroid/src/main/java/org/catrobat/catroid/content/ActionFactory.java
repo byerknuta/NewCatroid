@@ -3795,4 +3795,227 @@ public class ActionFactory extends Actions {
         action.setTimeFormula(time);
         return action;
     }
+
+    public Action createPtCreateTensorAction(Sprite sprite, SequenceAction sequence, Formula formulaWithBrickField, Formula formulaWithBrickField1, Formula formulaWithBrickField2, Formula formulaWithBrickField3) {
+        PtCreateTensorAction action = action(PtCreateTensorAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setNameFormula(formulaWithBrickField);
+        action.setShapeFormula(formulaWithBrickField1);
+        action.setValueFormula(formulaWithBrickField2);
+        action.setTrainableFormula(formulaWithBrickField3);
+        return action;
+    }
+
+    public Action createPtOpAction(Sprite sprite, ScriptSequenceAction sequence, Formula formulaWithBrickField, Formula formulaWithBrickField1, Formula formulaWithBrickField2, String op) {
+        PtOpAction action = action(PtOpAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setResFormula(formulaWithBrickField);
+        action.setAFormula(formulaWithBrickField1);
+        action.setBFormula(formulaWithBrickField2);
+        action.setOpType(op);
+        return action;
+    }
+
+    public Action createPtBackwardAction(Sprite sprite, SequenceAction sequence, Formula lossName) {
+        PtBackwardAction action = action(PtBackwardAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setLossNameFormula(lossName);
+        return action;
+    }
+
+    public Action createPtStepAction(Sprite sprite, SequenceAction sequence, Formula lr) {
+        PtStepAction action = action(PtStepAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setLrFormula(lr);
+        return action;
+    }
+
+    public Action createPtSetTensorAction(Sprite sprite, SequenceAction sequence, Formula name, Formula data) {
+        PtSetTensorAction action = action(PtSetTensorAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setNameFormula(name);
+        action.setDataFormula(data);
+        return action;
+    }
+
+    public Action createPtSetByIndexAction(Sprite sprite, SequenceAction sequence, Formula name, Formula index, Formula value) {
+        PtSetByIndexAction action = action(PtSetByIndexAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setNameFormula(name);
+        action.setIndexFormula(index);
+        action.setValueFormula(value);
+        return action;
+    }
+
+    public Action createPtReshapeAction(Sprite sprite, SequenceAction sequence, Formula name, Formula shape) {
+        PtReshapeAction action = action(PtReshapeAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setNameFormula(name);
+        action.setShapeFormula(shape);
+        return action;
+    }
+
+    public Action createPtSetTrainingAction(Sprite sprite, ScriptSequenceAction sequence, Formula formulaWithBrickField) {
+        PtSetTraining action = action(PtSetTraining.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setTrainingFormula(formulaWithBrickField);
+        return action;
+    }
+
+    public Action createMLStepAdamAction(Sprite sprite, SequenceAction sequence, Formula lr) {
+        MLStepAdamAction action = action(MLStepAdamAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setLr(lr);
+        return action;
+    }
+
+    public Action createMLFileAction(Sprite sprite, SequenceAction sequence, Formula fileName, boolean isSave) {
+        MLFileAction action = new MLFileAction(isSave);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setFileNameFormula(fileName);
+        return action;
+    }
+
+    public Action createGenerateKeyAction(Sprite sprite, SequenceAction sequence,
+                                          Formula filename, Formula pass, Formula alias, Formula commonName) {
+        GenerateKeyAction action = action(GenerateKeyAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setFilenameFormula(filename);
+        action.setPasswordFormula(pass);
+        action.setAliasFormula(alias);
+        action.setCommonNameFormula(commonName);
+        return action;
+    }
+
+    public Action createSignApkAction(Sprite sprite, SequenceAction sequence,
+                                      Formula input, Formula output, Formula key, Formula pass, Formula alias) {
+        SignApkAction action = action(SignApkAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setInputApkFormula(input);
+        action.setOutputApkFormula(output);
+        action.setKeystoreFormula(key);
+        action.setPasswordFormula(pass);
+        action.setAliasFormula(alias);
+        return action;
+    }
+
+    public Action createUpdateManifestAction(Sprite sprite, SequenceAction sequence,
+                                             Formula apk, Formula pkg, Formula name,
+                                             Formula vCode, Formula vName,
+                                             Formula minSdk, Formula targetSdk,
+                                             Formula debug, Formula pAdd, Formula pRem) {
+        UpdateManifestAction action = action(UpdateManifestAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+
+        action.setApkPathFormula(apk);
+        action.setPackageNameFormula(pkg);
+        action.setAppNameFormula(name);
+        action.setVersionCodeFormula(vCode);
+        action.setVersionNameFormula(vName);
+        action.setMinSdkFormula(minSdk);
+        action.setTargetSdkFormula(targetSdk);
+        action.setDebuggableFormula(debug);
+        action.setPermsAddFormula(pAdd);
+        action.setPermsRemoveFormula(pRem);
+
+        return action;
+    }
+
+    public Action createExtractFileAction(Sprite sprite, SequenceAction sequence,
+                                          Formula apk, Formula inner, Formula dest) {
+        ExtractFileAction action = action(ExtractFileAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+
+        action.setApkPathFormula(apk);
+        action.setInnerPathFormula(inner);
+        action.setDestPathFormula(dest);
+
+        return action;
+    }
+
+    public Action createAddFileToApkAction(Sprite sprite, SequenceAction sequence,
+                                           Formula apk, Formula src, Formula dest) {
+        AddFileToApkAction action = action(AddFileToApkAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+
+        action.setApkPathFormula(apk);
+        action.setSourcePathFormula(src);
+        action.setDestPathFormula(dest);
+
+        return action;
+    }
+
+    public Action createDeleteFromApkAction(Sprite sprite, SequenceAction sequence,
+                                            Formula apk, Formula pattern) {
+        DeleteFromApkAction action = action(DeleteFromApkAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+
+        action.setApkPathFormula(apk);
+        action.setDeletePatternFormula(pattern);
+
+        return action;
+    }
+
+    public Action createThreedAlignNormalAction(Sprite sprite, ScriptSequenceAction sequence, Formula formulaWithBrickField, Formula formulaWithBrickField1, Formula formulaWithBrickField2, Formula formulaWithBrickField3) {
+        ThreedAlignNormalAction action = action(ThreedAlignNormalAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+
+        action.setObjId(formulaWithBrickField);
+        action.setNx(formulaWithBrickField1);
+        action.setNy(formulaWithBrickField2);
+        action.setNz(formulaWithBrickField3);
+
+        return action;
+    }
+
+    public ThreedCreateCylinderAction createThreedCreateCylinderAction(Sprite sprite, ScriptSequenceAction sequence, Formula id) {
+        ThreedCreateCylinderAction action = action(ThreedCreateCylinderAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setObjectId(id);
+        return action;
+    }
+
+    public ThreedAttachObjectToBoneAction createThreedAttachObjectToBoneAction(Sprite sprite, ScriptSequenceAction sequence,
+                                                                               Formula childId, Formula parentId, Formula boneName, Formula ox, Formula oy, Formula oz) {
+        ThreedAttachObjectToBoneAction action = action(ThreedAttachObjectToBoneAction.class);
+        action.scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.childId = childId;
+        action.parentId = parentId;
+        action.boneName = boneName;
+        action.offsetX = ox;
+        action.offsetY = oy;
+        action.offsetZ = oz;
+        return action;
+    }
+
+    public ThreedBindBoneToObjectAction createThreedBindBoneToObjectAction(Sprite sprite, ScriptSequenceAction sequence,
+                                                                           Formula boneName, Formula modelId, Formula targetId) {
+        ThreedBindBoneToObjectAction action = action(ThreedBindBoneToObjectAction.class);
+        action.scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.boneName = boneName;
+        action.modelId = modelId;
+        action.targetId = targetId;
+        return action;
+    }
+
+    public ThreedCreateFixedConstraintAction createThreedCreateFixedConstraintAction(
+            Sprite sprite, ScriptSequenceAction sequence,
+            Formula id, Formula a, Formula b) {
+
+        ThreedCreateFixedConstraintAction action = action(ThreedCreateFixedConstraintAction.class);
+        action.scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.constraintId = id;
+        action.objA = a;
+        action.objB = b;
+        return action;
+    }
 }

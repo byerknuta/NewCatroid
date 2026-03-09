@@ -97,6 +97,7 @@ public class SettingsFragment extends PreferenceFragment {
 	public static final String SETTINGS_SHOW_RASPI_BRICKS = "setting_raspi_bricks";
 	public static final String SETTINGS_SHOW_PLOT_BRICKS = "setting_plot_bricks";
 	public static final String SETTINGS_SHOW_NEURAL_BRICKS = "setting_neural_bricks";
+    public static final String SETTINGS_SHOW_POCKETENSOR_BRICKS = "setting_pocketensor_bricks";
 	public static final String SETTINGS_OLD_DRAG = "setting_old_drag";
 	public static final String SETTINGS_SHOW_THREED_BRICKS = "setting_threed_bricks";
 	public static final String SETTINGS_SHOW_INTERNET_BRICKS = "setting_internet_bricks";

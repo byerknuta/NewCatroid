@@ -216,6 +216,15 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_connect_parameter,
 			R.string.formula_editor_function_find_parameter);
 
+    private static final List<Integer> PT_FUNCTIONS = asList(
+            R.string.formula_pt_argmax, R.string.formula_pt_value, R.string.formula_pt_valuend,
+            R.string.formula_pt_shape, R.string.formula_pt_dump, R.string.formula_pt_totalsize
+    );
+    private static final List<Integer> PT_PARAMS = asList(
+            R.string.formula_pt_argmax_param, R.string.formula_pt_value_param, R.string.formula_pt_valuennd_param,
+            R.string.formula_pt_shape_param, R.string.formula_pt_dump_param, R.string.formula_pt_totalsize_param
+    );
+
 	private static final List<Integer> THREED_FUNCTIONS = asList(
             R.string.formula_delta,
 			R.string.formula_3d_pos_x, R.string.formula_3d_pos_y, R.string.formula_3d_pos_z,
@@ -976,6 +985,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 				getString(R.string.formula_editor_functions_lists)));
 		result.addAll(addHeader(toCategoryListItems(THREED_FUNCTIONS, THREED_PARAMS),
 				"3D"));
+        result.addAll(addHeader(toCategoryListItems(PT_FUNCTIONS, PT_PARAMS),
+                "PockeTensor"));
 
 		// Добавление кастомных функций
 		List<CustomFormula> customFormulas = CustomFormulaManager.INSTANCE.getFormulas();

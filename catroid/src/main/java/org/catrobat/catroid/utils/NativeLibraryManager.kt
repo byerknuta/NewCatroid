@@ -10,7 +10,8 @@ object NativeLibraryManager {
         CORE,
         PYTHON,
         VNC,
-        ONNX
+        ONNX,
+        TORCH
     }
 
     private val featureStatus = mutableMapOf<Feature, Boolean>()
@@ -29,10 +30,19 @@ object NativeLibraryManager {
             System.loadLibrary("png")
 
             System.loadLibrary("python3.12")
+
             Log.d(TAG, "All Python libraries loaded.")
             true
         } catch (e: UnsatisfiedLinkError) {
             Log.e(TAG, "A Python-related library failed to load. Python feature disabled.", e)
+            false
+        }
+        featureStatus[Feature.TORCH] = try {
+            System.loadLibrary("MNN")
+            Log.d(TAG, "LibTorch Loaded.")
+            true
+        } catch (e: UnsatisfiedLinkError) {
+            Log.e(TAG, "LibTorch not loaded (error)")
             false
         }
         featureStatus[Feature.CORE] = try {
