@@ -28,6 +28,7 @@ import org.catrobat.catroid.CatroidApplication;
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.content.Scope;
 import org.catrobat.catroid.formulaeditor.FormulaElement.ElementType;
+import org.catrobat.catroid.utils.PerformanceTracker;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -47,6 +48,9 @@ public class Formula implements Serializable {
 	private transient InternFormula internFormula = null;
 
 	private boolean sceneFirstStart = false;
+
+    private Double cachedNumberValue = null;
+    private String cachedStringValue = null;
 
 	public Formula(FormulaElement formulaElement) {
 		formulaTree = formulaElement;
@@ -91,16 +95,28 @@ public class Formula implements Serializable {
 		formulaTree = tree;
 	}
 
-	private void init(ElementType number, String s) {
-		formulaTree = new FormulaElement(number, s, null);
-		internFormula = new InternFormula(formulaTree.getInternTokenList());
-	}
+    private void init(ElementType number, String s) {
+        formulaTree = new FormulaElement(number, s, null);
+        internFormula = new InternFormula(formulaTree.getInternTokenList());
 
-	private void initInverted(String value) {
-		formulaTree = new FormulaElement(ElementType.OPERATOR, Operators.MINUS.toString(), null);
-		formulaTree.setRightChild(new FormulaElement(ElementType.NUMBER, value, formulaTree));
-		internFormula = new InternFormula(formulaTree.getInternTokenList());
-	}
+        if (number == ElementType.NUMBER) {
+            try {
+                cachedNumberValue = Double.valueOf(s);
+            } catch (Exception ignored) {}
+        } else if (number == ElementType.STRING) {
+            cachedStringValue = s;
+        }
+    }
+
+    private void initInverted(String value) {
+        formulaTree = new FormulaElement(ElementType.OPERATOR, Operators.MINUS.toString(), null);
+        formulaTree.setRightChild(new FormulaElement(ElementType.NUMBER, value, formulaTree));
+        internFormula = new InternFormula(formulaTree.getInternTokenList());
+
+        try {
+            cachedNumberValue = -Double.valueOf(value);
+        } catch (Exception ignored) {}
+    }
 
 	public void updateCollisionFormulas(String oldName, String newName, Context context) {
 		internFormula.updateCollisionFormula(oldName, newName, context);
@@ -143,18 +159,24 @@ public class Formula implements Serializable {
 		return interpretDouble(scope).intValue();
 	}
 
-	public Double interpretDouble(Scope scope) throws InterpretationException {
-		try {
-			if (sceneFirstStart) {
-				sceneFirstStart = false;
-				return 0.0;
-			} else {
-				return assertNotNaN(interpretDoubleInternal(scope));
-			}
-		} catch (ClassCastException | NumberFormatException exception) {
-			throw new InterpretationException("Couldn't interpret Formula.", exception);
-		}
-	}
+    public Double interpretDouble(Scope scope) throws InterpretationException {
+        PerformanceTracker.formulaEvaluations++;
+
+        if (sceneFirstStart) {
+            sceneFirstStart = false;
+            return 0.0;
+        }
+
+        if (cachedNumberValue != null) {
+            return cachedNumberValue;
+        }
+
+        try {
+            return assertNotNaN(interpretDoubleInternal(scope));
+        } catch (ClassCastException | NumberFormatException exception) {
+            throw new InterpretationException("Couldn't interpret Formula.", exception);
+        }
+    }
 
 	@NotNull
 	private Double interpretDoubleInternal(Scope scope) {
@@ -183,8 +205,14 @@ public class Formula implements Serializable {
 		return interpretDouble(scope).floatValue();
 	}
 
-	public String interpretString(Scope scope) throws InterpretationException {
-		Object interpretation = formulaTree.interpretRecursive(scope);
+    public String interpretString(Scope scope) throws InterpretationException {
+        PerformanceTracker.formulaEvaluations++;
+
+        if (cachedStringValue != null) {
+            return cachedStringValue;
+        }
+
+        Object interpretation = formulaTree.interpretRecursive(scope);
 
 		if (interpretation instanceof Double && ((Double) interpretation).isNaN()) {
 			throw new InterpretationException("NaN in interpretString()");

@@ -27,7 +27,6 @@ import android.util.Log;
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction;
 
 import org.catrobat.catroid.content.Scope;
-import org.catrobat.catroid.content.WidthHeightManager;
 import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.formulaeditor.InterpretationException;
 
@@ -41,8 +40,6 @@ public class SetWidthAction extends TemporalAction {
 		try {
 			Float newSize = size == null ? Float.valueOf(0f) : size.interpretFloat(scope);
 			scope.getSprite().look.setWidthV(newSize / 100f);
-			WidthHeightManager.Companion.setWidth(newSize);
-			//scope.getSprite().look.setSize(newSize / 100f, scope.getSprite().look.getScaleY());
 		} catch (InterpretationException interpretationException) {
 			Log.d(getClass().getSimpleName(), "Formula interpretation for this specific Brick failed.", interpretationException);
 		}

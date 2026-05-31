@@ -176,14 +176,10 @@ public class SceneManager {
 
         if (!isEditorMode) {
             updateKeyframeAnimations(delta);
-        }
-
-        if (!isEditorMode) {
             synchronizeTransformsFromEngine();
         }
 
         updateWorldTransforms();
-
 
         for (GameObject go : gameObjects.values()) {
             applyTransformToEngine(go);
@@ -194,10 +190,10 @@ public class SceneManager {
 
         if (mainCameraObject != null) {
             Matrix4 cameraWorldTransform = mainCameraObject.transform.worldTransform;
-            Vector3 worldPos = cameraWorldTransform.getTranslation(new Vector3());
-            Quaternion worldRot = cameraWorldTransform.getRotation(new Quaternion(), true);
-            engine.setCameraPosition(worldPos.x, worldPos.y, worldPos.z);
-            engine.setCameraRotation(worldRot);
+            cameraWorldTransform.getTranslation(tmpPos);
+            cameraWorldTransform.getRotation(tmpRot, true);
+            engine.setCameraPosition(tmpPos.x, tmpPos.y, tmpPos.z);
+            engine.setCameraRotation(tmpRot);
         }
 
         for (BoneAttachment att : activeAttachments) {
@@ -207,26 +203,16 @@ public class SceneManager {
             ModelInstance parentModel = engine.getModelInstance(att.parentModelId);
             if (parentModel == null) continue;
 
-
             com.badlogic.gdx.graphics.g3d.model.Node bone = parentModel.getNode(att.boneName, true);
             if (bone != null) {
-
                 child.transform.worldTransform.set(parentModel.transform);
-
-
                 child.transform.worldTransform.mul(bone.globalTransform);
-
-
                 child.transform.worldTransform.translate(att.localPosOffset);
 
-
                 engine.setWorldTransform(child.id, child.transform.worldTransform);
-
-
                 child.transform.worldTransform.getTranslation(child.transform.position);
                 child.transform.worldTransform.getRotation(child.transform.rotation, true);
             } else {
-
                 Log.e("SceneManager", "ОШИБКА ПРИВЯЗКИ: Кость '" + att.boneName + "' не найдена в модели!");
             }
         }
@@ -361,21 +347,18 @@ public class SceneManager {
     }
 
     private void updateTransformRecursive(GameObject current, GameObject parent) {
-
         current.transform.worldTransform.set(
                 current.transform.position,
                 current.transform.rotation,
                 current.transform.scale
         );
 
-
         if (parent != null) {
             current.transform.worldTransform.mulLeft(parent.transform.worldTransform);
         }
 
-
-        for (String childId : current.childrenIds) {
-            GameObject child = findGameObject(childId);
+        for (int i = 0; i < current.childrenIds.size(); i++) {
+            GameObject child = findGameObject(current.childrenIds.get(i));
             if (child != null) {
                 updateTransformRecursive(child, current);
             }

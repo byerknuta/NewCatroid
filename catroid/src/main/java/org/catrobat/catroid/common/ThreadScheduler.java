@@ -56,12 +56,15 @@ public class ThreadScheduler {
 		this.actor = actor;
 	}
 
-	public void tick(float delta) {
-		Array<Action> actions = actor.getActions();
-		startThreadsInStartQueue();
-		runThreadsForOneTick(actions, delta);
-		stopThreadsInStopQueue(actions);
-	}
+    public void tick(float delta) {
+        Array<Action> actions = actor.getActions();
+
+        org.catrobat.catroid.utils.PerformanceTracker.activeThreads += actions.size;
+
+        startThreadsInStartQueue();
+        runThreadsForOneTick(actions, delta);
+        stopThreadsInStopQueue(actions);
+    }
 
 	private void startThreadsInStartQueue() {
 		for (ScriptSequenceAction thread : startQueue) {

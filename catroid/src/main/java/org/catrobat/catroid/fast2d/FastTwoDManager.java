@@ -58,8 +58,6 @@ public class FastTwoDManager implements Disposable {
                 .with(movementSystem, physicsSystem, renderSystem)
                 .build();
 
-        world = new com.artemis.World(config);
-
         world = new World(config);
 
         mTransform = world.getMapper(TransformComponent.class);
@@ -214,7 +212,10 @@ public class FastTwoDManager implements Disposable {
 
             TextureComponent tex = mTexture.create(e);
             tex.region = new TextureRegion(texture);
-            tex.textureName = new File(absolutePath).getName();
+
+            int lastSlashIndex = absolutePath.lastIndexOf('/');
+            tex.textureName = lastSlashIndex >= 0 ? absolutePath.substring(lastSlashIndex + 1) : absolutePath;
+
             tex.width = texture.getWidth();
             tex.height = texture.getHeight();
             tex.originX = tex.width / 2f;
@@ -287,8 +288,9 @@ public class FastTwoDManager implements Disposable {
         Gdx.app.postRunnable(() -> {
             Integer e = entities.get(id);
             if (e != null && mPhysics.has(e) && mPhysics.get(e).body != null) {
-                com.badlogic.gdx.physics.box2d.Body b = mPhysics.get(e).body;
-                b.applyLinearImpulse(new com.badlogic.gdx.math.Vector2(impX, impY), b.getWorldCenter(), true);
+                Body b = mPhysics.get(e).body;
+                Vector2 center = b.getWorldCenter();
+                b.applyLinearImpulse(impX, impY, center.x, center.y, true);
             }
         });
     }

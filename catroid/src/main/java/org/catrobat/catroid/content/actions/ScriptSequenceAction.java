@@ -101,8 +101,13 @@ public class ScriptSequenceAction extends SequenceAction {
 	}
 
 	@Override
-	public boolean act (float delta) {
-		org.catrobat.catroid.utils.PerformanceTracker.blocksExecuted++;
-		return super.act(delta);
-	}
+    public boolean act (float delta) {
+        long start = System.nanoTime();
+        boolean isFinished = super.act(delta);
+        long durationNs = System.nanoTime() - start;
+        org.catrobat.catroid.utils.PerformanceTracker.blocksExecuted++;
+        org.catrobat.catroid.utils.PerformanceTracker.totalBlockTimeNs += durationNs;
+
+        return isFinished;
+    }
 }

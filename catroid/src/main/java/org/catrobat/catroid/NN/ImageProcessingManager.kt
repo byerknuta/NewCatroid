@@ -36,7 +36,6 @@ object ImageProcessingManager {
         for (x in 0 until width) {
             for (y in 0 until height) {
                 val pixel = originalBitmap.getPixel(x, y)
-                // Стандартная формула для преобразования в Ч/Б (учитывает восприятие глазом)
                 val gray = (pixel.red * 0.299 + pixel.green * 0.587 + pixel.blue * 0.114).toInt()
                 grayscaleBitmap.setPixel(x, y, Color.rgb(gray, gray, gray))
             }

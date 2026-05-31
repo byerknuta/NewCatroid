@@ -22,15 +22,22 @@ public class VmMonitorActor extends Actor {
         if (vmTexture == null) return;
 
         ShaderProgram previousShader = batch.getShader();
+        float oldColor = batch.getPackedColor();
+        boolean wasBlending = batch.isBlendingEnabled();
+
         batch.setShader(shader);
+        batch.setColor(1, 1, 1, parentAlpha);
 
-        batch.disableBlending();
+        if (wasBlending) {
+            batch.disableBlending();
+        }
 
-        batch.setColor(1, 1, 1, 1);
         batch.draw(vmTexture, getX(), getY(), getWidth(), getHeight());
 
-        batch.enableBlending();
-
+        if (wasBlending) {
+            batch.enableBlending();
+        }
+        batch.setPackedColor(oldColor);
         batch.setShader(previousShader);
     }
 }

@@ -28,7 +28,6 @@ import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.content.Scope;
 import org.catrobat.catroid.content.Sprite;
-import org.catrobat.catroid.content.WidthHeightManager;
 import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.formulaeditor.FormulaElement;
 import org.catrobat.catroid.formulaeditor.InternFormulaParser;
@@ -103,9 +102,6 @@ public class LookSensorValuesInterpretationTest {
 
 		Formula lookScaleFormula = getFormulaBySensor(Sensors.OBJECT_SIZE);
 		assertEquals(LOOK_SCALE, lookScaleFormula.interpretDouble(testScope), DELTA);
-
-		Formula widthFormula = getFormulaBySensor(Sensors.OBJECT_SIZE);
-		assertEquals(WidthHeightManager.Companion.getWidth().doubleValue(), widthFormula.interpretDouble(testScope), DELTA);
 
 		Formula motionDirectionFormula = getFormulaBySensor(Sensors.MOTION_DIRECTION);
 		assertEquals(LOOK_ROTATION, motionDirectionFormula.interpretDouble(testScope), DELTA);

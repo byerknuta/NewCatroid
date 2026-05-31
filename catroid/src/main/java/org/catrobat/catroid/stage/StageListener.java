@@ -286,6 +286,8 @@ public class StageListener implements ApplicationListener {
 
 	private Look.BrightnessContrastHueShader brightnessContrastHueShader;
 
+    private final com.badlogic.gdx.utils.StringBuilder debugTextBuilder = new com.badlogic.gdx.utils.StringBuilder();
+
 	public StageListener() {
 		webConnectionHolder = new WebConnectionHolder();
 	}
@@ -1274,11 +1276,11 @@ public class StageListener implements ApplicationListener {
 	public int getVmWidth() { return (int) vmWidth; }
 	public int getVmHeight() { return (int) vmHeight; }
 
-	long startPhysics;
-	long endLogic;
-
 	@Override
 	public void render() {
+        long framePhysicsTime = 0;
+        long frameLogicTime = 0;
+        long endLogic = 0;
 		try {
 			Look.tickGlobalFrame();
 
@@ -1288,24 +1290,23 @@ public class StageListener implements ApplicationListener {
 
 			StageActivity stageActivity = StageActivity.activeStageActivity.get();
 
-			if (isVmDisplayVisible && vmTexture != null) {
-				if (stageActivity != null) {
-					VncClient client = stageActivity.vncClients.get(StageActivity.DEFAULT_VM_NAME);
-
-					if (client != null && stageActivity.frameReadyToRender) {
-
-						vmTexture.bind();
-
-						Gdx.gl.glPixelStorei(GL20.GL_UNPACK_ALIGNMENT, 1);
-
-						client.uploadFrameTexture();
-
-						Gdx.gl.glPixelStorei(GL20.GL_UNPACK_ALIGNMENT, 4);
-
-						stageActivity.frameReadyToRender = false;
-					}
-				}
-			}
+            if (isVmDisplayVisible && vmTexture != null) {
+                if (stageActivity != null) {
+                    VncClient client = stageActivity.vncClients.get(StageActivity.DEFAULT_VM_NAME);
+                    if (client != null && stageActivity.frameReadyToRender) {
+                        try {
+                            vmTexture.bind();
+                            Gdx.gl.glPixelStorei(GL20.GL_UNPACK_ALIGNMENT, 1);
+                            client.uploadFrameTexture();
+                            Gdx.gl.glPixelStorei(GL20.GL_UNPACK_ALIGNMENT, 4);
+                        } catch (Exception e) {
+                            Log.e("VNC_RENDER", "Error uploading VM frame", e);
+                        } finally {
+                            stageActivity.frameReadyToRender = false;
+                        }
+                    }
+                }
+            }
 
 			if (reloadProject) {
 				if (threeDManager != null) {
@@ -1367,36 +1368,42 @@ public class StageListener implements ApplicationListener {
 				scene.firstStart = false;
 			}
 
-			if (!paused) {
-				startPhysics = System.nanoTime();
-				if (sceneManager != null) {
-					sceneManager.update(Gdx.graphics.getDeltaTime());
-				}
+            if (!paused) {
+                long logicStartTime = System.nanoTime();
 
-				float deltaTime = Gdx.graphics.getDeltaTime();
+                float deltaTime = Math.min(Gdx.graphics.getDeltaTime(), 0.05f);
 
-				float optimizedDeltaTime = deltaTime / deltaActionTimeDivisor;
-				long timeBeforeActionsUpdate = SystemClock.uptimeMillis();
+                if (sceneManager != null) {
+                    sceneManager.update(deltaTime);
+                }
 
-				while (deltaTime > 0f) {
-					physicsWorld.step(optimizedDeltaTime);
-					stage.act(optimizedDeltaTime);
-					uiStage.act(optimizedDeltaTime);
-					deltaTime -= optimizedDeltaTime;
-				}
+                int steps = (int) Math.max(1f, deltaActionTimeDivisor);
+                float optimizedDeltaTime = deltaTime / steps;
 
-				endLogic = System.nanoTime();
+                for (int i = 0; i < steps; i++) {
+                    long pStart = System.nanoTime();
+                    physicsWorld.step(optimizedDeltaTime);
+                    framePhysicsTime += (System.nanoTime() - pStart);
 
-				long executionTimeOfActionsUpdate = SystemClock.uptimeMillis() - timeBeforeActionsUpdate;
-				if (executionTimeOfActionsUpdate <= ACTIONS_COMPUTATION_TIME_MAXIMUM) {
-					deltaActionTimeDivisor += 1f;
-					deltaActionTimeDivisor = Math.min(DELTA_ACTIONS_DIVIDER_MAXIMUM, deltaActionTimeDivisor);
-				} else {
-					deltaActionTimeDivisor -= 1f;
-					deltaActionTimeDivisor = Math.max(1f, deltaActionTimeDivisor);
-				}
-				DebugMenuManager.getInstance().updateIfVisible();
-			}
+                    stage.act(optimizedDeltaTime);
+                    uiStage.act(optimizedDeltaTime);
+                }
+
+                endLogic = System.nanoTime();
+                frameLogicTime = (endLogic - logicStartTime) - framePhysicsTime;
+
+                long executionTimeOfActionsUpdate = (System.nanoTime() - logicStartTime) / 1_000_000;
+                if (executionTimeOfActionsUpdate <= ACTIONS_COMPUTATION_TIME_MAXIMUM) {
+                    deltaActionTimeDivisor += 1f;
+                    deltaActionTimeDivisor = Math.min(DELTA_ACTIONS_DIVIDER_MAXIMUM, deltaActionTimeDivisor);
+                } else {
+                    deltaActionTimeDivisor -= 1f;
+                    deltaActionTimeDivisor = Math.max(1f, deltaActionTimeDivisor);
+                }
+                DebugMenuManager.getInstance().updateIfVisible();
+            } else {
+                endLogic = System.nanoTime();
+            }
 
             if (isVmDisplayVisible && vmTexture != null && vncSwizzleShader != null && vncSwizzleShader.isCompiled()) {
 				batch.setProjectionMatrix(camera.combined);
@@ -1431,9 +1438,8 @@ public class StageListener implements ApplicationListener {
 
 
                     uiStage.draw();
-                    //RenderManager.INSTANCE.render();
                 } catch (Exception e) {
-                    Log.e("RENDER", "FATAL ERROR: " + e.toString());
+                    Log.e("RENDER", "FATAL ERROR: " + e);
                 }
                 firstFrameDrawn = true;
             }
@@ -1485,513 +1491,46 @@ public class StageListener implements ApplicationListener {
 			Log.e("RENDER_CRASH", "Fatal error during render loop", e);
 		}
 
-		long endRender = System.nanoTime();
+        long endRender = System.nanoTime();
 
-		PerformanceTracker.recordFrame(
-				0,
-				endLogic - startPhysics,
-				endRender - endLogic
-		);
+        PerformanceTracker.recordFrame(
+                framePhysicsTime,
+                frameLogicTime,
+                endRender - endLogic
+        );
 	}
 
-	private void renderSceneNormally(Stage stage) {
-		if (!finished) {
-			stage.draw();
+    private void printPhysicsLabelOnScreen() {
+        PhysicsObject tempPhysicsObject;
+        final int fontOffset = 5;
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+        for (Sprite sprite : sprites) {
+            if (sprite.look instanceof PhysicsLook) {
+                tempPhysicsObject = physicsWorld.getPhysicsObject(sprite);
+                float x = tempPhysicsObject.getX();
+                float y = tempPhysicsObject.getY();
+                float h = font.getXHeight();
 
+                debugTextBuilder.setLength(0); // Очищаем билдер без аллокации
+                debugTextBuilder.append("velocity_x: ").append(tempPhysicsObject.getVelocity().x);
+                font.draw(batch, debugTextBuilder, x, y);
 
+                debugTextBuilder.setLength(0);
+                debugTextBuilder.append("velocity_y: ").append(tempPhysicsObject.getVelocity().y);
+                font.draw(batch, debugTextBuilder, x, y + h + fontOffset);
 
-			/*Array<Actor> actors = stage.getActors();
-			camera.update();
-			batch.setProjectionMatrix(camera.combined);
+                debugTextBuilder.setLength(0);
+                debugTextBuilder.append("angular velocity: ").append(tempPhysicsObject.getRotationSpeed());
+                font.draw(batch, debugTextBuilder, x, y + h * 2 + fontOffset * 2);
 
-			batch.begin();
-
-
-			for (Actor actor : actors) {
-				if (actor instanceof Look) {
-					Look look = (Look) actor;
-					/*if (!look.needsCustomShader()) {
-						actor.draw(batch, 1.0f);
-					}*//*
-					actor.draw(batch, 1.0f);
-				} else {
-
-					actor.draw(batch, 1.0f);
-				}
-			}*/
-
-			/*batch.flush();
-
-
-			batch.setShader(brightnessContrastHueShader);
-			for (Actor actor : actors) {
-				if (actor instanceof Look) {
-					Look look = (Look) actor;
-					if (look.needsCustomShader()) {
-
-						brightnessContrastHueShader.setBrightness(look.getBrightnessValue());
-						brightnessContrastHueShader.setHue(look.getHueValue());
-
-						look.draw(batch, 1.0f);
-					}
-				}
-			}
-			batch.setShader(null);*/
-
-
-
-
-
-			firstFrameDrawn = true;
-		}
-	}
-
-	/*@Override
-	public void render() {
-		Log.d("ShaderDebug", " ");
-		Log.d("ShaderDebug", "--- FRAME START ---");
-
-
-
-
-
-
-		if (reloadProject) {
-			stage.clear();
-			if (penActor != null) {
-				penActor.dispose();
-			}
-
-			if (plotActor != null) {
-				plotActor.dispose();
-			}
-
-			embroideryPatternManager.clear();
-
-			SoundManager.getInstance().clear();
-
-			physicsWorld = scene.resetPhysicsWorld();
-
-			batch.setShader(null);
-			GlobalShaderManager.INSTANCE.clear();
-
-			initActors(sprites);
-			stage.addActor(passepartout);
-
-			initStageInputListener();
-
-			paused = true;
-			scene.firstStart = true;
-			reloadProject = false;
-
-			cameraPositioner.reset();
-
-			if (stageDialog != null) {
-				synchronized (stageDialog) {
-					stageDialog.notify();
-				}
-			}
-		}
-
-
-		if (scene.firstStart) {
-			for (Sprite sprite : sprites) {
-				sprite.initializeEventThreads(EventId.START);
-				sprite.initConditionScriptTriggers();
-				sprite.initIfConditionBrickTriggers();
-				if (!sprite.getLookList().isEmpty()) {
-					sprite.look.setLookData(sprite.getLookList().get(0));
-				}
-			}
-			scene.firstStart = false;
-		}
-
-
-		if (!paused) {
-			time += Gdx.graphics.getDeltaTime();
-			Look.tickGlobalFrame();
-			float deltaTime = Gdx.graphics.getDeltaTime();
-			float optimizedDeltaTime = deltaTime / deltaActionTimeDivisor;
-			long timeBeforeActionsUpdate = SystemClock.uptimeMillis();
-
-			while (deltaTime > 0f) {
-				physicsWorld.step(optimizedDeltaTime);
-				stage.act(optimizedDeltaTime);
-				deltaTime -= optimizedDeltaTime;
-			}
-
-			long executionTimeOfActionsUpdate = SystemClock.uptimeMillis() - timeBeforeActionsUpdate;
-			if (executionTimeOfActionsUpdate <= ACTIONS_COMPUTATION_TIME_MAXIMUM) {
-				deltaActionTimeDivisor += 1f;
-				deltaActionTimeDivisor = Math.min(DELTA_ACTIONS_DIVIDER_MAXIMUM, deltaActionTimeDivisor);
-			} else {
-				deltaActionTimeDivisor -= 1f;
-				deltaActionTimeDivisor = Math.max(1f, deltaActionTimeDivisor);
-			}
-		}
-
-		if (plotActor != null) {
-
-			plotActor.updateBuffer(this.shapeRenderer);
-		}
-		if (penActor != null) {
-			penActor.updatePenLayer(this.shapeRenderer);
-		}
-
-
-
-
-
-		ShaderProgram customShader = GlobalShaderManager.INSTANCE.getCustomSceneShader();
-		Camera cameraToUse = this.camera;
-
-		if (customShader != null) {
-
-
-			cameraToUse.update();
-			sceneFbo.begin();
-		}
-
-
-
-
-        CameraManager cameraManager = StageActivity.getActiveCameraManager();
-        if (cameraManager != null && cameraManager.getPreviewVisible()) {
-
-            Gdx.gl.glClearColor(0, 0, 0, 0);
-        } else {
-
-            Gdx.gl.glClearColor(1, 1, 1, 1);
+                debugTextBuilder.setLength(0);
+                debugTextBuilder.append("direction: ").append(tempPhysicsObject.getDirection());
+                font.draw(batch, debugTextBuilder, x, y + h * 3 + fontOffset * 3);
+            }
         }
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-
-
-		batch.setProjectionMatrix(cameraToUse.combined);
-		batch.begin();
-
-
-		batch.setShader(null);
-		for (Actor actor : stage.getActors()) {
-			if (actor instanceof Look && !((Look) actor).needsCustomShader() && ((Look) actor).isLookVisible()) {
-				actor.draw(batch, 1.0f);
-			}
-		}
-
-		batch.flush();
-
-
-
-		for (Actor actor : stage.getActors()) {
-			if (actor instanceof Look) {
-				Look look = (Look) actor;
-				if (look.needsCustomShader() && look.isLookVisible()) {
-
-
-
-
-
-					look.draw(batch, 1.0f);
-				}
-			}
-		}
-
-		batch.flush();
-
-
-
-
-		for (Actor actor : stage.getActors()) {
-			if (actor instanceof PlotActor || actor instanceof PenActor || actor instanceof Passepartout) {
-				actor.draw(batch, 1.0f);
-			} else if(!(actor instanceof EmbroideryActor)) {
-				actor.draw(batch, 1.0f);
-			}
-		}
-		batch.end();
-
-
-		shapeRenderer.setProjectionMatrix(cameraToUse.combined);
-		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-		for (Actor actor : stage.getActors()) {
-
-
-
-			if (actor instanceof EmbroideryActor) {
-
-				actor.draw(batch, 1.0f);
-			}
-		}
-		shapeRenderer.end();
-
-
-		if (customShader != null) {
-
-			sceneFbo.end();
-
-
-			batch.setProjectionMatrix(camera.combined);
-
-
-
-			Gdx.gl.glClearColor(1, 1, 1, 1);
-			Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-
-
-
-
-			Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
-			Gdx.gl.glDisable(GL20.GL_CULL_FACE);
-			Gdx.gl.glEnable(GL20.GL_BLEND);
-			Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-
-
-			postProcessBatch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
-
-
-			postProcessBatch.setShader(customShader);
-
-
-			sceneFbo.getColorBufferTexture().bind();
-
-
-			customShader.bind();
-			customShader.setUniformi("u_texture", unit_to_shader);
-			customShader.setUniformf("u_time", time);
-
-
-
-
-
-			postProcessBatch.begin();
-
-
-
-			float fboWidth = sceneFbo.getWidth();
-			float fboHeight = sceneFbo.getHeight();
-			float screenWidth = Gdx.graphics.getWidth();
-			float screenHeight = Gdx.graphics.getHeight();
-
-
-			com.badlogic.gdx.math.Vector2 scaledSize = Scaling.fit.apply(fboWidth, fboHeight, screenWidth, screenHeight);
-
-
-			float x = (screenWidth - scaledSize.x) / 2;
-			float y = (screenHeight - scaledSize.y) / 2;
-
-
-			postProcessBatch.draw(
-					fboRegion,
-					x, y,
-					scaledSize.x,
-					scaledSize.y
-
-			);
-
-
-
-			postProcessBatch.end();
-
-
-
-			postProcessBatch.setShader(null);
-			Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
-			postProcessBatch.setProjectionMatrix(camera.combined);
-		}
-
-
-
-
-
-
-		batch.setProjectionMatrix(camera.combined);
-
-		if (axesOn && !finished) {
-			drawAxes();
-		}
-
-		if (makeScreenshot) {
-			Scene scene = ProjectManager.getInstance().getCurrentlyEditedScene();
-			String manualScreenshotPath = scene.getDirectory()
-					+ "/" + SCREENSHOT_MANUAL_FILE_NAME;
-			File manualScreenshot = new File(manualScreenshotPath);
-			if (!manualScreenshot.exists() || Objects.equals(screenshotName,
-					SCREENSHOT_MANUAL_FILE_NAME)) {
-				byte[] screenshot = ScreenUtils
-						.getFrameBufferPixels(screenshotX, screenshotY, screenshotWidth, screenshotHeight, true);
-				screenshotSaver.saveScreenshotAndNotify(
-						screenshot,
-						screenshotName,
-						this::notifyScreenshotCallbackAndCleanup,
-						GlobalScope.INSTANCE
-				);
-			}
-			String automaticScreenShotPath = scene.getDirectory()
-					+ "/" + SCREENSHOT_AUTOMATIC_FILE_NAME;
-			File automaticScreenShot = new File(automaticScreenShotPath);
-			if (manualScreenshot.exists() && automaticScreenShot.exists()) {
-				automaticScreenShot.delete();
-			}
-			makeScreenshot = false;
-		}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		cameraPositioner.updateCameraPositionForFocusedSprite();
-
-		Log.d("ShaderDebug", "--- FRAME END ---");
-		firstFrameDrawn = true;
-	}*/
-
-	private final Integer unit_to_shader = 0;
-
-	private void saveFboToFile(FrameBuffer fbo, String fileName) {
-		try {
-
-			fbo.begin();
-
-
-			int fboWidth = fbo.getWidth();
-			int fboHeight = fbo.getHeight();
-
-
-
-			byte[] pixels = ScreenUtils.getFrameBufferPixels(0, 0, fboWidth, fboHeight, true);
-
-
-			Pixmap pixmap = new Pixmap(fboWidth, fboHeight, Pixmap.Format.RGBA8888);
-			ByteBuffer buffer = pixmap.getPixels();
-			buffer.clear();
-			buffer.put(pixels);
-			buffer.position(0);
-
-
-			FileHandle file = Gdx.files.external("Download/" + fileName);
-
-
-			PixmapIO.writePNG(file, pixmap);
-			pixmap.dispose();
-
-			Log.i("ShaderDebug_CAPTURE", "✅ FBO сохранен: " + file.file().getAbsolutePath());
-		} catch (Exception e) {
-			Log.e("ShaderDebug_CAPTURE", "❌ Ошибка сохранения FBO: ", e);
-		} finally {
-			fbo.end();
-		}
-	}
-
-
-	private boolean fboSaved = true ;
-
-
-
-	/*private void renderSceneNormally(Stage stage, Camera cam) {
-
-
-		Log.d("ShaderDebug", "  [Render] >> renderSceneNormally START (within active batch)");
-
-		cam.update();
-		Array<Actor> actors = stage.getActors();
-
-
-
-		batch.setShader(null);
-		for (Actor actor : actors) {
-			if (actor instanceof Look) {
-				if (!((Look) actor).needsCustomShader()) {
-					actor.draw(batch, 1.0f);
-				}
-			} else if (actor != null) {
-				actor.draw(batch, 1.0f);
-			}
-		}
-
-
-		batch.flush();
-
-
-		batch.setShader(brightnessContrastHueShader);
-		for (Actor actor : actors) {
-			if (actor instanceof Look) {
-				Look look = (Look) actor;
-				if (look.needsCustomShader()) {
-
-
-					brightnessContrastHueShader.setBrightness(look.getBrightnessValue());
-					brightnessContrastHueShader.setHue(look.getHueValue());
-					look.draw(batch, 1.0f);
-				}
-			}
-		}
-
-		batch.flush();
-
-
-		batch.setShader(null);
-
-		Log.d("ShaderDebug", "  [Render] >> renderSceneNormally END");
-	}*/
-
-
-	private void renderSceneNormally(Stage stage, Camera cameraToUse) {
-		Log.d("ULTIMATE_DEBUG", "ПОИСК ВИНОВНИКА. Рисуем актеров по одному.");
-		cameraToUse.update();
-		Array<Actor> actors = stage.getActors();
-
-		batch.setShader(null);
-		for (Actor actor : actors) {
-			if (actor != null) {
-
-				if (actor instanceof Look && ((Look) actor).needsCustomShader()) {
-					continue;
-				}
-
-				Log.d("ULTIMATE_DEBUG", "Сейчас рисуется: " + actor.getClass().getSimpleName());
-				actor.draw(batch, 1.0f);
-				batch.flush();
-				Log.d("ULTIMATE_DEBUG", "    ...нарисован успешно.");
-			}
-		}
-		Log.d("ULTIMATE_DEBUG", "Поиск завершен. Если вы видите этот лог, все актеры нарисовались.");
-	}
-
-	private void render3DScene() {
-
-	}
-
-
-	private void printPhysicsLabelOnScreen() {
-		PhysicsObject tempPhysicsObject;
-		final int fontOffset = 5;
-		batch.setProjectionMatrix(camera.combined);
-		batch.begin();
-		for (Sprite sprite : sprites) {
-			if (sprite.look instanceof PhysicsLook) {
-				tempPhysicsObject = physicsWorld.getPhysicsObject(sprite);
-				font.draw(batch, "velocity_x: " + tempPhysicsObject.getVelocity().x, tempPhysicsObject.getX(),
-						tempPhysicsObject.getY());
-				font.draw(batch, "velocity_y: " + tempPhysicsObject.getVelocity().y, tempPhysicsObject.getX(),
-						tempPhysicsObject.getY() + font.getXHeight() + fontOffset);
-				font.draw(batch, "angular velocity: " + tempPhysicsObject.getRotationSpeed(), tempPhysicsObject.getX(),
-						tempPhysicsObject.getY() + font.getXHeight() * 2 + fontOffset * 2);
-				font.draw(batch, "direction: " + tempPhysicsObject.getDirection(), tempPhysicsObject.getX(),
-						tempPhysicsObject.getY() + font.getXHeight() * 3 + fontOffset * 3);
-			}
-		}
-		batch.end();
-	}
+        batch.end();
+    }
 
 	private void drawAxes() {
 		GlyphLayout layout = new GlyphLayout();

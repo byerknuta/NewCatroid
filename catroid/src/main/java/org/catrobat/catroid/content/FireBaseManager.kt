@@ -2,25 +2,24 @@ package org.catrobat.catroid.content
 
 import android.util.Log
 import com.google.firebase.FirebaseApp
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import org.catrobat.catroid.CatroidApplication
 
 object FireBaseManager {
-    fun initializeFirebase() {
-        Log.d("Firebase", "Initialization")
-        if (!FirebaseApp.getApps(CatroidApplication.getAppContext()).isEmpty()) return
-        FirebaseApp.initializeApp(CatroidApplication.getAppContext())
+    private val isInitialized by lazy {
+        if (FirebaseApp.getApps(CatroidApplication.getAppContext()).isEmpty()) {
+            FirebaseApp.initializeApp(CatroidApplication.getAppContext())
+        }
+        true
+    }
+
+    private fun getDbRef(url: String, key: String): DatabaseReference {
+        val init = isInitialized
+        return FirebaseDatabase.getInstance(url).reference.child(key)
     }
 
     fun readFromDatabase(databaseUrl: String, key: String, callback: (String?) -> Unit) {
-        initializeFirebase()
-        Log.d("Firebase", "read from database")
-        val database: DatabaseReference = FirebaseDatabase.getInstance(databaseUrl).reference
-        database.child(key).addListenerForSingleValueEvent(object : ValueEventListener {
+        getDbRef(databaseUrl, key).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 callback(snapshot.value?.toString() ?: "No data")
             }
@@ -30,34 +29,19 @@ object FireBaseManager {
                 callback(null)
             }
         })
-        Log.d("Firebase", "End")
     }
 
     fun writeToDatabase(databaseUrl: String, key: String, value: String) {
-        initializeFirebase()
-        Log.d("Firebase", "write to database")
-        val database: DatabaseReference = FirebaseDatabase.getInstance(databaseUrl).reference
-        database.child(key).setValue(value)
-            .addOnSuccessListener {
-                Log.d("Firebase", "Data written successfully")
-            }
+        getDbRef(databaseUrl, key).setValue(value)
             .addOnFailureListener { error ->
                 Log.e("Firebase", "Error writing data: ${error.message}", error)
             }
-        Log.d("Firebase", "End")
     }
 
     fun deleteFromDatabase(databaseUrl: String, key: String) {
-        initializeFirebase()
-        Log.d("Firebase", "delete from database")
-        val database: DatabaseReference = FirebaseDatabase.getInstance(databaseUrl).reference
-        database.child(key).removeValue()
-            .addOnSuccessListener {
-                Log.d("Firebase", "Data deleted successfully")
-            }
+        getDbRef(databaseUrl, key).removeValue()
             .addOnFailureListener { error ->
                 Log.e("Firebase", "Error deleting data: ${error.message}", error)
             }
-        Log.d("Firebase", "End")
     }
 }

@@ -134,6 +134,9 @@ public class Look extends Image {
 
     public boolean drawOnlyInBuffer = false;
 
+    private final transient float[] hitboxVertices = new float[8];
+    private final transient Polygon hitboxPolygon = new Polygon(hitboxVertices);
+
 	public Look(final Sprite sprite) {
 		this.sprite = sprite;
 		globalFrameTicker++;
@@ -224,20 +227,26 @@ public class Look extends Image {
 		this.lookListIndexBeforeLookRequest = lookListIndexBeforeLookRequest;
 	}
 
-	public void destroy() {
-		notifyAllWaiters();
-		setLookVisible(false);
+    public void destroy() {
+        notifyAllWaiters();
+        setLookVisible(false);
 
-		for (EventListener listener : getListeners()) {
-			removeListener(listener);
-		}
-		getActions().clear();
-		scheduler = null;
-		sprite = null;
-		lookData = null;
+        for (EventListener listener : getListeners()) {
+            removeListener(listener);
+        }
+        getActions().clear();
+        scheduler = null;
+        sprite = null;
+        lookData = null;
 
-		super.remove();
-	}
+        if (shader != null) {
+            shader.dispose();
+            shader = null;
+        }
+        clearParticleEffect();
+
+        super.remove();
+    }
 
 	@Override
 	public boolean remove() {
@@ -294,11 +303,14 @@ public class Look extends Image {
 		return false;
 	}
 
-	public synchronized void createBrightnessContrastHueShader() {
-		shader = new BrightnessContrastHueShader();
-		shader.setBrightness(brightness);
-		shader.setHue(hue);
-	}
+    public synchronized void createBrightnessContrastHueShader() {
+        if (shader != null) {
+            shader.dispose();
+        }
+        shader = new BrightnessContrastHueShader();
+        shader.setBrightness(brightness);
+        shader.setHue(hue);
+    }
 
 	public ParticleEffect getParticleEffect() {
 		if (particleEffect == null) {
@@ -796,37 +808,24 @@ public class Look extends Image {
 		return point;
 	}
 
-	public Rectangle getHitbox() {
-		float x = getXInUserInterfaceDimensionUnit() - getWidthInUserInterfaceDimensionUnit() / 2;
-		float y = getYInUserInterfaceDimensionUnit() - getHeightInUserInterfaceDimensionUnit() / 2;
-		float width = getWidthInUserInterfaceDimensionUnit();
-		float height = getHeightInUserInterfaceDimensionUnit();
-		float[] vertices;
-		if (getRotation() == 0) {
-			vertices = new float[] {
-					x, y,
-					x, y + height,
-					x + width, y + height,
-					x + width, y
-			};
-		} else {
-			PointF center = new PointF(x + width / 2f, y + height / 2f);
-			PointF upperLeft = rotatePointAroundPoint(center, new PointF(x, y), getRotation());
-			PointF upperRight = rotatePointAroundPoint(center, new PointF(x, y + height), getRotation());
-			PointF lowerRight = rotatePointAroundPoint(center, new PointF(x + width, y + height), getRotation());
-			PointF lowerLeft = rotatePointAroundPoint(center, new PointF(x + width, y), getRotation());
-			vertices = new float[] {
-					upperLeft.x, upperLeft.y,
-					upperRight.x, upperRight.y,
-					lowerRight.x, lowerRight.y,
-					lowerLeft.x, lowerLeft.y
-			};
-		}
+    public Rectangle getHitbox() {
+        float x = getXInUserInterfaceDimensionUnit() - getWidthInUserInterfaceDimensionUnit() / 2;
+        float y = getYInUserInterfaceDimensionUnit() - getHeightInUserInterfaceDimensionUnit() / 2;
+        float w = getWidthInUserInterfaceDimensionUnit();
+        float h = getHeightInUserInterfaceDimensionUnit();
 
-		Polygon p = new Polygon(vertices);
+        hitboxVertices[0] = x;     hitboxVertices[1] = y;
+        hitboxVertices[2] = x;     hitboxVertices[3] = y + h;
+        hitboxVertices[4] = x + w; hitboxVertices[5] = y + h;
+        hitboxVertices[6] = x + w; hitboxVertices[7] = y;
 
-		return p.getBoundingRectangle();
-	}
+        hitboxPolygon.setVertices(hitboxVertices);
+        hitboxPolygon.setPosition(0, 0);
+        hitboxPolygon.setOrigin(x + w / 2f, y + h / 2f);
+        hitboxPolygon.setRotation(getRotation());
+
+        return hitboxPolygon.getBoundingRectangle();
+    }
 
 	public void setMotionDirectionInUserInterfaceDimensionUnit(float degrees) {
 		rotation = (-degrees + DEGREE_UI_OFFSET) % 360;
@@ -1070,46 +1069,43 @@ public class Look extends Image {
 			end();
 		}
 	}
-
-	private float originalWidth = 1f;
-	private float originalHeight = 1f;
 	private Polygon[] cachedCollisionPolygons = null;
 
-	public Polygon[] getCurrentCollisionPolygon() {
-		if (cachedCollisionPolygons != null && !collisionDirty.get()) {
-			return cachedCollisionPolygons;
-		}
+    public Polygon[] getCurrentCollisionPolygon() {
+        if (cachedCollisionPolygons != null && !collisionDirty.get()) {
+            return cachedCollisionPolygons;
+        }
 
-		Polygon[] originalPolygons;
-		if (getLookData2() == null) {
-			originalPolygons = new Polygon[0];
-		} else {
-			CollisionInformation collisionInformation = getLookData2().getCollisionInformation();
-			if (collisionInformation.collisionPolygons == null) {
-				collisionInformation.loadCollisionPolygon();
-			}
-			originalPolygons = collisionInformation.collisionPolygons;
-		}
+        Polygon[] originalPolygons;
+        if (getLookData2() == null) {
+            originalPolygons = new Polygon[0];
+        } else {
+            CollisionInformation collisionInformation = getLookData2().getCollisionInformation();
+            if (collisionInformation.collisionPolygons == null) {
+                collisionInformation.loadCollisionPolygon();
+            }
+            originalPolygons = collisionInformation.collisionPolygons;
+        }
 
-		//Polygon[] transformedPolygons = new Polygon[originalPolygons.length];
-		if (cachedCollisionPolygons == null || cachedCollisionPolygons.length != originalPolygons.length) {
-			cachedCollisionPolygons = new Polygon[originalPolygons.length];
-			for (int i = 0; i < originalPolygons.length; i++) {
-				cachedCollisionPolygons[i] = new Polygon(originalPolygons[i].getVertices());
-			}
-		}
+        if (cachedCollisionPolygons == null || cachedCollisionPolygons.length != originalPolygons.length) {
+            cachedCollisionPolygons = new Polygon[originalPolygons.length];
+            for (int i = 0; i < originalPolygons.length; i++) {
+                cachedCollisionPolygons[i] = new Polygon(originalPolygons[i].getVertices());
+            }
+        }
 
-		for (int p = 0; p < cachedCollisionPolygons.length; p++) {
-			Polygon poly = new Polygon(originalPolygons[p].getTransformedVertices());
-			poly.translate(getX(), getY());
-			poly.setRotation(getRotation());
-			poly.setScale(getScaleX(), getScaleY());
-			poly.setOrigin(getOriginX(), getOriginY());
-			cachedCollisionPolygons[p] = poly;
-		}
-		collisionDirty.set(false);
-		return cachedCollisionPolygons;
-	}
+        for (int p = 0; p < cachedCollisionPolygons.length; p++) {
+            Polygon poly = cachedCollisionPolygons[p];
+            poly.setVertices(originalPolygons[p].getVertices());
+            poly.setPosition(getX(), getY());
+            poly.setRotation(getRotation());
+            poly.setScale(getScaleX(), getScaleY());
+            poly.setOrigin(getOriginX(), getOriginY());
+        }
+
+        collisionDirty.set(false);
+        return cachedCollisionPolygons;
+    }
 
 	void notifyAllWaiters() {
 		for (Action action : getActions()) {

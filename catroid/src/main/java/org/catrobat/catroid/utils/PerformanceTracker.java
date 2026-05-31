@@ -1,6 +1,7 @@
 package org.catrobat.catroid.utils;
 
 import android.util.Log;
+import org.catrobat.catroid.content.Script;
 
 public class PerformanceTracker {
     private static long totalPhysicsTime = 0;
@@ -10,6 +11,10 @@ public class PerformanceTracker {
 
     public static long formulaEvaluations = 0;
     public static long blocksExecuted = 0;
+
+    // НОВЫЕ МЕТРИКИ
+    public static long activeThreads = 0;
+    public static long totalBlockTimeNs = 0;
 
     private static long lastLogTime = System.currentTimeMillis();
 
@@ -27,16 +32,25 @@ public class PerformanceTracker {
         }
     }
 
+    // НОВЫЙ МЕТОД: Отлов "тяжелых" скриптов
+    public static void logHeavyScript(Script script, long durationNs) {
+        double ms = durationNs / 1_000_000.0;
+        String scriptName = (script != null) ? script.getClass().getSimpleName() : "Unknown Script";
+        Log.w("CAT_PROFILER_HEAVY", "🔥 HEAVY SCRIPT DETECTED: " + scriptName + " took " + String.format("%.2f", ms) + " ms in a single frame!");
+    }
+
     private static void printStats() {
         if (frames == 0) return;
 
         double avgPhysics = (totalPhysicsTime / (double) frames) / 1_000_000.0;
         double avgLogic = (totalLogicTime / (double) frames) / 1_000_000.0;
         double avgRender = (totalRenderTime / (double) frames) / 1_000_000.0;
+        double avgBlock = (totalBlockTimeNs / (double) frames) / 1_000_000.0;
+        long avgThreads = activeThreads / frames;
 
         Log.i("CAT_PROFILER", String.format(
-                "FPS: %d | Logic: %.2f ms | Render: %.2f ms | Physics: %.2f ms | Formulas: %d | Blocks: %d",
-                frames, avgLogic, avgRender, avgPhysics, formulaEvaluations, blocksExecuted
+                "FPS: %d | Threads: %d | Logic: %.2fms (Blocks alone: %.2fms) | Render: %.2fms | Physics: %.2fms | Formulas: %d | Blocks: %d",
+                frames, avgThreads, avgLogic, avgBlock, avgRender, avgPhysics, formulaEvaluations, blocksExecuted
         ));
     }
 
@@ -47,5 +61,7 @@ public class PerformanceTracker {
         frames = 0;
         formulaEvaluations = 0;
         blocksExecuted = 0;
+        activeThreads = 0;
+        totalBlockTimeNs = 0;
     }
 }

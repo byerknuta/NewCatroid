@@ -10,13 +10,13 @@ import com.badlogic.gdx.graphics.PixmapIO
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.FrameBuffer
+import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.ScreenUtils
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.stage.StageActivity
 
 class RenderTexture(val width: Int, val height: Int) {
     var fbo: FrameBuffer = FrameBuffer(Pixmap.Format.RGBA8888, width, height, true)
-
     var camera2D = OrthographicCamera(width.toFloat(), height.toFloat())
     var camera3D = PerspectiveCamera(67f, width.toFloat(), height.toFloat())
     var textureRegion: TextureRegion
@@ -29,30 +29,29 @@ class RenderTexture(val width: Int, val height: Int) {
     var render3D: Boolean = false
 
     init {
-        textureRegion = TextureRegion(fbo.colorBufferTexture)
-        textureRegion.flip(false, true)
+        textureRegion = TextureRegion(fbo.colorBufferTexture).apply { flip(false, true) }
         camera3D.near = 0.1f
         camera3D.far = 2500f
     }
 
     fun dispose() {
         fbo.dispose()
+        spritesToRender.clear()
     }
 }
 
 object RenderTextureManager {
     val renderTextures = mutableMapOf<String, RenderTexture>()
-
     var isRenderingToBuffer: Boolean = false
         private set
 
     private const val GLOBAL_ROTATION_FIX = 90f
 
+    private val tempMatrix = Matrix4()
+
     fun createRenderTarget(name: String, width: Int, height: Int) {
         val existing = renderTextures[name]
-        if (existing != null && existing.width == width && existing.height == height) {
-            return
-        }
+        if (existing != null && existing.width == width && existing.height == height) return
 
         Gdx.app.postRunnable {
             renderTextures[name]?.dispose()
@@ -61,8 +60,9 @@ object RenderTextureManager {
     }
 
     fun addSpriteToTarget(name: String, sprite: Sprite) {
-        if (renderTextures[name]?.spritesToRender?.contains(sprite) == false) {
-            renderTextures[name]?.spritesToRender?.add(sprite)
+        val target = renderTextures[name] ?: return
+        if (!target.spritesToRender.contains(sprite)) {
+            target.spritesToRender.add(sprite)
         }
     }
 
@@ -115,25 +115,24 @@ object RenderTextureManager {
             val pixels = ScreenUtils.getFrameBufferPixels(0, 0, target.width, target.height, true)
             target.fbo.end()
 
-            val pixmap = Pixmap(target.width, target.height, Pixmap.Format.RGBA8888)
-            val buffer = pixmap.pixels
-            buffer.clear()
-            buffer.put(pixels)
-            buffer.position(0)
+            Thread {
+                val pixmap = Pixmap(target.width, target.height, Pixmap.Format.RGBA8888)
+                val buffer = pixmap.pixels
+                buffer.clear()
+                buffer.put(pixels)
+                buffer.position(0)
 
-            val projectDir = ProjectManager.getInstance().currentProject.filesDir.absolutePath
-            val file = Gdx.files.absolute("$projectDir/$fileName")
+                val projectDir = ProjectManager.getInstance().currentProject.filesDir.absolutePath
+                val file = Gdx.files.absolute("$projectDir/$fileName")
 
-            PixmapIO.writePNG(file, pixmap)
-            pixmap.dispose()
-            Log.d("RenderTextureManager", "Сохранен скриншот буфера: ${file.path()}")
+                PixmapIO.writePNG(file, pixmap)
+                pixmap.dispose()
+                Log.d("RenderTextureManager", "Сохранен скриншот буфера: ${file.path()}")
+            }.start()
         }
     }
 
-    fun getTextureRegion(name: String): TextureRegion? {
-        return renderTextures[name]?.textureRegion
-    }
-
+    fun getTextureRegion(name: String): TextureRegion? = renderTextures[name]?.textureRegion
     fun getWidth(name: String): Int = renderTextures[name]?.width ?: 0
     fun getHeight(name: String): Int = renderTextures[name]?.height ?: 0
 
@@ -141,23 +140,19 @@ object RenderTextureManager {
         if (renderTextures.isEmpty()) return
         isRenderingToBuffer = true
 
-        val oldMatrix = batch.projectionMatrix.cpy()
+        tempMatrix.set(batch.projectionMatrix)
         val wasDrawing = batch.isDrawing
         if (wasDrawing) batch.end()
 
-        for ((name, target) in renderTextures) {
+        for ((_, target) in renderTextures) {
             if (!target.autoUpdate && !target.needsUpdate) continue
 
-
             if (target.render3D) {
-                val stageListener = StageActivity.getActiveStageListener()
-                val threeDManager = stageListener?.threeDManager
-                threeDManager?.renderSceneForCustomCamera(target.camera3D, target.fbo)
+                StageActivity.getActiveStageListener()?.threeDManager?.renderSceneForCustomCamera(target.camera3D, target.fbo)
             }
 
             if (target.render2D) {
                 target.fbo.begin()
-
                 if (!target.render3D) {
                     Gdx.gl.glClearColor(0f, 0f, 0f, 0f)
                     Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
@@ -166,17 +161,18 @@ object RenderTextureManager {
                 target.camera2D.update()
                 batch.projectionMatrix = target.camera2D.combined
                 batch.begin()
-                for (sprite in target.spritesToRender) {
-                    sprite.look?.draw(batch, 1.0f)
+
+                for (i in 0 until target.spritesToRender.size) {
+                    target.spritesToRender[i].look?.draw(batch, 1.0f)
                 }
+
                 batch.end()
                 target.fbo.end()
             }
-
             target.needsUpdate = false
         }
 
-        batch.projectionMatrix = oldMatrix
+        batch.projectionMatrix = tempMatrix
         if (wasDrawing) batch.begin()
         isRenderingToBuffer = false
     }

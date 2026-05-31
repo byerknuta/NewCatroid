@@ -11,15 +11,19 @@ class LocalServer private constructor() {
         private var serverSocket: ServerSocket? = null
         private var clientSocket: Socket? = null
         private var outputStream: OutputStream? = null
-        private var connectedPort: String? = null
-        private var connectedIP: String? = null
-        private var receivedValue: String = ""
-        private var isRunning = false
 
+        @Volatile private var connectedPort: String? = null
+        @Volatile private var connectedIP: String? = null
+        @Volatile private var receivedValue: String = ""
+        @Volatile private var isRunning = false
+
+        private var job: Job? = null
         private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
         fun startOrJoin(ip: String?, port: String) {
-            coroutineScope.launch {
+            stop()
+
+            job = coroutineScope.launch {
                 try {
                     isRunning = true
                     if (ip.isNullOrEmpty()) {
@@ -29,100 +33,90 @@ class LocalServer private constructor() {
                     }
                 } catch (e: Exception) {
                     if (isRunning) {
-                        ErrorLog.log(e.message ?: "**message not provided :(**")
-                        Log.e("LocalServer", "Ошибка в startOrJoin: ${e.message}", e)
+                        ErrorLog.log(e.message ?: "Unknown socket error")
+                        Log.e("LocalServer", "Ошибка: ${e.message}", e)
                     }
                 } finally {
-                    if (isRunning) {
-                        stop()
-                    }
+                    stop()
                 }
             }
         }
 
-        private suspend fun startServer(port: String) {
+        private suspend fun startServer(port: String) = withContext(Dispatchers.IO) {
             serverSocket = ServerSocket(port.toInt())
             connectedPort = port
             connectedIP = getLocalIPAddress()
-            Log.d("LocalServer", "Сервер запущен на $connectedIP:$port и ожидает подключения...")
+            Log.d("LocalServer", "Сервер запущен на $connectedIP:$port")
 
             val socket = serverSocket!!.accept()
-            Log.d("LocalServer", "Клиент подключился: ${socket.remoteSocketAddress}")
-
-            clientSocket = socket
-            outputStream = socket.getOutputStream()
-
-            listenForMessages(socket)
+            setupConnection(socket)
         }
 
-        private suspend fun connectToServer(ip: String, port: String) {
+        private suspend fun connectToServer(ip: String, port: String) = withContext(Dispatchers.IO) {
             val socket = Socket(ip, port.toInt())
-            clientSocket = socket
-            outputStream = socket.getOutputStream()
             connectedIP = ip
             connectedPort = port
-            Log.d("LocalServer", "Подключен к серверу $ip:$port")
+            setupConnection(socket)
+        }
 
+        private fun setupConnection(socket: Socket) {
+            clientSocket = socket
+            outputStream = socket.getOutputStream()
             listenForMessages(socket)
         }
 
-        private fun handleClient(socket: Socket) {
-            coroutineScope.launch {
-                listenForMessages(socket)
-            }
-        }
-
-        private suspend fun listenForMessages(socket: Socket) {
+        private fun listenForMessages(socket: Socket) {
             try {
-                val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
-                while (isRunning && socket.isConnected) {
-
-                    val message = reader.readLine()
-                    if (message == null) {
-                        Log.d("LocalServer", "Соединение разорвано удаленной стороной.")
-                        break
+                BufferedReader(InputStreamReader(socket.getInputStream())).use { reader ->
+                    while (isRunning && !socket.isClosed) {
+                        val message = reader.readLine()
+                        if (message == null) {
+                            Log.d("LocalServer", "Соединение разорвано удаленной стороной.")
+                            break
+                        }
+                        receivedValue = message
                     }
-                    receivedValue = message
-                    Log.d("LocalServer", "Получено: $message")
                 }
             } catch (e: Exception) {
-                if (isRunning) {
-                    ErrorLog.log(e.message ?: "**message not provided :(**")
-                    Log.e("LocalServer", "Ошибка чтения: ${e.message}")
-                }
+                if (isRunning) Log.e("LocalServer", "Ошибка чтения: ${e.message}")
+            } finally {
+                stop()
             }
         }
 
         fun send(value: String) {
             coroutineScope.launch {
-                if (outputStream == null) {
-                    Log.e("LocalServer", "Ошибка: соединение не установлено (outputStream is null).")
+                val out = outputStream
+                if (out == null) {
+                    Log.e("LocalServer", "Соединение не установлено.")
                     return@launch
                 }
                 try {
-                    outputStream?.write((value + "\n").toByteArray())
-                    outputStream?.flush()
-                    Log.d("LocalServer", "Отправлено: $value")
+                    out.write((value + "\n").toByteArray(Charsets.UTF_8))
+                    out.flush()
                 } catch (e: Exception) {
-                    ErrorLog.log(e.message ?: "**message not provided :(**")
                     Log.e("LocalServer", "Ошибка отправки: ${e.message}")
+                    stop()
                 }
             }
         }
 
+        @Synchronized
         fun stop() {
             if (!isRunning) return
             isRunning = false
             try {
-                serverSocket?.close()
+                outputStream?.close()
                 clientSocket?.close()
+                serverSocket?.close()
             } catch (e: IOException) {
-                Log.w("LocalServer", "Ошибка при закрытии сокетов: ${e.message}")
+                Log.w("LocalServer", "Ошибка при закрытии: ${e.message}")
             } finally {
-                serverSocket = null
-                clientSocket = null
                 outputStream = null
-                Log.d("LocalServer", "Сервер/клиент остановлен.")
+                clientSocket = null
+                serverSocket = null
+                job?.cancel()
+                job = null
             }
         }
 
@@ -131,14 +125,13 @@ class LocalServer private constructor() {
         fun getPort(): String = connectedPort ?: "NaN"
 
         private fun getLocalIPAddress(): String? {
-            try {
-                return NetworkInterface.getNetworkInterfaces().toList()
+            return try {
+                NetworkInterface.getNetworkInterfaces().toList()
                     .flatMap { it.inetAddresses.toList() }
                     .firstOrNull { !it.isLoopbackAddress && it is Inet4Address }
                     ?.hostAddress
             } catch (e: Exception) {
-                Log.e("LocalServer", "Не удалось получить локальный IP-адрес", e)
-                return null
+                null
             }
         }
     }

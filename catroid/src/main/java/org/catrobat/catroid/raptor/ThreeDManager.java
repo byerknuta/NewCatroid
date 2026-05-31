@@ -440,6 +440,17 @@ public class ThreeDManager implements Disposable {
     private int lastTouchX, lastTouchY;
     private int activePointerId = -1;
 
+    private final java.nio.ByteBuffer dofPixelsBuffer = com.badlogic.gdx.utils.BufferUtils.newByteBuffer(16);
+
+    private final Vector3 tpTargetPos = new Vector3();
+    private final Vector3 tpLookAt = new Vector3();
+    private final Quaternion tpRot = new Quaternion();
+    private final Quaternion tpPitchRot = new Quaternion();
+    private final Vector3 tpPosOffset = new Vector3();
+
+    private final Vector3 slCenter = new Vector3();
+    private final Vector3 slForward = new Vector3();
+
     public void init() {
         init(new SceneSettings());
     }
@@ -998,16 +1009,17 @@ public class ThreeDManager implements Disposable {
         activeAIs.put(objectId, settings);
     }
 
-    private void initAIDirections() {
-        for (int i = 0; i < 8; i++) {
-            float angle = i * 45f * MathUtils.degreesToRadians;
-            chosenDirections[i] = new Vector3(MathUtils.sin(angle), 0, MathUtils.cos(angle));
-        }
-    }
+    private final Vector3 aiCurrentPos = new Vector3();
+    private final Vector3 aiFinalMoveTarget = new Vector3();
+    private final Vector3 aiRealTargetPos = new Vector3();
+    private final Vector3 aiDesiredDir = new Vector3();
+    private final Vector3 aiBestMoveDir = new Vector3();
+    private final Vector3 aiRayDir = new Vector3();
+    private final Vector3 aiStepPos = new Vector3();
+    private final RayCastResult aiRayResult = new RayCastResult();
 
     private void updateAIProcessing(float delta) {
         if (editorMode) return;
-
 
         trailTimer += delta;
         if (trailTimer >= 0.5f) {
@@ -1020,16 +1032,14 @@ public class ThreeDManager implements Disposable {
                 ModelInstance tInst = sceneObjects.get(tId);
                 if (tInst != null) {
                     Array<Vector3> trail = targetTrails.computeIfAbsent(tId, k -> new Array<>());
-                    Vector3 p = tInst.transform.getTranslation(new Vector3());
-
-                    if (trail.size == 0 || trail.peek().dst(p) > 2.0f) {
-                        trail.add(new Vector3(p));
+                    tInst.transform.getTranslation(tmpPos);
+                    if (trail.size == 0 || trail.peek().dst(tmpPos) > 2.0f) {
+                        trail.add(new Vector3(tmpPos));
                         if (trail.size > 40) trail.removeIndex(0);
                     }
                 }
             }
         }
-
 
         for (Map.Entry<String, AIComponent> entry : activeAIs.entrySet()) {
             String id = entry.getKey();
@@ -1037,108 +1047,98 @@ public class ThreeDManager implements Disposable {
             ModelInstance instance = sceneObjects.get(id);
             if (instance == null) continue;
 
-            instance.transform.getTranslation(tmpPos);
-            Vector3 currentPos = new Vector3(tmpPos);
-            Vector3 finalMoveTarget = new Vector3();
-
+            instance.transform.getTranslation(aiCurrentPos);
 
             if (ai.mode == AIComponent.Mode.FOLLOW && !ai.targetId.isEmpty()) {
                 ModelInstance tInst = sceneObjects.get(ai.targetId);
                 if (tInst == null) continue;
-                Vector3 realTargetPos = tInst.transform.getTranslation(new Vector3());
+                tInst.transform.getTranslation(aiRealTargetPos);
 
+                aiDesiredDir.set(aiRealTargetPos).sub(aiCurrentPos);
+                castRay(aiCurrentPos, aiDesiredDir, aiRayResult);
 
-                castRay("ai_los_" + id, currentPos, realTargetPos.cpy().sub(currentPos));
-                boolean hasLOS = false;
-                if (getRayDidHit("ai_los_" + id) && getRaycastHitObjectId("ai_los_" + id).equals(ai.targetId)) {
-                    hasLOS = true;
-                }
+                boolean hasLOS = aiRayResult.hasHit && aiRayResult.hitObjectId.equals(ai.targetId);
 
                 if (hasLOS) {
-                    finalMoveTarget.set(realTargetPos);
+                    aiFinalMoveTarget.set(aiRealTargetPos);
                 } else {
-
                     Array<Vector3> trail = targetTrails.get(ai.targetId);
                     boolean pointFound = false;
                     if (trail != null) {
                         for (int i = trail.size - 1; i >= 0; i--) {
                             Vector3 breadcrumb = trail.get(i);
-                            castRay("ai_bc_" + id, currentPos, breadcrumb.cpy().sub(currentPos));
+                            aiDesiredDir.set(breadcrumb).sub(aiCurrentPos);
+                            castRay(aiCurrentPos, aiDesiredDir, aiRayResult);
 
-                            if (getRayDidHit("ai_bc_" + id) && getRaycastDistance("ai_bc_" + id) >= currentPos.dst(breadcrumb) - 0.5f) {
-                                finalMoveTarget.set(breadcrumb);
+                            if (aiRayResult.hasHit && aiRayResult.hitDistance >= aiCurrentPos.dst(breadcrumb) - 0.5f) {
+                                aiFinalMoveTarget.set(breadcrumb);
                                 pointFound = true;
                                 break;
                             }
                         }
                     }
-                    if (!pointFound) finalMoveTarget.set(realTargetPos);
+                    if (!pointFound) aiFinalMoveTarget.set(aiRealTargetPos);
                 }
             } else {
-                finalMoveTarget.set(ai.targetPos);
+                aiFinalMoveTarget.set(ai.targetPos);
             }
 
-
-            float distToTarget = currentPos.dst(finalMoveTarget);
+            float distToTarget = aiCurrentPos.dst(aiFinalMoveTarget);
             if (distToTarget <= ai.stopDistance) {
                 ai.currentVelocity.lerp(Vector3.Zero, delta * 5f);
                 stopPhysicsVelocity(id);
                 continue;
             }
 
-            if (currentPos.dst(ai.lastPosition) < 0.02f) ai.stuckTimer += delta;
+            if (aiCurrentPos.dst(ai.lastPosition) < 0.02f) ai.stuckTimer += delta;
             else ai.stuckTimer = 0;
-            ai.lastPosition.set(currentPos);
+            ai.lastPosition.set(aiCurrentPos);
 
-
-            Vector3 desiredDir = finalMoveTarget.cpy().sub(currentPos).nor();
-
+            aiDesiredDir.set(aiFinalMoveTarget).sub(aiCurrentPos).nor();
 
             if (ai.stuckTimer > 0.7f) {
-                desiredDir.rotate(Vector3.Y, 45);
+                aiDesiredDir.rotate(Vector3.Y, 45);
             }
 
-            Vector3 bestMoveDir = new Vector3(desiredDir);
+            aiBestMoveDir.set(aiDesiredDir);
             float bestScore = -1000f;
-
 
             for (int i = 0; i < 12; i++) {
                 float angle = (i - 6) * 15f;
-                Vector3 rayDir = desiredDir.cpy().rotate(Vector3.Y, angle);
+                aiRayDir.set(aiDesiredDir).rotate(Vector3.Y, angle);
 
                 float obstacleDist = ai.detectionRange;
-                String rKey = "ai_fan_" + id + "_" + i;
-                castRay(rKey, currentPos, rayDir.cpy().scl(ai.detectionRange));
+                aiStepPos.set(aiRayDir).scl(ai.detectionRange);
+                castRay(aiCurrentPos, aiStepPos, aiRayResult);
 
-                if (getRayDidHit(rKey)) {
-                    String hitId = getRaycastHitObjectId(rKey);
+                if (aiRayResult.hasHit) {
+                    String hitId = aiRayResult.hitObjectId;
                     if (!hitId.equals(ai.targetId) && !hitId.equals(id)) {
-                        obstacleDist = getRaycastDistance(rKey);
+                        obstacleDist = aiRayResult.hitDistance;
                     }
                 }
 
-
-                float score = rayDir.dot(desiredDir) + (obstacleDist / ai.detectionRange) * 2.5f;
+                float score = aiRayDir.dot(aiDesiredDir) + (obstacleDist / ai.detectionRange) * 2.5f;
                 if (score > bestScore) {
                     bestScore = score;
-                    bestMoveDir.set(rayDir);
+                    aiBestMoveDir.set(aiRayDir);
                 }
             }
 
+            ai.currentVelocity.lerp(aiBestMoveDir.scl(ai.speed), delta * 4f);
 
+            aiStepPos.set(ai.currentVelocity).nor().scl(0.6f);
+            aiStepPos.add(aiCurrentPos).add(0, ai.stepHeight, 0);
 
-            ai.currentVelocity.lerp(bestMoveDir.scl(ai.speed), delta * 4f);
+            aiRayDir.set(0, -ai.stepHeight * 2.5f, 0);
+            castRay(aiStepPos, aiRayDir, aiRayResult);
 
-
-            Vector3 stepPos = currentPos.cpy().add(ai.currentVelocity.cpy().nor().scl(0.6f)).add(0, ai.stepHeight, 0);
-            castRay("step_" + id, stepPos, new Vector3(0, -ai.stepHeight * 2.5f, 0));
             float jumpVel = 0;
-            if (getRayDidHit("step_" + id)) {
-                float floorY = getRayHitPointY("step_" + id);
-                if (floorY > currentPos.y + 0.1f) jumpVel = 5f;
-                else if (floorY < currentPos.y - 0.2f) jumpVel = -5f;
+            if (aiRayResult.hasHit) {
+                float floorY = aiRayResult.hitPoint.y;
+                if (floorY > aiCurrentPos.y + 0.1f) jumpVel = 5f;
+                else if (floorY < aiCurrentPos.y - 0.2f) jumpVel = -5f;
             }
-
 
             float targetYaw = (float) Math.toDegrees(Math.atan2(ai.currentVelocity.x, ai.currentVelocity.z));
             instance.transform.getRotation(tmpRot, true);
@@ -1150,12 +1150,11 @@ public class ThreeDManager implements Disposable {
                 body.activate();
                 body.setLinearVelocity(new Vector3(ai.currentVelocity.x, jumpVel != 0 ? jumpVel : body.getLinearVelocity().y, ai.currentVelocity.z));
                 Matrix4 m = body.getWorldTransform();
-                m.set(currentPos, finalRot);
+                m.set(aiCurrentPos, finalRot);
                 body.setWorldTransform(m);
             } else {
-                currentPos.add(ai.currentVelocity.cpy().scl(delta));
-                currentPos.y += jumpVel * delta;
-                instance.transform.set(currentPos, finalRot, instance.transform.getScale(new Vector3()));
+                aiCurrentPos.add(ai.currentVelocity.x * delta, jumpVel * delta, ai.currentVelocity.z * delta);
+                instance.transform.set(aiCurrentPos, finalRot, instance.transform.getScale(tmpScale));
             }
         }
     }
@@ -2347,12 +2346,12 @@ public class ThreeDManager implements Disposable {
             if (useCSM && csm != null) {
                 csm.setCascades(camera, sun, currentShadowSize, csmSplitFactor);
             } else {
-                Vector3 center = new Vector3(camera.position);
-                Vector3 forward = new Vector3(camera.direction).scl(currentShadowSize * 0.4f);
-                forward.y = 0;
-                center.add(forward);
-                center.y = 0;
-                sun.setCenter(center);
+                slCenter.set(camera.position);
+                slForward.set(camera.direction).scl(currentShadowSize * 0.4f);
+                slForward.y = 0;
+                slCenter.add(slForward);
+                slCenter.y = 0;
+                sun.setCenter(slCenter);
 
                 Camera shadowCam = sun.getCamera();
                 shadowCam.viewportWidth = currentShadowSize;
@@ -2647,20 +2646,17 @@ public class ThreeDManager implements Disposable {
             return;
         }
 
-        Vector3 targetPosition = target.transform.getTranslation(new Vector3());
-        Vector3 lookAtPoint = new Vector3(targetPosition).add(cameraOffset);
+        target.transform.getTranslation(tpTargetPos);
+        tpLookAt.set(tpTargetPos).add(cameraOffset);
 
-        Quaternion rotation = new Quaternion();
-        rotation.set(Vector3.Y, cameraYaw);
-        rotation.mul(new Quaternion(Vector3.X, -cameraPitch));
+        tpRot.set(Vector3.Y, cameraYaw);
+        tpPitchRot.set(Vector3.X, -cameraPitch);
+        tpRot.mul(tpPitchRot);
 
-        Vector3 positionOffset = new Vector3(0, 0, cameraDistance);
-        positionOffset.mul(rotation);
+        tpPosOffset.set(0, 0, cameraDistance).mul(tpRot);
 
-        Vector3 cameraPosition = new Vector3(lookAtPoint).add(positionOffset);
-
-        camera.position.set(cameraPosition);
-        camera.lookAt(lookAtPoint);
+        camera.position.set(tpLookAt).add(tpPosOffset);
+        camera.lookAt(tpLookAt);
         camera.up.set(Vector3.Y);
         camera.update();
     }
@@ -3021,26 +3017,24 @@ public class ThreeDManager implements Disposable {
                 }
 
                 if (dofData != null && dofData.autoFocus) {
-                    int bufferSize = 4 * 4;
-                    java.nio.ByteBuffer pixels = com.badlogic.gdx.utils.BufferUtils.newByteBuffer(bufferSize);
+                    dofPixelsBuffer.clear();
 
                     int x = depthFbo.getWidth() / 2;
                     int y = depthFbo.getHeight() / 2;
 
-                    Gdx.gl.glReadPixels(x, y, 2, 2, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE, pixels);
-                    pixels.rewind();
+                    Gdx.gl.glReadPixels(x, y, 2, 2, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE, dofPixelsBuffer);
+                    dofPixelsBuffer.rewind();
 
                     float sumDist = 0;
                     int validSamples = 0;
 
                     for (int i = 0; i < 4; i++) {
-                        int r = pixels.get() & 0xFF;
-                        int g = pixels.get() & 0xFF;
-                        int b = pixels.get() & 0xFF;
-                        int a = pixels.get() & 0xFF;
+                        int r = dofPixelsBuffer.get() & 0xFF;
+                        int g = dofPixelsBuffer.get() & 0xFF;
+                        int b = dofPixelsBuffer.get() & 0xFF;
+                        int a = dofPixelsBuffer.get() & 0xFF;
 
                         float normDist = (r / 255.0f) + (g / (255.0f * 255.0f));
-
                         if (r == 128 && b != 128) {
                             normDist = (b / 255.0f) + (a / (255.0f * 255.0f));
                         }
@@ -3360,6 +3354,37 @@ public class ThreeDManager implements Disposable {
         dynamicsWorld.contactPairTest(body1, body2, collisionCallback);
 
         return collisionCallback.collided;
+    }
+
+    public void castRay(Vector3 from, Vector3 direction, RayCastResult outResult) {
+        tmpPos.set(from).add(direction.x * camera.far, direction.y * camera.far, direction.z * camera.far);
+
+        com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback callback =
+                new com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback(from, tmpPos);
+
+        callback.setFlags(com.badlogic.gdx.physics.bullet.collision.btTriangleRaycastCallback.EFlags.kF_None);
+        dynamicsWorld.rayTest(from, tmpPos, callback);
+
+        if (callback.hasHit()) {
+            outResult.hasHit = true;
+            callback.getHitPointWorld(outResult.hitPoint);
+            callback.getHitNormalWorld(outResult.hitNormal);
+
+            com.badlogic.gdx.physics.bullet.collision.btCollisionObject hitObject = callback.getCollisionObject();
+            outResult.hitObjectId = "";
+            for (Map.Entry<String, btRigidBody> entry : physicsBodies.entrySet()) {
+                if (entry.getValue().equals(hitObject)) {
+                    outResult.hitObjectId = entry.getKey();
+                    break;
+                }
+            }
+            outResult.hitDistance = from.dst(outResult.hitPoint);
+        } else {
+            outResult.hasHit = false;
+            outResult.hitObjectId = "";
+            outResult.hitDistance = -1.0f;
+        }
+        callback.dispose();
     }
 
 
@@ -5213,6 +5238,8 @@ public class ThreeDManager implements Disposable {
         if (vfxManager != null) vfxManager.dispose();
         if (csm != null) csm.dispose();
         if (voxelExecutor != null) voxelExecutor.dispose();
+        if (fsrShader != null) fsrShader.dispose();
+        if (depthShader != null) depthShader.dispose();
 
         for (ParticleSystem3DRuntime rt : activeParticleRuntimes3D.values()) rt.dispose();
         activeParticleRuntimes3D.clear();
