@@ -38,25 +38,24 @@
             android:id="@+id/formula_editor_field_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/solid_white"
+            android:background="@android:color/transparent"
             android:layout_alignParentBottom="true" >
 
             <org.catrobat.catroid.formulaeditor.FormulaEditorEditText
                 android:id="@+id/formula_editor_edit_field"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="30dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginStart="5dp"
-                android:layout_marginBottom="5dp"
-                android:background="@color/solid_white"
+                android:layout_margin="8dp"
+                android:padding="12dp"
+                android:background="@drawable/bg_formula_input"
                 android:hint="@string/formula_nothing_selected"
                 android:inputType="textMultiLine"
                 android:lineSpacingExtra="5dp"
                 android:maxLines="20"
                 android:scrollbarStyle="insideInset"
                 android:scrollbars="vertical"
-                android:textColor="@color/solid_black"
+                android:textColor="@color/solid_white"
+                android:textColorHint="@color/spinner_icon_and_inactive_elements"
                 android:textSize="?attr/x_large" />
         </FrameLayout>
 
@@ -64,7 +63,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_alignParentTop="true"
-            android:layout_above="@id/formula_editor_field_container"> <!-- ЗАСТАВЛЯЕМ ЕГО ЗАНЯТЬ ВСЕ МЕСТО НАД ПОЛЕМ ВВОДА -->
+            android:layout_above="@id/formula_editor_field_container">
 
             <LinearLayout
                 android:id="@+id/formula_editor_brick_space"

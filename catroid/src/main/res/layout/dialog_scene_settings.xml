@@ -1,211 +1,274 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/app_background"
+    android:padding="16dp">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:orientation="vertical">
 
+        <!-- Environment Header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_scene_title"
+            android:textColor="@color/accent"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Sky Color -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sky Color"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"/>
+            android:text="@string/settings_sky_color"
+            android:textColor="@color/solid_white"
+            android:textSize="14sp"/>
+
         <Button
             android:id="@+id/btn_sky_color"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="44dp"
             android:layout_marginTop="8dp"
-            android:text="Select Color"/>
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="@color/button_background"
+            android:textColor="@color/solid_white"/>
 
+        <!-- Ambient Light -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Ambient Light Intensity"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"/>
-        <SeekBar
-            android:id="@+id/seekbar_ambient_light"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:max="200" />
-        <TextView
-            android:id="@+id/text_ambient_value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="1.0"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Skybox (HDRI)"
-            android:textColor="@color/white"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"/>
+            android:text="@string/settings_ambient_light"
+            android:textColor="@color/solid_white"
+            android:textSize="14sp"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp">
+
+            <SeekBar
+                android:id="@+id/seekbar_ambient_light"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="100" />
+
+            <TextView
+                android:id="@+id/text_ambient_value"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:textColor="@color/solid_white"
+                android:gravity="end"
+                android:text="0.50"/>
+        </LinearLayout>
+
+        <!-- Skybox Selector -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Skybox"
+            android:textColor="@color/solid_white"
+            android:textSize="14sp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="24dp">
+
             <TextView
                 android:id="@+id/text_skybox_path"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="None"
-                android:textColor="@color/white"
-                android:ellipsize="start"
-                android:singleLine="true"/>
+                android:textColor="@color/text_secondary"
+                android:text="None"/>
+
+            <Button
+                android:id="@+id/btn_select_skybox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Set"
+                android:textSize="12sp"
+                android:backgroundTint="@color/button_background"/>
+
             <ImageButton
                 android:id="@+id/btn_clear_skybox"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
-                style="@style/Widget.AppCompat.Button.Borderless"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 app:tint="#FF5252"/>
         </LinearLayout>
 
-        <Button
-            android:id="@+id/btn_select_skybox"
+        <!-- Shadows Section -->
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Select Skybox Texture"/>
+            android:text="@string/settings_shadows"
+            android:textColor="@color/accent"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Shadows Settings"
-            android:textColor="@color/white"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"/>
+            android:text="@string/settings_shadow_dist"
+            android:textColor="@color/solid_white"/>
 
-        <LinearLayout
+        <EditText
+            android:id="@+id/edit_shadow_distance"
+            style="@style/InspectorEditText"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="8dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:text="Distance (Quality vs Area)"
-                android:textSize="12sp"/>
-
-            <EditText
-                android:id="@+id/edit_shadow_distance"
-                android:layout_width="80dp"
-                android:layout_height="wrap_content"
-                android:inputType="numberDecimal"
-                android:text="100"
-                android:textColor="#000000"
-                android:textColorHint="#424242"
-                android:textSize="14sp" />
-        </LinearLayout>
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="12dp"
+            android:inputType="numberDecimal" />
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Small (50) for rooms, Large (500) for cities."
-            android:textSize="10sp"
-            android:layout_marginBottom="8dp"/>
+            android:text="@string/settings_shadow_res"
+            android:textColor="@color/solid_white"/>
 
-        <LinearLayout
+        <Spinner
+            android:id="@+id/spinner_shadow_resolution"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:text="Resolution (Sharpness)"
-                android:textSize="12sp"/>
-
-            <Spinner
-                android:id="@+id/spinner_shadow_resolution"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minWidth="120dp"/>
-        </LinearLayout>
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="12dp"/>
 
         <CheckBox
             android:id="@+id/checkbox_csm"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Enable Cascaded Shadows (CSM)"
-            android:textColor="#000000" />
+            android:text="@string/settings_shadow_csm"
+            android:textColor="@color/solid_white"
+            android:layout_marginBottom="12dp"
+            android:buttonTint="@color/accent"/>
 
         <LinearLayout
             android:id="@+id/layout_csm_factor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="4dp">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="CSM Split Factor (1 - 20)"
-                android:textColor="#000000"
-                android:textSize="12sp"/>
+                android:text="@string/settings_shadow_csm_factor"
+                android:textColor="@color/solid_white"/>
 
             <EditText
                 android:id="@+id/edit_csm_factor"
-                android:layout_width="80dp"
-                android:layout_height="wrap_content"
-                android:inputType="numberDecimal"
-                android:text="4.0"
-                android:textColor="#000000"
-                android:textColorHint="#424242"
-                android:textSize="14sp" />
+                style="@style/InspectorEditText"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="6dp"
+                android:inputType="numberDecimal" />
         </LinearLayout>
+
         <TextView
             android:id="@+id/text_csm_hint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Higher value = shadows render further away (good for big cities)."
-            android:textColor="#808080"
-            android:textSize="10sp"
-            android:layout_marginBottom="8dp"/>
+            android:text="CSM splits the shadow map to prevent pixelation at distances."
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"/>
 
         <Button
             android:id="@+id/btn_apply_shadows"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Apply Shadow Settings"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"/>
+            android:text="@string/settings_apply_btn"
+            android:backgroundTint="@color/accent"
+            android:textColor="@color/app_background"
+            android:layout_marginBottom="24dp"/>
 
+        <!-- Performance Limits Section -->
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Performance (Requires Restart)"
-            android:textColor="@color/white"
-            android:layout_marginTop="24dp"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"/>
+            android:text="@string/settings_performance"
+            android:textColor="@color/accent"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
 
-        <include layout="@layout/dialog_scene_settings_performance"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_point_lights" android:textColor="@color/solid_white" android:textSize="12sp"/>
+                <EditText android:id="@+id/edit_point_lights" style="@style/InspectorEditText" android:layout_width="match_parent" android:layout_height="40dp" android:inputType="number" android:layout_marginTop="4dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="8dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_spot_lights" android:textColor="@color/solid_white" android:textSize="12sp"/>
+                <EditText android:id="@+id/edit_spot_lights" style="@style/InspectorEditText" android:layout_width="match_parent" android:layout_height="40dp" android:inputType="number" android:layout_marginTop="4dp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_dir_lights" android:textColor="@color/solid_white" android:textSize="12sp"/>
+                <EditText android:id="@+id/edit_dir_lights" style="@style/InspectorEditText" android:layout_width="match_parent" android:layout_height="40dp" android:inputType="number" android:layout_marginTop="4dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="8dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_bones" android:textColor="@color/solid_white" android:textSize="12sp"/>
+                <EditText android:id="@+id/edit_bones" style="@style/InspectorEditText" android:layout_width="match_parent" android:layout_height="40dp" android:inputType="number" android:layout_marginTop="4dp"/>
+            </LinearLayout>
+        </LinearLayout>
 
         <Button
             android:id="@+id/btn_apply_performance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Apply &amp; Restart 3D Engine"/>
+            android:text="@string/settings_apply_perf_btn"
+            android:backgroundTint="@color/accent"
+            android:textColor="@color/app_background"
+            android:layout_marginBottom="32dp"/>
 
     </LinearLayout>
 </ScrollView>

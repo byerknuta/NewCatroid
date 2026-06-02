@@ -49,11 +49,6 @@ public class PluginManager {
         return instance;
     }
 
-    /**
-     * Устанавливает плагин из .nplug (zip) архива, полученного по URI.
-     * @param uri URI .nplug файла.
-     * @return true в случае успеха, false в случае ошибки.
-     */
     public boolean installPluginFromUri(Uri uri) {
 
         File tempDir = new File(context.getCacheDir(), "plugin_install_temp");
@@ -133,9 +128,6 @@ public class PluginManager {
         return true;
     }
 
-    /**
-     * Сканирует папку с плагинами, читает их манифесты и возвращает список.
-     */
     public List<PluginInfo> getInstalledPlugins() {
         List<PluginInfo> pluginInfos = new ArrayList<>();
         File[] pluginDirs = pluginsDir.listFiles();
@@ -173,9 +165,6 @@ public class PluginManager {
         return pluginInfos;
     }
 
-    /**
-     * Включает или отключает плагин, сохраняя его состояние.
-     */
     public void setPluginEnabled(String packageName, boolean enabled) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         Set<String> disabledPlugins = new HashSet<>(getDisabledPluginSet());
@@ -189,9 +178,6 @@ public class PluginManager {
         prefs.edit().putStringSet(DISABLED_PLUGINS_KEY, disabledPlugins).apply();
     }
 
-    /**
-     * Полностью удаляет плагин с устройства.
-     */
     public boolean deletePlugin(PluginInfo pluginInfo) {
         setPluginEnabled(pluginInfo.packageName, true);
         return deleteRecursive(pluginInfo.pluginDirectory);

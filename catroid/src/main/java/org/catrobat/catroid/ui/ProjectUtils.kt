@@ -141,7 +141,9 @@ fun showWarningForSuspiciousBricksOnce(context: Context) {
     val showForFirstTime = sharedPreferences.getString(projectUrl, null).isNullOrBlank()
 
     if (isDownloadedProject && currentProject.shouldDisplaySuspiciousBricksWarning() && showForFirstTime) {
-        AlertDialog.Builder(context)
+        AlertDialog.Builder(
+            android.view.ContextThemeWrapper(context, R.style.Theme_NewCatroid_Dialog)
+        )
             .setTitle(context.resources.getString(R.string.warning))
             .setMessage(context.resources.getString(R.string.security_warning_dialog_msg))
             .setCancelable(false)

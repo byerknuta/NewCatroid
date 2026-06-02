@@ -37,6 +37,7 @@
     <color name="spinner_icon_and_inactive_elements">@color/solid_white</color>
 
     <!-- Backgrounds -->
+    <color name="app_background_dark">#00122F</color>
     <color name="app_background">#04223F</color> <!--04223F-->
     <color name="button_background">#00476F</color>
     <color name="advertising_button_background">#00ACD2</color>
@@ -138,8 +139,8 @@
      <color name="brick_color_neural">#5771f7</color>
     <color name="brick_color_threed">#fccb41</color>
 
-    <color name="surface_card">#003554</color> <!-- Чуть светлее фона, для карточек -->
-    <color name="surface_card_pressed">#004E7A</color> <!-- Цвет нажатия -->
+    <color name="surface_card">#003554</color>
+    <color name="surface_card_pressed">#004E7A</color>
     <color name="text_secondary">#B0BEC5</color>
     <color name="black_overlay">#66000000</color>
 

@@ -45,6 +45,8 @@ class BrickCategoryListBuilder(private val activity: FragmentActivity) {
         val categories: MutableList<View> = ArrayList()
         val inflater = activity.layoutInflater
 
+        categories.add(inflater.inflate(R.layout.brick_category_favorites, null))
+
         categories.add(inflater.inflate(R.layout.brick_category_recently_used, null))
 
         if (SettingsFragment.isEmroiderySharedPreferenceEnabled(activity)) {

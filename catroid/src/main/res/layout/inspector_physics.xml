@@ -1,18 +1,17 @@
-<!-- res/layout/inspector_physics.xml -->
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="8dp">
 
-    <!-- ВОЗВРАЩАЕМ SPINNER ДЛЯ STATE -->
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="State" android:layout_marginTop="8dp"/>
-    <Spinner android:id="@+id/spinner_physics_state" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <TextView style="@style/InspectorLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/editor_3d_phys_state" android:layout_marginTop="8dp"/>
+    <Spinner android:id="@+id/spinner_physics_state" style="@style/InspectorSpinner" android:layout_width="match_parent" android:layout_height="40dp" android:layout_marginTop="4dp"/>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#666666"
+        android:background="@color/separator"
         android:layout_marginTop="12dp"
         android:layout_marginBottom="12dp"/>
 
@@ -28,33 +27,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Add Box Collider" />
-
-    <!--<Button
-        android:id="@+id/btn_add_sphere_collider"
-        style="@style/Widget.App.Button.Outlined"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Add Sphere Collider" />-->
+        android:text="@string/editor_3d_phys_add_box" />
 
     <Button
         android:id="@+id/btn_add_capsule_collider"
         style="@style/Widget.App.Button.Outlined"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add Capsule Collider" />
+        android:layout_marginTop="8dp"
+        android:text="@string/editor_3d_phys_add_capsule" />
 
     <LinearLayout android:id="@+id/layout_physics_mass" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mass" android:layout_marginTop="8dp"/>
-        <EditText android:id="@+id/edit_physics_mass" style="@style/InspectorEditText" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberDecimal"/>
+        <TextView style="@style/InspectorLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/editor_3d_phys_mass" android:layout_marginTop="8dp"/>
+        <EditText android:id="@+id/edit_physics_mass" style="@style/InspectorEditText" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberDecimal" android:layout_marginTop="4dp"/>
     </LinearLayout>
 
     <LinearLayout android:id="@+id/layout_physics_properties" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Friction" android:layout_marginTop="8dp"/>
-        <EditText android:id="@+id/edit_physics_friction" style="@style/InspectorEditText" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberDecimal"/>
+        <TextView style="@style/InspectorLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/editor_3d_phys_friction" android:layout_marginTop="8dp"/>
+        <EditText android:id="@+id/edit_physics_friction" style="@style/InspectorEditText" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberDecimal" android:layout_marginTop="4dp"/>
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Restitution (Bounciness)" android:layout_marginTop="8dp"/>
-        <EditText android:id="@+id/edit_physics_restitution" style="@style/InspectorEditText" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberDecimal"/>
+        <TextView style="@style/InspectorLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/editor_3d_phys_restitution" android:layout_marginTop="8dp"/>
+        <EditText android:id="@+id/edit_physics_restitution" style="@style/InspectorEditText" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberDecimal" android:layout_marginTop="4dp"/>
     </LinearLayout>
 
 </LinearLayout>

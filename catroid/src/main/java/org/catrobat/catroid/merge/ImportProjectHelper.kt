@@ -177,7 +177,9 @@ class ImportProjectHelper(
             val view = View.inflate(context, R.layout.dialog_import_rejected, null)
 
             context.runOnUiThread {
-                val alertDialog: AlertDialog = AlertDialog.Builder(context)
+                val alertDialog: AlertDialog = AlertDialog.Builder(
+                    android.view.ContextThemeWrapper(context, R.style.Theme_NewCatroid_Dialog)
+                )
                     .setTitle(R.string.warning)
                     .setView(view)
                     .setPositiveButton(context.getString(R.string.ok)) { dialog: DialogInterface, _: Int ->

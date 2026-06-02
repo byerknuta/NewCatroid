@@ -357,6 +357,9 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 		View.OnTouchListener touchListener = new View.OnTouchListener() {
 			private Handler handler;
 			private Runnable deleteAction;
+            private Handler clipboardHandler;
+            private Runnable clipboardLongClickAction;
+            private boolean isPasteLongClick = false;
 
 			private boolean handleLongClick(final View view, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -386,20 +389,30 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 				return true;
 			}
 
-			@Override
-			public boolean onTouch(View view, MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_UP) {
-					updateButtonsOnKeyboardAndInvalidateOptionsMenu();
-					view.setPressed(false);
-					handleLongClick(view, event);
-					return true;
-				}
+            @Override
+            public boolean onTouch(View view, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    updateButtonsOnKeyboardAndInvalidateOptionsMenu();
+                    view.setPressed(false);
 
-				if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    if (view.getId() == R.id.formula_editor_keyboard_paste) {
+                        if (clipboardHandler != null && clipboardLongClickAction != null) {
+                            clipboardHandler.removeCallbacks(clipboardLongClickAction);
+                        }
+                        if (!isPasteLongClick) {
+                            FormulaEditorClipboard.INSTANCE.paste(formulaEditorEditText);
+                        }
+                        isPasteLongClick = false;
+                        return true;
+                    }
 
-					view.setPressed(true);
+                    handleLongClick(view, event);
+                    return true;
+                }
 
-					switch (view.getId()) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    view.setPressed(true);
+                    switch (view.getId()) {
 						case R.id.formula_editor_keyboard_compute:
 							showComputeDialog();
 							return true;
@@ -438,9 +451,20 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 						case R.id.formula_editor_keyboard_color_picker:
 							showColorPickerDialog(view);
 							return true;
-						case R.id.formula_editor_keyboard_paste:
-							FormulaEditorClipboard.INSTANCE.paste(formulaEditorEditText);
-							return true;
+                        case R.id.formula_editor_keyboard_paste:
+                            isPasteLongClick = false;
+                            if (clipboardHandler == null) {
+                                clipboardHandler = new Handler();
+                            }
+                            clipboardLongClickAction = new Runnable() {
+                                @Override
+                                public void run() {
+                                    isPasteLongClick = true;
+                                    FormulaEditorClipboard.INSTANCE.showClipboardHistoryDialog(getContext(), formulaEditorEditText);
+                                }
+                            };
+                            clipboardHandler.postDelayed(clipboardLongClickAction, 500);
+                            return true;
 						case R.id.formula_editor_keyboard_copy:
 							FormulaEditorClipboard.INSTANCE.checkIfSelectedAndCopy(formulaEditorEditText);
 							return true;
@@ -918,7 +942,7 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 				formulaEditorEditText.enterNewFormula(new UndoState(currentFormula.getInternFormulaState(),
 						formulaField));
 				refreshFormulaPreviewString(formulaEditorEditText.getStringFromInternFormula());
-                formulaEditorEditText.getInternFormula().setCursorAndSelection(0, false);
+                //formulaEditorEditText.getInternFormula().setCursorAndSelection(0, false);
 				break;
 			case SET_FORMULA_ON_RETURN_FROM_VISUAL_PLACEMENT:
 			case SET_FORMULA_ON_RETURN_FROM_COLOR_PICKER:
@@ -952,7 +976,7 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 				formulaEditorEditText.enterNewFormula(new UndoState(currentFormula.getInternFormulaState(),
 						currentFormulaField));
 				refreshFormulaPreviewString(formulaEditorEditText.getStringFromInternFormula());
-                formulaEditorEditText.getInternFormula().setCursorAndSelection(0, false);
+                //formulaEditorEditText.getInternFormula().setCursorAndSelection(0, false);
 				break;
 			default:
 				break;

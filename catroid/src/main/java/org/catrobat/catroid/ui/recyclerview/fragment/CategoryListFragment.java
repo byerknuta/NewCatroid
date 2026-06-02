@@ -600,13 +600,82 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 
 	private RecyclerView recyclerView;
 
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		View parent = inflater.inflate(R.layout.fragment_list_view, container, false);
-		recyclerView = parent.findViewById(R.id.recycler_view);
-		setHasOptionsMenu(true);
-		return parent;
-	}
+    private List<CategoryListItem> allItems = new ArrayList<>();
+    private CategoryListRVAdapter adapter;
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View parent = inflater.inflate(R.layout.fragment_list_view, container, false);
+        recyclerView = parent.findViewById(R.id.recycler_view);
+        setHasOptionsMenu(true);
+
+        float density = getResources().getDisplayMetrics().density;
+
+        android.widget.FrameLayout containerLayout = new android.widget.FrameLayout(getContext());
+        containerLayout.setLayoutParams(new android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT));
+
+        int topPadding = (int) (72 * density);
+        recyclerView.setPadding(
+                recyclerView.getPaddingLeft(),
+                topPadding,
+                recyclerView.getPaddingRight(),
+                recyclerView.getPaddingBottom()
+        );
+        recyclerView.setClipToPadding(false);
+
+        parent.setLayoutParams(new android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT));
+
+        com.google.android.material.card.MaterialCardView cardView = new com.google.android.material.card.MaterialCardView(getContext());
+        cardView.setRadius(12 * density);
+        cardView.setCardElevation(4 * density);
+        cardView.setStrokeWidth(0);
+        cardView.setCardBackgroundColor(androidx.core.content.ContextCompat.getColor(getContext(), R.color.button_background));
+
+        android.widget.FrameLayout.LayoutParams cardParams = new android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT);
+        int marginHorizontal = (int) (16 * density);
+        int marginVertical = (int) (8 * density);
+        cardParams.setMargins(marginHorizontal, marginVertical, marginHorizontal, marginVertical);
+        cardView.setLayoutParams(cardParams);
+
+        androidx.appcompat.widget.SearchView searchView = new androidx.appcompat.widget.SearchView(getContext());
+        searchView.setLayoutParams(new android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT));
+        searchView.setQueryHint(getString(R.string.search) + "...");
+        searchView.setIconifiedByDefault(false);
+
+        View searchPlate = searchView.findViewById(androidx.appcompat.R.id.search_plate);
+        if (searchPlate != null) {
+            searchPlate.setBackground(null);
+        }
+
+        searchView.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                filterList(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterList(newText);
+                return true;
+            }
+        });
+
+        cardView.addView(searchView);
+
+        containerLayout.addView(parent);
+        containerLayout.addView(cardView);
+
+        return containerLayout;
+    }
 
 	@Override
 	public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -928,26 +997,25 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 				.show();
 	}
 
-	private void initializeAdapter() {
-		String argument = getArguments().getString(FRAGMENT_TAG_BUNDLE_ARGUMENT);
+    private void initializeAdapter() {
+        String argument = getArguments().getString(FRAGMENT_TAG_BUNDLE_ARGUMENT);
 
-		List<CategoryListItem> items;
-		if (OBJECT_TAG.equals(argument)) {
-			items = getObjectItems();
-		} else if (FUNCTION_TAG.equals(argument)) {
-			items = getFunctionItems();
-		} else if (LOGIC_TAG.equals(argument)) {
-			items = getLogicItems();
-		} else if (SENSOR_TAG.equals(argument)) {
-			items = getSensorItems();
-		} else {
-			throw new IllegalArgumentException("Argument for CategoryListFragent null or unknown: " + argument);
-		}
+        if (OBJECT_TAG.equals(argument)) {
+            allItems = getObjectItems();
+        } else if (FUNCTION_TAG.equals(argument)) {
+            allItems = getFunctionItems();
+        } else if (LOGIC_TAG.equals(argument)) {
+            allItems = getLogicItems();
+        } else if (SENSOR_TAG.equals(argument)) {
+            allItems = getSensorItems();
+        } else {
+            throw new IllegalArgumentException("Argument for CategoryListFragent null or unknown: " + argument);
+        }
 
-		CategoryListRVAdapter adapter = new CategoryListRVAdapter(items);
-		adapter.setOnItemClickListener(this);
-		recyclerView.setAdapter(adapter);
-	}
+        adapter = new CategoryListRVAdapter(new ArrayList<>(allItems), false);
+        adapter.setOnItemClickListener(this);
+        recyclerView.setAdapter(adapter);
+    }
 
 	private List<CategoryListItem> addHeader(List<CategoryListItem> subCategory, String header) {
 		subCategory.get(0).header = header;
@@ -1197,4 +1265,108 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 				getString(R.string.formula_editor_device_object_recognition))
 				: Collections.emptyList();
 	}
+
+    private void filterList(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            adapter = new CategoryListRVAdapter(new ArrayList<>(allItems), false);
+            adapter.setOnItemClickListener(this);
+            recyclerView.setAdapter(adapter);
+            return;
+        }
+
+        String lowerQuery = query.toLowerCase(Locale.getDefault());
+        List<CategoryListItem> matchedItems = new ArrayList<>();
+
+        List<CategoryListItem> globalItems = getAllPossibleItems();
+        for (CategoryListItem item : globalItems) {
+            String itemText = item.text != null ? item.text.toLowerCase(Locale.getDefault()) : "";
+
+            if (itemText.contains(lowerQuery)) {
+                CategoryListItem clonedItem = new CategoryListItem(item.nameResId, item.text, item.type);
+                clonedItem.isCustomFunction = item.isCustomFunction;
+                clonedItem.customFunctionName = item.customFunctionName;
+                clonedItem.header = null;
+                matchedItems.add(clonedItem);
+            }
+        }
+
+        java.util.Map<String, List<CategoryListItem>> grouped = new java.util.LinkedHashMap<>();
+        for (CategoryListItem item : matchedItems) {
+            String groupHeader = getItemHeaderString(item);
+            if (!grouped.containsKey(groupHeader)) {
+                grouped.put(groupHeader, new ArrayList<>());
+            }
+            grouped.get(groupHeader).add(item);
+        }
+
+        List<CategoryListItem> finalFilteredList = new ArrayList<>();
+        for (java.util.Map.Entry<String, List<CategoryListItem>> entry : grouped.entrySet()) {
+            List<CategoryListItem> groupItems = entry.getValue();
+            if (!groupItems.isEmpty()) {
+                groupItems.get(0).header = entry.getKey();
+                finalFilteredList.addAll(groupItems);
+            }
+        }
+
+        adapter = new CategoryListRVAdapter(finalFilteredList, true);
+        adapter.setOnItemClickListener(this);
+        recyclerView.setAdapter(adapter);
+    }
+
+    private List<CategoryListItem> getAllPossibleItems() {
+        List<CategoryListItem> masterList = new ArrayList<>();
+        masterList.addAll(getObjectItems());
+        masterList.addAll(getFunctionItems());
+        masterList.addAll(getLogicItems());
+        masterList.addAll(getSensorItems());
+        return masterList;
+    }
+
+    private String getItemHeaderString(CategoryListItem item) {
+        if (item.isCustomFunction && item.customFunctionName != null) {
+            return getString(R.string.formula_editor_custom_functions_header);
+        }
+        int id = item.nameResId;
+        if (MATH_FUNCTIONS.contains(id)) return getString(R.string.formula_editor_functions_maths);
+        if (STRING_FUNCTIONS.contains(id)) return getString(R.string.formula_editor_functions_strings);
+        if (LIST_FUNCTIONS.contains(id)) return getString(R.string.formula_editor_functions_lists);
+        if (F2D_FUNCTIONS.contains(id)) return "Fast 2D";
+        if (THREED_FUNCTIONS.contains(id)) return "3D";
+        if (PT_FUNCTIONS.contains(id)) return "PockeTensor";
+        if (LOGIC_BOOL.contains(id)) return getString(R.string.formula_editor_logic_boolean);
+        if (LOGIC_COMPARISION.contains(id)) return getString(R.string.formula_editor_logic_comparison);
+
+        if (OBJECT_GENERAL_PROPERTIES.contains(id) || OBJECT_BACKGROUND.contains(id) || OBJECT_LOOK.contains(id)) {
+            return getString(R.string.formula_editor_object_look);
+        }
+        if (OBJECT_PHYSICAL_1.contains(id) || OBJECT_PHYSICAL_2.contains(id) || OBJECT_PHYSICAL_COLLISION.contains(id) || OBJECT_COLOR_COLLISION.contains(id)) {
+            return getString(R.string.formula_editor_object_movement);
+        }
+
+        if (SENSORS_NXT.contains(id)) return getString(R.string.formula_editor_device_lego_nxt);
+        if (SENSORS_EV3.contains(id)) return getString(R.string.formula_editor_device_lego_ev3);
+        if (SENSORS_PHIRO.contains(id)) return getString(R.string.formula_editor_device_phiro);
+        if (SENSORS_ARDUINO.contains(id)) return getString(R.string.formula_editor_device_arduino);
+        if (SENSORS_DRONE.contains(id)) return getString(R.string.formula_editor_device_drone);
+        if (SENSORS_RASPBERRY.contains(id)) return getString(R.string.formula_editor_device_raspberry);
+        if (SENSORS_NFC.contains(id)) return getString(R.string.formula_editor_device_nfc);
+        if (SENSORS_CAST_GAMEPAD.contains(id)) return getString(R.string.formula_editor_device_cast);
+        if (SENSORS_TOUCH.contains(id)) return getString(R.string.formula_editor_device_touch_detection);
+        if (SENSORS_DATE_TIME.contains(id)) return getString(R.string.formula_editor_device_date_and_time);
+        if (SENSORS_SPEECH_RECOGNITION.contains(id)) return getString(R.string.formula_editor_speech_recognition);
+        if (SENSORS_FACE_DETECTION.contains(id)) return getString(R.string.formula_editor_device_face_detection);
+
+        if (SENSORS_POSE_DETECTION.contains(id) || SENSORS_POSE_DETECTION_HUAWEI.contains(id)) {
+            return getString(R.string.formula_editor_device_pose_detection);
+        }
+        if (SENSORS_TEXT_RECOGNITION.contains(id)) return getString(R.string.formula_editor_device_text_recognition);
+        if (SENSORS_OBJECT_DETECTION.contains(id)) return getString(R.string.formula_editor_device_object_recognition);
+
+        if (SENSORS_DEFAULT.contains(id) || SENSORS_COLOR_AT_XY.contains(id) || SENSORS_COLOR_EQUALS_COLOR.contains(id) ||
+                SENSORS_ACCELERATION.contains(id) || SENSORS_INCLINATION.contains(id) || SENSORS_COMPASS.contains(id) ||
+                SENSORS_GPS.contains(id) || SENSOR_USER_LANGUAGE.contains(id)) {
+            return getString(R.string.formula_editor_device_sensors);
+        }
+        return "Other";
+    }
 }

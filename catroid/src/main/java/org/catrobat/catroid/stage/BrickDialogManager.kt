@@ -23,7 +23,7 @@
 
 package org.catrobat.catroid.stage
 
-import android.app.AlertDialog
+import androidx.appcompat.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
 import android.text.method.LinkMovementMethod
@@ -72,7 +72,7 @@ class BrickDialogManager(val stageActivity: StageActivity) :
         msg: String,
         sumb: String,
         canel: String,
-        defaultValue: String // Новый параметр для значения по умолчанию
+        defaultValue: String
     ) {
         val dialog = when (type) {
             DialogType.ASK_2_DIALOG -> createAsk2Dialog(action as BigAskAction, content, msg, sumb, canel, defaultValue)
@@ -97,13 +97,11 @@ class BrickDialogManager(val stageActivity: StageActivity) :
         canel: String,
         baseText: String
     ): Dialog {
-        // String,
-        // sumbit: String): Dialog {
-        //val msg = stageActivity.getString(R.string.brick_ask_dialog_hint)
-        //val sumb = stageActivity.getString(R.string.brick_ask_dialog_submit)
         val editText = EditText(stageActivity)
         editText.setText(baseText)
-        val askDialog = AlertDialog.Builder(ContextThemeWrapper(stageActivity, R.style.Theme_AppCompat_Dialog))
+        val askDialog = AlertDialog.Builder(
+            ContextThemeWrapper(stageActivity, R.style.Theme_NewCatroid_Dialog)
+        )
             .setView(editText)
             .setMessage(msg)
             .setTitle(question)
@@ -124,12 +122,10 @@ class BrickDialogManager(val stageActivity: StageActivity) :
     }
 
     private fun createAskDialog(askAction: AskAction, question: String): Dialog {//, message:
-        // String,
-        // sumbit: String): Dialog {
-        //val msg = stageActivity.getString(R.string.brick_ask_dialog_hint)
-        //val sumb = stageActivity.getString(R.string.brick_ask_dialog_submit)
         val editText = EditText(stageActivity)
-        val askDialog = AlertDialog.Builder(ContextThemeWrapper(stageActivity, R.style.Theme_AppCompat_Dialog))
+        val askDialog = AlertDialog.Builder(
+            ContextThemeWrapper(stageActivity, R.style.Theme_NewCatroid_Dialog)
+        )
             .setView(editText)
             .setMessage(stageActivity.getString(R.string.brick_ask_dialog_hint))
             .setTitle(question)
@@ -158,7 +154,9 @@ class BrickDialogManager(val stageActivity: StageActivity) :
             movementMethod = LinkMovementMethod.getInstance()
         }
 
-        return AlertDialog.Builder(ContextThemeWrapper(stageActivity, R.style.Theme_AppCompat_Dialog))
+        return AlertDialog.Builder(
+            ContextThemeWrapper(stageActivity, R.style.Theme_NewCatroid_Dialog)
+        )
             .setTitle(stageActivity.getString(R.string.web_request_warning_title))
             .setCancelable(false)
             .setView(view)
@@ -195,7 +193,9 @@ class BrickDialogManager(val stageActivity: StageActivity) :
             movementMethod = LinkMovementMethod.getInstance()
         }
 
-        return AlertDialog.Builder(ContextThemeWrapper(stageActivity, R.style.Theme_AppCompat_Dialog))
+        return AlertDialog.Builder(
+            ContextThemeWrapper(stageActivity, R.style.Theme_NewCatroid_Dialog)
+        )
             .setTitle(stageActivity.getString(R.string.web_request_trust_domain_warning_title))
             .setCancelable(false)
             .setView(view)

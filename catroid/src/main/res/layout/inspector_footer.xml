@@ -9,6 +9,6 @@
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add Component" />
+        android:text="@string/editor_3d_add_component" />
 
 </FrameLayout>

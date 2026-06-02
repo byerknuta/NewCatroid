@@ -23,7 +23,6 @@
         android:layout_weight="1"
         android:imeOptions="actionDone"
         android:singleLine="true"
-        android:hint="GameObject Name"
-        />
+        android:hint="@string/editor_3d_object_name_hint" />
 
 </LinearLayout>

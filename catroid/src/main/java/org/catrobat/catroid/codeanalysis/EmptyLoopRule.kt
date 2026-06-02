@@ -1,15 +1,10 @@
 package org.catrobat.catroid.codeanalysis
 
-import org.catrobat.catroid.content.bricks.Brick
-import org.catrobat.catroid.content.bricks.CompositeBrick
-import org.catrobat.catroid.content.bricks.LoopEndBrick
-import org.catrobat.catroid.content.bricks.ForeverBrick
-import org.catrobat.catroid.content.bricks.IfLogicBeginBrick
-import org.catrobat.catroid.content.bricks.IfThenLogicBeginBrick
-import org.catrobat.catroid.content.bricks.RepeatBrick
-import org.catrobat.catroid.content.bricks.TryCatchFinallyBrick
+import android.content.Context
+import org.catrobat.catroid.R
+import org.catrobat.catroid.content.bricks.*
 
-class EmptyLoopRule : AnalysisRule {
+class EmptyLoopRule(private val context: Context) : AnalysisRule {
     override fun analyze(brick: Brick): AnalysisResult? {
         if (brick !is CompositeBrick) {
             return null
@@ -20,20 +15,20 @@ class EmptyLoopRule : AnalysisRule {
             val elseBranchEmpty = brick.secondaryNestedBricks.isEmpty()
 
             if (ifBranchEmpty && elseBranchEmpty) {
-                return AnalysisResult(Severity.WARNING, "Блок 'Если-Иначе' не содержит действий ни в одной из веток.")
+                return AnalysisResult(Severity.WARNING, context.getString(R.string.analysis_empty_loop_if_else_empty))
             }
 
             if (ifBranchEmpty && !elseBranchEmpty) {
                 return AnalysisResult(
                     Severity.WARNING,
-                    "Оптимизация: Этот блок можно заменить на простой 'Если', инвертировав (поменяв на противоположное) условие."
+                    context.getString(R.string.analysis_empty_loop_if_empty_else_not)
                 )
             }
 
             if (!ifBranchEmpty && elseBranchEmpty) {
                 return AnalysisResult(
                     Severity.WARNING,
-                    "Оптимизация: Ветка 'Иначе' пуста. Этот блок можно заменить на более простой 'Если'."
+                    context.getString(R.string.analysis_empty_loop_if_not_else_empty)
                 )
             }
 
@@ -46,16 +41,27 @@ class EmptyLoopRule : AnalysisRule {
             val finallyBranchEmpty = brick.thirdNestedBricks.isEmpty()
 
             if (tryBranchEmpty && catchBranchEmpty && finallyBranchEmpty) {
-                return AnalysisResult(Severity.WARNING, "Блок 'Try-Catch-Finally' полностью пуст.")
+                return AnalysisResult(Severity.WARNING, context.getString(R.string.analysis_empty_loop_try_catch_finally_empty))
             }
             return null
         }
 
         if (brick.nestedBricks.isEmpty()) {
-            val brickName = brick.javaClass.simpleName
-                .replace("Brick", "")
-                .replace("LogicBegin", "")
-            return AnalysisResult(Severity.WARNING, "Блок '$brickName' пуст и не выполняет никаких действий.")
+            val brickClass = brick.javaClass.simpleName
+            val displayName = when (brickClass) {
+                "ForeverBrick" -> "Forever"
+                "RepeatBrick" -> "Repeat"
+                "RepeatUntilBrick" -> "Repeat Until"
+                "AsyncRepeatBrick" -> "Async Repeat"
+                "IntervalRepeatBrick" -> "Interval Repeat"
+                "ForVariableFromToBrick" -> "For Variable"
+                "ForItemInUserListBrick" -> "For Each Item"
+                else -> brickClass.replace("Brick", "").replace("LogicBegin", "")
+            }
+            return AnalysisResult(
+                Severity.WARNING,
+                context.getString(R.string.analysis_empty_loop_empty_brick, displayName)
+            )
         }
         return null
     }

@@ -108,8 +108,68 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
         SettingsFragment.setToChosenLanguage(this)
 
         if (!BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
+            val startTime = System.currentTimeMillis()
+
+            mainMenuBinding = ActivityMainMenuBinding.inflate(layoutInflater)
+            setContentView(mainMenuBinding.root)
+
             loadingBinding = ActivityLoadingBinding.inflate(layoutInflater)
-            setContentView(loadingBinding.root)
+            val windowContent = findViewById<android.view.ViewGroup>(android.R.id.content)
+
+            val density = resources.displayMetrics.density
+            loadingBinding.root.elevation = 100f * density
+            loadingBinding.root.translationZ = 200f
+
+            windowContent.addView(loadingBinding.root)
+
+            loadingBinding.loadingLogo.alpha = 0f
+            loadingBinding.loadingLogo.scaleX = 0.6f
+            loadingBinding.loadingLogo.scaleY = 0.6f
+            loadingBinding.loadingLogo.translationY = 80f * density
+
+            loadingBinding.loadingProgressBar.scaleX = 0f
+            loadingBinding.loadingProgressBar.alpha = 0f
+
+            loadingBinding.factTextView.alpha = 0f
+            loadingBinding.factTextView.translationY = 40f * density
+
+            val waveView = loadingBinding.loadingProgressBar as? WaveLoadingView
+
+            loadingBinding.loadingLogo.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .translationY(0f)
+                .setDuration(800)
+                .setInterpolator(android.view.animation.OvershootInterpolator(1.4f))
+                .withEndAction {
+                    val waveLocation = IntArray(2)
+                    waveView?.getLocationOnScreen(waveLocation)
+
+                    val logoLocation = IntArray(2)
+                    loadingBinding.loadingLogo.getLocationOnScreen(logoLocation)
+
+                    val logoX = logoLocation[0] + loadingBinding.loadingLogo.width / 2f - waveLocation[0]
+                    val logoY = logoLocation[1] + loadingBinding.loadingLogo.height / 2f - waveLocation[1]
+
+                    waveView?.explode(logoX, logoY, 45)
+                }
+                .start()
+
+            loadingBinding.loadingProgressBar.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .setDuration(900)
+                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .start()
+
+            loadingBinding.factTextView.animate()
+                .alpha(0.8f)
+                .translationY(0f)
+                .setDuration(800)
+                .setStartDelay(300)
+                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .start()
 
             loadingBinding.root.setOnClickListener {
                 val currentTime = System.currentTimeMillis()
@@ -122,7 +182,7 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
                 if (safeModeTapCounter >= 5) {
                     val prefs = PreferenceManager.getDefaultSharedPreferences(this)
                     prefs.edit().putBoolean("force_safe_mode", true).apply()
-                    Toast.makeText(this, "Безопасный режим будет включен после перезапуска", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Safe Mode for next launch", Toast.LENGTH_LONG).show()
                     safeModeTapCounter = 0
                 }
             }
@@ -136,40 +196,50 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
                 factJob.cancel()
 
-                loadFinalContent()
+                val elapsedTime = System.currentTimeMillis() - startTime
+                val remainingTime = 2500 - elapsedTime
+                if (remainingTime > 0) {
+                    kotlinx.coroutines.delay(remainingTime)
+                }
+
+                val performExitTransition = {
+                    loadingBinding.root.pivotX = loadingBinding.root.width / 2f
+                    loadingBinding.root.pivotY = loadingBinding.root.height / 2f
+
+                    loadingBinding.root.animate()
+                        .scaleX(3.5f)
+                        .scaleY(3.5f)
+                        .alpha(0f)
+                        .setDuration(600)
+                        .setInterpolator(android.view.animation.AccelerateInterpolator())
+                        .withEndAction {
+                            windowContent.removeView(loadingBinding.root)
+                        }
+                        .start()
+                }
+
+                if (waveView != null) {
+                    waveView.flatline(350) {
+                        loadFinalContent()
+
+                        lifecycleScope.launch {
+                            kotlinx.coroutines.delay(150)
+                            performExitTransition()
+                        }
+                    }
+                } else {
+                    loadFinalContent()
+                    performExitTransition()
+                }
             }
         } else {
             lifecycleScope.launch {
                 withContext(Dispatchers.IO) {
                     heavyInitialization()
                 }
-
                 loadFinalContent()
             }
         }
-
-        /*PreferenceManager.setDefaultValues(this, R.xml.preferences, true)
-        PreferenceManager.setDefaultValues(this, R.xml.nxt_preferences, true)
-        PreferenceManager.setDefaultValues(this, R.xml.ev3_preferences, true)
-        ScreenValueHandler.updateScreenWidthAndHeight(this)
-
-        oldPrivacyPolicy = PreferenceManager.getDefaultSharedPreferences(this)
-            .getInt(SharedPreferenceKeys.AGREED_TO_PRIVACY_POLICY_VERSION, 0)
-
-        loadContent()
-
-        if (oldPrivacyPolicy != Constants.CATROBAT_TERMS_OF_USE_ACCEPTED) {
-            showTermsOfUseDialog()
-        }
-
-        surveyCampaign = Survey(this)
-        surveyCampaign?.showSurvey(this)
-
-        if (BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
-            prepareStandaloneProject()
-        }
-
-        pythonEngine = PythonEngine(applicationContext)*/
     }
 
     private fun showRandomFacts() {
@@ -193,8 +263,6 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
         if (BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
             prepareStandaloneProject()
         } else {
-            mainMenuBinding = ActivityMainMenuBinding.inflate(layoutInflater)
-            setContentView(mainMenuBinding.root)
             setSupportActionBar(findViewById(R.id.toolbar))
             supportActionBar?.setIcon(R.drawable.pc_toolbar_icon)
             supportActionBar?.setTitle(R.string.app_name)
@@ -217,81 +285,10 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
         surveyCampaign?.showSurvey(this)
 
         PluginEventBus.getInstance().dispatch("Activity.onShow", "MainMenuActivity")
-
-        //MLBridge.test()
     }
 
-    /*private fun testPython(): String {
-        Log.d("MainMenuActivity", "Running DIAGNOSTIC Python script...")
-
-        val script = """
-    # Шаг 1: Проверяем, что Python видит наши пути
-    import sys
-    print("--- sys.path ---")
-    for p in sys.path:
-        print(p)
-    print("----------------")
-    
-    # Шаг 2: Проверяем базовый импорт из стандартной библиотеки
-    try:
-        import os
-        print("Successfully imported 'os' module")
-        print(f"OS name: {os.name}")
-    except Exception as e:
-        print(f"FAILED to import 'os': {e}")
-
-    # Шаг 3: Проверяем ГЛАВНОГО ПОДОЗРЕВАЕМОГО - модуль SSL
-    try:
-        import ssl
-        print("Successfully imported 'ssl' module")
-        print(f"SSL version: {ssl.OPENSSL_VERSION}")
-    except Exception as e:
-        print(f"FAILED to import 'ssl': {e}")
-        # Выводим полный traceback ошибки, если она случилась здесь
-        import traceback
-        traceback.print_exc()
-
-    print("--- Diagnostic script finished ---")
-    """.trimIndent()
-
-        return pythonEngine.runScript(script)
-    }*/
-
     private fun showTermsOfUseDialog() {
-        /*privacyPolicyBinding = PrivacyPolicyViewBinding.inflate(layoutInflater)
-        val view = privacyPolicyBinding.root
-        val termsOfUseUrlTextView = privacyPolicyBinding.dialogPrivacyPolicyTextViewUrl
 
-        termsOfUseUrlTextView.movementMethod = LinkMovementMethod.getInstance()
-
-        val termsOfUseUrlStringText = getString(R.string.main_menu_terms_of_use)
-        val termsOfUseUrl = getString(
-            R.string.terms_of_use_link_template,
-            Constants.CATROBAT_TERMS_OF_USE_URL +
-                Constants.CATROBAT_TERMS_OF_USE_TOKEN_FLAVOR_URL + BuildConfig.FLAVOR +
-                Constants.CATROBAT_TERMS_OF_USE_TOKEN_VERSION_URL + BuildConfig.VERSION_CODE,
-            termsOfUseUrlStringText
-        )
-
-        termsOfUseUrlTextView.text = if (Build.VERSION.SDK_INT >= SDK_VERSION) {
-            Html.fromHtml(termsOfUseUrl, HtmlCompat.FROM_HTML_MODE_LEGACY)
-        } else {
-            Html.fromHtml(termsOfUseUrl)
-        }
-
-        AlertDialog.Builder(this)
-            .setNegativeButton(R.string.decline) { _, _ -> handleDeclinedPrivacyPolicyButton() }
-            .setPositiveButton(R.string.accept) { _, _ -> handleAgreedToPrivacyPolicyButton() }
-            .setCancelable(false)
-            .setOnKeyListener { _, keyCode: Int, _ ->
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    finish()
-                    return@setOnKeyListener true
-                }
-                false
-            }
-            .setView(view)
-            .show()*/
     }
 
     fun handleAgreedToPrivacyPolicyButton() {

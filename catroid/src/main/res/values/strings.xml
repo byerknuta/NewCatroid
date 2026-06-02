@@ -23,6 +23,468 @@
   -->
 <resources  xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="particle_lifetime">Lifetime</string>
+    <string name="particle_color">Color</string>
+    <string name="particle_size">Size</string>
+    <string name="particle_mode">Collision Mode</string>
+    <string name="particle_quality">Collision Quality</string>
+    <string name="particle_collision_planes">Collision Planes</string>
+    <string name="particle_bursts">Bursts</string>
+    <string name="particle_time">Time</string>
+    <string name="particle_count">Count</string>
+    <string name="particle_prob">Prob</string>
+    <string name="particle_angle">Angle</string>
+    <string name="particle_radius">Radius</string>
+    <string name="particle_length">Length</string>
+    <string name="particle_arc">Arc</string>
+    <string name="particle_separate_axes">Separate Axes</string>
+    <string name="particle_linear_x">Linear X</string>
+    <string name="particle_linear_y">Linear Y</string>
+    <string name="particle_linear_z">Linear Z</string>
+    <string name="particle_orbital_y">Orbital Y</string>
+    <string name="particle_radial">Radial</string>
+    <string name="particle_speed_modifier">Speed Modifier</string>
+    <string name="particle_force_x">Force X</string>
+    <string name="particle_force_y">Force Y</string>
+    <string name="particle_force_z">Force Z</string>
+    <string name="particle_angular_velocity">Angular Velocity</string>
+    <string name="particle_strength">Strength</string>
+    <string name="particle_frequency">Frequency</string>
+    <string name="particle_octaves">Octaves</string>
+    <string name="particle_scroll_speed">Scroll Speed</string>
+    <string name="particle_damping">Damping</string>
+    <string name="particle_bounce">Bounce</string>
+    <string name="particle_dampen">Dampen</string>
+    <string name="particle_lifetime_loss">Lifetime Loss</string>
+    <string name="particle_min_kill_speed">Min Kill Speed</string>
+    <string name="particle_radius_scale">Radius Scale</string>
+    <string name="particle_trigger">Trigger</string>
+    <string name="particle_probability">Probability</string>
+    <string name="particle_emit_count">Emit Count (0=auto)</string>
+    <string name="particle_ratio">Ratio (0-1)</string>
+    <string name="particle_min_vertex_dist">Min Vertex Dist</string>
+    <string name="particle_world_space">World Space</string>
+    <string name="particle_die_with_particles">Die With Particles</string>
+    <string name="particle_inherit_color">Inherit Color</string>
+    <string name="particle_width_over_trail">Width over Trail</string>
+    <string name="particle_tiles_x">Tiles X</string>
+    <string name="particle_tiles_y">Tiles Y</string>
+    <string name="particle_cycles">Cycles</string>
+    <string name="particle_frame_over_time">Frame over Time</string>
+    <string name="particle_length_scale">Length Scale</string>
+    <string name="particle_speed_scale">Speed Scale</string>
+    <string name="particle_align_to_velocity">Align to Velocity</string>
+    <string name="particle_emission_rate">Rate/Sec</string>
+    <string name="particle_spread_angle">Spread Angle (0-180)</string>
+    <string name="particle_gravity_y">Gravity (Y Axis)</string>
+    <string name="particle_vortex">Vortex (Tornado)</string>
+    <string name="particle_turbulence">Turbulence (Chaos)</string>
+    <string name="particle_rotation_deg">Rotation (Deg/s)</string>
+    <string name="particle_base_size_mult">Base Size Multiplier</string>
+    <string name="particle_base_size">Base Size</string>
+    <string name="particle_spawn_shape">Spawn Shape</string>
+    <string name="particle_spawn_on_surface">Spawn on Surface Only</string>
+
+    <!-- Menu Actions -->
+    <string name="action_save_scene">Save Scene</string>
+    <string name="action_load_scene">Load Scene</string>
+    <string name="action_scene_settings">Scene Settings</string>
+    <string name="action_clear_scene">Clear Scene</string>
+    <string name="action_exit">Exit</string>
+
+    <!-- Physics States & Colliders -->
+    <string-array name="editor_3d_physics_states">
+        <item>Static</item>
+        <item>Kinematic</item>
+        <item>Dynamic</item>
+    </string-array>
+
+    <!-- Light Types -->
+    <string name="light_type_directional">Directional</string>
+    <string name="light_type_point">Point</string>
+    <string name="light_type_spot">Spot</string>
+
+    <!-- Keyframe Easing Types -->
+    <string-array name="editor_3d_easing_types">
+        <item>Linear</item>
+        <item>Ease In</item>
+        <item>Ease Out</item>
+        <item>Ease In-Out</item>
+        <item>Elastic In</item>
+        <item>Elastic Out</item>
+        <item>Bounce Out</item>
+    </string-array>
+
+    <!-- Post Processing Effects -->
+    <string name="pp_effect_bloom">Bloom</string>
+    <string name="pp_effect_vignette">Vignette</string>
+    <string name="pp_effect_levels">Levels (Color)</string>
+    <string name="pp_effect_grain">Film Grain</string>
+    <string name="pp_effect_fxaa">FXAA</string>
+    <string name="pp_effect_chromatic">Chromatic Aberration</string>
+    <string name="pp_effect_radial_blur">Radial Blur</string>
+    <string name="pp_effect_old_tv">Old TV</string>
+    <string name="pp_effect_crt">CRT Monitor</string>
+    <string name="pp_effect_fisheye">Fisheye</string>
+    <string name="pp_effect_water">Water</string>
+    <string name="pp_effect_motion_blur">Motion Blur</string>
+    <string name="pp_effect_lens_flare">Lens Flare</string>
+    <string name="pp_effect_gaussian">Gaussian Blur</string>
+    <string name="pp_effect_zoom">Zoom Blur</string>
+    <string name="pp_effect_aces">ACES Tonemapping</string>
+    <string name="pp_effect_eye_adaptation">Eye Adaptation</string>
+    <string name="pp_effect_ssr">Ray Tracing (SSR)</string>
+    <string name="pp_effect_ssao">SSAO</string>
+    <string name="pp_effect_height_fog">Height Fog</string>
+    <string name="pp_effect_dof">Depth of Field (DoF)</string>
+    <string name="pp_effect_god_rays">God Rays</string>
+    <string name="pp_effect_volumetric_fog">Volumetric Fog</string>
+    <string name="pp_effect_fsr">FSR Upscaler (CAS)</string>
+
+    <!-- Particle Systems (Both 2D & 3D Modules) -->
+    <string name="particle_main">Main Settings</string>
+    <string name="particle_looping">Looping</string>
+    <string name="particle_prewarm">Prewarm</string>
+    <string name="particle_duration">Duration</string>
+    <string name="particle_max_particles">Max Particles</string>
+    <string name="particle_start_lifetime">Start Lifetime</string>
+    <string name="particle_start_speed">Start Speed</string>
+    <string name="particle_start_size">Start Size</string>
+    <string name="particle_gravity_modifier">Gravity Modifier</string>
+    <string name="particle_sim_space">Simulation Space</string>
+    <string name="particle_emission">Emission</string>
+    <string name="particle_rate_over_time">Rate over Time</string>
+    <string name="particle_rate_over_distance">Rate over Distance</string>
+    <string name="particle_shape">Shape</string>
+    <string name="particle_shape_type">Shape Type</string>
+    <string name="particle_emit_from">Emit From</string>
+    <string name="particle_velocity_over_lifetime">Velocity over Lifetime</string>
+    <string name="particle_force_over_lifetime">Force over Lifetime</string>
+    <string name="particle_color_over_lifetime">Color over Lifetime</string>
+    <string name="particle_size_over_lifetime">Size over Lifetime</string>
+    <string name="particle_rotation_over_lifetime">Rotation over Lifetime</string>
+    <string name="particle_noise">Noise</string>
+    <string name="particle_collision">Collision</string>
+    <string name="particle_sub_emitters">Sub Emitters</string>
+    <string name="particle_trails">Trails</string>
+    <string name="particle_tex_animation">Texture Sheet Animation</string>
+    <string name="particle_renderer">Renderer</string>
+    <string name="particle_render_mode">Render Mode</string>
+    <string name="particle_mesh_shape">Mesh Shape</string>
+    <string name="particle_additive_blend">Additive Blending (Glow)</string>
+
+    <!-- Prefabs -->
+    <string name="prefab_file_path">Prefab File Path</string>
+    <string name="prefab_select_btn">Select Prefab</string>
+    <string name="prefab_select_title">Select Prefab File</string>
+
+    <!-- Scene Settings Dialog -->
+    <string name="settings_scene_title">Scene Settings</string>
+    <string name="settings_sky_color">Sky Color</string>
+    <string name="settings_ambient_light">Ambient Light Intensity</string>
+    <string name="settings_shadows">Shadows &amp; Quality</string>
+    <string name="settings_shadow_dist">Shadow Distance</string>
+    <string name="settings_shadow_res">Shadow Map Resolution</string>
+    <string name="settings_shadow_csm">Enable Cascade Shadow Mapping (CSM)</string>
+    <string name="settings_shadow_csm_factor">CSM Split Factor</string>
+    <string name="settings_apply_btn">Apply Shadow Settings</string>
+    <string name="settings_performance">Performance Limits</string>
+    <string name="settings_point_lights">Max Point Lights</string>
+    <string name="settings_spot_lights">Max Spot Lights</string>
+    <string name="settings_dir_lights">Max Dir Lights</string>
+    <string name="settings_bones">Max Skinned Bones</string>
+    <string name="settings_apply_perf_btn">Apply &amp; Restart Engine</string>
+
+    <string name="editor_3d_axis_x">Axis X</string>
+    <string name="editor_3d_axis_y">Axis Y</string>
+    <string name="editor_3d_axis_z">Axis Z</string>
+    <string name="editor_3d_axis_cam_forward">Camera Forward</string>
+
+    <!-- 3D Editor Toolbar & General -->
+    <string name="editor_3d_title">3D Editor</string>
+    <string name="editor_3d_hierarchy">Hierarchy</string>
+    <string name="editor_3d_search_hint">Search...</string>
+    <string name="editor_3d_add_empty">Add Empty</string>
+    <string name="editor_3d_add_cube">Add Cube</string>
+    <string name="editor_3d_add_sphere">Add Sphere</string>
+    <string name="editor_3d_inspector">Inspector</string>
+
+    <!-- Dialogs & Popups -->
+    <string name="editor_3d_mass_delete_title">Mass Delete</string>
+    <string name="editor_3d_mass_delete_msg">Delete ALL objects containing \'%1$s\'?</string>
+    <string name="editor_3d_delete_all">Delete All</string>
+    <string name="editor_3d_removed_objects_toast">Removed %1$d objects</string>
+    <string name="editor_3d_aligned_to_cam">Aligned to camera</string>
+    <string name="editor_3d_clone">Clone</string>
+    <string name="editor_3d_created_objects_toast">Created %1$d objects</string>
+    <string name="editor_3d_error_inputs">Error in inputs</string>
+    <string name="editor_3d_moved_to_view">Object moved to view</string>
+    <string name="editor_3d_duplicated">Duplicated</string>
+    <string name="editor_3d_focused_on">Focused on %1$s</string>
+    <string name="editor_3d_clear_scene_title">Clear scene?</string>
+    <string name="editor_3d_clear_scene_msg">The scene will be reset, and you may lose your changes. Continue?</string>
+    <string name="editor_3d_clear_btn">Clear</string>
+    <string name="editor_3d_cleared_toast">Scene Cleared</string>
+    <string name="editor_3d_exit_title">Exit Editor</string>
+    <string name="editor_3d_exit_msg">Do you want to save your changes before exiting?</string>
+    <string name="editor_3d_save_exit">Save &amp; Exit</string>
+    <string name="editor_3d_exit_no_save">Exit without Saving</string>
+    <string name="editor_3d_save_scene_as">Save Scene As...</string>
+    <string name="editor_3d_enter_file_name">Enter a file name (without extension):</string>
+    <string name="editor_3d_file_name_empty">File name cannot be empty</string>
+    <string name="editor_3d_scene_saved">Scene saved to %1$s</string>
+    <string name="editor_3d_load_scene">Load Scene</string>
+    <string name="editor_3d_no_scenes_found">No saved scenes (.rscene) found.</string>
+    <string name="editor_3d_loading_scene">Loading scene: %1$s</string>
+    <string name="editor_3d_shadow_applied">Shadow settings applied.</string>
+    <string name="editor_3d_invalid_shadow">Invalid shadow values.</string>
+    <string name="editor_3d_restart_engine_title">Restart 3D Engine</string>
+    <string name="editor_3d_restart_engine_msg">Applying these settings requires reloading the 3D editor. Unsaved changes might be lost. Continue?</string>
+    <string name="editor_3d_restart_btn">Restart</string>
+    <string name="editor_3d_engine_restarted">3D Engine restarted with new settings.</string>
+    <string name="editor_3d_invalid_numbers">Please enter valid numbers.</string>
+    <string name="editor_3d_cannot_access_files">Cannot access project files.</string>
+    <string name="editor_3d_no_textures_found">No suitable image files found in project.</string>
+    <string name="editor_3d_select_skybox">Select Skybox Texture</string>
+    <string name="editor_3d_crash_recovery_title">Crash Recovery</string>
+    <string name="editor_3d_crash_recovery_msg">The 3D Editor closed unexpectedly last time. Do you want to recover your unsaved scene?</string>
+    <string name="editor_3d_recover_btn">Recover</string>
+    <string name="editor_3d_discard_btn">Discard</string>
+    <string name="editor_3d_recovered_success">Scene recovered successfully!</string>
+    <string name="editor_3d_recovered_failed">Failed to recover scene.</string>
+
+    <!-- Inspector Component Names -->
+    <string name="component_transform">Transform</string>
+    <string name="component_render">Render Component</string>
+    <string name="component_physics">Physics Component</string>
+    <string name="component_light">Light Component</string>
+    <string name="component_animation">Animation</string>
+    <string name="component_camera">Camera Component</string>
+    <string name="component_material">Material</string>
+    <string name="component_postprocessing">Post Processing</string>
+    <string name="component_particle_legacy">Particle System (Legacy)</string>
+    <string name="component_particle_3d">Particle System 3D</string>
+    <string name="component_fog">Fog Settings</string>
+    <string name="component_keyframe">Keyframe Animation</string>
+    <string name="component_prefab">Prefab Component</string>
+    <string name="component_script">Script Component</string>
+
+    <!-- Inspector Base Fields & Buttons -->
+    <string name="editor_3d_object_name_hint">GameObject Name</string>
+    <string name="editor_3d_duplicate_object">Duplicate Object</string>
+    <string name="editor_3d_delete_object">Delete GameObject</string>
+    <string name="editor_3d_add_component">Add Component</string>
+    <string name="editor_3d_delete_object_confirm">Are you sure you want to delete \'%1$s\'?</string>
+
+    <!-- Transform Component -->
+    <string name="editor_3d_position">Position</string>
+    <string name="editor_3d_rotation">Rotation</string>
+    <string name="editor_3d_scale">Scale</string>
+
+    <!-- Render Component -->
+    <string name="editor_3d_model_file">Model File</string>
+    <string name="editor_3d_no_model_selected">No model selected</string>
+    <string name="editor_3d_select_model">Select Model...</string>
+
+    <!-- Material Component -->
+    <string name="editor_3d_mat_color">Base Color</string>
+    <string name="editor_3d_mat_metallic">Metallic</string>
+    <string name="editor_3d_mat_roughness">Roughness</string>
+    <string name="editor_3d_mat_emissive">Emissive</string>
+    <string name="editor_3d_mat_normal">Normal Map</string>
+    <string name="editor_3d_mat_met_rough">Metallic/Roughness Map</string>
+    <string name="editor_3d_mat_occlusion">Occlusion Map</string>
+
+    <!-- Physics Component -->
+    <string name="editor_3d_phys_state">State</string>
+    <string name="editor_3d_phys_mass">Mass</string>
+    <string name="editor_3d_phys_friction">Friction</string>
+    <string name="editor_3d_phys_restitution">Restitution (Bounciness)</string>
+    <string name="editor_3d_phys_add_box">Add Box Collider</string>
+    <string name="editor_3d_phys_add_capsule">Add Capsule Collider</string>
+    <string name="editor_3d_phys_box_collider">Box Collider</string>
+    <string name="editor_3d_phys_sphere_collider">Sphere Collider</string>
+    <string name="editor_3d_phys_capsule_collider">Capsule Collider</string>
+    <string name="editor_3d_phys_center">Center</string>
+    <string name="editor_3d_phys_size">Size</string>
+    <string name="editor_3d_phys_radius">Radius</string>
+
+    <!-- Camera Component -->
+    <string name="editor_3d_cam_main">Is Main Camera</string>
+    <string name="editor_3d_cam_fov">Field of View</string>
+    <string name="editor_3d_cam_clipping">Clipping Planes</string>
+    <string name="editor_3d_cam_near">Near</string>
+    <string name="editor_3d_cam_far">Far</string>
+
+    <!-- Light Component -->
+    <string name="editor_3d_light_type">Type</string>
+    <string name="editor_3d_light_intensity">Intensity</string>
+    <string name="editor_3d_light_range">Range</string>
+    <string name="editor_3d_light_cutoff">Cutoff Angle</string>
+    <string name="editor_3d_light_exponent">Exponent</string>
+    <string name="editor_3d_light_color">Color</string>
+    <string name="editor_3d_light_select_color">Select Color</string>
+
+    <!-- Animation Component -->
+    <string name="editor_3d_anim_clip">Animation Clip</string>
+    <string name="editor_3d_anim_speed">Speed</string>
+    <string name="editor_3d_anim_transition">Transition Time (s)</string>
+    <string name="editor_3d_anim_loop">Loop</string>
+
+    <!-- Keyframe Component -->
+    <string name="editor_3d_kf_autostart">Auto Start</string>
+    <string name="editor_3d_kf_loop">Looping</string>
+    <string name="editor_3d_kf_keyframes">Keyframes:</string>
+    <string name="editor_3d_kf_add_keyframe">+ Add Keyframe at Current Position</string>
+    <string name="editor_3d_kf_time">Time:</string>
+    <string name="editor_3d_kf_ease">Ease:</string>
+
+    <!-- Post Processing -->
+    <string name="editor_3d_pp_enable">Enable Post Processing</string>
+    <string name="editor_3d_pp_quality">Quality Scale (0.1 - 1.0)</string>
+    <string name="editor_3d_pp_add_effect">Add Effect</string>
+
+    <string name="formula_fold">Collapse [－]</string>
+    <string name="formula_unfold">Expand [＋]</string>
+    <string name="brick_context_dialog_system_info">System Info</string>
+    <string name="dialog_add_brick_system_info_button">System Info</string>
+    <string name="dialog_add_brick_system_info_title">Block Properties</string>
+    <string name="analysis_event_cascade">Infinite Event Loop: This script broadcasts the exact same message (\"%1$s\") that triggers it, causing an infinite loop and crash!</string>
+    <string name="analysis_division_by_zero">Division by Zero: Formula contains division or modulo by 0.</string>
+    <string name="analysis_3d_primitive_before_pbr">This primitive will be invisible because it is created BEFORE the Render 2.0 (PBR) block. Move it after the "Enable PBR render" block.</string>
+    <string name="analysis_3d_render_1_only">This block does not work in Render 2.0 (PBR) and will have no effect!</string>
+    <string name="analysis_3d_render_2_only">This block requires Render 2.0 (PBR). Please add the "Enable PBR render" block before this block.</string>
+    <string name="analysis_unused_variable">Variable \'%1$s\' is written to but never read. This is dead code and can be safely removed.</string>
+    <string name="analysis_dead_broadcast">Broadcast message \'%1$s\' is never sent anywhere in this project. This script will never execute.</string>
+    <string name="analysis_unreachable_both_branches_halt">This block will never be executed because both branches of the preceding If-Else block stop the script.</string>
+    <string name="analysis_error_undefined_variable">Variable \'%1$s\' is not declared in this sprite or project. It will evaluate to 0, which may cause unexpected behavior.</string>
+    <string name="analysis_error_undefined_list">List \'%1$s\' is not declared in this sprite or project. This will cause an error at runtime.</string>
+    <string name="analysis_redundant_overwritten">This action is immediately overwritten by the next block without being used, making it redundant.</string>
+    <string name="analysis_leak_nn">Neural Network is loaded but never unloaded (missing Unload NN block). This can cause memory leaks!</string>
+    <string name="analysis_leak_vm">QEMU Virtual Machine is started but never stopped (missing Stop VM block).</string>
+    <string name="analysis_leak_server">Local server is started but never stopped (missing Stop Server block).</string>
+    <string name="analysis_leak_recording">Microphone recording is started but never stopped (missing Stop Recording block).</string>
+    <string name="analysis_clone_delete_outside_cloned">The \"Delete this clone\" block is used outside a \"When cloned\" script. It has no effect on the original sprite.</string>
+    <string name="analysis_shadow_quality_not_power_of_two">Shadow quality resolution (%1$s) should be a power of 2 (e.g. 512, 1024, 2048, 4096) to avoid rendering issues.</string>
+    <string name="analysis_scale_3d_unequal">3D Scale coordinates (X: %1$s, Y: %2$s, Z: %3$s) are unequal. It is highly recommended to use equal scale factors to prevent graphical stretching.</string>
+    <string name="analysis_wait_inside_async">The \"Wait\" block is ignored inside an \"Async repeat\" loop and will have no effect.</string>
+    <string name="analysis_click_to_jump">Click to jump to block</string>
+    <string name="analysis_dialog_title">Script Problems</string>
+    <string name="analysis_empty_loop_if_else_empty">The \'If-Else\' block does not contain actions in any branch.</string>
+    <string name="analysis_empty_loop_if_empty_else_not">Optimization: This block can be replaced by a simple \'If\' by inverting the condition.</string>
+    <string name="analysis_empty_loop_if_not_else_empty">Optimization: The \'Else\' branch is empty. This block can be replaced by a simple \'If\'.</string>
+    <string name="analysis_empty_loop_try_catch_finally_empty">The \'Try-Catch-Finally\' block is completely empty.</string>
+    <string name="analysis_empty_loop_empty_brick">The \'%1$s\' block is empty and does not perform any actions.</string>
+    <string name="analysis_unreachable_stop_script">This block will never be executed because it is preceded by a block that stops the script.</string>
+    <string name="analysis_unreachable_after_forever">This block will never be executed because it is after an infinite loop without a \'Stop\' block.</string>
+    <string name="analysis_constant_condition_repeat_until_true">Condition \'%1$s\' is always true. This loop will terminate immediately without performing any action.</string>
+    <string name="analysis_constant_condition_if_true">Condition \'%1$s\' is always true. Code in the \'Else\' branch (if any) will never be executed.</string>
+    <string name="analysis_constant_condition_repeat_until_false">Condition \'%1$s\' is always false. This loop will be infinite.</string>
+    <string name="analysis_constant_condition_if_false">Condition \'%1$s\' is always false. Code inside this block will never be executed.</string>
+    <string name="analysis_error_firebase_id_invalid">Invalid Firebase Database ID. It must start with \'https://\' and end with \'firebaseio.com\'. This will lead to an error at runtime.</string>
+    <string name="analysis_error_firebase_id_empty">Firebase database ID cannot be empty.</string>
+    <string name="analysis_redundant_same_action">This block performs the same action with the same parameters as the previous one. It might be redundant.</string>
+
+
+    <string name="brick_context_dialog_collapse">Collapse block</string>
+    <string name="brick_context_dialog_expand">Expand block</string>
+
+    <string name="subcategory_device_scripting">Scripting &amp; Code</string>
+    <string name="subcategory_device_vm">Virtual Machines</string>
+    <string name="subcategory_device_views">Custom Views &amp; UI</string>
+    <string name="subcategory_device_storage">Files &amp; Storage</string>
+    <string name="subcategory_device_hardware">Hardware &amp; Camera</string>
+    <string name="subcategory_device_speech">Speech &amp; Interaction</string>
+    <string name="subcategory_device_emulation">Emulation &amp; Network</string>
+    <string name="subcategory_device_misc">Miscellaneous</string>
+
+    <string name="subcategory_neural_llm">Cloud AI (LLM)</string>
+    <string name="subcategory_neural_local">Local Models (ONNX)</string>
+    <string name="subcategory_neural_tensors">Tensors &amp; Arrays</string>
+    <string name="subcategory_neural_vision">Image Processing</string>
+
+    <string name="subcategory_sound_playback">Playback</string>
+    <string name="subcategory_sound_volume">Volume &amp; Settings</string>
+    <string name="subcategory_sound_files">Files &amp; Recording</string>
+    <string name="subcategory_sound_speech">Speech &amp; Mic</string>
+    <string name="subcategory_sound_music">Music &amp; Instruments</string>
+
+    <string name="subcategory_looks_costumes">Looks &amp; Backgrounds</string>
+    <string name="subcategory_looks_visibility">Visibility &amp; Size</string>
+    <string name="subcategory_looks_effects">Graphic Effects</string>
+    <string name="subcategory_looks_dialogs">Text &amp; Dialogs</string>
+    <string name="subcategory_looks_camera2d">Camera 2D</string>
+    <string name="subcategory_looks_camera_device">Device Camera &amp; Media</string>
+    <string name="subcategory_looks_buffers">Buffers</string>
+    <string name="subcategory_looks_primitives">Primitives</string>
+
+    <string name="subcategory_data_variables">Variables</string>
+    <string name="subcategory_data_lists">Lists &amp; Tables</string>
+    <string name="subcategory_data_visuals">Data Visualization</string>
+    <string name="subcategory_data_processing">Text Processing</string>
+    <string name="subcategory_data_files">File System &amp; Archives</string>
+    <string name="subcategory_data_web">Network &amp; Interaction</string>
+
+    <string name="subcategory_control_waiting">Waiting &amp; Delays</string>
+    <string name="subcategory_control_loops">Loops</string>
+    <string name="subcategory_control_conditions">Conditions</string>
+    <string name="subcategory_control_scenes">Scenes &amp; Projects</string>
+    <string name="subcategory_control_stopping">Stopping &amp; Safety</string>
+    <string name="subcategory_control_cloning">Cloning</string>
+    <string name="subcategory_control_messages">Events &amp; Messages</string>
+    <string name="subcategory_control_touches">Touch Emulation</string>
+
+    <string name="subcategory_event_touch">Start &amp; Touch</string>
+    <string name="subcategory_event_messages">Messages</string>
+    <string name="subcategory_event_conditions">Conditions &amp; Changes</string>
+    <string name="subcategory_event_cloning">Cloning</string>
+    <string name="subcategory_event_system">System</string>
+
+    <string name="subcategory_motion_coordinates">Coordinates &amp; Sliding</string>
+    <string name="subcategory_motion_rotation">Rotation &amp; Direction</string>
+    <string name="subcategory_motion_layers">Layers &amp; Camera</string>
+    <string name="subcategory_motion_physics_core">Physics - General</string>
+    <string name="subcategory_motion_physics_forces">Physics - Forces &amp; Speed</string>
+    <string name="subcategory_motion_physics_joints">Physics - Joints</string>
+    <string name="subcategory_motion_robots">Robots &amp; Particles</string>
+
+    <string name="subcategory_3d_objects">Objects &amp; Meshes</string>
+    <string name="subcategory_3d_transform">Motion &amp; Hierarchy</string>
+    <string name="subcategory_3d_camera">Camera Control</string>
+    <string name="subcategory_3d_physics">Physics &amp; Joints</string>
+    <string name="subcategory_3d_render">Lights &amp; Environment</string>
+    <string name="subcategory_3d_shaders">Materials &amp; Shaders</string>
+    <string name="subcategory_3d_animation">Animation &amp; Bones</string>
+    <string name="subcategory_3d_voxels">Voxel Graphics</string>
+    <string name="subcategory_3d_sound">Spatial Sound</string>
+    <string name="subcategory_3d_effects">Effects, Scenes &amp; AI</string>
+
+    <string name="preference_title_block_grouping">Block Grouping</string>
+    <string name="preference_description_block_grouping">Configure subcategory folding in block palettes</string>
+    <string name="preference_title_grouping_event">Events Category</string>
+    <string name="preference_description_grouping_event">Enable grouping in Event category</string>
+    <string name="preference_title_grouping_control">Control Category</string>
+    <string name="preference_description_grouping_control">Enable grouping in Control category</string>
+    <string name="preference_title_grouping_motion">Motion Category</string>
+    <string name="preference_description_grouping_motion">Enable grouping in Motion category</string>
+    <string name="preference_title_grouping_sound">Sound Category</string>
+    <string name="preference_description_grouping_sound">Enable grouping in Sound category</string>
+    <string name="preference_title_grouping_looks">Looks Category</string>
+    <string name="preference_description_grouping_looks">Enable grouping in Looks category</string>
+    <string name="preference_title_grouping_data">Data Category</string>
+    <string name="preference_description_grouping_data">Enable grouping in Data category</string>
+    <string name="preference_title_grouping_device">Device Category</string>
+    <string name="preference_description_grouping_device">Enable grouping in Device category</string>
+    <string name="preference_title_grouping_threed">3D Category</string>
+    <string name="preference_description_grouping_threed">Enable grouping in 3D category (Recommended)</string>
+
+    <string name="dialog_add_brick_add">Add</string>
+    <string name="dialog_add_brick_cancel">Cancel</string>
+    <string name="dialog_add_brick_add_to_favorites">Add to favorites</string>
+    <string name="dialog_add_brick_remove_from_favorites">Remove from favorites</string>
+    <string name="dialog_add_brick_title">Block Properties</string>
+    <string name="toast_added_to_favorites">Added to favorites</string>
+    <string name="toast_removed_from_favorites">Removed from favorites</string>
     <string name="formula_voxel_get_id" formatted="false">Voxel_get_id</string>
     <string name="formula_voxel_get_id_param" formatted="false">(\'worldId\', x, y, z)</string>
     <string name="formula_voxel_get_data" formatted="false">Voxel_get_data</string>
@@ -660,6 +1122,8 @@
     </string-array>
 
     <string name="category_file">Files</string>
+
+    <string name="category_favorites">Favorites</string>
 
     <string name="loading_fact_placeholder">Loading...</string>
 

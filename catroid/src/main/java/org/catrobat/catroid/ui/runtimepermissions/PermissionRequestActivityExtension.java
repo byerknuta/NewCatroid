@@ -25,7 +25,7 @@ package org.catrobat.catroid.ui.runtimepermissions;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.content.DialogInterface.OnClickListener;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -106,7 +106,7 @@ public class PermissionRequestActivityExtension {
 	}
 
 	private void showAlertOKCancel(Activity activity, String message, OnClickListener okListener) {
-		new AlertDialog.Builder(new ContextThemeWrapper(activity, R.style.Theme_AppCompat_Dialog))
+		new AlertDialog.Builder(activity)
 				.setMessage(message)
 				.setPositiveButton(R.string.ok, okListener)
 				.setNegativeButton(R.string.cancel, null)
@@ -114,7 +114,7 @@ public class PermissionRequestActivityExtension {
 	}
 
 	private void showAlertOKIgnoreCancel(Activity activity, String message, OnClickListener okListener, OnClickListener ignoreListener) {
-		new AlertDialog.Builder(new ContextThemeWrapper(activity, R.style.Theme_AppCompat_Dialog))
+		new AlertDialog.Builder(activity)
 				.setMessage(message)
 				.setPositiveButton(R.string.ok, okListener)
 				.setNeutralButton(R.string.ignore, ignoreListener)

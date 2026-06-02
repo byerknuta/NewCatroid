@@ -3,6 +3,7 @@ package org.catrobat.catroid.codeanalysis
 import android.content.Context
 import com.badlogic.gdx.scenes.scene2d.actions.SequenceAction
 import org.catrobat.catroid.ProjectManager
+import org.catrobat.catroid.R
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.content.bricks.Brick
 import org.catrobat.catroid.content.bricks.IfLogicBeginBrick
@@ -10,7 +11,6 @@ import org.catrobat.catroid.content.bricks.IfThenLogicBeginBrick
 import org.catrobat.catroid.content.bricks.RepeatUntilBrick
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.FormulaElement
-import org.catrobat.catroid.formulaeditor.InterpretationException
 
 class ConstantConditionRule(private val context: Context) : AnalysisRule {
     override fun analyze(brick: Brick): AnalysisResult? {
@@ -24,7 +24,7 @@ class ConstantConditionRule(private val context: Context) : AnalysisRule {
             is IfLogicBeginBrick -> brick.getFormulaWithBrickField(Brick.BrickField.IF_CONDITION)
             is RepeatUntilBrick -> brick.getFormulaWithBrickField(Brick.BrickField.REPEAT_UNTIL_CONDITION)
             else -> return null
-        }
+        } ?: return null
 
         if (!isFormulaConstant(formula)) {
             return null
@@ -32,23 +32,25 @@ class ConstantConditionRule(private val context: Context) : AnalysisRule {
 
         val evaluationResult: Boolean = try {
             formula.interpretBoolean(analysisScope)
-        } catch (e: InterpretationException) {
+        } catch (e: Exception) {
             return null
         }
 
         val conditionText = formula.getTrimmedFormulaString(context)
-        if (evaluationResult) {
+        if (conditionText.isBlank()) return null
+
+        return if (evaluationResult) {
             val message = when (brick) {
-                is RepeatUntilBrick -> "Условие '$conditionText' всегда истинно. Этот цикл завершится сразу, не выполнив ни одного действия."
-                else -> "Условие '$conditionText' всегда истинно. Код в ветке 'иначе' (если она есть) никогда не будет выполнен."
+                is RepeatUntilBrick -> context.getString(R.string.analysis_constant_condition_repeat_until_true, conditionText)
+                else -> context.getString(R.string.analysis_constant_condition_if_true, conditionText)
             }
-            return AnalysisResult(Severity.WARNING, message)
+            AnalysisResult(Severity.WARNING, message)
         } else {
             val message = when (brick) {
-                is RepeatUntilBrick -> "Условие '$conditionText' всегда ложно. Этот цикл будет бесконечным."
-                else -> "Условие '$conditionText' всегда ложно. Код внутри этого блока никогда не будет выполнен."
+                is RepeatUntilBrick -> context.getString(R.string.analysis_constant_condition_repeat_until_false, conditionText)
+                else -> context.getString(R.string.analysis_constant_condition_if_false, conditionText)
             }
-            return AnalysisResult(Severity.WARNING, message)
+            AnalysisResult(Severity.WARNING, message)
         }
     }
 
@@ -58,9 +60,7 @@ class ConstantConditionRule(private val context: Context) : AnalysisRule {
     }
 
     private fun checkElementIsConstant(element: FormulaElement?): Boolean {
-        if (element == null) {
-            return true
-        }
+        if (element == null) return true
 
         when (element.type) {
             FormulaElement.ElementType.SENSOR,

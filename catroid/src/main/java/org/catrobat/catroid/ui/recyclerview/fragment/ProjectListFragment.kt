@@ -25,7 +25,7 @@ package org.catrobat.catroid.ui.recyclerview.fragment
 import android.Manifest.permission
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
-import android.app.AlertDialog
+import androidx.appcompat.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -210,7 +210,9 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
 
         markwon.setMarkdown(markdownView, resolveImagePaths(markdownText))
 
-        AlertDialog.Builder(context)
+        AlertDialog.Builder(
+            android.view.ContextThemeWrapper(context, R.style.Theme_NewCatroid_Dialog)
+        )
             .setTitle("Сведения о проекте: ${project.name}")
             .setView(markdownView)
             .setPositiveButton(R.string.ok, null)

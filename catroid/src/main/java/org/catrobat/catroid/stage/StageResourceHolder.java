@@ -24,7 +24,7 @@
 package org.catrobat.catroid.stage;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -222,7 +222,9 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 
 		if (requiredResourcesSet.contains(Brick.NFC_ADAPTER)) {
 			if (requiredResourcesSet.contains(Brick.FACE_DETECTION)) {
-				AlertDialog.Builder builder = new AlertDialog.Builder(stageActivity);
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+                        new ContextThemeWrapper(stageActivity, R.style.Theme_NewCatroid_Dialog)
+                );
 				builder.setMessage(stageActivity.getString(R.string.nfc_facedetection_support)).setCancelable(false)
 						.setPositiveButton(stageActivity.getString(R.string.ok), new DialogInterface.OnClickListener() {
 							@Override
@@ -481,7 +483,9 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 			}
 		}
 
-		new AlertDialog.Builder(new ContextThemeWrapper(stageActivity, R.style.Theme_AppCompat_Dialog))
+		new AlertDialog.Builder(
+                new ContextThemeWrapper(stageActivity, R.style.Theme_NewCatroid_Dialog)
+        )
 				.setTitle(R.string.prestage_resource_not_available_title)
 				.setMessage(failedResourcesMessage).setCancelable(false)
 				.setPositiveButton(stageActivity.getString(R.string.ok), (dialog, id) -> endStageActivity())

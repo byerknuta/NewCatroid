@@ -25,6 +25,9 @@
 
     <style name="Catroid" parent="Theme.MaterialComponents.NoActionBar.Bridge">
 
+        <item name="alertDialogTheme">@style/Theme.NewCatroid.Dialog</item>
+        <item name="materialAlertDialogTheme">@style/Theme.NewCatroid.Dialog</item>
+
         <!-- Colors -->
         <item name="android:windowBackground">@color/app_background</item>
 

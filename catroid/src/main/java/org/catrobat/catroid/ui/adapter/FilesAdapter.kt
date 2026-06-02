@@ -48,6 +48,7 @@ class FilesAdapter(
             "py", "lua", "js", "java", "kt", "xml", "json", "txt", "md" -> R.drawable.code_24px
             "png", "jpg", "jpeg", "webp" -> R.drawable.ic_draw_image
             "mp3", "wav", "ogg" -> R.drawable.ic_music_library
+            "rscene", "glb", "obj" -> R.drawable.deployed_code_24px
             else -> R.drawable.file_present_24px
         }
         holder.fileIcon.setImageResource(iconRes)

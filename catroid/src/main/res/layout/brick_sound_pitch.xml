@@ -11,7 +11,7 @@
         android:id="@+id/brick_sound_pitch_layout"
         style="@style/BrickContainer.Threed.Small">
 
-        <include layout="@layout/icon_brick_category_look" />
+        <include layout="@layout/icon_brick_category_threed" />
 
         <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_sound_inst_pitch" />
         <TextView android:id="@+id/sound_inst_name_p" style="@style/BrickEditText" />

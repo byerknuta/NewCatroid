@@ -23,6 +23,7 @@
 package org.catrobat.catroid.ui.fragment
 
 import android.content.Context
+import android.graphics.Typeface
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.util.Log
@@ -33,6 +34,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.ListFragment
@@ -53,6 +55,11 @@ class AddBrickFragment : ListFragment() {
     private var addBrickListener: OnAddBrickListener? = null
     private var previousActionBarTitle: CharSequence? = null
     private var adapter: PrototypeBrickAdapter? = null
+
+    private var masterBrickList: List<Brick> = emptyList()
+
+    private var previousVisibleListSize = 0
+
     private fun onlyBeginnerBricks(): Boolean = PreferenceManager.getDefaultSharedPreferences(activity).getBoolean(AccessibilityProfile.BEGINNER_BRICKS, false)
     private val projectManager: ProjectManager by inject(ProjectManager::class.java)
 
@@ -77,9 +84,128 @@ class AddBrickFragment : ListFragment() {
             categoryBricksFactory.getBricks(it, backgroundSprite == sprite,
                 it1
             )
-        } }
-        adapter = brickList?.let { PrototypeBrickAdapter(it) }
-        listAdapter = adapter
+        } } ?: emptyList()
+
+        masterBrickList = brickList
+
+        for (brick in masterBrickList) {
+            if (brick is org.catrobat.catroid.content.bricks.SubCategoryHeaderBrick) {
+                brick.isExpanded = org.catrobat.catroid.utils.SubCategoryStateManager.isExpanded(
+                    requireContext(),
+                    brick.title
+                )
+            }
+        }
+
+        updateVisibleBricks()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (listIndexToFocus != -1) {
+            listView.setSelection(listIndexToFocus)
+            listIndexToFocus = -1
+        }
+
+        listView.onItemClickListener = AdapterView.OnItemClickListener { parent: AdapterView<*>?, view: View?, position: Int, id: Long ->
+            adapter?.getItem(position)?.let { brick ->
+                if (brick is org.catrobat.catroid.content.bricks.SubCategoryHeaderBrick) {
+                    brick.isExpanded = !brick.isExpanded
+                    view?.let { clickedView ->
+                        val arrowView = clickedView.findViewById<android.widget.TextView>(R.id.brick_header_arrow)
+                        arrowView?.text = if (brick.isExpanded) "▼" else "▶"
+                    }
+                    org.catrobat.catroid.utils.SubCategoryStateManager.setExpanded(requireContext(), brick.title, brick.isExpanded)
+                    updateVisibleBricks()
+                } else {
+                    addBrickToScript(brick, activity as SpriteActivity, addBrickListener, parentFragmentManager, ADD_BRICK_FRAGMENT_TAG)
+                }
+            }
+        }
+
+        listView.onItemLongClickListener = AdapterView.OnItemLongClickListener { _, _, position, _ ->
+            adapter?.getItem(position)?.let { brick ->
+                if (brick !is org.catrobat.catroid.content.bricks.SubCategoryHeaderBrick) {
+                    showAddBrickPreviewDialog(brick)
+                }
+            }
+            true
+        }
+    }
+
+    private fun toggleHeaderState(position: Int, brick: org.catrobat.catroid.content.bricks.SubCategoryHeaderBrick) {
+        brick.isExpanded = !brick.isExpanded
+
+        val childIndex = position - listView.firstVisiblePosition
+        if (childIndex in 0 until listView.childCount) {
+            val clickedView = listView.getChildAt(childIndex)
+            val arrowView = clickedView?.findViewById<android.widget.TextView>(R.id.brick_header_arrow)
+            arrowView?.text = if (brick.isExpanded) "▼" else "▶"
+        }
+
+        org.catrobat.catroid.utils.SubCategoryStateManager.setExpanded(
+            requireContext(),
+            brick.title,
+            brick.isExpanded
+        )
+        updateVisibleBricks()
+    }
+
+    private fun updateVisibleBricks() {
+        val visibleList = mutableListOf<Brick>()
+        var isCurrentSubcategoryExpanded = true
+        var previousWasHeader = true
+
+        for (brick in masterBrickList) {
+            if (brick is org.catrobat.catroid.content.bricks.SubCategoryHeaderBrick) {
+                brick.isStacked = previousWasHeader
+                visibleList.add(brick)
+                isCurrentSubcategoryExpanded = brick.isExpanded
+                previousWasHeader = true
+            } else {
+                if (isCurrentSubcategoryExpanded) {
+                    visibleList.add(brick)
+                    previousWasHeader = false
+                }
+            }
+        }
+
+        val isExpanding = visibleList.size > previousVisibleListSize
+        previousVisibleListSize = visibleList.size
+
+        if (view != null) {
+            try {
+                val list = view?.findViewById<android.widget.ListView>(android.R.id.list)
+                if (list != null) {
+                    val transition = if (isExpanding) {
+                        android.transition.TransitionSet().apply {
+                            ordering = android.transition.TransitionSet.ORDERING_TOGETHER
+                            addTransition(android.transition.ChangeBounds())
+                            val headerFade = android.transition.Fade().apply {
+                                addTarget(org.catrobat.catroid.content.bricks.SubCategoryHeaderView::class.java)
+                            }
+                            addTransition(headerFade)
+                            duration = 250
+                            interpolator = androidx.interpolator.view.animation.FastOutSlowInInterpolator()
+                        }
+                    } else {
+                        android.transition.AutoTransition().apply {
+                            duration = 250
+                            interpolator = androidx.interpolator.view.animation.FastOutSlowInInterpolator()
+                        }
+                    }
+                    android.transition.TransitionManager.beginDelayedTransition(list, transition)
+                }
+            } catch (_: Exception) {
+            }
+        }
+
+        if (adapter == null) {
+            adapter = PrototypeBrickAdapter(visibleList)
+            listAdapter = adapter
+        } else {
+            adapter?.replaceList(visibleList)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -93,6 +219,7 @@ class AddBrickFragment : ListFragment() {
     }
 
     override fun onDestroy() {
+        adapter?.clearCache()
         val actionBar = (activity as? AppCompatActivity)?.supportActionBar
         val isRestoringPreviouslyDestroyedActivity = actionBar == null
         if (!isRestoringPreviouslyDestroyedActivity) {
@@ -105,21 +232,6 @@ class AddBrickFragment : ListFragment() {
         super.onResume()
         setupSelectedBrickCategory()
         SnackbarUtil.showHintSnackbar(activity, R.string.hint_bricks)
-    }
-
-    override fun onStart() {
-        super.onStart()
-        if (listIndexToFocus != -1) {
-            listView.setSelection(listIndexToFocus)
-            listIndexToFocus = -1
-        }
-        listView.onItemClickListener = AdapterView.OnItemClickListener { parent: AdapterView<*>?, view: View?, position: Int, id: Long -> adapter?.getItem(position)?.let { addBrickToScript(
-            it,
-            activity as SpriteActivity,
-            addBrickListener,
-            parentFragmentManager,
-            ADD_BRICK_FRAGMENT_TAG) }
-        }
     }
 
     interface OnAddBrickListener {
@@ -147,6 +259,169 @@ class AddBrickFragment : ListFragment() {
             (addBrickListener as BrickCategoryFragment.OnCategorySelectedListener).onCategorySelected(arguments?.getString(BUNDLE_ARGUMENTS_SELECTED_CATEGORY))
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun showAddBrickPreviewDialog(brick: Brick) {
+        val context = requireContext()
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_brick_context, null)
+
+        val brickView = brick.getView(context)
+        brick.disableSpinners()
+
+        val maxBrickHeight = (200 * context.resources.displayMetrics.density).toInt()
+        val wrapperScrollView = object : android.widget.ScrollView(context) {
+            override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+                var measuredHeightSpec = heightMeasureSpec
+                val heightMode = android.view.View.MeasureSpec.getMode(heightMeasureSpec)
+                val heightSize = android.view.View.MeasureSpec.getSize(heightMeasureSpec)
+                if (heightSize > maxBrickHeight || heightMode == android.view.View.MeasureSpec.UNSPECIFIED) {
+                    measuredHeightSpec = android.view.View.MeasureSpec.makeMeasureSpec(maxBrickHeight, android.view.View.MeasureSpec.AT_MOST)
+                }
+                super.onMeasure(widthMeasureSpec, measuredHeightSpec)
+            }
+        }
+        wrapperScrollView.addView(brickView)
+
+        val brickContainer = dialogView.findViewById<ViewGroup>(R.id.brick_view_container)
+        brickContainer.addView(wrapperScrollView)
+
+        val descriptionView = dialogView.findViewById<TextView>(R.id.brick_description)
+        descriptionView.text = org.catrobat.catroid.content.BrickInfo.getDescription(brick)
+
+        val density = context.resources.displayMetrics.density
+        val parentLayout = descriptionView?.parent as? ViewGroup
+        if (parentLayout != null) {
+            val infoButton = TextView(context).apply {
+                text = context.getString(R.string.dialog_add_brick_system_info_button)
+                textSize = 13f
+                setTextColor(context.resources.getColor(R.color.accent))
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                setPadding(0, (12 * density).toInt(), 0, (12 * density).toInt())
+                gravity = android.view.Gravity.CENTER
+                setOnClickListener {
+                    showDetailedSystemInfoDialog(brick)
+                }
+            }
+            val index = parentLayout.indexOfChild(descriptionView)
+            parentLayout.addView(infoButton, index + 1)
+        }
+
+        val warningLayout = dialogView.findViewById<View>(R.id.warning_layout)
+        warningLayout?.visibility = View.GONE
+
+        val isFav = org.catrobat.catroid.utils.FavoriteBricksManager.isFavorite(context, brick)
+        val favButtonText = if (isFav) {
+            context.getString(R.string.dialog_add_brick_remove_from_favorites)
+        } else {
+            context.getString(R.string.dialog_add_brick_add_to_favorites)
+        }
+
+        androidx.appcompat.app.AlertDialog.Builder(context)
+            .setTitle(R.string.dialog_add_brick_title)
+            .setView(dialogView)
+            .setPositiveButton(R.string.dialog_add_brick_add) { dialog, _ ->
+                addBrickToScript(
+                    brick,
+                    activity as SpriteActivity,
+                    addBrickListener,
+                    parentFragmentManager,
+                    ADD_BRICK_FRAGMENT_TAG
+                )
+                dialog.dismiss()
+            }
+            .setNeutralButton(favButtonText) { dialog, _ ->
+                if (isFav) {
+                    org.catrobat.catroid.utils.FavoriteBricksManager.removeFavorite(context, brick)
+                    ToastUtil.showSuccess(activity, context.getString(R.string.toast_removed_from_favorites))
+                } else {
+                    org.catrobat.catroid.utils.FavoriteBricksManager.addFavorite(context, brick)
+                    ToastUtil.showSuccess(activity, context.getString(R.string.toast_added_to_favorites))
+                }
+                setupSelectedBrickCategory()
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.dialog_add_brick_cancel) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun showDetailedSystemInfoDialog(brick: Brick) {
+        val context = requireContext()
+        val density = context.resources.displayMetrics.density
+
+        val scrollView = android.widget.ScrollView(context).apply {
+            setPadding((16 * density).toInt(), (12 * density).toInt(), (16 * density).toInt(), (12 * density).toInt())
+        }
+
+        val infoTextView = TextView(context).apply {
+            text = getBrickSystemInfo(brick)
+            setTextColor(context.resources.getColor(R.color.solid_white))
+            textSize = 13f
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
+        }
+        scrollView.addView(infoTextView)
+
+        androidx.appcompat.app.AlertDialog.Builder(context)
+            .setTitle(R.string.dialog_add_brick_system_info_title)
+            .setView(scrollView)
+            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+            .show()
+    }
+
+    private fun getBrickSystemInfo(brick: Brick): String {
+        val sb = StringBuilder()
+        sb.append("Class Name:\n")
+        sb.append(brick.javaClass.name).append("\n")
+        sb.append("---------------------------------------\n\n")
+
+        val superclassName = brick.javaClass.superclass?.simpleName ?: "None"
+        sb.append("Superclass:\n")
+        sb.append(superclassName).append("\n")
+        sb.append("---------------------------------------\n\n")
+
+        if (brick is org.catrobat.catroid.content.bricks.FormulaBrick) {
+            val formulas = brick.allFormulaFieldsWithFormulas
+            if (formulas.isNotEmpty()) {
+                sb.append("Formula Fields (BrickFields):\n")
+                formulas.forEach { (field, formula) ->
+                    sb.append("  * $field = ${formula.getTrimmedFormulaString(requireContext())}\n")
+                }
+                sb.append("---------------------------------------\n\n")
+            }
+        }
+
+        if (brick is org.catrobat.catroid.content.bricks.UserDataBrick) {
+            val data = brick.allBrickDataWithValues
+            if (data.isNotEmpty()) {
+                sb.append("Data Fields (UserData):\n")
+                data.forEach { (field, value) ->
+                    sb.append("  * $field = $value\n")
+                }
+                sb.append("---------------------------------------\n\n")
+            }
+        }
+
+        sb.append("Declared Fields:\n")
+        val fields = brick.javaClass.declaredFields
+        if (fields.isNotEmpty()) {
+            fields.forEach { field ->
+                try {
+                    field.isAccessible = true
+                    val name = field.name
+                    if (!name.startsWith("$") && name != "serialVersionUID" && name != "Companion") {
+                        val type = field.type.simpleName
+                        val value = field.get(brick) ?: "null"
+                        sb.append("  * $name ($type) = $value\n")
+                    }
+                } catch (_: Exception) {
+                }
+            }
+        } else {
+            sb.append("  * No declared fields found\n")
+        }
+
+        return sb.toString()
     }
 }
 fun addBrickToScript(brick: Brick, activity: SpriteActivity, addBrickListener: AddBrickFragment.OnAddBrickListener?, parentFragmentManager: FragmentManager, tag: String) {

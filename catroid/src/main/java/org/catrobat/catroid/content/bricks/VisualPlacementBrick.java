@@ -25,6 +25,7 @@ package org.catrobat.catroid.content.bricks;
 
 import android.content.Context;
 import android.content.Intent;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 
 import org.catrobat.catroid.ProjectManager;
@@ -79,7 +80,9 @@ public abstract class VisualPlacementBrick extends FormulaBrick {
 				context.getString(R.string.brick_option_place_visually),
 				context.getString(R.string.brick_context_dialog_formula_edit_brick)};
 
-		new AlertDialog.Builder(context).setItems(optionStrings, (dialog, which) -> {
+		new AlertDialog.Builder(
+                new ContextThemeWrapper(context, R.style.Theme_NewCatroid_Dialog)
+        ).setItems(optionStrings, (dialog, which) -> {
 			switch (which) {
 				case 0:
 					placeVisually(getXBrickField(), getYBrickField());

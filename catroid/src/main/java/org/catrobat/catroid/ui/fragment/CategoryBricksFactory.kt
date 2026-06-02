@@ -473,6 +473,7 @@ import org.catrobat.catroid.content.bricks.StopSoundBrick2
 import org.catrobat.catroid.content.bricks.StopVMBrick
 import org.catrobat.catroid.content.bricks.StoreCSVIntoUserListBrick
 import org.catrobat.catroid.content.bricks.StringToTableBrick
+import org.catrobat.catroid.content.bricks.SubCategoryHeaderBrick
 import org.catrobat.catroid.content.bricks.TableToFloatBrick
 import org.catrobat.catroid.content.bricks.TapAtBrick
 import org.catrobat.catroid.content.bricks.TapForBrick
@@ -550,48 +551,80 @@ import kotlin.contracts.contract
 open class CategoryBricksFactory {
 
     fun getBricks(category: String, isBackgroundSprite: Boolean, context: Context): List<Brick> {
-        when (category) {
-            context.getString(R.string.category_recently_used) -> return setupRecentBricksCategoryList(isBackgroundSprite)
-            context.getString(R.string.category_event) -> return setupEventCategoryList(context, isBackgroundSprite)
-            context.getString(R.string.category_control) -> return setupControlCategoryList(context)
-            context.getString(R.string.category_motion) -> return setupMotionCategoryList(context, isBackgroundSprite)
-            context.getString(R.string.category_sound) -> return setupSoundCategoryList(context)
-            context.getString(R.string.category_looks) -> return setupLooksCategoryList(context, isBackgroundSprite)
-            context.getString(R.string.category_pen) -> return setupPenCategoryList(isBackgroundSprite)
-            context.getString(R.string.category_user_bricks) -> return setupUserBricksCategoryList()
-            context.getString(R.string.category_data) -> return setupDataCategoryList(context, isBackgroundSprite)
-            context.getString(R.string.category_device) -> return setupDeviceCategoryList(context, isBackgroundSprite)
-            context.getString(R.string.category_lego_nxt) -> return setupLegoNxtCategoryList()
-            context.getString(R.string.category_lego_ev3) -> return setupLegoEv3CategoryList()
-            context.getString(R.string.category_arduino) -> return setupArduinoCategoryList()
-            context.getString(R.string.category_drone) -> return setupDroneCategoryList()
-            context.getString(R.string.category_jumping_sumo) -> return setupJumpingSumoCategoryList()
-            context.getString(R.string.category_phiro) -> return setupPhiroProCategoryList()
-            context.getString(R.string.category_cast) -> return setupChromecastCategoryList(context)
-            context.getString(R.string.category_raspi) -> return setupRaspiCategoryList()
-            context.getString(R.string.category_embroidery) -> return setupEmbroideryCategoryList(context)
-            context.getString(R.string.category_plot) -> return setupPlotCategoryList(context)
-            context.getString(R.string.category_neural) -> return setupNeuralCategoryList(context)
-            context.getString(R.string.pocketensor) -> return setupPocketensorCategoryList(context)
-            context.getString(R.string.fast2d) -> return setupFast2dCategoryList(context)
-            context.getString(R.string.category_file) -> return setupFileCategoryList(context)
-            context.getString(R.string.category_threed) -> return setupThreedCategoryList(context)
-            context.getString(R.string.category_internet) -> return setupInternetCategoryList(context)
-            context.getString(R.string.category_assertions) -> return setupAssertionsCategoryList(context)
-            context.getString(R.string.category_libraries) -> return setupLibrariesCategoryList()
-            else -> return emptyList()
+        if (category == context.getString(R.string.category_favorites)) {
+            return setupFavoriteBricksCategoryList(context, isBackgroundSprite)
+        }
+        if (category == context.getString(R.string.category_recently_used)) {
+            return setupRecentBricksCategoryList(isBackgroundSprite)
+        }
+        if (category == context.getString(R.string.category_pen)) {
+            return setupPenCategoryList(isBackgroundSprite)
+        }
+
+        val bricks = when (category) {
+            context.getString(R.string.category_event) -> setupEventCategoryList(context, isBackgroundSprite)
+            context.getString(R.string.category_control) -> setupControlCategoryList(context)
+            context.getString(R.string.category_motion) -> setupMotionCategoryList(context, isBackgroundSprite)
+            context.getString(R.string.category_sound) -> setupSoundCategoryList(context)
+            context.getString(R.string.category_looks) -> setupLooksCategoryList(context, isBackgroundSprite)
+            context.getString(R.string.category_user_bricks) -> setupUserBricksCategoryList()
+            context.getString(R.string.category_data) -> setupDataCategoryList(context, isBackgroundSprite)
+            context.getString(R.string.category_device) -> setupDeviceCategoryList(context, isBackgroundSprite)
+            context.getString(R.string.category_lego_nxt) -> setupLegoNxtCategoryList()
+            context.getString(R.string.category_lego_ev3) -> setupLegoEv3CategoryList()
+            context.getString(R.string.category_arduino) -> setupArduinoCategoryList()
+            context.getString(R.string.category_drone) -> setupDroneCategoryList()
+            context.getString(R.string.category_jumping_sumo) -> setupJumpingSumoCategoryList()
+            context.getString(R.string.category_phiro) -> setupPhiroProCategoryList()
+            context.getString(R.string.category_cast) -> setupChromecastCategoryList(context)
+            context.getString(R.string.category_raspi) -> setupRaspiCategoryList()
+            context.getString(R.string.category_embroidery) -> setupEmbroideryCategoryList(context)
+            context.getString(R.string.category_plot) -> setupPlotCategoryList(context)
+            context.getString(R.string.category_neural) -> setupNeuralCategoryList(context)
+            context.getString(R.string.pocketensor) -> setupPocketensorCategoryList(context)
+            context.getString(R.string.fast2d) -> setupFast2dCategoryList(context)
+            context.getString(R.string.category_file) -> setupFileCategoryList(context)
+            context.getString(R.string.category_threed) -> setupThreedCategoryList(context)
+            context.getString(R.string.category_internet) -> setupInternetCategoryList(context)
+            context.getString(R.string.category_assertions) -> setupAssertionsCategoryList(context)
+            context.getString(R.string.category_libraries) -> setupLibrariesCategoryList()
+            else -> emptyList()
+        }
+
+        val prefKey = getPreferenceKeyForCategory(category, context)
+        if (prefKey != null) {
+            val defaultValue = category == context.getString(R.string.category_threed)
+            val isGroupingEnabled = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(prefKey, defaultValue)
+
+            if (!isGroupingEnabled) {
+                return bricks.filter { it !is org.catrobat.catroid.content.bricks.SubCategoryHeaderBrick }
+            }
+        }
+
+        return bricks
+    }
+
+    private fun getPreferenceKeyForCategory(category: String, context: Context): String? {
+        return when (category) {
+            context.getString(R.string.category_event) -> "pref_grouping_event"
+            context.getString(R.string.category_control) -> "pref_grouping_control"
+            context.getString(R.string.category_motion) -> "pref_grouping_motion"
+            context.getString(R.string.category_sound) -> "pref_grouping_sound"
+            context.getString(R.string.category_looks) -> "pref_grouping_looks"
+            context.getString(R.string.category_data) -> "pref_grouping_data"
+            context.getString(R.string.category_device) -> "pref_grouping_device"
+            context.getString(R.string.category_threed) -> "pref_grouping_threed"
+            else -> null
         }
     }
 
     private fun setupLibrariesCategoryList(): List<Brick> {
         val libraryBricks = mutableListOf<Brick>()
 
-        // Получаем все "определения" из менеджера
         val definitions = CustomBrickManager.getAllDefinitions()
 
         for (def in definitions) {
-            // Для каждого определения создаем экземпляр нашего CustomBrick,
-            // который будет показан в палитре.
             val brick = CustomBrick(def.id)
             libraryBricks.add(brick)
         }
@@ -605,6 +638,56 @@ open class CategoryBricksFactory {
         context: Context,
         isBackgroundSprite: Boolean
     ): List<Brick> {
+        val category = context.getString(R.string.category_event)
+        val prefKey = getPreferenceKeyForCategory(category, context)
+        if (prefKey != null) {
+            val defaultValue = category == context.getString(R.string.category_threed)
+            val isGroupingEnabled = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(prefKey, defaultValue)
+
+            if (!isGroupingEnabled) {
+                val defaultIf = FormulaElement(
+                    FormulaElement.ElementType.OPERATOR,
+                    Operators.SMALLER_THAN.toString(),
+                    null
+                )
+                defaultIf.setLeftChild(FormulaElement(FormulaElement.ElementType.NUMBER, "1", null))
+                defaultIf.setRightChild(FormulaElement(FormulaElement.ElementType.NUMBER, "2", null))
+                val eventBrickList: MutableList<Brick> = ArrayList()
+                eventBrickList.add(WhenStartedBrick())
+                eventBrickList.add(WhenBrick())
+                eventBrickList.add(WhenTouchDownBrick())
+                val broadcastMessages =
+                    ProjectManager.getInstance().currentProject?.broadcastMessageContainer?.broadcastMessages
+                var broadcastMessage: String? = context.getString(R.string.brick_broadcast_default_value)
+                if (broadcastMessages != null && broadcastMessages.size > 0) {
+                    broadcastMessage = broadcastMessages[0]
+                }
+                eventBrickList.add(BroadcastReceiverBrick(BroadcastScript(broadcastMessage)))
+                eventBrickList.add(BroadcastBrick(broadcastMessage))
+                eventBrickList.add(BroadcastWaitBrick(broadcastMessage))
+                eventBrickList.add(WhenProjectExitsBrick())
+                eventBrickList.add(WhenBackPressedBrick())
+                eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
+                if (!isBackgroundSprite) {
+                    eventBrickList.add(WhenBounceOffBrick(WhenBounceOffScript(null)))
+                }
+                eventBrickList.add(WhenBackgroundChangesBrick())
+                eventBrickList.add(WhenClonedBrick())
+                eventBrickList.add(CloneBrick())
+                eventBrickList.add(CloneAndNameBrick("clone"))
+                eventBrickList.add(DeleteThisCloneBrick())
+                if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
+                    eventBrickList.add(WhenNfcBrick())
+                }
+                //eventBrickList.add(WhenMouseButtonClickedBrick())
+                //eventBrickList.add(LockMouseBrick())
+                //eventBrickList.add(UnlockMouseBrick())
+                //eventBriFckList.add(WhenMouseWheelScrolledBrick())
+                return eventBrickList
+            }
+        }
+
         val defaultIf = FormulaElement(
             FormulaElement.ElementType.OPERATOR,
             Operators.SMALLER_THAN.toString(),
@@ -613,9 +696,15 @@ open class CategoryBricksFactory {
         defaultIf.setLeftChild(FormulaElement(FormulaElement.ElementType.NUMBER, "1", null))
         defaultIf.setRightChild(FormulaElement(FormulaElement.ElementType.NUMBER, "2", null))
         val eventBrickList: MutableList<Brick> = ArrayList()
+        val template = WhenStartedBrick()
+
+        eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_touch), template))
         eventBrickList.add(WhenStartedBrick())
         eventBrickList.add(WhenBrick())
         eventBrickList.add(WhenTouchDownBrick())
+        eventBrickList.add(WhenBackPressedBrick())
+
+        eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_messages), template))
         val broadcastMessages =
             ProjectManager.getInstance().currentProject?.broadcastMessageContainer?.broadcastMessages
         var broadcastMessage: String? = context.getString(R.string.brick_broadcast_default_value)
@@ -625,68 +714,145 @@ open class CategoryBricksFactory {
         eventBrickList.add(BroadcastReceiverBrick(BroadcastScript(broadcastMessage)))
         eventBrickList.add(BroadcastBrick(broadcastMessage))
         eventBrickList.add(BroadcastWaitBrick(broadcastMessage))
-        eventBrickList.add(WhenProjectExitsBrick())
-        eventBrickList.add(WhenBackPressedBrick())
+
+        eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_conditions), template))
         eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         if (!isBackgroundSprite) {
             eventBrickList.add(WhenBounceOffBrick(WhenBounceOffScript(null)))
         }
         eventBrickList.add(WhenBackgroundChangesBrick())
+
+        eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_cloning), template))
         eventBrickList.add(WhenClonedBrick())
         eventBrickList.add(CloneBrick())
         eventBrickList.add(CloneAndNameBrick("clone"))
         eventBrickList.add(DeleteThisCloneBrick())
+
+        eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_system), template))
+        eventBrickList.add(WhenProjectExitsBrick())
         if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
             eventBrickList.add(WhenNfcBrick())
         }
-        //eventBrickList.add(WhenMouseButtonClickedBrick())
-        //eventBrickList.add(LockMouseBrick())
-        //eventBrickList.add(UnlockMouseBrick())
-        //eventBriFckList.add(WhenMouseWheelScrolledBrick())
+
         return eventBrickList
     }
 
     protected open fun setupControlCategoryList(context: Context): List<Brick> {
+        val category = context.getString(R.string.category_control)
+        val prefKey = getPreferenceKeyForCategory(category, context)
+        if (prefKey != null) {
+            val defaultValue = category == context.getString(R.string.category_threed)
+            val isGroupingEnabled = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(prefKey, defaultValue)
+
+            if (!isGroupingEnabled) {
+                val ifConditionFormulaElement = FormulaElement(FormulaElement.ElementType.OPERATOR, Operators.SMALLER_THAN.toString(), null)
+                ifConditionFormulaElement.setLeftChild(FormulaElement(FormulaElement.ElementType.NUMBER, "1", null))
+                ifConditionFormulaElement.setRightChild(FormulaElement(FormulaElement.ElementType.NUMBER, "2", null))
+                val ifConditionFormula = Formula(ifConditionFormulaElement)
+                val controlBrickList: MutableList<Brick> = ArrayList()
+                //controlBrickList.add(TestBrick("Ababuy!"))
+                controlBrickList.add(WaitBrick(BrickValues.WAIT))
+                controlBrickList.add(NoteBrick(context.getString(R.string.brick_note_default_value)))
+                controlBrickList.add(ForeverBrick())
+                controlBrickList.add(IfLogicBeginBrick(ifConditionFormula))
+                controlBrickList.add(IfThenLogicBeginBrick(ifConditionFormula))
+                controlBrickList.add(AsyncRepeatBrick(Formula(3)))
+                controlBrickList.add(IntervalRepeatBrick(Formula(3), Formula(1)))
+                controlBrickList.add(WaitUntilBrick(ifConditionFormula))
+                controlBrickList.add(RepeatBrick(Formula(BrickValues.REPEAT)))
+                controlBrickList.add(RepeatUntilBrick(ifConditionFormula))
+                controlBrickList.add(ForVariableFromToBrick(Formula(BrickValues.FOR_LOOP_FROM), Formula(BrickValues.FOR_LOOP_TO)))
+                controlBrickList.add(ForItemInUserListBrick())
+                controlBrickList.add(SceneTransitionBrick(null))
+                controlBrickList.add(SceneStartBrick(null))
+                controlBrickList.add(SceneIdBrick("1"))
+                controlBrickList.add(ClearSceneBrick(null))
+                controlBrickList.add(SetSaveScenesBrick(1))
+                controlBrickList.add(SetStopSoundsBrick(1))
+                controlBrickList.add(LaunchProjectBrick("project.newtrobat"))
+                controlBrickList.add(ReturnToPreviousProjectBrick())
+                if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
+                    controlBrickList.add(PhiroIfLogicBeginBrick())
+                }
+                controlBrickList.add(ExitStageBrick())
+                controlBrickList.add(StopScriptBrick(BrickValues.STOP_THIS_SCRIPT))
+                controlBrickList.add(WaitTillIdleBrick())
+                controlBrickList.add(TryCatchFinallyBrick());
+                controlBrickList.add(WhenClonedBrick())
+                controlBrickList.add(CloneBrick())
+                controlBrickList.add(CloneAndNameBrick("clone"))
+                controlBrickList.add(DeleteThisCloneBrick())
+                if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
+                    controlBrickList.add(SetNfcTagBrick(context.getString(R.string.brick_set_nfc_tag_default_value)))
+                }
+                val broadcastMessages =
+                    ProjectManager.getInstance().currentProject?.broadcastMessageContainer?.broadcastMessages
+                var broadcastMessage: String? = context.getString(R.string.brick_broadcast_default_value)
+                if (broadcastMessages != null && broadcastMessages.size > 0) {
+                    broadcastMessage = broadcastMessages[0]
+                }
+                controlBrickList.add(BroadcastReceiverBrick(BroadcastScript(broadcastMessage)))
+                controlBrickList.add(BroadcastBrick(broadcastMessage))
+                controlBrickList.add(BroadcastWaitBrick(broadcastMessage))
+                controlBrickList.add(TapAtBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START))
+                controlBrickList.add(TapForBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_DURATION))
+                controlBrickList.add(TouchAndSlideBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_X_GOAL, BrickValues.TOUCH_Y_GOAL, BrickValues.TOUCH_DURATION))
+                controlBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
+                return controlBrickList
+            }
+        }
+
         val ifConditionFormulaElement = FormulaElement(FormulaElement.ElementType.OPERATOR, Operators.SMALLER_THAN.toString(), null)
         ifConditionFormulaElement.setLeftChild(FormulaElement(FormulaElement.ElementType.NUMBER, "1", null))
         ifConditionFormulaElement.setRightChild(FormulaElement(FormulaElement.ElementType.NUMBER, "2", null))
         val ifConditionFormula = Formula(ifConditionFormulaElement)
         val controlBrickList: MutableList<Brick> = ArrayList()
-        //controlBrickList.add(TestBrick("Ababuy!"))
+        val template = WaitBrick(BrickValues.WAIT)
+
+        controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_waiting), template))
         controlBrickList.add(WaitBrick(BrickValues.WAIT))
-        controlBrickList.add(NoteBrick(context.getString(R.string.brick_note_default_value)))
-        controlBrickList.add(ForeverBrick())
-        controlBrickList.add(IfLogicBeginBrick(ifConditionFormula))
-        controlBrickList.add(IfThenLogicBeginBrick(ifConditionFormula))
-        controlBrickList.add(AsyncRepeatBrick(Formula(3)))
-        controlBrickList.add(IntervalRepeatBrick(Formula(3), Formula(1)))
         controlBrickList.add(WaitUntilBrick(ifConditionFormula))
+        controlBrickList.add(WaitTillIdleBrick())
+        controlBrickList.add(NoteBrick(context.getString(R.string.brick_note_default_value)))
+
+        controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_loops), template))
+        controlBrickList.add(ForeverBrick())
         controlBrickList.add(RepeatBrick(Formula(BrickValues.REPEAT)))
         controlBrickList.add(RepeatUntilBrick(ifConditionFormula))
+        controlBrickList.add(AsyncRepeatBrick(Formula(3)))
+        controlBrickList.add(IntervalRepeatBrick(Formula(3), Formula(1)))
         controlBrickList.add(ForVariableFromToBrick(Formula(BrickValues.FOR_LOOP_FROM), Formula(BrickValues.FOR_LOOP_TO)))
         controlBrickList.add(ForItemInUserListBrick())
-        controlBrickList.add(SceneTransitionBrick(null))
-        controlBrickList.add(SceneStartBrick(null))
-        controlBrickList.add(SceneIdBrick("1"))
-        controlBrickList.add(ClearSceneBrick(null))
-        controlBrickList.add(SetSaveScenesBrick(1))
-        controlBrickList.add(SetStopSoundsBrick(1))
-        controlBrickList.add(LaunchProjectBrick("project.newtrobat"))
-        controlBrickList.add(ReturnToPreviousProjectBrick())
+
+        controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_conditions), template))
+        controlBrickList.add(IfLogicBeginBrick(ifConditionFormula))
+        controlBrickList.add(IfThenLogicBeginBrick(ifConditionFormula))
+        controlBrickList.add(TryCatchFinallyBrick())
         if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
             controlBrickList.add(PhiroIfLogicBeginBrick())
         }
-        controlBrickList.add(ExitStageBrick())
+
+        controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_scenes), template))
+        controlBrickList.add(SceneStartBrick(null))
+        controlBrickList.add(SceneIdBrick("1"))
+        controlBrickList.add(SceneTransitionBrick(null))
+        controlBrickList.add(ClearSceneBrick(null))
+        controlBrickList.add(SetSaveScenesBrick(1))
+        controlBrickList.add(LaunchProjectBrick("project.newtrobat"))
+        controlBrickList.add(ReturnToPreviousProjectBrick())
+
+        controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_stopping), template))
         controlBrickList.add(StopScriptBrick(BrickValues.STOP_THIS_SCRIPT))
-        controlBrickList.add(WaitTillIdleBrick())
-        controlBrickList.add(TryCatchFinallyBrick());
+        controlBrickList.add(ExitStageBrick())
+
+        controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_cloning), template))
         controlBrickList.add(WhenClonedBrick())
         controlBrickList.add(CloneBrick())
         controlBrickList.add(CloneAndNameBrick("clone"))
         controlBrickList.add(DeleteThisCloneBrick())
-        if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
-            controlBrickList.add(SetNfcTagBrick(context.getString(R.string.brick_set_nfc_tag_default_value)))
-        }
+
+        controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_messages), template))
         val broadcastMessages =
             ProjectManager.getInstance().currentProject?.broadcastMessageContainer?.broadcastMessages
         var broadcastMessage: String? = context.getString(R.string.brick_broadcast_default_value)
@@ -696,10 +862,16 @@ open class CategoryBricksFactory {
         controlBrickList.add(BroadcastReceiverBrick(BroadcastScript(broadcastMessage)))
         controlBrickList.add(BroadcastBrick(broadcastMessage))
         controlBrickList.add(BroadcastWaitBrick(broadcastMessage))
+        if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
+            controlBrickList.add(SetNfcTagBrick(context.getString(R.string.brick_set_nfc_tag_default_value)))
+        }
+
+        controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_touches), template))
         controlBrickList.add(TapAtBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START))
         controlBrickList.add(TapForBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_DURATION))
         controlBrickList.add(TouchAndSlideBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_X_GOAL, BrickValues.TOUCH_Y_GOAL, BrickValues.TOUCH_DURATION))
         controlBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
+
         return controlBrickList
     }
 
@@ -719,127 +891,378 @@ open class CategoryBricksFactory {
     }
 
     protected open fun setupMotionCategoryList(
-        context: Context?,
+        context: Context,
         isBackgroundSprite: Boolean
     ): List<Brick> {
+        val category = context.getString(R.string.category_motion)
+        val prefKey = getPreferenceKeyForCategory(category, context)
+        if (prefKey != null) {
+            val defaultValue = category == context.getString(R.string.category_threed)
+            val isGroupingEnabled = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(prefKey, defaultValue)
+
+            if (!isGroupingEnabled) {
+                val motionBrickList: MutableList<Brick> = ArrayList()
+                motionBrickList.add(PlaceAtBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION))
+                motionBrickList.add(SetXBrick(Formula(BrickValues.X_POSITION)))
+                motionBrickList.add(SetYBrick(BrickValues.Y_POSITION))
+                motionBrickList.add(ChangeXByNBrick(BrickValues.CHANGE_X_BY))
+                motionBrickList.add(ChangeYByNBrick(BrickValues.CHANGE_Y_BY))
+                motionBrickList.add(GoToBrick(null))
+                if (!isBackgroundSprite) motionBrickList.add(IfOnEdgeBounceBrick())
+                motionBrickList.add(MoveNStepsBrick(BrickValues.MOVE_STEPS))
+                motionBrickList.add(TurnLeftBrick(BrickValues.TURN_DEGREES))
+                motionBrickList.add(TurnRightBrick(BrickValues.TURN_DEGREES))
+                motionBrickList.add(PointInDirectionBrick(BrickValues.POINT_IN_DIRECTION))
+                motionBrickList.add(PointToBrick(null))
+                motionBrickList.add(SetRotationStyleBrick())
+                motionBrickList.add(GlideToBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.GLIDE_SECONDS))
+                if (!isBackgroundSprite) {
+                    motionBrickList.add(GoNStepsBackBrick(BrickValues.GO_BACK))
+                    motionBrickList.add(ComeToFrontBrick())
+                }
+                motionBrickList.add(SetCameraFocusPointBrick())
+                motionBrickList.add(VibrationBrick(BrickValues.VIBRATE_SECONDS))
+                motionBrickList.add(SetPhysicsObjectTypeBrick(BrickValues.PHYSIC_TYPE))
+                if (!isBackgroundSprite) motionBrickList.add(WhenBounceOffBrick(WhenBounceOffScript(null)))
+                motionBrickList.add(SetHitboxBrick())
+                motionBrickList.add(SetVelocityBrick(BrickValues.PHYSIC_VELOCITY))
+                motionBrickList.add(ApplyForceBrick(10, 100))
+                motionBrickList.add(ApplyImpulseBrick(100, 10))
+                motionBrickList.add(TurnLeftSpeedBrick(BrickValues.PHYSIC_TURN_DEGREES))
+                motionBrickList.add(TurnRightSpeedBrick(BrickValues.PHYSIC_TURN_DEGREES))
+                motionBrickList.add(ApplyTorqueBrick(15))
+                motionBrickList.add(ApplyAngularImpulseBrick(30))
+                motionBrickList.add(SetGravityBrick(BrickValues.PHYSIC_GRAVITY))
+                motionBrickList.add(SetMassBrick(BrickValues.PHYSIC_MASS))
+                motionBrickList.add(SetDampingBrick(10f, 10f))
+                motionBrickList.add(CreateRevoluteJointBrick("joint", "sprite2", 10, 200))
+                motionBrickList.add(CreateDistanceJointBrick("joint", "sprite2", "100", "5", "0.3"))
+                motionBrickList.add(CreateWeldJointBrick("joint", "sprite2", 10, 200))
+                motionBrickList.add(CreatePrismaticJointBrick("joint", "sprite2", 10, 100, 20, 30))
+                motionBrickList.add(CreatePulleyJointBrick("joint", "sprite1", "sprite2", 10, 100, 0, 0, 1f))
+                motionBrickList.add(CreateGearJointBrick("joint", "jointA", "jointB", 1f))
+                motionBrickList.add((DestroyJointBrick("joint")))
+                motionBrickList.add(PerformRayCastBrick("ray", 0, 0, 300, 500))
+                motionBrickList.add(SetBounceBrick(BrickValues.PHYSIC_BOUNCE_FACTOR * BrickValues.PHYSIC_MULTIPLIER))
+                motionBrickList.add(SetFrictionBrick(BrickValues.PHYSIC_FRICTION * BrickValues.PHYSIC_MULTIPLIER))
+                if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
+                    motionBrickList.add(PhiroMotorMoveForwardBrick(PhiroMotorMoveForwardBrick.Motor.MOTOR_LEFT, BrickValues.PHIRO_SPEED))
+                    motionBrickList.add(PhiroMotorMoveBackwardBrick(PhiroMotorMoveBackwardBrick.Motor.MOTOR_LEFT, BrickValues.PHIRO_SPEED))
+                    motionBrickList.add(PhiroMotorStopBrick(PhiroMotorStopBrick.Motor.MOTOR_BOTH))
+                }
+                motionBrickList.add(FadeParticleEffectBrick())
+                return motionBrickList
+            }
+        }
+
         val motionBrickList: MutableList<Brick> = ArrayList()
+        val template = SetXBrick(BrickValues.X_POSITION)
+
+        motionBrickList.add(SubCategoryHeaderBrick(context?.getString(R.string.subcategory_motion_coordinates) ?: "", template))
         motionBrickList.add(PlaceAtBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION))
         motionBrickList.add(SetXBrick(Formula(BrickValues.X_POSITION)))
         motionBrickList.add(SetYBrick(BrickValues.Y_POSITION))
         motionBrickList.add(ChangeXByNBrick(BrickValues.CHANGE_X_BY))
         motionBrickList.add(ChangeYByNBrick(BrickValues.CHANGE_Y_BY))
         motionBrickList.add(GoToBrick(null))
-        if (!isBackgroundSprite) motionBrickList.add(IfOnEdgeBounceBrick())
+        motionBrickList.add(GlideToBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.GLIDE_SECONDS))
+
+        motionBrickList.add(SubCategoryHeaderBrick(context?.getString(R.string.subcategory_motion_rotation) ?: "", template))
         motionBrickList.add(MoveNStepsBrick(BrickValues.MOVE_STEPS))
         motionBrickList.add(TurnLeftBrick(BrickValues.TURN_DEGREES))
         motionBrickList.add(TurnRightBrick(BrickValues.TURN_DEGREES))
         motionBrickList.add(PointInDirectionBrick(BrickValues.POINT_IN_DIRECTION))
         motionBrickList.add(PointToBrick(null))
         motionBrickList.add(SetRotationStyleBrick())
-        motionBrickList.add(GlideToBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.GLIDE_SECONDS))
+
+        motionBrickList.add(SubCategoryHeaderBrick(context?.getString(R.string.subcategory_motion_layers) ?: "", template))
         if (!isBackgroundSprite) {
             motionBrickList.add(GoNStepsBackBrick(BrickValues.GO_BACK))
             motionBrickList.add(ComeToFrontBrick())
         }
         motionBrickList.add(SetCameraFocusPointBrick())
-        motionBrickList.add(VibrationBrick(BrickValues.VIBRATE_SECONDS))
+
+        motionBrickList.add(SubCategoryHeaderBrick(context?.getString(R.string.subcategory_motion_physics_core) ?: "", template))
         motionBrickList.add(SetPhysicsObjectTypeBrick(BrickValues.PHYSIC_TYPE))
-        if (!isBackgroundSprite) motionBrickList.add(WhenBounceOffBrick(WhenBounceOffScript(null)))
         motionBrickList.add(SetHitboxBrick())
+        if (!isBackgroundSprite) {
+            motionBrickList.add(IfOnEdgeBounceBrick())
+            motionBrickList.add(WhenBounceOffBrick(WhenBounceOffScript(null)))
+        }
+        motionBrickList.add(VibrationBrick(BrickValues.VIBRATE_SECONDS))
+
+        motionBrickList.add(SubCategoryHeaderBrick(context?.getString(R.string.subcategory_motion_physics_forces) ?: "", template))
         motionBrickList.add(SetVelocityBrick(BrickValues.PHYSIC_VELOCITY))
         motionBrickList.add(ApplyForceBrick(10, 100))
         motionBrickList.add(ApplyImpulseBrick(100, 10))
-        motionBrickList.add(TurnLeftSpeedBrick(BrickValues.PHYSIC_TURN_DEGREES))
-        motionBrickList.add(TurnRightSpeedBrick(BrickValues.PHYSIC_TURN_DEGREES))
         motionBrickList.add(ApplyTorqueBrick(15))
         motionBrickList.add(ApplyAngularImpulseBrick(30))
+        motionBrickList.add(TurnLeftSpeedBrick(BrickValues.PHYSIC_TURN_DEGREES))
+        motionBrickList.add(TurnRightSpeedBrick(BrickValues.PHYSIC_TURN_DEGREES))
         motionBrickList.add(SetGravityBrick(BrickValues.PHYSIC_GRAVITY))
         motionBrickList.add(SetMassBrick(BrickValues.PHYSIC_MASS))
         motionBrickList.add(SetDampingBrick(10f, 10f))
+        motionBrickList.add(SetBounceBrick(BrickValues.PHYSIC_BOUNCE_FACTOR * BrickValues.PHYSIC_MULTIPLIER))
+        motionBrickList.add(SetFrictionBrick(BrickValues.PHYSIC_FRICTION * BrickValues.PHYSIC_MULTIPLIER))
+        motionBrickList.add(PerformRayCastBrick("ray", 0, 0, 300, 500))
+
+        motionBrickList.add(SubCategoryHeaderBrick(context?.getString(R.string.subcategory_motion_physics_joints) ?: "", template))
         motionBrickList.add(CreateRevoluteJointBrick("joint", "sprite2", 10, 200))
         motionBrickList.add(CreateDistanceJointBrick("joint", "sprite2", "100", "5", "0.3"))
         motionBrickList.add(CreateWeldJointBrick("joint", "sprite2", 10, 200))
         motionBrickList.add(CreatePrismaticJointBrick("joint", "sprite2", 10, 100, 20, 30))
         motionBrickList.add(CreatePulleyJointBrick("joint", "sprite1", "sprite2", 10, 100, 0, 0, 1f))
         motionBrickList.add(CreateGearJointBrick("joint", "jointA", "jointB", 1f))
-        motionBrickList.add((DestroyJointBrick("joint")))
-        motionBrickList.add(PerformRayCastBrick("ray", 0, 0, 300, 500))
-        motionBrickList.add(SetBounceBrick(BrickValues.PHYSIC_BOUNCE_FACTOR * BrickValues.PHYSIC_MULTIPLIER))
-        motionBrickList.add(SetFrictionBrick(BrickValues.PHYSIC_FRICTION * BrickValues.PHYSIC_MULTIPLIER))
-        if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
+        motionBrickList.add(DestroyJointBrick("joint"))
+
+        motionBrickList.add(SubCategoryHeaderBrick(context?.getString(R.string.subcategory_motion_robots) ?: "", template))
+        motionBrickList.add(FadeParticleEffectBrick())
+        if (context != null && SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
             motionBrickList.add(PhiroMotorMoveForwardBrick(PhiroMotorMoveForwardBrick.Motor.MOTOR_LEFT, BrickValues.PHIRO_SPEED))
             motionBrickList.add(PhiroMotorMoveBackwardBrick(PhiroMotorMoveBackwardBrick.Motor.MOTOR_LEFT, BrickValues.PHIRO_SPEED))
             motionBrickList.add(PhiroMotorStopBrick(PhiroMotorStopBrick.Motor.MOTOR_BOTH))
         }
-        motionBrickList.add(FadeParticleEffectBrick())
+
         return motionBrickList
     }
 
     protected open fun setupSoundCategoryList(context: Context): List<Brick> {
+        val category = context.getString(R.string.category_sound)
+        val prefKey = getPreferenceKeyForCategory(category, context)
+        if (prefKey != null) {
+            val defaultValue = category == context.getString(R.string.category_threed)
+            val isGroupingEnabled = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(prefKey, defaultValue)
+
+            if (!isGroupingEnabled) {
+                val soundBrickList: MutableList<Brick> = ArrayList()
+                soundBrickList.add(PlaySoundBrick())
+                soundBrickList.add(PlaySoundAndWaitBrick())
+                soundBrickList.add(PlaySoundAtBrick(BrickValues.PLAY_AT_DEFAULT_OFFSET))
+                soundBrickList.add(SoundFileBrick("my_sound.mp3"))
+                soundBrickList.add(SoundFilesBrick("my_sound_FROM_PROJECT_FILES.mp3"))
+                soundBrickList.add(PrepareSoundBrick("my_sound.mp3", "sound"))
+                soundBrickList.add(PlayPreparedSoundBrick("sound"))
+                soundBrickList.add(StopSoundBrick())
+                soundBrickList.add(StopAllSoundsBrick())
+                soundBrickList.add(SetVolumeToBrick(BrickValues.SET_VOLUME_TO))
+                soundBrickList.add(SetSoundVolumeBrick(50.0))
+                soundBrickList.add(ChangeVolumeByNBrick(Formula(BrickValues.CHANGE_VOLUME_BY)))
+                soundBrickList.add(ListenMicroBrick("100"))
+                soundBrickList.add(StartRecordingBrick())
+                soundBrickList.add(StopRecordingBrick("audio.mp3"))
+                if (SettingsFragment.isAISpeechSynthetizationSharedPreferenceEnabled(context)) {
+                    soundBrickList.add(SpeakBrick(context.getString(R.string.brick_speak_default_value)))
+                    soundBrickList.add(SpeakAndWaitBrick(context.getString(R.string.brick_speak_default_value)))
+                }
+                if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
+                    soundBrickList.add(PhiroPlayToneBrick(PhiroPlayToneBrick.Tone.DO, BrickValues.PHIRO_DURATION))
+                }
+                if (SettingsFragment.isAISpeechRecognitionSharedPreferenceEnabled(context)) {
+                    soundBrickList.add(AskSpeechBrick(context.getString(R.string.brick_ask_speech_default_question)))
+                    soundBrickList.add(StartListeningBrick())
+                    soundBrickList.add(SetListeningLanguageBrick())
+                }
+                soundBrickList.add(SetStopSoundsBrick(1))
+                soundBrickList.add(SetInstrumentBrick())
+                soundBrickList.add(PlayNoteForBeatsBrick(BrickValues.DEFAULT_NOTE, BrickValues.PAUSED_BEATS_INT))
+                soundBrickList.add(PlayDrumForBeatsBrick(BrickValues.PAUSED_BEATS_INT))
+                soundBrickList.add(SetTempoBrick(BrickValues.DEFAULT_TEMPO))
+                soundBrickList.add(ChangeTempoByNBrick(BrickValues.CHANGE_TEMPO))
+                soundBrickList.add(PauseForBeatsBrick(BrickValues.PAUSED_BEATS_FLOAT))
+                return soundBrickList
+            }
+        }
         val soundBrickList: MutableList<Brick> = ArrayList()
+        val template = PlayPreparedSoundBrick()
+
+        soundBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_sound_playback), template))
         soundBrickList.add(PlaySoundBrick())
         soundBrickList.add(PlaySoundAndWaitBrick())
         soundBrickList.add(PlaySoundAtBrick(BrickValues.PLAY_AT_DEFAULT_OFFSET))
-        soundBrickList.add(SoundFileBrick("my_sound.mp3"))
-        soundBrickList.add(SoundFilesBrick("my_sound_FROM_PROJECT_FILES.mp3"))
         soundBrickList.add(PrepareSoundBrick("my_sound.mp3", "sound"))
         soundBrickList.add(PlayPreparedSoundBrick("sound"))
         soundBrickList.add(StopSoundBrick())
         soundBrickList.add(StopAllSoundsBrick())
+
+        soundBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_sound_volume), template))
         soundBrickList.add(SetVolumeToBrick(BrickValues.SET_VOLUME_TO))
         soundBrickList.add(SetSoundVolumeBrick(50.0))
         soundBrickList.add(ChangeVolumeByNBrick(Formula(BrickValues.CHANGE_VOLUME_BY)))
-        soundBrickList.add(ListenMicroBrick("100"))
+        soundBrickList.add(SetStopSoundsBrick(1))
+
+        soundBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_sound_files), template))
+        soundBrickList.add(SoundFileBrick("my_sound.mp3"))
+        soundBrickList.add(SoundFilesBrick("my_sound_FROM_PROJECT_FILES.mp3"))
         soundBrickList.add(StartRecordingBrick())
         soundBrickList.add(StopRecordingBrick("audio.mp3"))
+
+        soundBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_sound_speech), template))
+        soundBrickList.add(ListenMicroBrick("100"))
         if (SettingsFragment.isAISpeechSynthetizationSharedPreferenceEnabled(context)) {
             soundBrickList.add(SpeakBrick(context.getString(R.string.brick_speak_default_value)))
             soundBrickList.add(SpeakAndWaitBrick(context.getString(R.string.brick_speak_default_value)))
-        }
-        if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
-            soundBrickList.add(PhiroPlayToneBrick(PhiroPlayToneBrick.Tone.DO, BrickValues.PHIRO_DURATION))
         }
         if (SettingsFragment.isAISpeechRecognitionSharedPreferenceEnabled(context)) {
             soundBrickList.add(AskSpeechBrick(context.getString(R.string.brick_ask_speech_default_question)))
             soundBrickList.add(StartListeningBrick())
             soundBrickList.add(SetListeningLanguageBrick())
         }
-        soundBrickList.add(SetStopSoundsBrick(1))
+
+        soundBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_sound_music), template))
         soundBrickList.add(SetInstrumentBrick())
         soundBrickList.add(PlayNoteForBeatsBrick(BrickValues.DEFAULT_NOTE, BrickValues.PAUSED_BEATS_INT))
         soundBrickList.add(PlayDrumForBeatsBrick(BrickValues.PAUSED_BEATS_INT))
         soundBrickList.add(SetTempoBrick(BrickValues.DEFAULT_TEMPO))
         soundBrickList.add(ChangeTempoByNBrick(BrickValues.CHANGE_TEMPO))
         soundBrickList.add(PauseForBeatsBrick(BrickValues.PAUSED_BEATS_FLOAT))
+        if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
+            soundBrickList.add(PhiroPlayToneBrick(PhiroPlayToneBrick.Tone.DO, BrickValues.PHIRO_DURATION))
+        }
+
         return soundBrickList
     }
 
     protected open fun setupLooksCategoryList(context: Context, isBackgroundSprite: Boolean): List<Brick> {
+        val category = context.getString(R.string.category_looks)
+        val prefKey = getPreferenceKeyForCategory(category, context)
+        if (prefKey != null) {
+            val defaultValue = category == context.getString(R.string.category_threed)
+            val isGroupingEnabled = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(prefKey, defaultValue)
+
+            if (!isGroupingEnabled) {
+                val looksBrickList = mutableListOf<Brick>()
+                if (!isBackgroundSprite) {
+                    looksBrickList.add(SetLookBrick())
+                    looksBrickList.add(SetLookByIndexBrick(BrickValues.SET_LOOK_BY_INDEX))
+                }
+                looksBrickList.add(SetWidthBrick(BrickValues.SET_SIZE_TO))
+                looksBrickList.add(SetHeightBrick(BrickValues.SET_SIZE_TO))
+                looksBrickList.add(ChangeWidthBrick(BrickValues.CHANGE_SIZE_BY))
+                looksBrickList.add(ChangeHeightBrick(BrickValues.CHANGE_SIZE_BY))
+                looksBrickList.add(NextLookBrick())
+                looksBrickList.add(PreviousLookBrick())
+                looksBrickList.add(SetSizeToBrick(BrickValues.SET_SIZE_TO))
+                looksBrickList.add(ChangeSizeByNBrick(BrickValues.CHANGE_SIZE_BY))
+                looksBrickList.add(HideBrick())
+                looksBrickList.add(ShowBrick())
+                looksBrickList.add(AskBrick(context.getString(R.string.brick_ask_default_question)))
+                looksBrickList.add(BigAskBrick(context.getString(R.string.brick_ask_default_question), "Введите ответ:", "OK", "Отмена", "Ваш ответ"))
+                if (!isBackgroundSprite) {
+                    looksBrickList.add(SayBubbleBrick(context.getString(R.string.brick_say_bubble_default_value)))
+                    looksBrickList.add(SayForBubbleBrick(context.getString(R.string.brick_say_bubble_default_value), 1.0f))
+                    looksBrickList.add(ThinkBubbleBrick(context.getString(R.string.brick_think_bubble_default_value)))
+                    looksBrickList.add(ThinkForBubbleBrick(context.getString(R.string.brick_think_bubble_default_value), 1.0f))
+                }
+                looksBrickList.add(ShowTextBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION))
+                looksBrickList.add(ShowTextColorSizeAlignmentBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
+                looksBrickList.add(SetTransparencyBrick(BrickValues.SET_TRANSPARENCY))
+                looksBrickList.add(ChangeTransparencyByNBrick(BrickValues.CHANGE_TRANSPARENCY_EFFECT))
+                looksBrickList.add(SetBrightnessBrick(BrickValues.SET_BRIGHTNESS_TO))
+                looksBrickList.add(ChangeBrightnessByNBrick(BrickValues.CHANGE_BRIGHTNESS_BY))
+                looksBrickList.add(SetColorBrick(BrickValues.SET_COLOR_TO))
+                looksBrickList.add(ChangeColorByNBrick(BrickValues.CHANGE_COLOR_BY))
+                looksBrickList.add(FadeParticleEffectBrick())
+                looksBrickList.add(ParticleEffectAdditivityBrick())
+                looksBrickList.add(SetParticleColorBrick(BrickValues.PARTICLE_COLOR))
+                looksBrickList.add(ClearGraphicEffectBrick())
+                looksBrickList.add(SetCameraFocusPointBrick())
+                looksBrickList.add(SetCameraPosition2Brick(100, 300))
+                looksBrickList.add(SetCameraRotation2Brick(90.0))
+                looksBrickList.add(SetCameraZoomBrick(3.0))
+                looksBrickList.add(PinToCameraBrick())
+                looksBrickList.add(UnpinFromCameraBrick())
+                looksBrickList.add(WhenBackgroundChangesBrick())
+                looksBrickList.add(SetBackgroundBrick())
+                looksBrickList.add(SetBackgroundByIndexBrick(BrickValues.SET_LOOK_BY_INDEX))
+                looksBrickList.add(SetBackgroundAndWaitBrick())
+                looksBrickList.add(SetBackgroundByIndexAndWaitBrick(BrickValues.SET_LOOK_BY_INDEX))
+                if (!ProjectManager.getInstance().currentProject.isCastProject) {
+                    looksBrickList.add(CameraBrick())
+                    looksBrickList.add(ChooseCameraBrick())
+                    looksBrickList.add(FlashBrick())
+                }
+                when {
+                    !isBackgroundSprite -> looksBrickList.add(LookRequestBrick(BrickValues.LOOK_REQUEST))
+                    ProjectManager.getInstance().currentProject.xmlHeader.islandscapeMode() -> looksBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST_LANDSCAPE))
+                    else -> looksBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST))
+                }
+                looksBrickList.add(ScreenShotBrick())
+                looksBrickList.add(PhotoBrick())
+                looksBrickList.add(CutLookBrick(100, 200, 300, 400))
+                looksBrickList.add(SaveLookBrick("my_actor.png"))
+                looksBrickList.add(LookFileBrick("my_actor.png"))
+                looksBrickList.add(SaveLookFilesBrick("look.png"))
+                looksBrickList.add(SetLookFilesBrick("look.png"))
+                looksBrickList.add(LookToTableBrick("rTable", "gTable", "bTable", "aTable"))
+                looksBrickList.add(LookFromTableBrick("rTable", "gTable", "bTable", "aTable"))
+                if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) looksBrickList.add(
+                    PhiroRGBLightBrick(PhiroRGBLightBrick.Eye.BOTH, BrickValues.PHIRO_VALUE_RED, BrickValues.PHIRO_VALUE_GREEN, BrickValues.PHIRO_VALUE_BLUE)
+                )
+                looksBrickList.add(PaintNewLookBrick(context.getString(R.string.brick_paint_new_look_name)))
+                looksBrickList.add(EditLookBrick())
+                looksBrickList.add(CopyLookBrick(context.getString(R.string.brick_copy_look_name)))
+                looksBrickList.add(DeleteLookBrick())
+                looksBrickList.add(CreateDialogBrick("myDialog", "Фижма", "введите ваш ответ"))
+                looksBrickList.add(SetPositiveBrick("myDialog", "Да"))
+                looksBrickList.add(SetNeutralBrick("myDialog", "Позже"))
+                looksBrickList.add(SetNegativeBrick("myDialog", "Нет"))
+                looksBrickList.add(AddEditBrick("myDialog", "это текстовое поле"))
+                looksBrickList.add(AddRadioBrick("myDialog", "это выбор"))
+                looksBrickList.add(SetCallbackBrick("myDialog"))
+                looksBrickList.add(ShowDialogBrick("myDialog"))
+                looksBrickList.add(SquareBrick("square", "#ff0000", 0f, 0f, 100f, 100f, 1f, 0f, 0f))
+                looksBrickList.add(DelSquareBrick("square"))
+
+                looksBrickList.add(CreateBufferBrick("Map", "512", "512"))
+                looksBrickList.add(SetBufferModeBrick(Formula("Map"), Formula(1), Formula(0)))
+                looksBrickList.add(SetBufferAutoUpdateBrick(Formula("Map"), Formula(1)))
+                looksBrickList.add(AddToBufferBrick("Map"))
+                looksBrickList.add(RemoveFromBufferBrick(Formula("Map")))
+                looksBrickList.add(SetBufferOnlyBrick(Formula(1)))
+                looksBrickList.add(SetBufferCameraBrick("Map", "100", "200", "1", "0"))
+                looksBrickList.add(SetBufferCamera3DBrick(Formula("Map"), Formula(100), Formula(100), Formula(100), Formula(120), Formula(-20), Formula(0), Formula(67)))
+                looksBrickList.add(ApplyBufferLookBrick("Map"))
+                looksBrickList.add(SaveBufferBrick(Formula("Map"), Formula("buffer.png")))
+
+                looksBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
+                return looksBrickList
+            }
+        }
+
         val looksBrickList = mutableListOf<Brick>()
+        val template = ShowBrick()
+
+        looksBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_looks_costumes), template))
         if (!isBackgroundSprite) {
             looksBrickList.add(SetLookBrick())
             looksBrickList.add(SetLookByIndexBrick(BrickValues.SET_LOOK_BY_INDEX))
+            looksBrickList.add(NextLookBrick())
+            looksBrickList.add(PreviousLookBrick())
         }
+        looksBrickList.add(WhenBackgroundChangesBrick())
+        looksBrickList.add(SetBackgroundBrick())
+        looksBrickList.add(SetBackgroundByIndexBrick(BrickValues.SET_LOOK_BY_INDEX))
+        looksBrickList.add(SetBackgroundAndWaitBrick())
+        looksBrickList.add(SetBackgroundByIndexAndWaitBrick(BrickValues.SET_LOOK_BY_INDEX))
+        looksBrickList.add(PaintNewLookBrick(context.getString(R.string.brick_paint_new_look_name)))
+        looksBrickList.add(EditLookBrick())
+        looksBrickList.add(CopyLookBrick(context.getString(R.string.brick_copy_look_name)))
+        looksBrickList.add(DeleteLookBrick())
+
+        looksBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_looks_visibility), template))
+        looksBrickList.add(ShowBrick())
+        looksBrickList.add(HideBrick())
+        looksBrickList.add(SetSizeToBrick(BrickValues.SET_SIZE_TO))
+        looksBrickList.add(ChangeSizeByNBrick(BrickValues.CHANGE_SIZE_BY))
         looksBrickList.add(SetWidthBrick(BrickValues.SET_SIZE_TO))
         looksBrickList.add(SetHeightBrick(BrickValues.SET_SIZE_TO))
         looksBrickList.add(ChangeWidthBrick(BrickValues.CHANGE_SIZE_BY))
         looksBrickList.add(ChangeHeightBrick(BrickValues.CHANGE_SIZE_BY))
-        looksBrickList.add(NextLookBrick())
-        looksBrickList.add(PreviousLookBrick())
-        looksBrickList.add(SetSizeToBrick(BrickValues.SET_SIZE_TO))
-        looksBrickList.add(ChangeSizeByNBrick(BrickValues.CHANGE_SIZE_BY))
-        looksBrickList.add(HideBrick())
-        looksBrickList.add(ShowBrick())
-        looksBrickList.add(AskBrick(context.getString(R.string.brick_ask_default_question)))
-        looksBrickList.add(BigAskBrick(context.getString(R.string.brick_ask_default_question), "Введите ответ:", "OK", "Отмена", "Ваш ответ"))
-        if (!isBackgroundSprite) {
-            looksBrickList.add(SayBubbleBrick(context.getString(R.string.brick_say_bubble_default_value)))
-            looksBrickList.add(SayForBubbleBrick(context.getString(R.string.brick_say_bubble_default_value), 1.0f))
-            looksBrickList.add(ThinkBubbleBrick(context.getString(R.string.brick_think_bubble_default_value)))
-            looksBrickList.add(ThinkForBubbleBrick(context.getString(R.string.brick_think_bubble_default_value), 1.0f))
-        }
-        looksBrickList.add(ShowTextBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION))
-        looksBrickList.add(ShowTextColorSizeAlignmentBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
+
+        looksBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_looks_effects), template))
         looksBrickList.add(SetTransparencyBrick(BrickValues.SET_TRANSPARENCY))
         looksBrickList.add(ChangeTransparencyByNBrick(BrickValues.CHANGE_TRANSPARENCY_EFFECT))
         looksBrickList.add(SetBrightnessBrick(BrickValues.SET_BRIGHTNESS_TO))
@@ -850,17 +1273,36 @@ open class CategoryBricksFactory {
         looksBrickList.add(ParticleEffectAdditivityBrick())
         looksBrickList.add(SetParticleColorBrick(BrickValues.PARTICLE_COLOR))
         looksBrickList.add(ClearGraphicEffectBrick())
+
+        looksBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_looks_dialogs), template))
+        if (!isBackgroundSprite) {
+            looksBrickList.add(SayBubbleBrick(context.getString(R.string.brick_say_bubble_default_value)))
+            looksBrickList.add(SayForBubbleBrick(context.getString(R.string.brick_say_bubble_default_value), 1.0f))
+            looksBrickList.add(ThinkBubbleBrick(context.getString(R.string.brick_think_bubble_default_value)))
+            looksBrickList.add(ThinkForBubbleBrick(context.getString(R.string.brick_think_bubble_default_value), 1.0f))
+        }
+        looksBrickList.add(AskBrick(context.getString(R.string.brick_ask_default_question)))
+        looksBrickList.add(BigAskBrick(context.getString(R.string.brick_ask_default_question), "Введите ответ:", "OK", "Отмена", "Ваш ответ"))
+        looksBrickList.add(ShowTextBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION))
+        looksBrickList.add(ShowTextColorSizeAlignmentBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
+        looksBrickList.add(CreateDialogBrick("myDialog", "Фижма", "введите ваш ответ"))
+        looksBrickList.add(SetPositiveBrick("myDialog", "Да"))
+        looksBrickList.add(SetNeutralBrick("myDialog", "Позже"))
+        looksBrickList.add(SetNegativeBrick("myDialog", "Нет"))
+        looksBrickList.add(AddEditBrick("myDialog", "это текстовое поле"))
+        looksBrickList.add(AddRadioBrick("myDialog", "это выбор"))
+        looksBrickList.add(SetCallbackBrick("myDialog"))
+        looksBrickList.add(ShowDialogBrick("myDialog"))
+
+        looksBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_looks_camera2d), template))
         looksBrickList.add(SetCameraFocusPointBrick())
         looksBrickList.add(SetCameraPosition2Brick(100, 300))
         looksBrickList.add(SetCameraRotation2Brick(90.0))
         looksBrickList.add(SetCameraZoomBrick(3.0))
         looksBrickList.add(PinToCameraBrick())
         looksBrickList.add(UnpinFromCameraBrick())
-        looksBrickList.add(WhenBackgroundChangesBrick())
-        looksBrickList.add(SetBackgroundBrick())
-        looksBrickList.add(SetBackgroundByIndexBrick(BrickValues.SET_LOOK_BY_INDEX))
-        looksBrickList.add(SetBackgroundAndWaitBrick())
-        looksBrickList.add(SetBackgroundByIndexAndWaitBrick(BrickValues.SET_LOOK_BY_INDEX))
+
+        looksBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_looks_camera_device), template))
         if (!ProjectManager.getInstance().currentProject.isCastProject) {
             looksBrickList.add(CameraBrick())
             looksBrickList.add(ChooseCameraBrick())
@@ -880,24 +1322,16 @@ open class CategoryBricksFactory {
         looksBrickList.add(SetLookFilesBrick("look.png"))
         looksBrickList.add(LookToTableBrick("rTable", "gTable", "bTable", "aTable"))
         looksBrickList.add(LookFromTableBrick("rTable", "gTable", "bTable", "aTable"))
-        if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) looksBrickList.add(
-            PhiroRGBLightBrick(PhiroRGBLightBrick.Eye.BOTH, BrickValues.PHIRO_VALUE_RED, BrickValues.PHIRO_VALUE_GREEN, BrickValues.PHIRO_VALUE_BLUE)
-        )
-        looksBrickList.add(PaintNewLookBrick(context.getString(R.string.brick_paint_new_look_name)))
-        looksBrickList.add(EditLookBrick())
-        looksBrickList.add(CopyLookBrick(context.getString(R.string.brick_copy_look_name)))
-        looksBrickList.add(DeleteLookBrick())
-        looksBrickList.add(CreateDialogBrick("myDialog", "Фижма", "введите ваш ответ"))
-        looksBrickList.add(SetPositiveBrick("myDialog", "Да"))
-        looksBrickList.add(SetNeutralBrick("myDialog", "Позже"))
-        looksBrickList.add(SetNegativeBrick("myDialog", "Нет"))
-        looksBrickList.add(AddEditBrick("myDialog", "это текстовое поле"))
-        looksBrickList.add(AddRadioBrick("myDialog", "это выбор"))
-        looksBrickList.add(SetCallbackBrick("myDialog"))
-        looksBrickList.add(ShowDialogBrick("myDialog"))
+
+        looksBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_looks_primitives), template))
         looksBrickList.add(SquareBrick("square", "#ff0000", 0f, 0f, 100f, 100f, 1f, 0f, 0f))
         looksBrickList.add(DelSquareBrick("square"))
+        looksBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
+        if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
+            looksBrickList.add(PhiroRGBLightBrick(PhiroRGBLightBrick.Eye.BOTH, BrickValues.PHIRO_VALUE_RED, BrickValues.PHIRO_VALUE_GREEN, BrickValues.PHIRO_VALUE_BLUE))
+        }
 
+        looksBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_looks_buffers), template))
         looksBrickList.add(CreateBufferBrick("Map", "512", "512"))
         looksBrickList.add(SetBufferModeBrick(Formula("Map"), Formula(1), Formula(0)))
         looksBrickList.add(SetBufferAutoUpdateBrick(Formula("Map"), Formula(1)))
@@ -909,7 +1343,6 @@ open class CategoryBricksFactory {
         looksBrickList.add(ApplyBufferLookBrick("Map"))
         looksBrickList.add(SaveBufferBrick(Formula("Map"), Formula("buffer.png")))
 
-        looksBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
         return looksBrickList
     }
 
@@ -930,18 +1363,130 @@ open class CategoryBricksFactory {
         context: Context,
         isBackgroundSprite: Boolean
     ): List<Brick> {
+        val category = context.getString(R.string.category_data)
+        val prefKey = getPreferenceKeyForCategory(category, context)
+        if (prefKey != null) {
+            val defaultValue = category == context.getString(R.string.category_threed)
+            val isGroupingEnabled = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(prefKey, defaultValue)
+
+            if (!isGroupingEnabled) {
+                val dataBrickList: MutableList<Brick> = ArrayList()
+                dataBrickList.add(SetVariableBrick(BrickValues.SET_VARIABLE))
+                dataBrickList.add(ChangeVariableBrick(BrickValues.CHANGE_VARIABLE))
+                dataBrickList.add(SetVariableEasingBrick(1, 0f, 10f, 0f, 100f))
+                dataBrickList.add(ShowTextBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION))
+                dataBrickList.add(ShowTextColorSizeAlignmentBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
+                dataBrickList.add(ShowVarFontBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR, "font.ttf"))
+                dataBrickList.add(ShowText3Brick("myText", "Hello!", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
+                dataBrickList.add(ShowTextFontBrick("myText", "Ababuy!", "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
+                //dataBrickList.add(ShowTextRotationBrick("myText", "Ababuy!", 90f, "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
+                dataBrickList.add(HideTextBrick())
+                dataBrickList.add(HideText3Brick("myText"))
+                dataBrickList.add(WriteVariableOnDeviceBrick())
+                dataBrickList.add(ReadVariableFromDeviceBrick())
+                dataBrickList.add(WriteVariableToFileBrick(context.getString(R.string.brick_write_variable_to_file_default_value)))
+                dataBrickList.add(ReadVariableFromFileBrick(context.getString(R.string.brick_write_variable_to_file_default_value)))
+                dataBrickList.add(WriteToFilesBrick("variable.txt"))
+                dataBrickList.add(ReadFromFilesBrick("variable.txt"))
+                dataBrickList.add(DeleteFilesBrick("variable.txt"))
+                //dataBrickList.add(SaveLookBrick("my_actor.png"))
+                dataBrickList.add(FileUrlBrick("http://e95814zx.beget.tech/map.jpg", "fileFromUrl.jpg"))
+                dataBrickList.add(FilesUrlBrick("http://e95814zx.beget.tech/map.jpg", "fileFromUrl.jpg"))
+                dataBrickList.add(ZipBrick("myZip.zip", "my_actor.png,fileFromUrl.jpg"))
+                dataBrickList.add(GetZipFileNamesBrick("myZip.zip"))
+                dataBrickList.add(UnzipBrick("myZip.zip"))
+                dataBrickList.add(AddItemToUserListBrick(BrickValues.ADD_ITEM_TO_USERLIST))
+                dataBrickList.add(DeleteItemOfUserListBrick(BrickValues.DELETE_ITEM_OF_USERLIST))
+                dataBrickList.add(ClearUserListBrick())
+                dataBrickList.add(InsertItemIntoUserListBrick(BrickValues.INSERT_ITEM_INTO_USERLIST_VALUE, BrickValues.INSERT_ITEM_INTO_USERLIST_INDEX))
+                dataBrickList.add(ReplaceItemInUserListBrick(BrickValues.REPLACE_ITEM_IN_USERLIST_VALUE, BrickValues.REPLACE_ITEM_IN_USERLIST_INDEX))
+                dataBrickList.add(WriteListOnDeviceBrick())
+                dataBrickList.add(ReadListFromDeviceBrick())
+                dataBrickList.add(StoreCSVIntoUserListBrick(BrickValues.STORE_CSV_INTO_USERLIST_COLUMN, context.getString(R.string.brick_store_csv_into_userlist_data)))
+                dataBrickList.add(SplitBrick(context.getString(R.string.brick_store_csv_into_userlist_data), ","))
+                dataBrickList.add(StringToTableBrick("1,2,3\n4,5,6\n7,8,9", ",", "\n", "myTable"))
+                dataBrickList.add(RegexBrick("panda ananas", "a[^n]+"))
+                dataBrickList.add(WebRequestBrick(context.getString(R.string.brick_web_request_default_value)))
+                dataBrickList.add(PostWebRequestBrick("https://api.calfire.com/v2/texts?limit=50&offset=200",
+                    "Content-Type:application/json",
+                    "{\nusername=password\n}"))
+                dataBrickList.add(CreateVarBrick("variable1", "0"))
+                dataBrickList.add(DeleteVarBrick("variable1"))
+                dataBrickList.add(DeleteVarsBrick())
+                dataBrickList.add(CreateTableBrick("myTable", 5, 5))
+                dataBrickList.add(InsertTableBrick("myTable", "1", 3, 2))
+                dataBrickList.add(DeleteTableBrick("myTable"))
+                dataBrickList.add(DeleteAllTablesBrick())
+                dataBrickList.add(ShowToastBlock("Hello World!"))
+                dataBrickList.add(CopyTextBrick("Котлета"))
+                dataBrickList.add(ListenMicroBrick("100"))
+                dataBrickList.add(SquareBrick("square", "#ff0000", 0f, 0f, 100f, 100f, 1f, 0f, 0f))
+                dataBrickList.add(DelSquareBrick("square"))
+                when {
+                    !isBackgroundSprite -> dataBrickList.add(LookRequestBrick(BrickValues.LOOK_REQUEST))
+                    ProjectManager.getInstance().currentProject.xmlHeader.islandscapeMode() -> dataBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST_LANDSCAPE))
+                    else -> dataBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST))
+                }
+                dataBrickList.add(AskBrick(context.getString(R.string.brick_ask_default_question)))
+                if (SettingsFragment.isAISpeechRecognitionSharedPreferenceEnabled(context)) {
+                    dataBrickList.add(AskSpeechBrick(context.getString(R.string.brick_ask_speech_default_question)))
+                }
+                if (SettingsFragment.isEmroiderySharedPreferenceEnabled(context)) {
+                    dataBrickList.add(WriteEmbroideryToFileBrick(context.getString(R.string.brick_default_embroidery_file)))
+                }
+                if (SettingsFragment.isAISpeechRecognitionSharedPreferenceEnabled(context)) {
+                    dataBrickList.add(StartListeningBrick())
+                }
+                if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
+                    dataBrickList.add(SetNfcTagBrick(context.getString(R.string.brick_set_nfc_tag_default_value)))
+                }
+                return dataBrickList
+            }
+        }
+
         val dataBrickList: MutableList<Brick> = ArrayList()
+        val template = DeleteVarsBrick()
+
+        dataBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_data_variables), template))
         dataBrickList.add(SetVariableBrick(BrickValues.SET_VARIABLE))
         dataBrickList.add(ChangeVariableBrick(BrickValues.CHANGE_VARIABLE))
         dataBrickList.add(SetVariableEasingBrick(1, 0f, 10f, 0f, 100f))
+        dataBrickList.add(CreateVarBrick("variable1", "0"))
+        dataBrickList.add(DeleteVarBrick("variable1"))
+        dataBrickList.add(DeleteVarsBrick())
+
+        dataBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_data_lists), template))
+        dataBrickList.add(AddItemToUserListBrick(BrickValues.ADD_ITEM_TO_USERLIST))
+        dataBrickList.add(DeleteItemOfUserListBrick(BrickValues.DELETE_ITEM_OF_USERLIST))
+        dataBrickList.add(InsertItemIntoUserListBrick(BrickValues.INSERT_ITEM_INTO_USERLIST_VALUE, BrickValues.INSERT_ITEM_INTO_USERLIST_INDEX))
+        dataBrickList.add(ReplaceItemInUserListBrick(BrickValues.REPLACE_ITEM_IN_USERLIST_VALUE, BrickValues.REPLACE_ITEM_IN_USERLIST_INDEX))
+        dataBrickList.add(ClearUserListBrick())
+        dataBrickList.add(CreateTableBrick("myTable", 5, 5))
+        dataBrickList.add(InsertTableBrick("myTable", "1", 3, 2))
+        dataBrickList.add(DeleteTableBrick("myTable"))
+        dataBrickList.add(DeleteAllTablesBrick())
+
+        dataBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_data_visuals), template))
         dataBrickList.add(ShowTextBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION))
         dataBrickList.add(ShowTextColorSizeAlignmentBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
         dataBrickList.add(ShowVarFontBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR, "font.ttf"))
         dataBrickList.add(ShowText3Brick("myText", "Hello!", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
         dataBrickList.add(ShowTextFontBrick("myText", "Ababuy!", "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
-        //dataBrickList.add(ShowTextRotationBrick("myText", "Ababuy!", 90f, "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
         dataBrickList.add(HideTextBrick())
         dataBrickList.add(HideText3Brick("myText"))
+        dataBrickList.add(ShowToastBlock("Hello World!"))
+        dataBrickList.add(SquareBrick("square", "#ff0000", 0f, 0f, 100f, 100f, 1f, 0f, 0f))
+        dataBrickList.add(DelSquareBrick("square"))
+
+        dataBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_data_processing), template))
+        dataBrickList.add(StoreCSVIntoUserListBrick(BrickValues.STORE_CSV_INTO_USERLIST_COLUMN, context.getString(R.string.brick_store_csv_into_userlist_data)))
+        dataBrickList.add(SplitBrick(context.getString(R.string.brick_store_csv_into_userlist_data), ","))
+        dataBrickList.add(StringToTableBrick("1,2,3\n4,5,6\n7,8,9", ",", "\n", "myTable"))
+        dataBrickList.add(RegexBrick("panda ananas", "a[^n]+"))
+        dataBrickList.add(CopyTextBrick("Котлета"))
+
+        dataBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_data_files), template))
         dataBrickList.add(WriteVariableOnDeviceBrick())
         dataBrickList.add(ReadVariableFromDeviceBrick())
         dataBrickList.add(WriteVariableToFileBrick(context.getString(R.string.brick_write_variable_to_file_default_value)))
@@ -949,73 +1494,61 @@ open class CategoryBricksFactory {
         dataBrickList.add(WriteToFilesBrick("variable.txt"))
         dataBrickList.add(ReadFromFilesBrick("variable.txt"))
         dataBrickList.add(DeleteFilesBrick("variable.txt"))
-        //dataBrickList.add(SaveLookBrick("my_actor.png"))
-        dataBrickList.add(FileUrlBrick("http://e95814zx.beget.tech/map.jpg", "fileFromUrl.jpg"))
-        dataBrickList.add(FilesUrlBrick("http://e95814zx.beget.tech/map.jpg", "fileFromUrl.jpg"))
+        dataBrickList.add(WriteListOnDeviceBrick())
+        dataBrickList.add(ReadListFromDeviceBrick())
         dataBrickList.add(ZipBrick("myZip.zip", "my_actor.png,fileFromUrl.jpg"))
         dataBrickList.add(GetZipFileNamesBrick("myZip.zip"))
         dataBrickList.add(UnzipBrick("myZip.zip"))
-        dataBrickList.add(AddItemToUserListBrick(BrickValues.ADD_ITEM_TO_USERLIST))
-        dataBrickList.add(DeleteItemOfUserListBrick(BrickValues.DELETE_ITEM_OF_USERLIST))
-        dataBrickList.add(ClearUserListBrick())
-        dataBrickList.add(InsertItemIntoUserListBrick(BrickValues.INSERT_ITEM_INTO_USERLIST_VALUE, BrickValues.INSERT_ITEM_INTO_USERLIST_INDEX))
-        dataBrickList.add(ReplaceItemInUserListBrick(BrickValues.REPLACE_ITEM_IN_USERLIST_VALUE, BrickValues.REPLACE_ITEM_IN_USERLIST_INDEX))
-        dataBrickList.add(WriteListOnDeviceBrick())
-        dataBrickList.add(ReadListFromDeviceBrick())
-        dataBrickList.add(StoreCSVIntoUserListBrick(BrickValues.STORE_CSV_INTO_USERLIST_COLUMN, context.getString(R.string.brick_store_csv_into_userlist_data)))
-        dataBrickList.add(SplitBrick(context.getString(R.string.brick_store_csv_into_userlist_data), ","))
-        dataBrickList.add(StringToTableBrick("1,2,3\n4,5,6\n7,8,9", ",", "\n", "myTable"))
-        dataBrickList.add(RegexBrick("panda ananas", "a[^n]+"))
+
+        dataBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_data_web), template))
         dataBrickList.add(WebRequestBrick(context.getString(R.string.brick_web_request_default_value)))
         dataBrickList.add(PostWebRequestBrick("https://api.calfire.com/v2/texts?limit=50&offset=200",
-                                              "Content-Type:application/json",
-                                              "{\nusername=password\n}"))
-        dataBrickList.add(CreateVarBrick("variable1", "0"))
-        dataBrickList.add(DeleteVarBrick("variable1"))
-        dataBrickList.add(DeleteVarsBrick())
-        dataBrickList.add(CreateTableBrick("myTable", 5, 5))
-        dataBrickList.add(InsertTableBrick("myTable", "1", 3, 2))
-        dataBrickList.add(DeleteTableBrick("myTable"))
-        dataBrickList.add(DeleteAllTablesBrick())
-        dataBrickList.add(ShowToastBlock("Hello World!"))
-        dataBrickList.add(CopyTextBrick("Котлета"))
-        dataBrickList.add(ListenMicroBrick("100"))
-        dataBrickList.add(SquareBrick("square", "#ff0000", 0f, 0f, 100f, 100f, 1f, 0f, 0f))
-        dataBrickList.add(DelSquareBrick("square"))
+            "Content-Type:application/json",
+            "{\nusername=password\n}"))
+        dataBrickList.add(FileUrlBrick("http://e95814zx.beget.tech/map.jpg", "fileFromUrl.jpg"))
+        dataBrickList.add(FilesUrlBrick("http://e95814zx.beget.tech/map.jpg", "fileFromUrl.jpg"))
         when {
             !isBackgroundSprite -> dataBrickList.add(LookRequestBrick(BrickValues.LOOK_REQUEST))
             ProjectManager.getInstance().currentProject.xmlHeader.islandscapeMode() -> dataBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST_LANDSCAPE))
             else -> dataBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST))
         }
         dataBrickList.add(AskBrick(context.getString(R.string.brick_ask_default_question)))
+        dataBrickList.add(ListenMicroBrick("100"))
         if (SettingsFragment.isAISpeechRecognitionSharedPreferenceEnabled(context)) {
             dataBrickList.add(AskSpeechBrick(context.getString(R.string.brick_ask_speech_default_question)))
+            dataBrickList.add(StartListeningBrick())
         }
         if (SettingsFragment.isEmroiderySharedPreferenceEnabled(context)) {
             dataBrickList.add(WriteEmbroideryToFileBrick(context.getString(R.string.brick_default_embroidery_file)))
         }
-        if (SettingsFragment.isAISpeechRecognitionSharedPreferenceEnabled(context)) {
-            dataBrickList.add(StartListeningBrick())
-        }
         if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
             dataBrickList.add(SetNfcTagBrick(context.getString(R.string.brick_set_nfc_tag_default_value)))
         }
+
         return dataBrickList
     }
 
     @SuppressWarnings("ComplexMethod")
     protected fun setupDeviceCategoryList(context: Context, isBackgroundSprite: Boolean): List<Brick> {
-        val deviceBrickList: MutableList<Brick> = ArrayList()
-        deviceBrickList.add(ShowToastBlock("Hello World"))
-        deviceBrickList.add(CopyTextBrick("Котлета"))
-        deviceBrickList.add(ListenMicroBrick("100"))
-        deviceBrickList.add(RunJSBrick("1 + 2"))
-        deviceBrickList.add(RunLuaBrick("return 'Привет из Lua!'"))
-        deviceBrickList.add(LunoScriptBrick("MakeToast(\"Hey from Luno! :)\");"))
-        deviceBrickList.add(ClearPythonEnvironmentBrick())
-        deviceBrickList.add(LoadNativeModuleBrick("libz.so"))
-        deviceBrickList.add(LoadPythonLibraryBrick("telebot.whl"))
-        deviceBrickList.add(RunPythonScriptBrick("""import telebot
+        val category = context.getString(R.string.category_device)
+        val prefKey = getPreferenceKeyForCategory(category, context)
+        if (prefKey != null) {
+            val defaultValue = category == context.getString(R.string.category_threed)
+            val isGroupingEnabled = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(prefKey, defaultValue)
+
+            if (!isGroupingEnabled) {
+                val deviceBrickList: MutableList<Brick> = ArrayList()
+                deviceBrickList.add(ShowToastBlock("Hello World"))
+                deviceBrickList.add(CopyTextBrick("Котлета"))
+                deviceBrickList.add(ListenMicroBrick("100"))
+                deviceBrickList.add(RunJSBrick("1 + 2"))
+                deviceBrickList.add(RunLuaBrick("return 'Привет из Lua!'"))
+                deviceBrickList.add(LunoScriptBrick("MakeToast(\"Hey from Luno! :)\");"))
+                deviceBrickList.add(ClearPythonEnvironmentBrick())
+                deviceBrickList.add(LoadNativeModuleBrick("libz.so"))
+                deviceBrickList.add(LoadPythonLibraryBrick("telebot.whl"))
+                deviceBrickList.add(RunPythonScriptBrick("""import telebot
 
 API_TOKEN = 'YOUR_API_TOKEN' #Telegram Bot API
 
@@ -1032,34 +1565,126 @@ def send_hello(message):
 print("Bot is starting...")
 bot.polling()
 print("Bot has stopped.")""", "myVar"))
+                deviceBrickList.add(RunShellBrick("pip install --file pyTelegramBotApi"))
+                deviceBrickList.add(OpenFileBrick("fileFromUrl.txt"))
+                deviceBrickList.add(MoveFilesBrick("variable.txt"))
+                deviceBrickList.add(MoveDownloadsBrick("variable.txt"))
+                deviceBrickList.add(CopyProjectFileBrick("variable.txt", "copy_variable.txt"))
+                //deviceBrickList.add(OpenFilesBrick("my_actor.png"))
+                deviceBrickList.add(OrientationBrick())
+                deviceBrickList.add(CreateWebUrlBrick("myWebView", "https://google.com", "0", "0", "500", "700"))
+                deviceBrickList.add(CreateWebFileBrick("myWebView", "<html><body style='background-color:lightyellow;'>" +
+                        "<h1>Привет, мир!</h1>" +
+                        "<p>Это WebView, созданный прямо из кода.</p>" +
+                        "<button onclick='alert(\"JavaScript работает!\")'>Нажми меня</button>" +
+                        "</body></html>", "0", "0", "500", "700"))
+                deviceBrickList.add(SetWebBrick("myWebView"))
+                deviceBrickList.add(EvalWebBrick("Android.postMessage(\"Hello from WebView!\");", "myWebView"))
+                deviceBrickList.add(CreateVideoBrick("myVideoPlayer", "video.mp4", 0, 0, 750, 500, 1, 0))
+                deviceBrickList.add(PlayVideoBrick("myVideoPlayer"))
+                deviceBrickList.add(PauseVideoBrick("myVideoPlayer"))
+                deviceBrickList.add(SeekVideoBrick("myVideoPlayer", 30))
+                deviceBrickList.add(CreateTextFieldBrick("myTextField", "", 300, 500, 300, 200, 22, "#FFFFFF", "#88000000", "Напишите значение...", "#CCCCCC", "left", 0, 5, -1, "text", "если файла не существует - по умолчанию"))
+                //deviceBrickList.add(NativeLayerBrick(0))
+                deviceBrickList.add(AttachSOBrick("glView", "mylib.so"))
+                deviceBrickList.add(CreateGLViewBrick("glView", 100, 200, 500, 300))
+                deviceBrickList.add(SetViewPositionBrick("myVideoPlayer", 100, 200))
+                deviceBrickList.add(DeleteWebBrick("myWebView"))
+                deviceBrickList.add(BindVmOutputBrick())
+                deviceBrickList.add(RunVm2Brick("-kernel \"%PROJECT_FILES%/bzImage\" -initrd \"%PROJECT_FILES%/core.gz\" -append \"console=ttyS0 quiet\""))
+                deviceBrickList.add(RunVMBrick("1024", "2", "myDisk.qcow2", "flash.iso"))
+                deviceBrickList.add(CreateDiskBrick("myDisk.qcow2", "10G"))
+                deviceBrickList.add(ToggleDisplayBrick(1))
+                deviceBrickList.add(VmSetMonitorSizeBrick(1000, 800))
+                deviceBrickList.add(MouseEventBrick("0", "100", 1))
+                deviceBrickList.add(VmRelativeMouseMoveBrick(0, 100, 1))
+                deviceBrickList.add(KeyEventBrick("a", 1))
+                deviceBrickList.add(SendVmInputBrick("ls ~/"))
+                deviceBrickList.add(StopVMBrick())
+                deviceBrickList.add(RunChip8Brick("tetris.ch8"))
+                deviceBrickList.add(ScreenShotBrick())
+                deviceBrickList.add(ResetTimerBrick())
+                deviceBrickList.add(TestBrick())
+                deviceBrickList.add(HideStatusBarBrick())
+                deviceBrickList.add(ChooseFileBrick())
+                deviceBrickList.add(ExportProjectFileBrick("file.txt"))
+                deviceBrickList.add(SaveToInternalStorageBrick("file.txt", "myAwesomeApp/file.txt"))
+                deviceBrickList.add(LoadFromInternalStorageBrick("myAwesomeApp/file.txt"))
+                deviceBrickList.add(WhenBrick())
+                deviceBrickList.add(WhenTouchDownBrick())
+                if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
+                    deviceBrickList.add(WhenNfcBrick())
+                    deviceBrickList.add(SetNfcTagBrick(context.getString(R.string.brick_set_nfc_tag_default_value)))
+                }
+                deviceBrickList.add(WebRequestBrick(context.getString(R.string.brick_web_request_default_value)))
+                when {
+                    !isBackgroundSprite -> deviceBrickList.add(LookRequestBrick(BrickValues.LOOK_REQUEST))
+                    ProjectManager.getInstance().currentProject.xmlHeader.islandscapeMode() -> deviceBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST_LANDSCAPE))
+                    else -> deviceBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST))
+                }
+                deviceBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
+                deviceBrickList.add(VibrationBrick(BrickValues.VIBRATE_SECONDS))
+
+                if (SettingsFragment.isAISpeechSynthetizationSharedPreferenceEnabled(context)) {
+                    deviceBrickList.add(SpeakBrick(context.getString(R.string.brick_speak_default_value)))
+                    deviceBrickList.add(SpeakAndWaitBrick(context.getString(R.string.brick_speak_default_value)))
+                }
+
+                if (SettingsFragment.isAISpeechRecognitionSharedPreferenceEnabled(context)) {
+                    deviceBrickList.add(AskSpeechBrick(context.getString(R.string.brick_ask_speech_default_question)))
+                    deviceBrickList.add(StartListeningBrick())
+                }
+                if (ProjectManager.getInstance().currentProject != null && !ProjectManager.getInstance().currentProject.isCastProject) {
+                    deviceBrickList.add(CameraBrick())
+                    deviceBrickList.add(ChooseCameraBrick())
+                    deviceBrickList.add(FlashBrick())
+                }
+                deviceBrickList.add(WriteVariableOnDeviceBrick())
+                deviceBrickList.add(ReadVariableFromDeviceBrick())
+                deviceBrickList.add(WriteVariableToFileBrick(context.getString(R.string.brick_write_variable_to_file_default_value)))
+                deviceBrickList.add(ReadVariableFromFileBrick(context.getString(R.string.brick_write_variable_to_file_default_value)))
+                deviceBrickList.add(WriteListOnDeviceBrick())
+                deviceBrickList.add(ReadListFromDeviceBrick())
+                deviceBrickList.add(TapAtBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START))
+                deviceBrickList.add(TapForBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_DURATION))
+                deviceBrickList.add(TouchAndSlideBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_X_GOAL, BrickValues.TOUCH_Y_GOAL, BrickValues.TOUCH_DURATION))
+                if (SettingsFragment.isCastSharedPreferenceEnabled(context)) deviceBrickList.addAll(setupChromecastCategoryList(context))
+                if (SettingsFragment.isMindstormsNXTSharedPreferenceEnabled(context)) deviceBrickList.addAll(setupLegoNxtCategoryList())
+                if (SettingsFragment.isMindstormsEV3SharedPreferenceEnabled(context)) deviceBrickList.addAll(setupLegoEv3CategoryList())
+                if (SettingsFragment.isDroneSharedPreferenceEnabled(context)) deviceBrickList.addAll(setupDroneCategoryList())
+                if (SettingsFragment.isJSSharedPreferenceEnabled(context)) deviceBrickList.addAll(setupJumpingSumoCategoryList())
+                if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) deviceBrickList.addAll(setupPhiroProCategoryList())
+                if (SettingsFragment.isArduinoSharedPreferenceEnabled(context)) deviceBrickList.addAll(setupArduinoCategoryList())
+                if (SettingsFragment.isRaspiSharedPreferenceEnabled(context)) deviceBrickList.addAll(setupRaspiCategoryList())
+                if (SettingsFragment.isEmroiderySharedPreferenceEnabled(context)) deviceBrickList.addAll(setupEmbroideryCategoryList(context))
+                return deviceBrickList
+            }
+        }
+
+        val deviceBrickList: MutableList<Brick> = ArrayList()
+        val template = ResetTimerBrick()
+
+        deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_scripting), template))
+        deviceBrickList.add(RunJSBrick("1 + 2"))
+        deviceBrickList.add(RunLuaBrick("return 'Привет из Lua!'"))
+        deviceBrickList.add(LunoScriptBrick("MakeToast(\"Hey from Luno! :)\");"))
+        deviceBrickList.add(RunPythonScriptBrick("""import telebot
+API_TOKEN = 'YOUR_API_TOKEN' #Telegram Bot API
+bot = telebot.TeleBot(API_TOKEN)
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "Welcome! I am a simple test bot.")
+print("Bot is starting...")
+bot.polling()""", "myVar"))
+        deviceBrickList.add(LoadNativeModuleBrick("libz.so"))
+        deviceBrickList.add(LoadPythonLibraryBrick("telebot.whl"))
+        deviceBrickList.add(ClearPythonEnvironmentBrick())
         deviceBrickList.add(RunShellBrick("pip install --file pyTelegramBotApi"))
-        deviceBrickList.add(OpenFileBrick("fileFromUrl.txt"))
-        deviceBrickList.add(MoveFilesBrick("variable.txt"))
-        deviceBrickList.add(MoveDownloadsBrick("variable.txt"))
-        deviceBrickList.add(CopyProjectFileBrick("variable.txt", "copy_variable.txt"))
-        //deviceBrickList.add(OpenFilesBrick("my_actor.png"))
-        deviceBrickList.add(OrientationBrick())
-        deviceBrickList.add(CreateWebUrlBrick("myWebView", "https://google.com", "0", "0", "500", "700"))
-        deviceBrickList.add(CreateWebFileBrick("myWebView", "<html><body style='background-color:lightyellow;'>" +
-                "<h1>Привет, мир!</h1>" +
-                "<p>Это WebView, созданный прямо из кода.</p>" +
-                "<button onclick='alert(\"JavaScript работает!\")'>Нажми меня</button>" +
-                "</body></html>", "0", "0", "500", "700"))
-        deviceBrickList.add(SetWebBrick("myWebView"))
-        deviceBrickList.add(EvalWebBrick("Android.postMessage(\"Hello from WebView!\");", "myWebView"))
-        deviceBrickList.add(CreateVideoBrick("myVideoPlayer", "video.mp4", 0, 0, 750, 500, 1, 0))
-        deviceBrickList.add(PlayVideoBrick("myVideoPlayer"))
-        deviceBrickList.add(PauseVideoBrick("myVideoPlayer"))
-        deviceBrickList.add(SeekVideoBrick("myVideoPlayer", 30))
-        deviceBrickList.add(CreateTextFieldBrick("myTextField", "", 300, 500, 300, 200, 22, "#FFFFFF", "#88000000", "Напишите значение...", "#CCCCCC", "left", 0, 5, -1, "text", "если файла не существует - по умолчанию"))
-        //deviceBrickList.add(NativeLayerBrick(0))
-        deviceBrickList.add(AttachSOBrick("glView", "mylib.so"))
-        deviceBrickList.add(CreateGLViewBrick("glView", 100, 200, 500, 300))
-        deviceBrickList.add(SetViewPositionBrick("myVideoPlayer", 100, 200))
-        deviceBrickList.add(DeleteWebBrick("myWebView"))
-        deviceBrickList.add(BindVmOutputBrick())
-        deviceBrickList.add(RunVm2Brick("-kernel \"%PROJECT_FILES%/bzImage\" -initrd \"%PROJECT_FILES%/core.gz\" -append \"console=ttyS0 quiet\""))
+
+        deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_vm), template))
         deviceBrickList.add(RunVMBrick("1024", "2", "myDisk.qcow2", "flash.iso"))
+        deviceBrickList.add(RunVm2Brick("-kernel \"%PROJECT_FILES%/bzImage\" -initrd \"%PROJECT_FILES%/core.gz\" -append \"console=ttyS0 quiet\""))
+        deviceBrickList.add(StopVMBrick())
         deviceBrickList.add(CreateDiskBrick("myDisk.qcow2", "10G"))
         deviceBrickList.add(ToggleDisplayBrick(1))
         deviceBrickList.add(VmSetMonitorSizeBrick(1000, 800))
@@ -1067,54 +1692,87 @@ print("Bot has stopped.")""", "myVar"))
         deviceBrickList.add(VmRelativeMouseMoveBrick(0, 100, 1))
         deviceBrickList.add(KeyEventBrick("a", 1))
         deviceBrickList.add(SendVmInputBrick("ls ~/"))
-        deviceBrickList.add(StopVMBrick())
+        deviceBrickList.add(BindVmOutputBrick())
         deviceBrickList.add(RunChip8Brick("tetris.ch8"))
-        deviceBrickList.add(ScreenShotBrick())
-        deviceBrickList.add(ResetTimerBrick())
-        deviceBrickList.add(TestBrick())
-        deviceBrickList.add(HideStatusBarBrick())
+
+        deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_views), template))
+        deviceBrickList.add(CreateWebUrlBrick("myWebView", "https://google.com", "0", "0", "500", "700"))
+        deviceBrickList.add(CreateWebFileBrick("myWebView", "<html><body><h1>Привет!</h1></body></html>", "0", "0", "500", "700"))
+        deviceBrickList.add(SetWebBrick("myWebView"))
+        deviceBrickList.add(EvalWebBrick("Android.postMessage(\"Hello from WebView!\");", "myWebView"))
+        deviceBrickList.add(CreateVideoBrick("myVideoPlayer", "video.mp4", 0, 0, 750, 500, 1, 0))
+        deviceBrickList.add(PlayVideoBrick("myVideoPlayer"))
+        deviceBrickList.add(PauseVideoBrick("myVideoPlayer"))
+        deviceBrickList.add(SeekVideoBrick("myVideoPlayer", 30))
+        deviceBrickList.add(CreateTextFieldBrick("myTextField", "", 300, 500, 300, 200, 22, "#FFFFFF", "#88000000", "Напишите значение...", "#CCCCCC", "left", 0, 5, -1, "text", "если файла не существует - по умолчанию"))
+        deviceBrickList.add(AttachSOBrick("glView", "mylib.so"))
+        deviceBrickList.add(CreateGLViewBrick("glView", 100, 200, 500, 300))
+        deviceBrickList.add(SetViewPositionBrick("myVideoPlayer", 100, 200))
+        deviceBrickList.add(DeleteWebBrick("myWebView"))
+
+        deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_storage), template))
+        deviceBrickList.add(OpenFileBrick("fileFromUrl.txt"))
         deviceBrickList.add(ChooseFileBrick())
+        deviceBrickList.add(MoveFilesBrick("variable.txt"))
+        deviceBrickList.add(MoveDownloadsBrick("variable.txt"))
+        deviceBrickList.add(CopyProjectFileBrick("variable.txt", "copy_variable.txt"))
         deviceBrickList.add(ExportProjectFileBrick("file.txt"))
         deviceBrickList.add(SaveToInternalStorageBrick("file.txt", "myAwesomeApp/file.txt"))
         deviceBrickList.add(LoadFromInternalStorageBrick("myAwesomeApp/file.txt"))
-        deviceBrickList.add(WhenBrick())
-        deviceBrickList.add(WhenTouchDownBrick())
-        if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
-            deviceBrickList.add(WhenNfcBrick())
-            deviceBrickList.add(SetNfcTagBrick(context.getString(R.string.brick_set_nfc_tag_default_value)))
-        }
-        deviceBrickList.add(WebRequestBrick(context.getString(R.string.brick_web_request_default_value)))
-        when {
-            !isBackgroundSprite -> deviceBrickList.add(LookRequestBrick(BrickValues.LOOK_REQUEST))
-            ProjectManager.getInstance().currentProject.xmlHeader.islandscapeMode() -> deviceBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST_LANDSCAPE))
-            else -> deviceBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST))
-        }
-        deviceBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
-        deviceBrickList.add(VibrationBrick(BrickValues.VIBRATE_SECONDS))
-
-        if (SettingsFragment.isAISpeechSynthetizationSharedPreferenceEnabled(context)) {
-            deviceBrickList.add(SpeakBrick(context.getString(R.string.brick_speak_default_value)))
-            deviceBrickList.add(SpeakAndWaitBrick(context.getString(R.string.brick_speak_default_value)))
-        }
-
-        if (SettingsFragment.isAISpeechRecognitionSharedPreferenceEnabled(context)) {
-            deviceBrickList.add(AskSpeechBrick(context.getString(R.string.brick_ask_speech_default_question)))
-            deviceBrickList.add(StartListeningBrick())
-        }
-        if (ProjectManager.getInstance().currentProject != null && !ProjectManager.getInstance().currentProject.isCastProject) {
-            deviceBrickList.add(CameraBrick())
-            deviceBrickList.add(ChooseCameraBrick())
-            deviceBrickList.add(FlashBrick())
-        }
         deviceBrickList.add(WriteVariableOnDeviceBrick())
         deviceBrickList.add(ReadVariableFromDeviceBrick())
         deviceBrickList.add(WriteVariableToFileBrick(context.getString(R.string.brick_write_variable_to_file_default_value)))
         deviceBrickList.add(ReadVariableFromFileBrick(context.getString(R.string.brick_write_variable_to_file_default_value)))
         deviceBrickList.add(WriteListOnDeviceBrick())
         deviceBrickList.add(ReadListFromDeviceBrick())
+
+        deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_hardware), template))
+        deviceBrickList.add(OrientationBrick())
+        deviceBrickList.add(VibrationBrick(BrickValues.VIBRATE_SECONDS))
+        deviceBrickList.add(ScreenShotBrick())
+        deviceBrickList.add(HideStatusBarBrick())
+        if (ProjectManager.getInstance().currentProject != null && !ProjectManager.getInstance().currentProject.isCastProject) {
+            deviceBrickList.add(CameraBrick())
+            deviceBrickList.add(ChooseCameraBrick())
+            deviceBrickList.add(FlashBrick())
+        }
+
+        deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_speech), template))
+        deviceBrickList.add(ShowToastBlock("Hello World"))
+        deviceBrickList.add(CopyTextBrick("Котлета"))
+        deviceBrickList.add(ListenMicroBrick("100"))
+        deviceBrickList.add(AskBrick(context.getString(R.string.brick_ask_default_question)))
+        if (SettingsFragment.isAISpeechSynthetizationSharedPreferenceEnabled(context)) {
+            deviceBrickList.add(SpeakBrick(context.getString(R.string.brick_speak_default_value)))
+            deviceBrickList.add(SpeakAndWaitBrick(context.getString(R.string.brick_speak_default_value)))
+        }
+        if (SettingsFragment.isAISpeechRecognitionSharedPreferenceEnabled(context)) {
+            deviceBrickList.add(AskSpeechBrick(context.getString(R.string.brick_ask_speech_default_question)))
+            deviceBrickList.add(StartListeningBrick())
+        }
+
+        deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_emulation), template))
         deviceBrickList.add(TapAtBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START))
         deviceBrickList.add(TapForBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_DURATION))
         deviceBrickList.add(TouchAndSlideBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_X_GOAL, BrickValues.TOUCH_Y_GOAL, BrickValues.TOUCH_DURATION))
+        deviceBrickList.add(WebRequestBrick(context.getString(R.string.brick_web_request_default_value)))
+        deviceBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
+        when {
+            !isBackgroundSprite -> deviceBrickList.add(LookRequestBrick(BrickValues.LOOK_REQUEST))
+            ProjectManager.getInstance().currentProject.xmlHeader.islandscapeMode() -> deviceBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST_LANDSCAPE))
+            else -> deviceBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST))
+        }
+
+        deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_misc), template))
+        deviceBrickList.add(ResetTimerBrick())
+        deviceBrickList.add(TestBrick())
+        deviceBrickList.add(WhenBrick())
+        deviceBrickList.add(WhenTouchDownBrick())
+        if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
+            deviceBrickList.add(WhenNfcBrick())
+            deviceBrickList.add(SetNfcTagBrick(context.getString(R.string.brick_set_nfc_tag_default_value)))
+        }
+
         if (SettingsFragment.isCastSharedPreferenceEnabled(context)) deviceBrickList.addAll(setupChromecastCategoryList(context))
         if (SettingsFragment.isMindstormsNXTSharedPreferenceEnabled(context)) deviceBrickList.addAll(setupLegoNxtCategoryList())
         if (SettingsFragment.isMindstormsEV3SharedPreferenceEnabled(context)) deviceBrickList.addAll(setupLegoEv3CategoryList())
@@ -1124,6 +1782,7 @@ print("Bot has stopped.")""", "myVar"))
         if (SettingsFragment.isArduinoSharedPreferenceEnabled(context)) deviceBrickList.addAll(setupArduinoCategoryList())
         if (SettingsFragment.isRaspiSharedPreferenceEnabled(context)) deviceBrickList.addAll(setupRaspiCategoryList())
         if (SettingsFragment.isEmroiderySharedPreferenceEnabled(context)) deviceBrickList.addAll(setupEmbroideryCategoryList(context))
+
         return deviceBrickList
     }
 
@@ -1236,23 +1895,61 @@ print("Bot has stopped.")""", "myVar"))
     }
 
     private fun setupNeuralCategoryList(context: Context): List<Brick> {
+        val category = context.getString(R.string.category_neural)
+        val prefKey = getPreferenceKeyForCategory(category, context)
+        if (prefKey != null) {
+            val defaultValue = category == context.getString(R.string.category_threed)
+            val isGroupingEnabled = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(prefKey, defaultValue)
+
+            if (!isGroupingEnabled) {
+                val neuralBrickList: MutableList<Brick> = ArrayList()
+                //neuralBrickList.add(SetDnsBrick("dns.comss.one"))
+                neuralBrickList.add(SetGeminiKeyBrick("api_key"))
+                neuralBrickList.add(AskGeminiBrick("Hello!"))
+                neuralBrickList.add(AskGemini2Brick("Hello! How are you?", "models/gemini-2.5-flash"))
+                neuralBrickList.add(AskGPTBrick("Привет!", "Отвечай на все словом \"апельсин\""))
+                neuralBrickList.add(CreateFloatBrick("FloatArray"))
+                neuralBrickList.add(PutFloatBrick("FloatArray", 1, 0))
+                neuralBrickList.add(TableToFloatBrick("myTable", "FloatArray"))
+                neuralBrickList.add(DeleteFloatBrick("FloatArray", 0))
+                neuralBrickList.add(LoadNNBrick("model.onnx"))
+                neuralBrickList.add(PredictNNBrick("FloatArray"))
+                neuralBrickList.add(UnloadNNBrick())
+                neuralBrickList.add(ResizeImgBrick("image.png", 64, 64))
+                neuralBrickList.add(GrayscaleImgBrick("image.png"))
+                neuralBrickList.add(NormalizeImgBrick("image.png", "rTable", "gTable", "bTable"))
+                neuralBrickList.add(CutLookBrick(100, 200, 300, 400))
+                return neuralBrickList
+            }
+        }
+
         val neuralBrickList: MutableList<Brick> = ArrayList()
-        //neuralBrickList.add(SetDnsBrick("dns.comss.one"))
+        val template = UnloadNNBrick()
+
+        neuralBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_neural_llm), template))
         neuralBrickList.add(SetGeminiKeyBrick("api_key"))
         neuralBrickList.add(AskGeminiBrick("Hello!"))
         neuralBrickList.add(AskGemini2Brick("Hello! How are you?", "models/gemini-2.5-flash"))
         neuralBrickList.add(AskGPTBrick("Привет!", "Отвечай на все словом \"апельсин\""))
+
+        neuralBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_neural_local), template))
+        neuralBrickList.add(LoadNNBrick("model.onnx"))
+        neuralBrickList.add(PredictNNBrick("FloatArray"))
+        neuralBrickList.add(UnloadNNBrick())
+
+        neuralBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_neural_tensors), template))
         neuralBrickList.add(CreateFloatBrick("FloatArray"))
         neuralBrickList.add(PutFloatBrick("FloatArray", 1, 0))
         neuralBrickList.add(TableToFloatBrick("myTable", "FloatArray"))
         neuralBrickList.add(DeleteFloatBrick("FloatArray", 0))
-        neuralBrickList.add(LoadNNBrick("model.onnx"))
-        neuralBrickList.add(PredictNNBrick("FloatArray"))
-        neuralBrickList.add(UnloadNNBrick())
+
+        neuralBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_neural_vision), template))
         neuralBrickList.add(ResizeImgBrick("image.png", 64, 64))
         neuralBrickList.add(GrayscaleImgBrick("image.png"))
         neuralBrickList.add(NormalizeImgBrick("image.png", "rTable", "gTable", "bTable"))
         neuralBrickList.add(CutLookBrick(100, 200, 300, 400))
+
         return neuralBrickList
     }
 
@@ -1352,6 +2049,10 @@ print("Bot has stopped.")""", "myVar"))
     private fun setupThreedCategoryList(context: Context): List<Brick> {
         val threedBrickList: MutableList<Brick> = ArrayList()
 
+        val template = CreateCubeBrick()
+
+        // Objects & Meshes
+        threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_objects), template))
         threedBrickList.add(Create3dObjectBrick("myObject", "model.obj"))
         threedBrickList.add(CreateCubeBrick("myObject"))
         threedBrickList.add(CreateSphereBrick("myObject"))
@@ -1362,28 +2063,20 @@ print("Bot has stopped.")""", "myVar"))
         threedBrickList.add(SetActiveBrick("myObject", true))
         threedBrickList.add(SetObjectColorBrick("myObject", 1.0, 0.0, 0.0))
         threedBrickList.add(SetObjectTextureBrick("myObject", "texture.png"))
+        threedBrickList.add(BakeByPrefixBrick("wall_", "bakedObject"))
+
+        // Motion & Hierarchy
+        threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_transform), template))
         threedBrickList.add(Set3dPositionBrick("myObject", 10.0, -5.0, 0.0))
         threedBrickList.add(Set3dRotationBrick("myObject", 1.0, 0.0, 0.0))
         threedBrickList.add(Set3dScaleBrick("myObject", 2.0, 1.0, 1.5))
         threedBrickList.add(ObjectLookAtBrick("myObject", 0.0, 0.0, 0.0))
         threedBrickList.add(ThreedAlignNormalBrick("myObject", -1.0, 0.0, 0.0))
-        threedBrickList.add(SetPhysicsStateBrick("myObject", 2, 0, 1.0))
-        threedBrickList.add(SetRotationLockBrick("myObject", true, false, true))
-        threedBrickList.add(Set3dGravityBrick(0.0, -9.81, 0.0))
-        threedBrickList.add(Set3dVelocityBrick("myObject", 0.0, 25.0, 0.0))
-        threedBrickList.add(Apply3dForceBrick("myObject", 5.0, 0.0, 0.0))
-        threedBrickList.add(Set3dFrictionBrick("myObject", 0.7))
-        threedBrickList.add(SetRestitutionBrick("myObject", 0.5))
-        threedBrickList.add(SetCCDBrick("myObject", true))
         threedBrickList.add(SetParentBrick("child", "parent"))
         threedBrickList.add(RemoveParentBrick("child"))
-        threedBrickList.add(CreatePointJointBrick("joint", "objA", "objB"))
-        threedBrickList.add(ThreedCreateFixedConstraintBrick("joint", "objA", "objB"))
-        threedBrickList.add(AddHingeBrick())
-        threedBrickList.add(SetHingeMotorBrick("joint", 45.0, 10.0))
-        threedBrickList.add(RemoveJointBrick("joint"))
-        threedBrickList.add(BakeByPrefixBrick("wall_", "bakedObject"))
-        threedBrickList.add(SetAIBrick("myObject", 1, "followingObject", 2f, 1f, 10f, 1f, 1))
+
+        // Camera
+        threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_camera), template))
         threedBrickList.add(SetCameraPositionBrick(200.0, 200.0, 200.0))
         threedBrickList.add(CameraLookAtBrick(0.0, 0.0, 0.0))
         threedBrickList.add(SetCameraRotationBrick(0.0, 180.0, 0.0))
@@ -1393,12 +2086,42 @@ print("Bot has stopped.")""", "myVar"))
         threedBrickList.add(SetThirdPersonCameraBrick("myObject", 10.0, 10.0, -20.0))
         threedBrickList.add(SetFreeCameraBrick())
         threedBrickList.add(CameraTouchControlBrick(1, 1f, 0f, 0f, 50f, 50f))
+
+        // Physics
+        threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_physics), template))
+        threedBrickList.add(SetPhysicsStateBrick("myObject", 2, 0, 1.0))
+        threedBrickList.add(SetRotationLockBrick("myObject", true, false, true))
+        threedBrickList.add(Set3dGravityBrick(0.0, -9.81, 0.0))
+        threedBrickList.add(Set3dVelocityBrick("myObject", 0.0, 25.0, 0.0))
+        threedBrickList.add(Apply3dForceBrick("myObject", 5.0, 0.0, 0.0))
+        threedBrickList.add(Set3dFrictionBrick("myObject", 0.7))
+        threedBrickList.add(SetRestitutionBrick("myObject", 0.5))
+        threedBrickList.add(SetCCDBrick("myObject", true))
+        threedBrickList.add(CastRayBrick("ray", 100.0, 100.0, 100.0, -1.0, -1.0, -1.0))
+        threedBrickList.add(AttachRaySensorBrick("ray", "myObject", 1f, 1f, 1f, 0f, -1f, 0f, 100f))
+        threedBrickList.add(CreatePointJointBrick("joint", "objA", "objB"))
+        threedBrickList.add(ThreedCreateFixedConstraintBrick("joint", "objA", "objB"))
+        threedBrickList.add(AddHingeBrick())
+        threedBrickList.add(SetHingeMotorBrick("joint", 45.0, 10.0))
+        threedBrickList.add(RemoveJointBrick("joint"))
+
+        // Environment
+        threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_render), template))
         threedBrickList.add(SetAmbientLightBrick(0.8, 0.8, 0.8))
         threedBrickList.add(SetDirectionalLightBrick("sun", 0.8, 0.8, 0.8, -1.0, -0.8, -0.2))
         threedBrickList.add(SetSkyColorBrick(0.5, 0.6, 1.0))
         threedBrickList.add(SetFogBrick(0.5f, 0.6f, 1f, 0.1f))
-        threedBrickList.add(CastRayBrick("ray", 100.0, 100.0, 100.0, -1.0, -1.0, -1.0))
-        threedBrickList.add(AttachRaySensorBrick("ray", "myObject", 1f, 1f, 1f, 0f, -1f, 0f, 100f))
+        threedBrickList.add(EnablePbrRenderBrick(1))
+        threedBrickList.add(SetBackgroundLightBrick(0.3))
+        threedBrickList.add(SetSkyboxBrick("skybox.hdr"))
+        threedBrickList.add(SetPointLightBrick("sun", 100.0, 100.0, 0.0, 255, 255, 230, 5.0, 300.0))
+        threedBrickList.add(SetSpotLightBrick("sun", 100.0, 100.0, 0.0, 0.3, -0.4, 0.2, 255, 255, 230, 5.0, 60.0, 1.0, 300.0))
+        threedBrickList.add(SetDirectionalLight2Brick(0.3, -0.2, -0.3, 5.0))
+        threedBrickList.add(RemovePbrLightBrick("sun"))
+        threedBrickList.add(SetShadowQualityBrick(Formula(100), Formula(2048)))
+
+        // Materials
+        threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_shaders), template))
         threedBrickList.add(SetShaderCodeBrick("""attribute vec3 a_position;
 attribute vec3 a_normal;
 attribute vec2 a_texCoord0;
@@ -1439,33 +2162,31 @@ void main() {
 }"""))
         threedBrickList.add(SetShaderUniformVec3Brick("lightColor", 0.4, 1.0, 0.4))
         threedBrickList.add(SetShaderUniformFloatBrick("meaningOfLife", 42.0))
-        threedBrickList.add(VoxelCreateWorldBrick(Formula("chunk1"), Formula(16), Formula(16), Formula(16), Formula(16), Formula(0), Formula(0)))
-        threedBrickList.add(VoxelConfigBrick("1", 0, 0, 0))
-        threedBrickList.add(VoxelSetTransparentBrick(1, 1))
-        threedBrickList.add(VoxelSetBlockBrick("chunk1", 0.0, 0.0, 0.0, 1, 0))
-        threedBrickList.add(VoxelLoadStringBrick(Formula("chunk1"), Formula("1$1#0$0&1$1#0$0"), Formula("$"), Formula("#"), Formula("&")))
-        threedBrickList.add(VoxelBuildBrick(Formula("chunk1"), Formula("atlas.png"),Formula(16), Formula(16)))
-        threedBrickList.add(VoxelDeleteBrick(Formula("chunk1")))
-        threedBrickList.add(EnablePbrRenderBrick(1))
-        //threedBrickList.add(SetShadowsBrick(Formula(1)))
         threedBrickList.add(SetMaterialBrick("myObject", 255.0, 0.0, 255.0, 255.0, 100.0, 0.0, "none.png", "none.png", "none.png"))
         threedBrickList.add(SetTextureTilingBrick("myObject", 10f, 10f))
+        threedBrickList.add(SetAnisotropicFilterBrick("myObject", 2.0))
+
+        // Animations
+        threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_animation), template))
         threedBrickList.add(PlayAnimationBrick("myObject", "idle", -1, 1.0, 0.2))
         threedBrickList.add(SetAnimationSpeedBrick("myObject", 10f))
         threedBrickList.add(StopAnimationBrick("myObject"))
         threedBrickList.add(KeyframeAnimationBrick())
         threedBrickList.add(ThreedAttachObjectToBoneBrick("attachedObject", "hand", "Hand_R", 0.0, 0.0, 0.0))
         threedBrickList.add(ThreedBindBoneToObjectBrick("Hand_R", "hand", "myObject"))
-        threedBrickList.add(SetAnisotropicFilterBrick("myObject", 2.0))
-        threedBrickList.add(SetPointLightBrick("sun", 100.0, 100.0, 0.0, 255, 255, 230, 5.0, 300.0))
-        threedBrickList.add(SetSpotLightBrick("sun", 100.0, 100.0, 0.0, 0.3, -0.4, 0.2, 255, 255, 230, 5.0, 60.0, 1.0, 300.0))
-        threedBrickList.add(SetDirectionalLight2Brick(0.3, -0.2, -0.3, 5.0))
-        threedBrickList.add(SetBackgroundLightBrick(0.3))
-        threedBrickList.add(RemovePbrLightBrick("sun"))
-        threedBrickList.add(SetShadowQualityBrick(Formula(100), Formula(2048)))
-        threedBrickList.add(LoadSceneBrick("my_level.rscene"))
-        threedBrickList.add(LoadSceneAdditiveBrick("my_level.rscene"))
-        threedBrickList.add(SetSkyboxBrick("skybox.hdr"))
+
+        // Voxels
+        threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_voxels), template))
+        threedBrickList.add(VoxelCreateWorldBrick(Formula("chunk1"), Formula(16), Formula(16), Formula(16), Formula(16), Formula(0), Formula(0)))
+        threedBrickList.add(VoxelConfigBrick("1", 0, 0, 0))
+        threedBrickList.add(VoxelSetTransparentBrick(1, 1))
+        threedBrickList.add(VoxelSetBlockBrick("chunk1", 0.0, 0.0, 0.0, 1, 0))
+        threedBrickList.add(VoxelLoadStringBrick(Formula("chunk1"), Formula("1$1#0$0&1$1#0$0"), Formula("$"), Formula("#"), Formula("&")))
+        threedBrickList.add(VoxelBuildBrick(Formula("chunk1"), Formula("atlas.png"), Formula(16), Formula(16)))
+        threedBrickList.add(VoxelDeleteBrick(Formula("chunk1")))
+
+        // Sound
+        threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_sound), template))
         threedBrickList.add(PrepareSoundBrick2("sound.mp3", "sound"))
         threedBrickList.add(PrepareMusicAs3DSoundBrick("sound.mp3", "sound"))
         threedBrickList.add(PlaySoundAtPositionBrick("sound", "soundInstance"))
@@ -1474,6 +2195,12 @@ void main() {
         threedBrickList.add(Set3DSoundPositionBrick("soundInstance", 10, 10, 10))
         threedBrickList.add(StopSoundBrick2("soundInstance"))
         threedBrickList.add(SetGlobalSoundVolumeBrick(60.0))
+
+        // Scenes, Effects & AI
+        threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_effects), template))
+        threedBrickList.add(SetAIBrick("myObject", 1, "followingObject", 2f, 1f, 10f, 1f, 1))
+        threedBrickList.add(LoadSceneBrick("my_level.rscene"))
+        threedBrickList.add(LoadSceneAdditiveBrick("my_level.rscene"))
         threedBrickList.add(SetPostProcessingBrick(1, 4, Formula(2)))
         threedBrickList.add(SetPostProcessingNewBrick())
         threedBrickList.add(CreateParticlesBrick("particles"))
@@ -1566,5 +2293,45 @@ void main() {
         config.locale = savedLocale
         res.updateConfiguration(config, null)
         return category
+    }
+
+    fun setupFavoriteBricksCategoryList(context: Context, isBackgroundSprite: Boolean): List<Brick> {
+        val favoriteClassNames = org.catrobat.catroid.utils.FavoriteBricksManager.getFavoriteClassNames(context)
+        if (favoriteClassNames.isEmpty()) {
+            return emptyList()
+        }
+        val allBricks = getAllAvailableBricks(context, isBackgroundSprite)
+        return allBricks.filter { it.javaClass.name in favoriteClassNames }
+    }
+
+    fun getAllAvailableBricks(context: Context, isBackgroundSprite: Boolean): List<Brick> {
+        val all = mutableListOf<Brick>()
+        all.addAll(setupEventCategoryList(context, isBackgroundSprite))
+        all.addAll(setupControlCategoryList(context))
+        all.addAll(setupMotionCategoryList(context, isBackgroundSprite))
+        all.addAll(setupSoundCategoryList(context))
+        all.addAll(setupLooksCategoryList(context, isBackgroundSprite))
+        all.addAll(setupPenCategoryList(isBackgroundSprite))
+        all.addAll(setupDataCategoryList(context, isBackgroundSprite))
+        all.addAll(setupDeviceCategoryList(context, isBackgroundSprite))
+        all.addAll(setupLegoNxtCategoryList())
+        all.addAll(setupLegoEv3CategoryList())
+        all.addAll(setupDroneCategoryList())
+        all.addAll(setupJumpingSumoCategoryList())
+        all.addAll(setupPhiroProCategoryList())
+        all.addAll(setupChromecastCategoryList(context))
+        all.addAll(setupRaspiCategoryList())
+        all.addAll(setupEmbroideryCategoryList(context))
+        all.addAll(setupPlotCategoryList(context))
+        all.addAll(setupNeuralCategoryList(context))
+        all.addAll(setupPocketensorCategoryList(context))
+        all.addAll(setupFast2dCategoryList(context))
+        all.addAll(setupFileCategoryList(context))
+        all.addAll(setupThreedCategoryList(context))
+        all.addAll(setupInternetCategoryList(context))
+        all.addAll(setupAssertionsCategoryList(context))
+        all.addAll(setupLibrariesCategoryList())
+
+        return all.distinctBy { it.javaClass.name }
     }
 }

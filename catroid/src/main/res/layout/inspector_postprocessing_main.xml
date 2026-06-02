@@ -5,16 +5,14 @@
     android:layout_height="wrap_content"
     android:padding="8dp">
 
-    <!-- Глобальный переключатель -->
     <CheckBox
         android:id="@+id/check_pp_active"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Enable Post Processing"
+        android:text="@string/editor_3d_pp_enable"
         android:textColor="@android:color/white"
         android:buttonTint="@color/accent"/>
 
-    <!-- Настройка качества (разрешения) -->
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
@@ -26,7 +24,7 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="Quality Scale (0.1 - 1.0)"
+            android:text="@string/editor_3d_pp_quality"
             android:textColor="@android:color/white"/>
 
         <EditText
@@ -44,19 +42,17 @@
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"/>
 
-    <!-- Сюда будут добавляться эффекты -->
     <LinearLayout
         android:id="@+id/container_effects_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical" />
 
-    <!-- Кнопка добавления -->
     <Button
         android:id="@+id/btn_add_effect"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add Effect"
+        android:text="@string/editor_3d_pp_add_effect"
         android:layout_marginTop="8dp"
         android:backgroundTint="#444444"
         android:textColor="@android:color/white"/>

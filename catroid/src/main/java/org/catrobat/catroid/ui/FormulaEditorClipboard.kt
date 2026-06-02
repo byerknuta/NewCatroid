@@ -1,68 +1,84 @@
-/*
- * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2023 The Catrobat Team
- * (<http://developer.catrobat.org/credits>)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * An additional term exception under section 7 of the GNU Affero
- * General Public License, version 3, is available at
- * http://developer.catrobat.org/license_additional_term
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package org.catrobat.catroid.ui
 
 import android.annotation.SuppressLint
-import androidx.annotation.VisibleForTesting
+import android.content.Context
+import androidx.appcompat.app.AlertDialog
+import org.catrobat.catroid.R
 import org.catrobat.catroid.formulaeditor.FormulaEditorEditText
 import org.catrobat.catroid.formulaeditor.InternToken
-
 import java.util.ArrayList
 
 @SuppressLint("InflateParams")
 object FormulaEditorClipboard {
+    data class ClipboardItem(val tokens: List<InternToken>, val label: String)
 
-    // 2. Поле для хранения теперь часть синглтона. Делаем его приватным.
-    private var clipboard: List<InternToken>? = null
+    private val history = ArrayList<ClipboardItem>()
+    private const val MAX_HISTORY_SIZE = 10
 
-    // 3. Вспомогательные методы делаем приватными.
     private fun cloneTokens(tokens: List<InternToken>): List<InternToken> {
         val clonedTokens = ArrayList<InternToken>()
         tokens.forEach { token -> clonedTokens.add(token.deepCopy()) }
         return clonedTokens
     }
 
-    private fun copyTokens(tokens: List<InternToken>?) {
-        clipboard = if (tokens != null) {
-            cloneTokens(tokens)
-        } else {
-            null
-        }
-    }
-
-    // 4. Публичные методы теперь принимают EditText как параметр.
     fun checkIfSelectedAndCopy(editText: FormulaEditorEditText) {
-        if (editText.selectedTokens != null) {
-            copyTokens(editText.selectedTokens)
-        } else {
-            // Если ничего не выделено, копируем всю формулу целиком
-            copyTokens(editText.internFormula.internTokenFormulaList)
+        val tokens = editText.selectedTokens ?: editText.internFormula?.internTokenFormulaList
+
+        if (tokens != null && tokens.isNotEmpty()) {
+            val fullText = editText.stringFromInternFormula ?: ""
+
+            val label = if (editText.selectedTokens != null) {
+                val start = editText.internFormula?.externSelectionStartIndex ?: -1
+                val end = editText.internFormula?.externSelectionEndIndex ?: -1
+
+                if (start in 0..end && end <= fullText.length) {
+                    val substring = fullText.substring(start, end).trim()
+                    substring.ifEmpty { "Formula" }
+                } else {
+                    val singleTokenText = editText.selectedTextFromInternFormula
+                    if (!singleTokenText.isNullOrEmpty()) singleTokenText else "Formula"
+                }
+            } else {
+                fullText.trim().ifEmpty { "Formula" }
+            }
+
+            val cloned = cloneTokens(tokens)
+            val item = ClipboardItem(cloned, label)
+
+            history.removeAll { it.label == label }
+            history.add(0, item)
+
+            if (history.size > MAX_HISTORY_SIZE) {
+                history.removeAt(history.size - 1)
+            }
         }
     }
 
     fun paste(editText: FormulaEditorEditText) {
-        // Логика та же, но используем переданный editText
-        clipboard?.let { editText.addTokens(cloneTokens(it)) }
+        if (history.isNotEmpty()) {
+            editText.addTokens(cloneTokens(history[0].tokens))
+        }
+    }
+
+    fun showClipboardHistoryDialog(context: Context, editText: FormulaEditorEditText) {
+        if (history.isEmpty()) {
+            AlertDialog.Builder(context)
+                .setTitle(R.string.paste)
+                .setMessage(R.string.formula_nothing_selected)
+                .setPositiveButton(R.string.ok, null)
+                .show()
+            return
+        }
+
+        val items = history.map { it.label }.toTypedArray()
+        AlertDialog.Builder(context)
+            .setTitle(R.string.paste)
+            .setItems(items) { _, which ->
+                editText.addTokens(cloneTokens(history[which].tokens))
+                val pastedItem = history.removeAt(which)
+                history.add(0, pastedItem)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 }

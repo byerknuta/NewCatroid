@@ -3,7 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:gravity="center_vertical">
+    android:gravity="center_vertical"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="8dp">
     <SeekBar
         android:id="@+id/seekbar"
         android:layout_width="0dp"
@@ -12,9 +14,10 @@
         android:max="100"/>
     <TextView
         android:id="@+id/text_value"
-        android:layout_width="40dp"
+        android:layout_width="44dp"
         android:layout_height="wrap_content"
         android:text="0.50"
-        android:textColor="@android:color/white"
+        android:textColor="@color/solid_white"
+        android:textStyle="bold"
         android:gravity="end"/>
 </LinearLayout>

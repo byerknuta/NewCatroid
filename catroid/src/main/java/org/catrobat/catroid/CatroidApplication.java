@@ -132,7 +132,7 @@ public class CatroidApplication extends Application {
 			Log.w(TAG, "SAFE MODE is active. Skipping plugin loading.");
 
 			new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-				Toast.makeText(this, "Безопасный режим. Плагины отключены.", Toast.LENGTH_LONG).show();
+				Toast.makeText(this, "Safe Mode. Plugins disabled", Toast.LENGTH_LONG).show();
 			});
 			return;
 		}

@@ -23,7 +23,7 @@
 package org.catrobat.catroid.visualplacement;
 
 import android.app.Activity;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -39,6 +39,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -487,7 +488,9 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 	}
 
 	private void showSaveChangesDialog(Context context) {
-		new AlertDialog.Builder(context)
+		new AlertDialog.Builder(
+                new ContextThemeWrapper(context, R.style.Theme_NewCatroid_Dialog)
+        )
 				.setTitle(R.string.formula_editor_discard_changes_dialog_title)
 				.setMessage(R.string.formula_editor_discard_changes_dialog_message)
 				.setPositiveButton(R.string.save, this)

@@ -56,8 +56,8 @@ private const val LOWER_SCROLL_BOUND_DIVISOR = 48
 private const val Y_TRANSLATION_CONSTANT = 10
 
 enum class DragMode {
-    NEW, // Новая, исправленная логика
-    LEGACY // Старая, более простая логика
+    NEW,
+    LEGACY
 }
 
 class BrickListView : ListView {
@@ -132,12 +132,10 @@ class BrickListView : ListView {
 
         when (dragMode) {
             DragMode.NEW -> {
-                // Новый, более "умный" режим с зонами в 25% от краев
-                upperScrollBound = height / 4 // Верхние 25%
-                lowerScrollBound = height * 3 / 4 // Нижние 25%
+                upperScrollBound = height / 4
+                lowerScrollBound = height * 3 / 4
             }
             DragMode.LEGACY -> {
-                // Старый, простой режим
                 upperScrollBound = height / UPPER_SCROLL_BOUND_DIVISOR
                 lowerScrollBound = height / LOWER_SCROLL_BOUND_DIVISOR
             }
@@ -302,22 +300,20 @@ class BrickListView : ListView {
 
         when (dragMode) {
             DragMode.NEW -> {
-                // Новый режим с плавной скоростью прокрутки
-                val scrollZoneSize = height / 5 // Размер зоны = 20%
+                val scrollZoneSize = height / 5
                 var distance = 0f
 
                 if (downY < upperScrollBound) {
                     distance = (upperScrollBound - downY) / scrollZoneSize
-                    scrollSpeed = (-SMOOTH_SCROLL_BY_NEW * distance).toInt() // Прокрутка вверх
+                    scrollSpeed = (-SMOOTH_SCROLL_BY_NEW * distance).toInt()
                 } else if (downY > lowerScrollBound) {
                     distance = (downY - lowerScrollBound) / scrollZoneSize
-                    scrollSpeed = (SMOOTH_SCROLL_BY_NEW * distance).toInt() // Прокрутка вниз
+                    scrollSpeed = (SMOOTH_SCROLL_BY_NEW * distance).toInt()
                 } else {
                     scrollSpeed = 0
                 }
             }
             DragMode.LEGACY -> {
-                // Старый режим с постоянной скоростью
                 if (downY > lowerScrollBound) {
                     smoothScrollBy(SMOOTH_SCROLL_BY, 0)
                 } else if (downY < upperScrollBound) {

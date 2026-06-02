@@ -6,12 +6,14 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/app_background_dark"
     tools:context=".editor.EditorActivity">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/main_content_coordinator"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/app_background_dark">
 
         <FrameLayout
             android:id="@+id/fragment_container"
@@ -19,7 +21,6 @@
             android:layout_height="match_parent" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -30,13 +31,10 @@
                 android:columnCount="3"
                 android:rowCount="2"
                 android:orientation="horizontal"
-
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-
-                app:layout_constraintWidth_percent="0.3"
-                app:layout_constraintHeight_percent="0.25"
-
+                app:layout_constraintWidth_percent="0.32"
+                app:layout_constraintHeight_percent="0.22"
                 android:layout_marginStart="16dp"
                 android:layout_marginBottom="16dp" >
 
@@ -54,24 +52,27 @@
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:text="SHIFT"
+                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@id/camera_controls"
                 app:layout_constraintStart_toEndOf="@id/camera_controls"
                 app:layout_constraintTop_toTopOf="@id/camera_controls"
-                app:layout_constraintWidth_percent="0.15" />
+                app:layout_constraintWidth_percent="0.15"
+                android:layout_marginStart="8dp"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:theme="@style/Theme.AppCompat.DayNight.DarkActionBar">
+            android:background="@android:color/transparent"
+            app:elevation="0dp">
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
-                app:title="3D Editor"
-                app:titleTextColor="@android:color/white"
+                android:background="@color/toolbar_background"
+                app:title="@string/editor_3d_title"
+                app:titleTextColor="@color/solid_white"
                 app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
         </com.google.android.material.appbar.AppBarLayout>
 
@@ -80,197 +81,258 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end|center_vertical"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="16dp"
             android:orientation="vertical"
-            android:background="#80000000"
-            android:padding="4dp"
-            android:elevation="10dp"
+            android:background="@drawable/bg_quick_actions_panel"
+            android:padding="6dp"
+            android:elevation="8dp"
             android:visibility="gone"
             tools:visibility="visible">
 
             <ImageButton
                 android:id="@+id/btn_quick_duplicate"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:src="@android:drawable/ic_menu_add"
-                app:tint="@android:color/white"
-                style="@style/Widget.AppCompat.Button.Borderless"/>
+                android:contentDescription="Duplicate"
+                app:tint="@color/solid_white"
+                android:background="?attr/selectableItemBackgroundBorderless"/>
 
             <ImageButton
                 android:id="@+id/btn_quick_move_to_cam"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:src="@android:drawable/ic_menu_send"
-                app:tint="@android:color/white"
-                style="@style/Widget.AppCompat.Button.Borderless"/>
+                android:contentDescription="Move to Cam"
+                app:tint="@color/solid_white"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_marginTop="4dp"/>
 
             <ImageButton
                 android:id="@+id/btn_quick_rotate_to_cam"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:src="@android:drawable/ic_menu_rotate"
                 android:contentDescription="Rotate to Camera"
-                app:tint="@android:color/white"
-                style="@style/Widget.AppCompat.Button.Borderless"/>
+                app:tint="@color/solid_white"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_marginTop="4dp"/>
 
             <ImageButton
                 android:id="@+id/btn_quick_focus"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:src="@android:drawable/ic_menu_mylocation"
-                app:tint="@android:color/white"
-                style="@style/Widget.AppCompat.Button.Borderless"/>
+                android:contentDescription="Focus"
+                app:tint="@color/solid_white"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_marginTop="4dp"/>
 
             <ImageButton
                 android:id="@+id/btn_quick_inspector"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:src="@android:drawable/ic_menu_info_details"
-                app:tint="@android:color/white"
-                style="@style/Widget.AppCompat.Button.Borderless"/>
+                android:contentDescription="Inspector"
+                app:tint="@color/solid_white"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_marginTop="4dp"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/separator"
+                android:layout_marginVertical="6dp"/>
 
             <ImageButton
                 android:id="@+id/btn_quick_delete"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:src="@android:drawable/ic_menu_delete"
+                android:contentDescription="Delete"
                 app:tint="#FF5252"
-                style="@style/Widget.AppCompat.Button.Borderless"/>
+                android:background="?attr/selectableItemBackgroundBorderless"/>
         </LinearLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    <LinearLayout
+    <androidx.cardview.widget.CardView
         android:id="@+id/left_drawer"
-        android:layout_width="280dp"
+        android:layout_width="290dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:orientation="vertical"
-        android:background="#303030"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark"
+        app:cardBackgroundColor="@color/surface_card"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="16dp"
         android:clickable="true"
         android:focusable="true">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:text="Hierarchy"
-                android:textColor="@android:color/white"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"/>
-
-            <ImageButton
-                android:id="@+id/btn_undo"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/icon_undo"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                app:tint="@android:color/white" />
-
-            <ImageButton
-                android:id="@+id/btn_redo"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/icon_redo"
-                android:layout_marginStart="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                app:tint="@android:color/white" />
-        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingHorizontal="16dp"
-            android:paddingBottom="8dp">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-            <EditText
-                android:id="@+id/hierarchy_search"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:hint="Search..."
-                android:textColor="@android:color/white"
-                android:textColorHint="#999999"
-                android:backgroundTint="#999999"
-                android:padding="8dp"
-                android:inputType="text"/>
-
-            <ImageButton
-                android:id="@+id/btn_mass_delete"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@android:drawable/ic_menu_delete"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Delete all found"
-                app:tint="#FF5252" />
-        </LinearLayout>
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/hierarchy_recyclerview"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clickable="true"
-            android:focusable="true"/>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="8dp">
-
-            <Button
-                android:id="@+id/btn_add_empty"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Add Empty" />
-
-            <Button
-                android:id="@+id/btn_add_cube"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Add Cube" />
-
-            <Button
-                android:id="@+id/btn_add_sphere"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Add Sphere" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/right_drawer"
-        android:layout_width="300dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="end"
-        android:orientation="vertical"
-        android:background="#303030"
-        android:clickable="true"
-        android:focusable="true">
-        <TextView
-            android:id="@+id/inspector_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Inspector"
-            android:padding="16dp"
-            android:textColor="@android:color/white"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"/>
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
             <LinearLayout
-                android:id="@+id/inspector_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="@string/editor_3d_hierarchy"
+                    android:textColor="@color/solid_white"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:fontFamily="sans-serif-medium"/>
+
+                <ImageButton
+                    android:id="@+id/btn_undo"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/icon_undo"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    app:tint="@color/accent" />
+
+                <ImageButton
+                    android:id="@+id/btn_redo"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/icon_redo"
+                    android:layout_marginStart="8dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    app:tint="@color/accent" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingBottom="8dp">
+
+                <EditText
+                    android:id="@+id/hierarchy_search"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="40dp"
+                    android:hint="@string/editor_3d_search_hint"
+                    android:textColor="@color/solid_white"
+                    android:textColorHint="@color/text_secondary"
+                    android:background="@drawable/bg_inspector_input"
+                    android:paddingHorizontal="12dp"
+                    android:textSize="14sp"
+                    android:inputType="text"/>
+
+                <ImageButton
+                    android:id="@+id/btn_mass_delete"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:src="@android:drawable/ic_menu_delete"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Delete all found"
+                    app:tint="#FF5252" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/hierarchy_recyclerview"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:paddingHorizontal="8dp"
+                android:clickable="true"
+                android:focusable="true"/>
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="8dp"/>
-        </ScrollView>
-    </LinearLayout>
+                android:background="@color/button_background"
+                android:padding="12dp">
+
+                <Button
+                    android:id="@+id/btn_add_empty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/editor_3d_add_empty"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:backgroundTint="@color/accent"
+                    android:textColor="@color/app_background_dark"/>
+
+                <Button
+                    android:id="@+id/btn_add_cube"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/editor_3d_add_cube"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:backgroundTint="@color/toolbar_background"
+                    android:textColor="@color/solid_white"/>
+
+                <Button
+                    android:id="@+id/btn_add_sphere"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/editor_3d_add_sphere"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:backgroundTint="@color/toolbar_background"
+                    android:textColor="@color/solid_white"/>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/right_drawer"
+        android:layout_width="310dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark"
+        app:cardBackgroundColor="@color/surface_card"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="16dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/inspector_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/editor_3d_inspector"
+                android:padding="16dp"
+                android:textColor="@color/solid_white"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:fontFamily="sans-serif-medium"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/separator"/>
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbarStyle="insideOverlay">
+                <LinearLayout
+                    android:id="@+id/inspector_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp"/>
+            </ScrollView>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
 </androidx.drawerlayout.widget.DrawerLayout>

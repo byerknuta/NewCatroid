@@ -24,6 +24,7 @@
 package org.catrobat.catroid.ui.dialogs.regexassistant;
 
 import android.content.Context;
+import android.view.ContextThemeWrapper;
 
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.web.WebpageUtils;
@@ -48,7 +49,9 @@ public class RegularExpressionAssistantDialog {
 	}
 
 	public void createAssistant() {
-		AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		AlertDialog.Builder builder = new AlertDialog.Builder(
+                new ContextThemeWrapper(context, R.style.Theme_NewCatroid_Dialog)
+        );
 
 		builder.setTitle(R.string.formula_editor_dialog_regular_expression_assistant_title);
 		builder.setNegativeButton(R.string.help, (dialog, id) -> WebpageUtils.openWikiPage(context));

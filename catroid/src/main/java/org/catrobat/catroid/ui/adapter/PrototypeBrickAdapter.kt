@@ -1,44 +1,84 @@
-/*
- * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2022 The Catrobat Team
- * (<http://developer.catrobat.org/credits>)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * An additional term exception under section 7 of the GNU Affero
- * General Public License, version 3, is available at
- * http://developer.catrobat.org/license_additional_term
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 package org.catrobat.catroid.ui.adapter
 
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
 import android.widget.BaseAdapter
 import org.catrobat.catroid.content.bricks.Brick
 
 class PrototypeBrickAdapter(private var brickList: List<Brick>) : BaseAdapter() {
+
+    private val viewCache = HashMap<Int, View>()
+    private val itemsToAnimate = HashMap<Brick, Long>()
+
     override fun getCount(): Int = brickList.size
 
     override fun getItem(position: Int): Brick = brickList[position]
 
-    override fun getItemId(position: Int): Long = position.toLong()
+    override fun getItemId(position: Int): Long = brickList[position].hashCode().toLong()
 
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View? =
-        brickList[position].getPrototypeView(parent?.context)
+    override fun hasStableIds(): Boolean = true
 
-    fun replaceList(list: List<Brick>) {
-        brickList = list
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View? {
+        val brick = brickList[position]
+        val cacheKey = brick.hashCode()
+
+        var cachedView = viewCache[cacheKey]
+        if (cachedView == null) {
+            cachedView = brick.getPrototypeView(parent?.context)
+            if (cachedView != null) {
+                viewCache[cacheKey] = cachedView
+            }
+        } else {
+            (cachedView.parent as? ViewGroup)?.removeView(cachedView)
+        }
+
+        if (cachedView != null) {
+            if (itemsToAnimate.containsKey(brick)) {
+                val delay = itemsToAnimate.remove(brick) ?: 0L
+
+                cachedView.alpha = 0f
+                cachedView.scaleX = 0.93f
+                cachedView.scaleY = 0.93f
+
+                cachedView.animate()
+                    .alpha(1f)
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setStartDelay(delay)
+                    .setDuration(250)
+                    .setInterpolator(DecelerateInterpolator())
+                    .start()
+            } else {
+                cachedView.animate().cancel()
+                cachedView.alpha = 1f
+                cachedView.scaleX = 1f
+                cachedView.scaleY = 1f
+                cachedView.translationX = 0f
+                cachedView.translationY = 0f
+            }
+        }
+
+        return cachedView
+    }
+
+    fun replaceList(newList: List<Brick>) {
+        itemsToAnimate.clear()
+        var newItemsCount = 0
+
+        for (brick in newList) {
+            if (!brickList.contains(brick)) {
+                itemsToAnimate[brick] = newItemsCount * 40L
+                newItemsCount++
+            }
+        }
+
+        brickList = newList
         notifyDataSetChanged()
+    }
+
+    fun clearCache() {
+        viewCache.clear()
+        itemsToAnimate.clear()
     }
 }

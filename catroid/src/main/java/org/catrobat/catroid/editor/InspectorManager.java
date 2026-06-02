@@ -1,6 +1,6 @@
 package org.catrobat.catroid.editor;
 
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.graphics.Color;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -171,7 +171,7 @@ public class InspectorManager {
         container.addView(divider);
 
         Button duplicateButton = new Button(activity, null, 0, R.style.Widget_App_Button_Outlined);
-        duplicateButton.setText("Duplicate Object");
+        duplicateButton.setText(R.string.editor_3d_clone);
         duplicateButton.setOnClickListener(v -> {
             GameObject newObject = sceneManager.duplicateGameObject(go);
             if (newObject != null) {
@@ -188,26 +188,26 @@ public class InspectorManager {
         deleteParams.setMargins(0, (int) (8 * activity.getResources().getDisplayMetrics().density), 0, 0);
         deleteObjectButton.setLayoutParams(deleteParams);
 
-        deleteObjectButton.setText("Delete GameObject");
+        deleteObjectButton.setText(R.string.editor_3d_delete_object);
         deleteObjectButton.setTextColor(Color.parseColor("#FF5252"));
 
         deleteObjectButton.setOnClickListener(v -> {
             new AlertDialog.Builder(activity)
-                    .setTitle("Delete Object")
-                    .setMessage("Are you sure you want to delete '" + go.name + "'?")
-                    .setPositiveButton("Delete", (dialog, which) -> {
+                    .setTitle(R.string.editor_3d_delete_object)
+                    .setMessage(activity.getString(R.string.editor_3d_delete_object_confirm, go.name))
+                    .setPositiveButton(R.string.delete, (dialog, which) -> {
                         sceneManager.removeGameObject(go);
                         activity.onObjectSelected(null);
                         activity.updateHierarchy();
                     })
-                    .setNegativeButton("Cancel", null)
+                    .setNegativeButton(R.string.cancel, null)
                     .show();
         });
         container.addView(deleteObjectButton);
     }
 
     private void createPrefabView(GameObject go) {
-        addComponentHeader("Prefab Component", true, false, () -> {
+        addComponentHeader(R.string.component_prefab, true, false, () -> {
             PrefabComponent p = go.getComponent(PrefabComponent.class);
             if (p != null && p.spawnedInstances != null) {
                 for(String id : p.spawnedInstances) {
@@ -276,7 +276,7 @@ public class InspectorManager {
     private boolean isPreviewingAnimation = false;
 
     private void createKeyframeView(GameObject go) {
-        addComponentHeader("Keyframe Animation", true, false, () -> {
+        addComponentHeader(R.string.component_keyframe, true, false, () -> {
             go.components.removeIf(c -> c instanceof KeyframeComponent);
             populateInspector(go);
         });
@@ -347,6 +347,7 @@ public class InspectorManager {
         ArrayAdapter<String> easingAdapter = new ArrayAdapter<>(activity,
                 R.layout.simple_spinner_item_white_text,
                 activity.getResources().getStringArray(R.array.brick_easing_types));
+
         easingAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
 
         for (int i = 0; i < anim.keyframes.size(); i++) {
@@ -445,7 +446,7 @@ public class InspectorManager {
     }
 
     private void createAnimationView(GameObject go) {
-        addComponentHeader("Animation", true,false, () -> {
+        addComponentHeader(R.string.component_animation, true,false, () -> {
             go.components.removeIf(c -> c instanceof AnimationComponent);
             sceneManager.playAnimationFromComponent(go);
             populateInspector(go);
@@ -515,7 +516,7 @@ public class InspectorManager {
     }
 
     private void createCameraView(GameObject go) {
-        addComponentHeader("Camera Component", true, false, new Runnable() {
+        addComponentHeader(R.string.component_camera, true, false, new Runnable() {
             @Override
             public void run() {
                 go.components.removeIf(c -> c instanceof CameraComponent);
@@ -569,7 +570,7 @@ public class InspectorManager {
     }
 
     private void createTransformView(GameObject go) {
-        addComponentHeader("Transform", false, false, null);
+        addComponentHeader(R.string.component_transform, false, false, null);
         View view = inflater.inflate(R.layout.inspector_transform, container, false);
         if (view instanceof ViewGroup) {
             setWhiteTextToAllChildren((ViewGroup) view);
@@ -610,7 +611,7 @@ public class InspectorManager {
     }
 
     private void createRenderView(GameObject go) {
-        addComponentHeader("Render Component", true, false, () -> {
+        addComponentHeader(R.string.component_render, true, false, () -> {
             sceneManager.removeRenderComponent(go);
             populateInspector(go);
         });
@@ -638,7 +639,7 @@ public class InspectorManager {
     }
 
     private void createMaterialView(GameObject go) {
-        addComponentHeader("Material", true, false, () -> {
+        addComponentHeader(R.string.component_material, true, false, () -> {
             go.components.removeIf(c -> c instanceof MaterialComponent);
 
             if (go.hasComponent(RenderComponent.class)) {
@@ -696,7 +697,7 @@ public class InspectorManager {
     }
 
     private void createFogView(GameObject go) {
-        addComponentHeader("Fog Settings", true, false, () -> {
+        addComponentHeader(R.string.component_fog, true, false, () -> {
             go.components.removeIf(c -> c instanceof FogComponent);
             populateInspector(go);
         });
@@ -782,7 +783,7 @@ public class InspectorManager {
         PostProcessingComponent pp = go.getComponent(PostProcessingComponent.class);
 
 
-        addComponentHeader("Post Processing", true, false, () -> {
+        addComponentHeader(R.string.component_postprocessing, true, false, () -> {
             go.components.remove(pp);
 
             if (threeDManager != null) {
@@ -1088,7 +1089,7 @@ public class InspectorManager {
         ParticleSystem3DComponent ps = go.getComponent(ParticleSystem3DComponent.class);
         if (ps == null) return;
 
-        addComponentHeader("Particle System 3D", true, false, () -> {
+        addComponentHeader(R.string.component_particle_3d, true, false, () -> {
             go.components.removeIf(c -> c instanceof ParticleSystem3DComponent);
             if (threeDManager != null) threeDManager.removeParticleEffect3D(go.id);
             if (threeDManager != null) threeDManager.removeEditorProxy(go.id);
@@ -1101,40 +1102,38 @@ public class InspectorManager {
         mainLayout.setPadding(pad, pad, pad, pad);
         container.addView(mainLayout);
 
+        addSectionHeader(mainLayout, activity.getString(R.string.particle_main));
 
-        addSectionHeader(mainLayout, "Main");
+        addCheckbox(mainLayout, activity.getString(R.string.particle_looping), ps.looping, v -> { ps.looping = v; updatePS3DImmediate(go); });
+        addCheckbox(mainLayout, activity.getString(R.string.particle_prewarm), ps.prewarm, v -> { ps.prewarm = v; updatePS3DImmediate(go); });
+        addSimpleFloatInput(mainLayout, activity.getString(R.string.particle_duration), ps.duration, v -> { ps.duration = v; updatePS3D(go); });
+        addSimpleFloatInput(mainLayout, activity.getString(R.string.particle_max_particles), ps.maxParticles, v -> { ps.maxParticles = (int)v; updatePS3D(go); });
 
-        addCheckbox(mainLayout, "Looping", ps.looping, v -> { ps.looping = v; updatePS3DImmediate(go); });
-        addCheckbox(mainLayout, "Prewarm", ps.prewarm, v -> { ps.prewarm = v; updatePS3DImmediate(go); });
-        addSimpleFloatInput(mainLayout, "Duration", ps.duration, v -> { ps.duration = v; updatePS3D(go); });
-        addSimpleFloatInput(mainLayout, "Max Particles", ps.maxParticles, v -> { ps.maxParticles = (int)v; updatePS3D(go); });
+        addMinMaxCurveEditor(mainLayout, activity.getString(R.string.particle_start_lifetime), ps.startLifetime, go);
+        addMinMaxCurveEditor(mainLayout, activity.getString(R.string.particle_start_speed), ps.startSpeed, go);
+        addMinMaxCurveEditor(mainLayout, activity.getString(R.string.particle_start_size), ps.startSize, go);
+        addMinMaxCurveEditor(mainLayout, activity.getString(R.string.particle_gravity_modifier), ps.gravityModifier, go);
 
-        addMinMaxCurveEditor(mainLayout, "Start Lifetime", ps.startLifetime, go);
-        addMinMaxCurveEditor(mainLayout, "Start Speed", ps.startSpeed, go);
-        addMinMaxCurveEditor(mainLayout, "Start Size", ps.startSize, go);
-        addMinMaxCurveEditor(mainLayout, "Gravity Modifier", ps.gravityModifier, go);
-
-        addSpinnerEnum(mainLayout, "Simulation Space", ParticleSystem3DComponent.SimulationSpace.values(),
+        addSpinnerEnum(mainLayout, activity.getString(R.string.particle_sim_space), ParticleSystem3DComponent.SimulationSpace.values(),
                 ps.simulationSpace.ordinal(), v -> { ps.simulationSpace = v; updatePS3DImmediate(go); });
 
 
-        addModuleSection(mainLayout, "Emission", ps.emission.enabled, v -> { ps.emission.enabled = v; updatePS3D(go); }, () -> {
+        addModuleSection(mainLayout, activity.getString(R.string.particle_emission), ps.emission.enabled, v -> { ps.emission.enabled = v; updatePS3D(go); }, () -> {
             LinearLayout emLayout = new LinearLayout(activity);
             emLayout.setOrientation(LinearLayout.VERTICAL);
-            addMinMaxCurveEditor(emLayout, "Rate over Time", ps.emission.rateOverTime, go);
-            addMinMaxCurveEditor(emLayout, "Rate over Distance", ps.emission.rateOverDistance, go);
+            addMinMaxCurveEditor(emLayout, activity.getString(R.string.particle_rate_over_time), ps.emission.rateOverTime, go);
+            addMinMaxCurveEditor(emLayout, activity.getString(R.string.particle_rate_over_distance), ps.emission.rateOverDistance, go);
 
-
-            addSectionHeader(emLayout, "Bursts");
+            addSectionHeader(emLayout, activity.getString(R.string.particle_bursts));
             for (int i = 0; i < ps.emission.bursts.size(); i++) {
                 ParticleSystem3DComponent.Burst burst = ps.emission.bursts.get(i);
                 int idx = i;
                 LinearLayout burstRow = new LinearLayout(activity);
                 burstRow.setOrientation(LinearLayout.HORIZONTAL);
 
-                addSmallFloatInput(burstRow, "Time", burst.time, v -> { burst.time = v; updatePS3D(go); });
-                addSmallFloatInput(burstRow, "Count", burst.count.constantMax, v -> { burst.count = new ParticleSystem3DComponent.MinMaxCurve(v); updatePS3D(go); });
-                addSmallFloatInput(burstRow, "Prob", burst.probability, v -> { burst.probability = v; updatePS3D(go); });
+                addSmallFloatInput(burstRow, activity.getString(R.string.particle_time), burst.time, v -> { burst.time = v; updatePS3D(go); });
+                addSmallFloatInput(burstRow, activity.getString(R.string.particle_count), burst.count.constantMax, v -> { burst.count = new ParticleSystem3DComponent.MinMaxCurve(v); updatePS3D(go); });
+                addSmallFloatInput(burstRow, activity.getString(R.string.particle_prob), burst.probability, v -> { burst.probability = v; updatePS3D(go); });
 
                 Button delBurst = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
                 delBurst.setText("X");
@@ -1145,166 +1144,158 @@ public class InspectorManager {
                 emLayout.addView(burstRow);
             }
             Button addBurst = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
-            addBurst.setText("+ Add Burst");
+            addBurst.setText("+");
             addBurst.setOnClickListener(v -> { ps.emission.bursts.add(new ParticleSystem3DComponent.Burst(0, 30)); updatePS3D(go); populateInspector(go); });
             emLayout.addView(addBurst);
 
             return emLayout;
         });
 
-
-        addModuleSection(mainLayout, "Shape", ps.shape.enabled, v -> { ps.shape.enabled = v; updatePS3D(go); }, () -> {
+        addModuleSection(mainLayout, activity.getString(R.string.particle_shape), ps.shape.enabled, v -> { ps.shape.enabled = v; updatePS3D(go); }, () -> {
             LinearLayout shLayout = new LinearLayout(activity);
             shLayout.setOrientation(LinearLayout.VERTICAL);
 
-            addSpinnerEnum(shLayout, "Type", ParticleSystem3DComponent.ShapeType.values(),
+            addSpinnerEnum(shLayout, activity.getString(R.string.particle_shape_type), ParticleSystem3DComponent.ShapeType.values(),
                     ps.shape.type.ordinal(), v -> { ps.shape.type = v; updatePS3D(go); populateInspector(go); });
 
             switch (ps.shape.type) {
                 case CONE:
-                    addSimpleFloatInput(shLayout, "Angle", ps.shape.coneAngle, v -> { ps.shape.coneAngle = v; updatePS3D(go); });
-                    addSimpleFloatInput(shLayout, "Radius", ps.shape.coneRadius, v -> { ps.shape.coneRadius = v; updatePS3D(go); });
-                    addSimpleFloatInput(shLayout, "Length", ps.shape.coneLength, v -> { ps.shape.coneLength = v; updatePS3D(go); });
+                    addSimpleFloatInput(shLayout, activity.getString(R.string.particle_angle), ps.shape.coneAngle, v -> { ps.shape.coneAngle = v; updatePS3D(go); });
+                    addSimpleFloatInput(shLayout, activity.getString(R.string.particle_radius), ps.shape.coneRadius, v -> { ps.shape.coneRadius = v; updatePS3D(go); });
+                    addSimpleFloatInput(shLayout, activity.getString(R.string.particle_length), ps.shape.coneLength, v -> { ps.shape.coneLength = v; updatePS3D(go); });
                     break;
                 case SPHERE: case HEMISPHERE:
-                    addSimpleFloatInput(shLayout, "Radius", ps.shape.sphereRadius, v -> { ps.shape.sphereRadius = v; updatePS3D(go); });
+                    addSimpleFloatInput(shLayout, activity.getString(R.string.particle_radius), ps.shape.sphereRadius, v -> { ps.shape.sphereRadius = v; updatePS3D(go); });
                     break;
                 case BOX:
-                    addSimpleFloatInput(shLayout, "Size X", ps.shape.boxSize.x, v -> { ps.shape.boxSize.x = v; updatePS3D(go); });
-                    addSimpleFloatInput(shLayout, "Size Y", ps.shape.boxSize.y, v -> { ps.shape.boxSize.y = v; updatePS3D(go); });
-                    addSimpleFloatInput(shLayout, "Size Z", ps.shape.boxSize.z, v -> { ps.shape.boxSize.z = v; updatePS3D(go); });
+                    addSimpleFloatInput(shLayout, "X", ps.shape.boxSize.x, v -> { ps.shape.boxSize.x = v; updatePS3D(go); });
+                    addSimpleFloatInput(shLayout, "Y", ps.shape.boxSize.y, v -> { ps.shape.boxSize.y = v; updatePS3D(go); });
+                    addSimpleFloatInput(shLayout, "Z", ps.shape.boxSize.z, v -> { ps.shape.boxSize.z = v; updatePS3D(go); });
                     break;
                 case CIRCLE:
-                    addSimpleFloatInput(shLayout, "Radius", ps.shape.circleRadius, v -> { ps.shape.circleRadius = v; updatePS3D(go); });
-                    addSimpleFloatInput(shLayout, "Arc", ps.shape.circleArc, v -> { ps.shape.circleArc = v; updatePS3D(go); });
+                    addSimpleFloatInput(shLayout, activity.getString(R.string.particle_radius), ps.shape.circleRadius, v -> { ps.shape.circleRadius = v; updatePS3D(go); });
+                    addSimpleFloatInput(shLayout, activity.getString(R.string.particle_arc), ps.shape.circleArc, v -> { ps.shape.circleArc = v; updatePS3D(go); });
                     break;
                 case EDGE:
-                    addSimpleFloatInput(shLayout, "Length", ps.shape.edgeLength, v -> { ps.shape.edgeLength = v; updatePS3D(go); });
+                    addSimpleFloatInput(shLayout, activity.getString(R.string.particle_length), ps.shape.edgeLength, v -> { ps.shape.edgeLength = v; updatePS3D(go); });
                     break;
             }
 
-            addSpinnerEnum(shLayout, "Emit From", ParticleSystem3DComponent.EmitFrom.values(),
+            addSpinnerEnum(shLayout, activity.getString(R.string.particle_emit_from), ParticleSystem3DComponent.EmitFrom.values(),
                     ps.shape.emitFrom.ordinal(), v -> { ps.shape.emitFrom = v; updatePS3D(go); });
 
             return shLayout;
         });
 
-
-        addModuleSection(mainLayout, "Velocity over Lifetime", ps.velocityOverLifetime.enabled,
+        addModuleSection(mainLayout, activity.getString(R.string.particle_velocity_over_lifetime), ps.velocityOverLifetime.enabled,
                 v -> { ps.velocityOverLifetime.enabled = v; updatePS3D(go); }, () -> {
                     LinearLayout vLayout = new LinearLayout(activity);
                     vLayout.setOrientation(LinearLayout.VERTICAL);
-                    addMinMaxCurveEditor(vLayout, "Linear X", ps.velocityOverLifetime.x, go);
-                    addMinMaxCurveEditor(vLayout, "Linear Y", ps.velocityOverLifetime.y, go);
-                    addMinMaxCurveEditor(vLayout, "Linear Z", ps.velocityOverLifetime.z, go);
-                    addMinMaxCurveEditor(vLayout, "Orbital Y", ps.velocityOverLifetime.orbitalY, go);
-                    addMinMaxCurveEditor(vLayout, "Radial", ps.velocityOverLifetime.radial, go);
-                    addMinMaxCurveEditor(vLayout, "Speed Modifier", ps.velocityOverLifetime.speedModifier, go);
+                    addMinMaxCurveEditor(vLayout, activity.getString(R.string.particle_linear_x), ps.velocityOverLifetime.x, go);
+                    addMinMaxCurveEditor(vLayout, activity.getString(R.string.particle_linear_y), ps.velocityOverLifetime.y, go);
+                    addMinMaxCurveEditor(vLayout, activity.getString(R.string.particle_linear_z), ps.velocityOverLifetime.z, go);
+                    addMinMaxCurveEditor(vLayout, activity.getString(R.string.particle_orbital_y), ps.velocityOverLifetime.orbitalY, go);
+                    addMinMaxCurveEditor(vLayout, activity.getString(R.string.particle_radial), ps.velocityOverLifetime.radial, go);
+                    addMinMaxCurveEditor(vLayout, activity.getString(R.string.particle_speed_modifier), ps.velocityOverLifetime.speedModifier, go);
                     return vLayout;
                 });
 
-
-        addModuleSection(mainLayout, "Force over Lifetime", ps.forceOverLifetime.enabled,
+        addModuleSection(mainLayout, activity.getString(R.string.particle_force_over_lifetime), ps.forceOverLifetime.enabled,
                 v -> { ps.forceOverLifetime.enabled = v; updatePS3D(go); }, () -> {
                     LinearLayout fLayout = new LinearLayout(activity);
                     fLayout.setOrientation(LinearLayout.VERTICAL);
-                    addMinMaxCurveEditor(fLayout, "Force X", ps.forceOverLifetime.x, go);
-                    addMinMaxCurveEditor(fLayout, "Force Y", ps.forceOverLifetime.y, go);
-                    addMinMaxCurveEditor(fLayout, "Force Z", ps.forceOverLifetime.z, go);
+                    addMinMaxCurveEditor(fLayout, activity.getString(R.string.particle_force_x), ps.forceOverLifetime.x, go);
+                    addMinMaxCurveEditor(fLayout, activity.getString(R.string.particle_force_y), ps.forceOverLifetime.y, go);
+                    addMinMaxCurveEditor(fLayout, activity.getString(R.string.particle_force_z), ps.forceOverLifetime.z, go);
                     return fLayout;
                 });
 
-
-        addModuleSection(mainLayout, "Color over Lifetime", ps.colorOverLifetime.enabled,
+        addModuleSection(mainLayout, activity.getString(R.string.particle_color_over_lifetime), ps.colorOverLifetime.enabled,
                 v -> { ps.colorOverLifetime.enabled = v; updatePS3D(go); }, () -> {
                     LinearLayout cLayout = new LinearLayout(activity);
                     cLayout.setOrientation(LinearLayout.VERTICAL);
-                    addMinMaxGradientEditor(cLayout, "Color", ps.colorOverLifetime.color, go);
+                    addMinMaxGradientEditor(cLayout, activity.getString(R.string.particle_color), ps.colorOverLifetime.color, go);
                     return cLayout;
                 });
 
-
-        addModuleSection(mainLayout, "Size over Lifetime", ps.sizeOverLifetime.enabled,
+        addModuleSection(mainLayout, activity.getString(R.string.particle_size_over_lifetime), ps.sizeOverLifetime.enabled,
                 v -> { ps.sizeOverLifetime.enabled = v; updatePS3D(go); }, () -> {
                     LinearLayout sLayout = new LinearLayout(activity);
                     sLayout.setOrientation(LinearLayout.VERTICAL);
 
-                    addCheckbox(sLayout, "Separate Axes", ps.sizeOverLifetime.separateAxes, v -> {
+                    addCheckbox(sLayout, activity.getString(R.string.particle_separate_axes), ps.sizeOverLifetime.separateAxes, v -> {
                         ps.sizeOverLifetime.separateAxes = v; updatePS3D(go); populateInspector(go);
                     });
 
                     if (ps.sizeOverLifetime.separateAxes) {
-                        addMinMaxCurveEditor(sLayout, "Size X", ps.sizeOverLifetime.sizeX, go);
-                        addMinMaxCurveEditor(sLayout, "Size Y", ps.sizeOverLifetime.sizeY, go);
-                        addMinMaxCurveEditor(sLayout, "Size Z", ps.sizeOverLifetime.sizeZ, go);
+                        addMinMaxCurveEditor(sLayout, "X", ps.sizeOverLifetime.sizeX, go);
+                        addMinMaxCurveEditor(sLayout, "Y", ps.sizeOverLifetime.sizeY, go);
+                        addMinMaxCurveEditor(sLayout, "Z", ps.sizeOverLifetime.sizeZ, go);
                     } else {
-                        addMinMaxCurveEditor(sLayout, "Size", ps.sizeOverLifetime.size, go);
+                        addMinMaxCurveEditor(sLayout, activity.getString(R.string.particle_size), ps.sizeOverLifetime.size, go);
                     }
                     return sLayout;
                 });
 
-
-        addModuleSection(mainLayout, "Rotation over Lifetime", ps.rotationOverLifetime.enabled,
+        addModuleSection(mainLayout, activity.getString(R.string.particle_rotation_over_lifetime), ps.rotationOverLifetime.enabled,
                 v -> { ps.rotationOverLifetime.enabled = v; updatePS3D(go); }, () -> {
                     LinearLayout rLayout = new LinearLayout(activity);
                     rLayout.setOrientation(LinearLayout.VERTICAL);
 
-                    addCheckbox(rLayout, "Separate Axes", ps.rotationOverLifetime.separateAxes, v -> {
+                    addCheckbox(rLayout, activity.getString(R.string.particle_separate_axes), ps.rotationOverLifetime.separateAxes, v -> {
                         ps.rotationOverLifetime.separateAxes = v; updatePS3D(go); populateInspector(go);
                     });
 
                     if (ps.rotationOverLifetime.separateAxes) {
-                        addMinMaxCurveEditor(rLayout, "Angular Vel X", ps.rotationOverLifetime.angularVelocityX, go);
-                        addMinMaxCurveEditor(rLayout, "Angular Vel Y", ps.rotationOverLifetime.angularVelocityY, go);
-                        addMinMaxCurveEditor(rLayout, "Angular Vel Z", ps.rotationOverLifetime.angularVelocityZ, go);
+                        addMinMaxCurveEditor(rLayout, "X", ps.rotationOverLifetime.angularVelocityX, go);
+                        addMinMaxCurveEditor(rLayout, "Y", ps.rotationOverLifetime.angularVelocityY, go);
+                        addMinMaxCurveEditor(rLayout, "Z", ps.rotationOverLifetime.angularVelocityZ, go);
                     } else {
-                        addMinMaxCurveEditor(rLayout, "Angular Velocity", ps.rotationOverLifetime.angularVelocity, go);
+                        addMinMaxCurveEditor(rLayout, activity.getString(R.string.particle_angular_velocity), ps.rotationOverLifetime.angularVelocity, go);
                     }
                     return rLayout;
                 });
 
-
-        addModuleSection(mainLayout, "Noise", ps.noise.enabled,
+        addModuleSection(mainLayout, activity.getString(R.string.particle_noise), ps.noise.enabled,
                 v -> { ps.noise.enabled = v; updatePS3D(go); }, () -> {
                     LinearLayout nLayout = new LinearLayout(activity);
                     nLayout.setOrientation(LinearLayout.VERTICAL);
-                    addSimpleFloatInput(nLayout, "Strength", ps.noise.strength, v -> { ps.noise.strength = v; updatePS3D(go); });
-                    addSimpleFloatInput(nLayout, "Frequency", ps.noise.frequency, v -> { ps.noise.frequency = v; updatePS3D(go); });
-                    addSimpleFloatInput(nLayout, "Octaves", ps.noise.octaves, v -> { ps.noise.octaves = Math.max(1, (int)v); updatePS3D(go); });
-                    addSimpleFloatInput(nLayout, "Scroll Speed", ps.noise.scrollSpeed, v -> { ps.noise.scrollSpeed = v; updatePS3D(go); });
-                    addCheckbox(nLayout, "Damping", ps.noise.damping, v -> { ps.noise.damping = v; updatePS3D(go); });
+                    addSimpleFloatInput(nLayout, activity.getString(R.string.particle_strength), ps.noise.strength, v -> { ps.noise.strength = v; updatePS3D(go); });
+                    addSimpleFloatInput(nLayout, activity.getString(R.string.particle_frequency), ps.noise.frequency, v -> { ps.noise.frequency = v; updatePS3D(go); });
+                    addSimpleFloatInput(nLayout, activity.getString(R.string.particle_octaves), ps.noise.octaves, v -> { ps.noise.octaves = Math.max(1, (int)v); updatePS3D(go); });
+                    addSimpleFloatInput(nLayout, activity.getString(R.string.particle_scroll_speed), ps.noise.scrollSpeed, v -> { ps.noise.scrollSpeed = v; updatePS3D(go); });
+                    addCheckbox(nLayout, activity.getString(R.string.particle_damping), ps.noise.damping, v -> { ps.noise.damping = v; updatePS3D(go); });
 
-                    addCheckbox(nLayout, "Separate Axes", ps.noise.separateAxes, v -> {
+                    addCheckbox(nLayout, activity.getString(R.string.particle_separate_axes), ps.noise.separateAxes, v -> {
                         ps.noise.separateAxes = v; updatePS3D(go); populateInspector(go);
                     });
                     if (ps.noise.separateAxes) {
-                        addSimpleFloatInput(nLayout, "Strength X", ps.noise.strengthX, v -> { ps.noise.strengthX = v; updatePS3D(go); });
-                        addSimpleFloatInput(nLayout, "Strength Y", ps.noise.strengthY, v -> { ps.noise.strengthY = v; updatePS3D(go); });
-                        addSimpleFloatInput(nLayout, "Strength Z", ps.noise.strengthZ, v -> { ps.noise.strengthZ = v; updatePS3D(go); });
+                        addSimpleFloatInput(nLayout, "X", ps.noise.strengthX, v -> { ps.noise.strengthX = v; updatePS3D(go); });
+                        addSimpleFloatInput(nLayout, "Y", ps.noise.strengthY, v -> { ps.noise.strengthY = v; updatePS3D(go); });
+                        addSimpleFloatInput(nLayout, "Z", ps.noise.strengthZ, v -> { ps.noise.strengthZ = v; updatePS3D(go); });
                     }
                     return nLayout;
                 });
 
-
-        addModuleSection(mainLayout, "Collision", ps.collision.enabled,
+        addModuleSection(mainLayout, activity.getString(R.string.particle_collision), ps.collision.enabled,
                 v -> { ps.collision.enabled = v; updatePS3D(go); }, () -> {
                     LinearLayout colLayout = new LinearLayout(activity);
                     colLayout.setOrientation(LinearLayout.VERTICAL);
 
-                    addSpinnerEnum(colLayout, "Mode", ParticleSystem3DComponent.CollisionMode.values(),
+                    addSpinnerEnum(colLayout, activity.getString(R.string.particle_mode), ParticleSystem3DComponent.CollisionMode.values(),
                             ps.collision.mode.ordinal(), v -> { ps.collision.mode = v; updatePS3D(go); populateInspector(go); });
 
-                    addSimpleFloatInput(colLayout, "Bounce", ps.collision.bounce, v -> { ps.collision.bounce = v; updatePS3D(go); });
-                    addSimpleFloatInput(colLayout, "Dampen", ps.collision.dampen, v -> { ps.collision.dampen = v; updatePS3D(go); });
-                    addSimpleFloatInput(colLayout, "Lifetime Loss", ps.collision.lifetimeLoss, v -> { ps.collision.lifetimeLoss = v; updatePS3D(go); });
-                    addSimpleFloatInput(colLayout, "Min Kill Speed", ps.collision.minKillSpeed, v -> { ps.collision.minKillSpeed = v; updatePS3D(go); });
-                    addSimpleFloatInput(colLayout, "Radius Scale", ps.collision.radiusScale, v -> { ps.collision.radiusScale = v; updatePS3D(go); });
+                    addSimpleFloatInput(colLayout, activity.getString(R.string.particle_bounce), ps.collision.bounce, v -> { ps.collision.bounce = v; updatePS3D(go); });
+                    addSimpleFloatInput(colLayout, activity.getString(R.string.particle_dampen), ps.collision.dampen, v -> { ps.collision.dampen = v; updatePS3D(go); });
+                    addSimpleFloatInput(colLayout, activity.getString(R.string.particle_lifetime_loss), ps.collision.lifetimeLoss, v -> { ps.collision.lifetimeLoss = v; updatePS3D(go); });
+                    addSimpleFloatInput(colLayout, activity.getString(R.string.particle_min_kill_speed), ps.collision.minKillSpeed, v -> { ps.collision.minKillSpeed = v; updatePS3D(go); });
+                    addSimpleFloatInput(colLayout, activity.getString(R.string.particle_radius_scale), ps.collision.radiusScale, v -> { ps.collision.radiusScale = v; updatePS3D(go); });
 
-                    addSpinnerEnum(colLayout, "Quality", ParticleSystem3DComponent.CollisionQuality.values(),
+                    addSpinnerEnum(colLayout, activity.getString(R.string.particle_quality), ParticleSystem3DComponent.CollisionQuality.values(),
                             ps.collision.quality.ordinal(), v -> { ps.collision.quality = v; updatePS3D(go); });
 
                     if (ps.collision.mode == ParticleSystem3DComponent.CollisionMode.PLANES) {
-                        addSectionHeader(colLayout, "Collision Planes");
+                        addSectionHeader(colLayout, activity.getString(R.string.particle_collision_planes));
                         for (int i = 0; i < ps.collision.planes.size(); i++) {
                             ParticleSystem3DComponent.CollisionPlane plane = ps.collision.planes.get(i);
                             int planeIdx = i;
@@ -1314,14 +1305,14 @@ public class InspectorManager {
                             addSimpleFloatInput(planeRow, "Normal Y", plane.normal.y, v -> { plane.normal.y = v; updatePS3D(go); });
 
                             Button delPlane = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
-                            delPlane.setText("Remove Plane");
+                            delPlane.setText("X");
                             delPlane.setTextColor(android.graphics.Color.RED);
                             delPlane.setOnClickListener(v -> { ps.collision.planes.remove(planeIdx); updatePS3D(go); populateInspector(go); });
                             planeRow.addView(delPlane);
                             colLayout.addView(planeRow);
                         }
                         Button addPlane = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
-                        addPlane.setText("+ Add Plane");
+                        addPlane.setText("+");
                         addPlane.setOnClickListener(v -> { ps.collision.planes.add(new ParticleSystem3DComponent.CollisionPlane()); updatePS3D(go); populateInspector(go); });
                         colLayout.addView(addPlane);
                     }
@@ -1329,8 +1320,7 @@ public class InspectorManager {
                     return colLayout;
                 });
 
-
-        addModuleSection(mainLayout, "Sub Emitters", ps.subEmitters.enabled,
+        addModuleSection(mainLayout, activity.getString(R.string.particle_sub_emitters), ps.subEmitters.enabled,
                 v -> { ps.subEmitters.enabled = v; updatePS3D(go); }, () -> {
                     LinearLayout subLayout = new LinearLayout(activity);
                     subLayout.setOrientation(LinearLayout.VERTICAL);
@@ -1341,7 +1331,7 @@ public class InspectorManager {
                         LinearLayout entryRow = new LinearLayout(activity);
                         entryRow.setOrientation(LinearLayout.VERTICAL);
 
-                        addSpinnerEnum(entryRow, "Trigger", ParticleSystem3DComponent.SubEmitterTrigger.values(),
+                        addSpinnerEnum(entryRow, activity.getString(R.string.particle_trigger), ParticleSystem3DComponent.SubEmitterTrigger.values(),
                                 entry.trigger.ordinal(), v -> { entry.trigger = v; updatePS3D(go); });
 
                         Button pickObj = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
@@ -1360,8 +1350,8 @@ public class InspectorManager {
                                 Toast.makeText(activity, "No other objects with Particle System 3D found", Toast.LENGTH_SHORT).show();
                                 return;
                             }
-                            new AlertDialog.Builder(activity)
-                                    .setTitle("Select Sub Emitter Object")
+                            new AlertDialog.Builder(activity, androidx.appcompat.R.style.Theme_AppCompat_DayNight_Dialog_Alert)
+                                    .setTitle("Select Sub Emitter")
                                     .setItems(candidates.toArray(new String[0]), (dialog, which) -> {
                                         entry.subEmitterObjectId = candidates.get(which);
                                         pickObj.setText(entry.subEmitterObjectId);
@@ -1370,14 +1360,14 @@ public class InspectorManager {
                                     .show();
                         });
                         entryRow.addView(pickObj);
-                        addSimpleFloatInput(entryRow, "Probability", entry.probability, v -> { entry.probability = v; updatePS3D(go); });
-                        addSimpleFloatInput(entryRow, "Emit Count (0=auto)", entry.emitCount, v -> {
+                        addSimpleFloatInput(entryRow, activity.getString(R.string.particle_probability), entry.probability, v -> { entry.probability = v; updatePS3D(go); });
+                        addSimpleFloatInput(entryRow, activity.getString(R.string.particle_emit_count), entry.emitCount, v -> {
                             entry.emitCount = Math.max(0, (int) v);
                             updatePS3D(go);
                         });
 
                         Button delEntry = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
-                        delEntry.setText("Remove");
+                        delEntry.setText("X");
                         delEntry.setTextColor(android.graphics.Color.RED);
                         delEntry.setOnClickListener(v -> { ps.subEmitters.entries.remove(idx); updatePS3D(go); populateInspector(go); });
                         entryRow.addView(delEntry);
@@ -1385,42 +1375,39 @@ public class InspectorManager {
                     }
 
                     Button addEntry = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
-                    addEntry.setText("+ Add Sub Emitter");
+                    addEntry.setText("+");
                     addEntry.setOnClickListener(v -> { ps.subEmitters.entries.add(new ParticleSystem3DComponent.SubEmitterEntry()); updatePS3D(go); populateInspector(go); });
                     subLayout.addView(addEntry);
 
                     return subLayout;
                 });
 
-
-        addModuleSection(mainLayout, "Trails", ps.trails.enabled,
+        addModuleSection(mainLayout, activity.getString(R.string.particle_trails), ps.trails.enabled,
                 v -> { ps.trails.enabled = v; updatePS3D(go); }, () -> {
                     LinearLayout tLayout = new LinearLayout(activity);
                     tLayout.setOrientation(LinearLayout.VERTICAL);
-                    addSimpleFloatInput(tLayout, "Ratio (0-1)", ps.trails.ratio, v -> { ps.trails.ratio = v; updatePS3D(go); });
-                    addSimpleFloatInput(tLayout, "Lifetime", ps.trails.lifetime, v -> { ps.trails.lifetime = v; updatePS3D(go); });
-                    addSimpleFloatInput(tLayout, "Min Vertex Dist", ps.trails.minimumVertexDistance, v -> { ps.trails.minimumVertexDistance = v; updatePS3D(go); });
-                    addCheckbox(tLayout, "World Space", ps.trails.worldSpace, v -> { ps.trails.worldSpace = v; updatePS3D(go); });
-                    addCheckbox(tLayout, "Die With Particles", ps.trails.dieWithParticles, v -> { ps.trails.dieWithParticles = v; updatePS3D(go); });
-                    addCheckbox(tLayout, "Inherit Color", ps.trails.inheritParticleColor, v -> { ps.trails.inheritParticleColor = v; updatePS3D(go); });
-                    addMinMaxCurveEditor(tLayout, "Width over Trail", ps.trails.widthOverTrail, go);
+                    addSimpleFloatInput(tLayout, activity.getString(R.string.particle_ratio), ps.trails.ratio, v -> { ps.trails.ratio = v; updatePS3D(go); });
+                    addSimpleFloatInput(tLayout, activity.getString(R.string.particle_lifetime), ps.trails.lifetime, v -> { ps.trails.lifetime = v; updatePS3D(go); });
+                    addSimpleFloatInput(tLayout, activity.getString(R.string.particle_min_vertex_dist), ps.trails.minimumVertexDistance, v -> { ps.trails.minimumVertexDistance = v; updatePS3D(go); });
+                    addCheckbox(tLayout, activity.getString(R.string.particle_world_space), ps.trails.worldSpace, v -> { ps.trails.worldSpace = v; updatePS3D(go); });
+                    addCheckbox(tLayout, activity.getString(R.string.particle_die_with_particles), ps.trails.dieWithParticles, v -> { ps.trails.dieWithParticles = v; updatePS3D(go); });
+                    addCheckbox(tLayout, activity.getString(R.string.particle_inherit_color), ps.trails.inheritParticleColor, v -> { ps.trails.inheritParticleColor = v; updatePS3D(go); });
+                    addMinMaxCurveEditor(tLayout, activity.getString(R.string.particle_width_over_trail), ps.trails.widthOverTrail, go);
                     return tLayout;
                 });
 
-
-        addModuleSection(mainLayout, "Texture Sheet Animation", ps.textureSheetAnimation.enabled,
+        addModuleSection(mainLayout, activity.getString(R.string.particle_tex_animation), ps.textureSheetAnimation.enabled,
                 v -> { ps.textureSheetAnimation.enabled = v; updatePS3D(go); }, () -> {
                     LinearLayout tsLayout = new LinearLayout(activity);
                     tsLayout.setOrientation(LinearLayout.VERTICAL);
-                    addSimpleFloatInput(tsLayout, "Tiles X", ps.textureSheetAnimation.tilesX, v -> { ps.textureSheetAnimation.tilesX = Math.max(1, (int)v); updatePS3D(go); });
-                    addSimpleFloatInput(tsLayout, "Tiles Y", ps.textureSheetAnimation.tilesY, v -> { ps.textureSheetAnimation.tilesY = Math.max(1, (int)v); updatePS3D(go); });
-                    addSimpleFloatInput(tsLayout, "Cycles", ps.textureSheetAnimation.cycles, v -> { ps.textureSheetAnimation.cycles = Math.max(1, (int)v); updatePS3D(go); });
-                    addMinMaxCurveEditor(tsLayout, "Frame over Time", ps.textureSheetAnimation.frameOverTime, go);
+                    addSimpleFloatInput(tsLayout, activity.getString(R.string.particle_tiles_x), ps.textureSheetAnimation.tilesX, v -> { ps.textureSheetAnimation.tilesX = Math.max(1, (int)v); updatePS3D(go); });
+                    addSimpleFloatInput(tsLayout, activity.getString(R.string.particle_tiles_y), ps.textureSheetAnimation.tilesY, v -> { ps.textureSheetAnimation.tilesY = Math.max(1, (int)v); updatePS3D(go); });
+                    addSimpleFloatInput(tsLayout, activity.getString(R.string.particle_cycles), ps.textureSheetAnimation.cycles, v -> { ps.textureSheetAnimation.cycles = Math.max(1, (int)v); updatePS3D(go); });
+                    addMinMaxCurveEditor(tsLayout, activity.getString(R.string.particle_frame_over_time), ps.textureSheetAnimation.frameOverTime, go);
                     return tsLayout;
                 });
 
-
-        addSectionHeader(mainLayout, "Renderer");
+        addSectionHeader(mainLayout, activity.getString(R.string.particle_renderer));
 
         ParticleSystem3DComponent.RenderMode[] supportedModes = {
                 ParticleSystem3DComponent.RenderMode.BILLBOARD,
@@ -1433,12 +1420,12 @@ public class InspectorManager {
         for (int i = 0; i < supportedModes.length; i++) {
             if (supportedModes[i] == ps.renderer.renderMode) { currentModeIdx = i; break; }
         }
-        addSpinnerEnum(mainLayout, "Render Mode", supportedModes, currentModeIdx,
+        addSpinnerEnum(mainLayout, activity.getString(R.string.particle_render_mode), supportedModes, currentModeIdx,
                 v -> { ps.renderer.renderMode = v; updatePS3DImmediate(go); populateInspector(go); });
 
         if (ps.renderer.renderMode == ParticleSystem3DComponent.RenderMode.STRETCHED_BILLBOARD) {
-            addSimpleFloatInput(mainLayout, "Length Scale", ps.renderer.lengthScale, v -> { ps.renderer.lengthScale = v; updatePS3D(go); });
-            addSimpleFloatInput(mainLayout, "Speed Scale", ps.renderer.speedScale, v -> { ps.renderer.speedScale = v; updatePS3D(go); });
+            addSimpleFloatInput(mainLayout, activity.getString(R.string.particle_length_scale), ps.renderer.lengthScale, v -> { ps.renderer.lengthScale = v; updatePS3D(go); });
+            addSimpleFloatInput(mainLayout, activity.getString(R.string.particle_speed_scale), ps.renderer.speedScale, v -> { ps.renderer.speedScale = v; updatePS3D(go); });
         }
 
         if (ps.renderer.renderMode == ParticleSystem3DComponent.RenderMode.MESH) {
@@ -1453,7 +1440,7 @@ public class InspectorManager {
             for (int i = 0; i < meshTypes.length; i++) {
                 if (meshTypes[i] == ps.renderer.meshType) { currentMeshTypeIdx = i; break; }
             }
-            addSpinnerEnum(mainLayout, "Mesh Shape", meshTypes, currentMeshTypeIdx,
+            addSpinnerEnum(mainLayout, activity.getString(R.string.particle_mesh_shape), meshTypes, currentMeshTypeIdx,
                     v -> { ps.renderer.meshType = v; updatePS3DImmediate(go); populateInspector(go); });
 
 
@@ -1463,13 +1450,13 @@ public class InspectorManager {
                 meshRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
 
                 TextView meshLabel = new TextView(activity);
-                meshLabel.setText("Model: " + (ps.renderer.meshPath != null ? ps.renderer.meshPath : "None"));
+                meshLabel.setText((ps.renderer.meshPath != null ? ps.renderer.meshPath : "None"));
                 meshLabel.setTextColor(android.graphics.Color.WHITE);
                 meshLabel.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
                 meshRow.addView(meshLabel);
 
                 Button selectMesh = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
-                selectMesh.setText("Select .glb");
+                selectMesh.setText("Set .glb");
                 selectMesh.setOnClickListener(v -> {
                     File projectFilesDir = ProjectManager.getInstance().getCurrentProject().getFilesDir();
                     File[] allFiles = projectFilesDir.listFiles();
@@ -1483,12 +1470,12 @@ public class InspectorManager {
                         }
                     }
                     if (modelFiles.isEmpty()) {
-                        Toast.makeText(activity, "No 3D models found in project", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(activity, "No 3D models found", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
-                    new AlertDialog.Builder(activity)
-                            .setTitle("Select Particle Mesh")
+                    new AlertDialog.Builder(activity, androidx.appcompat.R.style.Theme_AppCompat_DayNight_Dialog_Alert)
+                            .setTitle(R.string.particle_mesh_shape)
                             .setItems(modelFiles.toArray(new String[0]), (dialog, which) -> {
                                 ps.renderer.meshPath = modelFiles.get(which);
                                 updatePS3DImmediate(go);
@@ -1497,39 +1484,27 @@ public class InspectorManager {
                             .show();
                 });
                 meshRow.addView(selectMesh);
-
-                Button clearMesh = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
-                clearMesh.setText("X");
-                clearMesh.setTextColor(android.graphics.Color.RED);
-                clearMesh.setOnClickListener(v -> {
-                    ps.renderer.meshPath = null;
-                    updatePS3DImmediate(go);
-                    populateInspector(go);
-                });
-                meshRow.addView(clearMesh);
-
                 mainLayout.addView(meshRow);
             }
 
-            addCheckbox(mainLayout, "Align to Velocity", ps.renderer.alignToVelocity,
+            addCheckbox(mainLayout, activity.getString(R.string.particle_align_to_velocity), ps.renderer.alignToVelocity,
                     v -> { ps.renderer.alignToVelocity = v; updatePS3DImmediate(go); });
         }
 
-        addCheckbox(mainLayout, "Additive Blending", ps.renderer.isAdditive, v -> { ps.renderer.isAdditive = v; updatePS3DImmediate(go); });
-
+        addCheckbox(mainLayout, activity.getString(R.string.particle_additive_blend), ps.renderer.isAdditive, v -> { ps.renderer.isAdditive = v; updatePS3DImmediate(go); });
 
         LinearLayout texRow = new LinearLayout(activity);
         texRow.setOrientation(LinearLayout.HORIZONTAL);
         texRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
 
         TextView texLabel = new TextView(activity);
-        texLabel.setText("Texture: " + (ps.renderer.texturePath != null ? ps.renderer.texturePath : "Default"));
+        texLabel.setText((ps.renderer.texturePath != null ? ps.renderer.texturePath : "Default"));
         texLabel.setTextColor(android.graphics.Color.WHITE);
         texLabel.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         texRow.addView(texLabel);
 
         Button selectTex = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
-        selectTex.setText("Select");
+        selectTex.setText("Set");
         selectTex.setOnClickListener(v -> showTexturePicker(fileName -> {
             ps.renderer.texturePath = fileName;
             updatePS3DImmediate(go);
@@ -1537,9 +1512,9 @@ public class InspectorManager {
         }));
         texRow.addView(selectTex);
 
-        Button clearTex = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
-        clearTex.setText("X");
-        clearTex.setTextColor(android.graphics.Color.RED);
+        ImageButton clearTex = new ImageButton(activity);
+        clearTex.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
+        clearTex.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         clearTex.setOnClickListener(v -> { ps.renderer.texturePath = null; updatePS3DImmediate(go); populateInspector(go); });
         texRow.addView(clearTex);
 
@@ -2210,13 +2185,12 @@ public class InspectorManager {
     }
 
     private void createParticleView(GameObject go) {
-        addComponentHeader("Particle System", true, false, () -> {
+        addComponentHeader(R.string.component_particle_legacy, true, false, () -> {
             go.components.removeIf(c -> c instanceof ParticleComponent);
             if (threeDManager != null) threeDManager.removeParticleEffect(go.id);
             if (threeDManager != null) threeDManager.removeEditorProxy(go.id);
             populateInspector(go);
         });
-
 
         LinearLayout mainLayout = new LinearLayout(activity);
         mainLayout.setOrientation(LinearLayout.VERTICAL);
@@ -2225,49 +2199,37 @@ public class InspectorManager {
         ParticleComponent p = go.getComponent(ParticleComponent.class);
         p.migrateOldDataIfNeeded();
 
-
         View basicView = inflater.inflate(R.layout.inspector_particle, mainLayout, false);
         setWhiteTextToAllChildren((ViewGroup) basicView);
         mainLayout.addView(basicView);
 
-
         CheckBox loopingCheck = basicView.findViewById(R.id.p_looping);
+        loopingCheck.setText(R.string.particle_looping);
         loopingCheck.setChecked(p.looping);
         loopingCheck.setOnCheckedChangeListener((v, isChecked) -> { p.looping = isChecked; updateParticles(go); });
 
-        setupFloatParam(basicView, R.id.p_duration, "Duration", p.duration, v -> { p.duration = v; updateParticles(go); });
-        setupFloatParam(basicView, R.id.p_start_lifetime, "Lifetime", p.startLifetime, v -> { p.startLifetime = v; updateParticles(go); });
-        setupFloatParam(basicView, R.id.p_max_particles, "Max Particles", p.maxParticles, v -> { p.maxParticles = (int)v; updateParticles(go); });
-        setupFloatParam(basicView, R.id.p_emission_rate, "Rate/Sec", p.emissionRate, v -> { p.emissionRate = v; updateParticles(go); });
-
+        setupFloatParam(basicView, R.id.p_duration, activity.getString(R.string.particle_duration), p.duration, v -> { p.duration = v; updateParticles(go); });
+        setupFloatParam(basicView, R.id.p_start_lifetime, activity.getString(R.string.particle_start_lifetime), p.startLifetime, v -> { p.startLifetime = v; updateParticles(go); });
+        setupFloatParam(basicView, R.id.p_max_particles, activity.getString(R.string.particle_max_particles), p.maxParticles, v -> { p.maxParticles = (int)v; updateParticles(go); });
+        setupFloatParam(basicView, R.id.p_emission_rate, activity.getString(R.string.particle_emission_rate), p.emissionRate, v -> { p.emissionRate = v; updateParticles(go); });
 
         hideOldFields(basicView);
 
-
         setupSpawnShapeUI(mainLayout, p, go);
 
+        setupFloatParam(mainLayout, R.id.p_start_size, activity.getString(R.string.particle_base_size_mult), p.baseSize, v -> {p.baseSize = v; updateParticles(go);});
+        addSimpleFloatInput(mainLayout, activity.getString(R.string.particle_base_size), p.baseSize, v -> { p.baseSize = v; updateParticles(go); });
 
-
-        setupFloatParam(mainLayout, R.id.p_start_size, "Base Size Multiplier", p.baseSize, v -> {p.baseSize = v; updateParticles(go);});
-
-
-        addSimpleFloatInput(mainLayout, "Base Size", p.baseSize, v -> { p.baseSize = v; updateParticles(go); });
-
-        setupFloatGraphEditor(mainLayout, "Size over Lifetime", p.sizeGraph, go, 0f, 3f);
-
-
+        setupFloatGraphEditor(mainLayout, activity.getString(R.string.particle_size_over_lifetime), p.sizeGraph, go, 0f, 3f);
         setupFloatGraphEditor(mainLayout, "Speed (Along Shape)", p.speedGraph, go, 0, 10f);
-        setupFloatParam(basicView, R.id.p_cone_angle, "Spread Angle (0-180)", p.coneAngle, v -> { p.coneAngle = v; updateParticles(go); });
+        setupFloatParam(basicView, R.id.p_cone_angle, activity.getString(R.string.particle_spread_angle), p.coneAngle, v -> { p.coneAngle = v; updateParticles(go); });
 
-        setupFloatGraphEditor(mainLayout, "Gravity (Y Axis)", p.gravityGraph, go, -10f, 10f);
-        setupFloatGraphEditor(mainLayout, "Vortex (Tornado)", p.vortexGraph, go, -10f, 10f);
-        setupFloatGraphEditor(mainLayout, "Turbulence (Chaos)", p.turbulenceGraph, go, 0f, 10f);
-        setupFloatGraphEditor(mainLayout, "Rotation (Deg/s)", p.rotationGraph, go, -180f, 180f);
+        setupFloatGraphEditor(mainLayout, activity.getString(R.string.particle_gravity_y), p.gravityGraph, go, -10f, 10f);
+        setupFloatGraphEditor(mainLayout, activity.getString(R.string.particle_vortex), p.vortexGraph, go, -10f, 10f);
+        setupFloatGraphEditor(mainLayout, activity.getString(R.string.particle_turbulence), p.turbulenceGraph, go, 0f, 10f);
+        setupFloatGraphEditor(mainLayout, activity.getString(R.string.particle_rotation_deg), p.rotationGraph, go, -180f, 180f);
 
-
-        setupColorGraphEditor(mainLayout, "Color over Lifetime", p.colorGraph, go);
-
-
+        setupColorGraphEditor(mainLayout, activity.getString(R.string.particle_color_over_lifetime), p.colorGraph, go);
 
         TextView pathText = basicView.findViewById(R.id.text_texture_path);
         Button selectButton = basicView.findViewById(R.id.btn_select_texture);
@@ -2278,6 +2240,7 @@ public class InspectorManager {
         selectButton.setOnClickListener(v -> showTexturePicker(fileName -> { p.texturePath = fileName; updateParticles(go); populateInspector(go); }));
         clearButton.setOnClickListener(v -> { p.texturePath = null; updateParticles(go); populateInspector(go); });
 
+        additiveCheck.setText(R.string.particle_additive_blend);
         additiveCheck.setChecked(p.isAdditive);
         additiveCheck.setOnCheckedChangeListener((v, isChecked) -> { p.isAdditive = isChecked; updateParticles(go); });
     }
@@ -2601,10 +2564,30 @@ public class InspectorManager {
 
     private void showAddEffectDialog(PostProcessingComponent pp, GameObject go) {
         String[] effects = {
-                "Bloom", "Vignette", "Levels (Color)", "Film Grain", "FXAA", "Chromatic Aberration",
-                "Radial Blur", "Old TV", "CRT Monitor", "Fisheye", "Water", "Motion Blur", "Lens Flare",
-                "Gaussian Blur", "Zoom Blur", "ACES Tonemapping", "Eye Adaptation", "Ray Tracing (SSR)", "SSAO",
-                "Height Fog", "Depth of Field (DoF)", "God Rays", "Volumetric Fog", "FSR Upscaler (CAS)"
+                activity.getString(R.string.pp_effect_bloom),
+                activity.getString(R.string.pp_effect_vignette),
+                activity.getString(R.string.pp_effect_levels),
+                activity.getString(R.string.pp_effect_grain),
+                activity.getString(R.string.pp_effect_fxaa),
+                activity.getString(R.string.pp_effect_chromatic),
+                activity.getString(R.string.pp_effect_radial_blur),
+                activity.getString(R.string.pp_effect_old_tv),
+                activity.getString(R.string.pp_effect_crt),
+                activity.getString(R.string.pp_effect_fisheye),
+                activity.getString(R.string.pp_effect_water),
+                activity.getString(R.string.pp_effect_motion_blur),
+                activity.getString(R.string.pp_effect_lens_flare),
+                activity.getString(R.string.pp_effect_gaussian),
+                activity.getString(R.string.pp_effect_zoom),
+                activity.getString(R.string.pp_effect_aces),
+                activity.getString(R.string.pp_effect_eye_adaptation),
+                activity.getString(R.string.pp_effect_ssr),
+                activity.getString(R.string.pp_effect_ssao),
+                activity.getString(R.string.pp_effect_height_fog),
+                activity.getString(R.string.pp_effect_dof),
+                activity.getString(R.string.pp_effect_god_rays),
+                activity.getString(R.string.pp_effect_volumetric_fog),
+                activity.getString(R.string.pp_effect_fsr)
         };
         new AlertDialog.Builder(activity)
                 .setTitle("Add Effect")
@@ -2681,7 +2664,7 @@ public class InspectorManager {
     }
 
     private void createPhysicsView(GameObject go) {
-        addComponentHeader("Physics Component", true, true, () -> {
+        addComponentHeader(R.string.component_physics, true, true, () -> {
             go.components.removeIf(c -> c instanceof PhysicsComponent);
             sceneManager.removePhysicsComponent(go);
             populateInspector(go);
@@ -2693,7 +2676,7 @@ public class InspectorManager {
 
         Spinner stateSpinner = view.findViewById(R.id.spinner_physics_state);
         View massLayout = view.findViewById(R.id.layout_physics_mass);
-        String[] states = activity.getResources().getStringArray(R.array.brick_physics_states_full);
+        String[] states = activity.getResources().getStringArray(R.array.editor_3d_physics_states);
         ArrayAdapter<String> stateAdapter = new ArrayAdapter<>(activity, R.layout.simple_spinner_item_white_text, states);
         stateAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
         stateSpinner.setAdapter(stateAdapter);
@@ -2878,7 +2861,7 @@ public class InspectorManager {
     }
 
     private void createLightView(GameObject go) {
-        addComponentHeader("Light Component", true, false, () -> {
+        addComponentHeader(R.string.component_light, true, false, () -> {
             go.components.removeIf(c -> c instanceof LightComponent);
             sceneManager.removeLightComponent(go);
             populateInspector(go);
@@ -2890,6 +2873,17 @@ public class InspectorManager {
         LightComponent light = go.getComponent(LightComponent.class);
 
         Spinner typeSpinner = view.findViewById(R.id.spinner_light_type);
+
+        String[] lightTypes = {
+                activity.getString(R.string.light_type_directional),
+                activity.getString(R.string.light_type_point),
+                activity.getString(R.string.light_type_spot)
+        };
+
+        ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(activity, R.layout.simple_spinner_item_white_text, lightTypes);
+        typeAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
+        typeSpinner.setAdapter(typeAdapter);
+        typeSpinner.setSelection(light.type.ordinal());
         EditText intensityEditor = view.findViewById(R.id.edit_light_intensity);
         EditText rangeEditor = view.findViewById(R.id.edit_light_range);
         EditText angleEditor = view.findViewById(R.id.edit_light_angle);
@@ -2897,10 +2891,6 @@ public class InspectorManager {
         View spotLayout = view.findViewById(R.id.layout_light_spot);
         EditText exponentEditor = view.findViewById(R.id.edit_light_exponent);
         Button colorButton = view.findViewById(R.id.btn_light_color);
-
-        ArrayAdapter<LightComponent.LightType> typeAdapter = new ArrayAdapter<>(activity, R.layout.simple_spinner_item_white_text, LightComponent.LightType.values());
-        typeAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
-        typeSpinner.setAdapter(typeAdapter);
 
         exponentEditor.setText(String.valueOf(light.exponent));
 
@@ -2910,7 +2900,8 @@ public class InspectorManager {
         angleEditor.setText(String.valueOf(light.cutoffAngle));
 
         Runnable updateVisibility = () -> {
-            LightComponent.LightType type = (LightComponent.LightType) typeSpinner.getSelectedItem();
+            int position = typeSpinner.getSelectedItemPosition();
+            LightComponent.LightType type = LightComponent.LightType.values()[position];
             rangeLayout.setVisibility(type == LightComponent.LightType.POINT || type == LightComponent.LightType.SPOT ? View.VISIBLE : View.GONE);
             spotLayout.setVisibility(type == LightComponent.LightType.SPOT ? View.VISIBLE : View.GONE);
         };
@@ -2967,7 +2958,7 @@ public class InspectorManager {
     }
 
     private void createScriptView(GameObject go, ScriptComponent scriptComp) {
-        addComponentHeader("Script Component", true, false, () -> {
+        addComponentHeader(R.string.component_script, true, false, () -> {
             go.components.remove(scriptComp);
             populateInspector(go);
         });
@@ -3018,7 +3009,20 @@ public class InspectorManager {
     }
 
     private void showAddComponentDialog(GameObject go) {
-        String[] components = {"Render", "Physics", "Light", "Animation", "Camera", "Material", "Post Processing","Particle System (Legacy)", "Particle System 3D", "Keyframe Animation", "Prefab"};
+        String[] components = {
+                activity.getString(R.string.component_render),
+                activity.getString(R.string.component_physics),
+                activity.getString(R.string.component_light),
+                activity.getString(R.string.component_animation),
+                activity.getString(R.string.component_camera),
+                activity.getString(R.string.component_material),
+                activity.getString(R.string.component_postprocessing),
+                activity.getString(R.string.component_particle_legacy),
+                activity.getString(R.string.component_particle_3d),
+                activity.getString(R.string.component_keyframe),
+                activity.getString(R.string.component_prefab)
+        };
+
         new AlertDialog.Builder(activity)
                 .setTitle("Add Component")
                 .setItems(components, (dialog, which) -> {
@@ -3095,13 +3099,13 @@ public class InspectorManager {
 
     private boolean isShowingColliders = false;
 
-    private void addComponentHeader(String title, boolean canBeDeleted, boolean hasVisibilityToggle, Runnable onDelete) {
+    private void addComponentHeader(int titleResId, boolean canBeDeleted, boolean hasVisibilityToggle, Runnable onDelete) {
         View headerView = inflater.inflate(R.layout.inspector_component_header, container, false);
         TextView titleView = headerView.findViewById(R.id.header_title);
         ImageButton deleteButton = headerView.findViewById(R.id.btn_delete_component);
         ImageButton visibilityButton = headerView.findViewById(R.id.btn_toggle_visibility);
 
-        titleView.setText(title);
+        titleView.setText(activity.getString(titleResId));
 
         if (hasVisibilityToggle) {
             visibilityButton.setVisibility(View.VISIBLE);
@@ -3115,7 +3119,6 @@ public class InspectorManager {
             });
         }
 
-        titleView.setText(title);
         if (canBeDeleted) {
             deleteButton.setVisibility(View.VISIBLE);
             deleteButton.setOnClickListener(v -> onDelete.run());

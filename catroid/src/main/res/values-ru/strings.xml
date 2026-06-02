@@ -23,6 +23,467 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="particle_lifetime">Время жизни</string>
+    <string name="particle_color">Цвет</string>
+    <string name="particle_size">Размер</string>
+    <string name="particle_mode">Режим столкновений</string>
+    <string name="particle_quality">Качество столкновений</string>
+    <string name="particle_collision_planes">Плоскости столкновений</string>
+    <string name="particle_bursts">Выбросы (Взрывы)</string>
+    <string name="particle_time">Время</string>
+    <string name="particle_count">Кол-во</string>
+    <string name="particle_prob">Шанс</string>
+    <string name="particle_angle">Угол</string>
+    <string name="particle_radius">Радиус</string>
+    <string name="particle_length">Длина</string>
+    <string name="particle_arc">Дуга</string>
+    <string name="particle_separate_axes">Раздельные оси</string>
+    <string name="particle_linear_x">Линейная X</string>
+    <string name="particle_linear_y">Линейная Y</string>
+    <string name="particle_linear_z">Линейная Z</string>
+    <string name="particle_orbital_y">Орбитальная Y</string>
+    <string name="particle_radial">Радиальная</string>
+    <string name="particle_speed_modifier">Модификатор скорости</string>
+    <string name="particle_force_x">Сила X</string>
+    <string name="particle_force_y">Сила Y</string>
+    <string name="particle_force_z">Сила Z</string>
+    <string name="particle_angular_velocity">Угловая скорость</string>
+    <string name="particle_strength">Сила</string>
+    <string name="particle_frequency">Частота</string>
+    <string name="particle_octaves">Октавы</string>
+    <string name="particle_scroll_speed">Скорость скролла</string>
+    <string name="particle_damping">Сглаживание</string>
+    <string name="particle_bounce">Отскок</string>
+    <string name="particle_dampen">Торможение</string>
+    <string name="particle_lifetime_loss">Потеря жизни</string>
+    <string name="particle_min_kill_speed">Мин. скорость убийства</string>
+    <string name="particle_radius_scale">Масштаб радиуса</string>
+    <string name="particle_trigger">Триггер</string>
+    <string name="particle_probability">Вероятность</string>
+    <string name="particle_emit_count">Кол-во (0=авто)</string>
+    <string name="particle_ratio">Доля (0-1)</string>
+    <string name="particle_min_vertex_dist">Мин. дист. вершин</string>
+    <string name="particle_world_space">Мировое пространство</string>
+    <string name="particle_die_with_particles">Умирать с частицами</string>
+    <string name="particle_inherit_color">Наследовать цвет</string>
+    <string name="particle_width_over_trail">Ширина хвоста</string>
+    <string name="particle_tiles_x">Плитки X</string>
+    <string name="particle_tiles_y">Плитки Y</string>
+    <string name="particle_cycles">Циклы</string>
+    <string name="particle_frame_over_time">Кадр со временем</string>
+    <string name="particle_length_scale">Масштаб длины</string>
+    <string name="particle_speed_scale">Масштаб скорости</string>
+    <string name="particle_align_to_velocity">По направлению движения</string>
+    <string name="particle_emission_rate">Частиц/Сек</string>
+    <string name="particle_spread_angle">Угол разброса (0-180)</string>
+    <string name="particle_gravity_y">Гравитация (Ось Y)</string>
+    <string name="particle_vortex">Вихрь (Торнадо)</string>
+    <string name="particle_turbulence">Турбулентность (Хаос)</string>
+    <string name="particle_rotation_deg">Вращение (Град/с)</string>
+    <string name="particle_base_size_mult">Множитель размера</string>
+    <string name="particle_base_size">Базовый размер</string>
+    <string name="particle_spawn_shape">Форма спавна</string>
+    <string name="particle_spawn_on_surface">Спавн только на поверхности</string>
+
+    <!-- Menu Actions -->
+    <string name="action_save_scene">Сохранить сцену</string>
+    <string name="action_load_scene">Загрузить сцену</string>
+    <string name="action_scene_settings">Настройки сцены</string>
+    <string name="action_clear_scene">Очистить сцену</string>
+    <string name="action_exit">Выход</string>
+
+    <!-- Physics States & Colliders -->
+    <string-array name="editor_3d_physics_states">
+        <item>Статическое (Неподвижное)</item>
+        <item>Кинематическое</item>
+        <item>Динамическое (Физическое)</item>
+    </string-array>
+
+    <!-- Light Types -->
+    <string name="light_type_directional">Направленный (Солнце)</string>
+    <string name="light_type_point">Точечный (Лампа)</string>
+    <string name="light_type_spot">Прожектор (Фонарь)</string>
+
+    <!-- Keyframe Easing Types -->
+    <string-array name="editor_3d_easing_types">
+        <item>Линейное</item>
+        <item>Ускорение (In)</item>
+        <item>Замедление (Out)</item>
+        <item>Ускорение-Замедление (In-Out)</item>
+        <item>Эластичное в начале</item>
+        <item>Эластичное в конце</item>
+        <item>Отскок в конце</item>
+    </string-array>
+
+    <!-- Post Processing Effects -->
+    <string name="pp_effect_bloom">Свечение (Bloom)</string>
+    <string name="pp_effect_vignette">Виньетка (Vignette)</string>
+    <string name="pp_effect_levels">Цветокоррекция (Levels)</string>
+    <string name="pp_effect_grain">Эффект плёнки (Grain)</string>
+    <string name="pp_effect_fxaa">Сглаживание (FXAA)</string>
+    <string name="pp_effect_chromatic">Хроматическая абберация</string>
+    <string name="pp_effect_radial_blur">Радиальное размытие</string>
+    <string name="pp_effect_old_tv">Старый телевизор</string>
+    <string name="pp_effect_crt">ЭЛТ монитор (CRT)</string>
+    <string name="pp_effect_fisheye">Рыбий глаз (Fisheye)</string>
+    <string name="pp_effect_water">Эффект воды</string>
+    <string name="pp_effect_motion_blur">Размытие в движении</string>
+    <string name="pp_effect_lens_flare">Блики линз (Lens Flare)</string>
+    <string name="pp_effect_gaussian">Размытие по Гауссу</string>
+    <string name="pp_effect_zoom">Размытие приближения</string>
+    <string name="pp_effect_aces">Тонокоррекция ACES</string>
+    <string name="pp_effect_eye_adaptation">Адаптация зрения (Адаптивный свет)</string>
+    <string name="pp_effect_ssr">Трассировка отражений (SSR)</string>
+    <string name="pp_effect_ssao">Затенение стыков (SSAO)</string>
+    <string name="pp_effect_height_fog">Высотный туман</string>
+    <string name="pp_effect_dof">Глубина резкости (DOF)</string>
+    <string name="pp_effect_god_rays">Сумеречные лучи (God Rays)</string>
+    <string name="pp_effect_volumetric_fog">Объемный туман</string>
+    <string name="pp_effect_fsr">Апскейлер FSR (Резкость)</string>
+
+    <!-- Particle Systems (Both 2D & 3D Modules) -->
+    <string name="particle_main">Основные настройки</string>
+    <string name="particle_looping">Зациклить</string>
+    <string name="particle_prewarm">Предварительный прогрев</string>
+    <string name="particle_duration">Длительность</string>
+    <string name="particle_max_particles">Лимит частиц</string>
+    <string name="particle_start_lifetime">Время жизни</string>
+    <string name="particle_start_speed">Начальная скорость</string>
+    <string name="particle_start_size">Начальный размер</string>
+    <string name="particle_gravity_modifier">Влияние гравитации</string>
+    <string name="particle_sim_space">Пространство симуляции</string>
+    <string name="particle_emission">Испускание (Emission)</string>
+    <string name="particle_rate_over_time">Частиц в секунду</string>
+    <string name="particle_rate_over_distance">Частиц на метр</string>
+    <string name="particle_shape">Форма спавна (Shape)</string>
+    <string name="particle_shape_type">Тип формы</string>
+    <string name="particle_emit_from">Испускать из</string>
+    <string name="particle_velocity_over_lifetime">Скорость в течении жизни</string>
+    <string name="particle_force_over_lifetime">Сила в течении жизни</string>
+    <string name="particle_color_over_lifetime">Цвет в течении жизни</string>
+    <string name="particle_size_over_lifetime">Размер в течении жизни</string>
+    <string name="particle_rotation_over_lifetime">Вращение в течении жизни</string>
+    <string name="particle_noise">Шум / Турбулентность</string>
+    <string name="particle_collision">Столкновения (Коллизия)</string>
+    <string name="particle_sub_emitters">Дополнительные эмиттеры</string>
+    <string name="particle_trails">Следы (Trails)</string>
+    <string name="particle_tex_animation">Анимация текстурного листа</string>
+    <string name="particle_renderer">Отрисовщик (Renderer)</string>
+    <string name="particle_render_mode">Режим отрисовки</string>
+    <string name="particle_mesh_shape">3D Модель частицы</string>
+    <string name="particle_additive_blend">Аддитивное смешивание (Свечение)</string>
+
+    <!-- Prefabs -->
+    <string name="prefab_file_path">Путь к файлу префаба</string>
+    <string name="prefab_select_btn">Выбрать префаб</string>
+    <string name="prefab_select_title">Выбрать файл префаба</string>
+
+    <!-- Scene Settings Dialog -->
+    <string name="settings_scene_title">Настройки сцены</string>
+    <string name="settings_sky_color">Цвет неба / Фона</string>
+    <string name="settings_ambient_light">Интенсивность общего света</string>
+    <string name="settings_shadows">Тени и качество</string>
+    <string name="settings_shadow_dist">Дистанция теней</string>
+    <string name="settings_shadow_res">Разрешение карты теней</string>
+    <string name="settings_shadow_csm">Каскадные тени (CSM)</string>
+    <string name="settings_shadow_csm_factor">Коэффициент разделения каскадов</string>
+    <string name="settings_apply_btn">Применить настройки теней</string>
+    <string name="settings_performance">Лимиты производительности</string>
+    <string name="settings_point_lights">Макс. точечных источников</string>
+    <string name="settings_spot_lights">Макс. прожекторов</string>
+    <string name="settings_dir_lights">Макс. направленных источников</string>
+    <string name="settings_bones">Макс. костей скелета</string>
+    <string name="settings_apply_perf_btn">Применить и перезапустить движок</string>
+
+    <string name="editor_3d_axis_x">Ось X</string>
+    <string name="editor_3d_axis_y">Ось Y</string>
+    <string name="editor_3d_axis_z">Ось Z</string>
+    <string name="editor_3d_axis_cam_forward">Направление камеры</string>
+
+    <!-- 3D Editor Toolbar & General -->
+    <string name="editor_3d_title">3D Редактор</string>
+    <string name="editor_3d_hierarchy">Иерархия</string>
+    <string name="editor_3d_search_hint">Поиск...</string>
+    <string name="editor_3d_add_empty">Добавить пустой</string>
+    <string name="editor_3d_add_cube">Добавить куб</string>
+    <string name="editor_3d_add_sphere">Добавить сферу</string>
+    <string name="editor_3d_inspector">Инспектор</string>
+
+    <!-- Dialogs & Popups -->
+    <string name="editor_3d_mass_delete_title">Массовое удаление</string>
+    <string name="editor_3d_mass_delete_msg">Удалить ВСЕ объекты, содержащие \'%1$s\'?</string>
+    <string name="editor_3d_delete_all">Удалить всё</string>
+    <string name="editor_3d_removed_objects_toast">Удалено объектов: %1$d</string>
+    <string name="editor_3d_aligned_to_cam">Выровнено по камере</string>
+    <string name="editor_3d_clone">Клонировать</string>
+    <string name="editor_3d_created_objects_toast">Создано объектов: %1$d</string>
+    <string name="editor_3d_error_inputs">Ошибка ввода данных</string>
+    <string name="editor_3d_moved_to_view">Объект перемещен к камере</string>
+    <string name="editor_3d_duplicated">Дублировано</string>
+    <string name="editor_3d_focused_on">Фокус на %1$s</string>
+    <string name="editor_3d_clear_scene_title">Очистить сцену?</string>
+    <string name="editor_3d_clear_scene_msg">Сцена будет сброшена, вы можете потерять несохраненные изменения. Продолжить?</string>
+    <string name="editor_3d_clear_btn">Очистить</string>
+    <string name="editor_3d_cleared_toast">Сцена очищена</string>
+    <string name="editor_3d_exit_title">Выход из редактора</string>
+    <string name="editor_3d_exit_msg">Хотите сохранить изменения перед выходом?</string>
+    <string name="editor_3d_save_exit">Сохранить и выйти</string>
+    <string name="editor_3d_exit_no_save">Выйти без сохранения</string>
+    <string name="editor_3d_save_scene_as">Сохранить сцену как...</string>
+    <string name="editor_3d_enter_file_name">Введите имя файла (без расширения):</string>
+    <string name="editor_3d_file_name_empty">Имя файла не может быть пустым</string>
+    <string name="editor_3d_scene_saved">Сцена сохранена в %1$s</string>
+    <string name="editor_3d_load_scene">Загрузить сцену</string>
+    <string name="editor_3d_no_scenes_found">Не найдено сохраненных сцен (.rscene).</string>
+    <string name="editor_3d_loading_scene">Загрузка сцены: %1$s</string>
+    <string name="editor_3d_shadow_applied">Настройки теней применены.</string>
+    <string name="editor_3d_invalid_shadow">Некорректные значения теней.</string>
+    <string name="editor_3d_restart_engine_title">Перезапуск 3D-движка</string>
+    <string name="editor_3d_restart_engine_msg">Для применения настроек требуется перезапуск 3D-редактора. Несохраненные изменения могут быть потеряны. Продолжить?</string>
+    <string name="editor_3d_restart_btn">Перезапустить</string>
+    <string name="editor_3d_engine_restarted">3D-движок перезапущен с новыми настройками.</string>
+    <string name="editor_3d_invalid_numbers">Пожалуйста, введите корректные числа.</string>
+    <string name="editor_3d_cannot_access_files">Нет доступа к файлам проекта.</string>
+    <string name="editor_3d_no_textures_found">В проекте не найдено подходящих изображений.</string>
+    <string name="editor_3d_select_skybox">Выбрать текстуру скайбокса</string>
+    <string name="editor_3d_crash_recovery_title">Восстановление после вылета</string>
+    <string name="editor_3d_crash_recovery_msg">В прошлый раз 3D-редактор закрылся некорректно. Восстановить несохраненную сцену?</string>
+    <string name="editor_3d_recover_btn">Восстановить</string>
+    <string name="editor_3d_discard_btn">Сбросить</string>
+    <string name="editor_3d_recovered_success">Сцена успешно восстановлена!</string>
+    <string name="editor_3d_recovered_failed">Не удалось восстановить сцену.</string>
+
+    <!-- Inspector Component Names -->
+    <string name="component_transform">Трансформ (Координаты)</string>
+    <string name="component_render">Отрисовка модели</string>
+    <string name="component_physics">Физика (Твердое тело)</string>
+    <string name="component_light">Источник света</string>
+    <string name="component_animation">Анимация</string>
+    <string name="component_camera">Камера</string>
+    <string name="component_material">Материал (PBR)</string>
+    <string name="component_postprocessing">Пост-обработка</string>
+    <string name="component_particle_legacy">Система частиц (Старая)</string>
+    <string name="component_particle_3d">Система частиц 3D</string>
+    <string name="component_fog">Параметры тумана</string>
+    <string name="component_keyframe">Анимация по ключевым кадрам</string>
+    <string name="component_prefab">Компонент префаба</string>
+    <string name="component_script">Скрипт-контроллер</string>
+
+    <!-- Inspector Base Fields & Buttons -->
+    <string name="editor_3d_object_name_hint">Имя объекта</string>
+    <string name="editor_3d_duplicate_object">Дублировать объект</string>
+    <string name="editor_3d_delete_object">Удалить объект</string>
+    <string name="editor_3d_add_component">Добавить компонент</string>
+    <string name="editor_3d_delete_object_confirm">Вы действительно хотите удалить \'%1$s\'?</string>
+
+    <!-- Transform Component -->
+    <string name="editor_3d_position">Позиция</string>
+    <string name="editor_3d_rotation">Вращение</string>
+    <string name="editor_3d_scale">Масштаб</string>
+
+    <!-- Render Component -->
+    <string name="editor_3d_model_file">Файл 3D-модели</string>
+    <string name="editor_3d_no_model_selected">Модель не выбрана</string>
+    <string name="editor_3d_select_model">Выбрать модель...</string>
+
+    <!-- Material Component -->
+    <string name="editor_3d_mat_color">Основной цвет</string>
+    <string name="editor_3d_mat_metallic">Металличность</string>
+    <string name="editor_3d_mat_roughness">Шероховатость</string>
+    <string name="editor_3d_mat_emissive">Свечение</string>
+    <string name="editor_3d_mat_normal">Карта нормалей</string>
+    <string name="editor_3d_mat_met_rough">Карта Металл/Шероховатость</string>
+    <string name="editor_3d_mat_occlusion">Карта затенения (Occlusion)</string>
+
+    <!-- Physics Component -->
+    <string name="editor_3d_phys_state">Состояние</string>
+    <string name="editor_3d_phys_mass">Масса</string>
+    <string name="editor_3d_phys_friction">Трение</string>
+    <string name="editor_3d_phys_restitution">Упругость (Прыгучесть)</string>
+    <string name="editor_3d_phys_add_box">Добавить кубический коллайдер</string>
+    <string name="editor_3d_phys_add_capsule">Добавить капсульный коллайдер</string>
+    <string name="editor_3d_phys_box_collider">Кубический коллайдер</string>
+    <string name="editor_3d_phys_sphere_collider">Сферический коллайдер</string>
+    <string name="editor_3d_phys_capsule_collider">Капсульный коллайдер</string>
+    <string name="editor_3d_phys_center">Центр</string>
+    <string name="editor_3d_phys_size">Размер</string>
+    <string name="editor_3d_phys_radius">Радиус</string>
+
+    <!-- Camera Component -->
+    <string name="editor_3d_cam_main">Основная камера</string>
+    <string name="editor_3d_cam_fov">Угол обзора (FoV)</string>
+    <string name="editor_3d_cam_clipping">Плоскости отсечения</string>
+    <string name="editor_3d_cam_near">Ближняя</string>
+    <string name="editor_3d_cam_far">Дальняя</string>
+
+    <!-- Light Component -->
+    <string name="editor_3d_light_type">Тип источника</string>
+    <string name="editor_3d_light_intensity">Интенсивность</string>
+    <string name="editor_3d_light_range">Дальность свечения</string>
+    <string name="editor_3d_light_cutoff">Угол среза</string>
+    <string name="editor_3d_light_exponent">Экспонента затухания</string>
+    <string name="editor_3d_light_color">Цвет свечения</string>
+    <string name="editor_3d_light_select_color">Выбрать цвет</string>
+
+    <!-- Animation Component -->
+    <string name="editor_3d_anim_clip">Анимационный клип</string>
+    <string name="editor_3d_anim_speed">Скорость</string>
+    <string name="editor_3d_anim_transition">Время перехода (с)</string>
+    <string name="editor_3d_anim_loop">Циклично</string>
+
+    <!-- Keyframe Component -->
+    <string name="editor_3d_kf_autostart">Автостарт</string>
+    <string name="editor_3d_kf_loop">Цикличная анимация</string>
+    <string name="editor_3d_kf_keyframes">Ключевые кадры:</string>
+    <string name="editor_3d_kf_add_keyframe">+ Создать кадр в текущей позиции</string>
+    <string name="editor_3d_kf_time">Время:</string>
+    <string name="editor_3d_kf_ease">Сглаживание:</string>
+
+    <!-- Post Processing -->
+    <string name="editor_3d_pp_enable">Включить пост-обработку</string>
+    <string name="editor_3d_pp_quality">Масштаб качества (0.1 - 1.0)</string>
+    <string name="editor_3d_pp_add_effect">Добавить эффект</string>
+
+    <string name="formula_fold">Свернуть [－]</string>
+    <string name="formula_unfold">Развернуть [＋]</string>
+    <string name="brick_context_dialog_system_info">Системная информация</string>
+    <string name="dialog_add_brick_system_info_button">Системная информация</string>
+    <string name="dialog_add_brick_system_info_title">Системные свойства блока</string>
+    <string name="analysis_event_cascade">Зацикливание событий: Скрипт отправляет то же сообщение (\"%1$s\"), которое его запустило. Это приведет к бесконечному спаму потоков и вылету!</string>
+    <string name="analysis_division_by_zero">Деление на ноль: Формула содержит деление (или остаток от деления) на 0.</string>
+    <string name="analysis_3d_primitive_before_pbr">Этот примитив будет невидимым, так как он создан ДО включения Рендера 2.0. Переместите его ниже блока \"Включить рендер 2.0\".</string>
+    <string name="analysis_3d_render_1_only">Этот блок не работает в Рендере 2.0 (PBR) и будет проигнорирован!</string>
+    <string name="analysis_3d_render_2_only">Этот блок требует включения Рендера 2.0 (PBR). Пожалуйста, добавьте блок \"Включить рендер 2.0\" перед ним.</string>
+    <string name="analysis_unused_variable">Переменная \'%1$s\' записывается, но нигде не считывается. Это мертвый код, который можно безопасно удалить.</string>
+    <string name="analysis_dead_broadcast">Сообщение \'%1$s\' никогда не отправляется ни в одном объекте проекта. Этот скрипт никогда не будет запущен.</string>
+    <string name="analysis_unreachable_both_branches_halt">Этот блок никогда не будет выполнен, так как обе ветки предыдущего условия Если-Иначе останавливают скрипт.</string>
+    <string name="analysis_error_undefined_variable">Переменная \'%1$s\' не объявлена в этом объекте или проекте. Значение по умолчанию будет равно 0, что может привести к багам.</string>
+    <string name="analysis_error_undefined_list">Список \'%1$s\' не объявлен в этом объекте или проекте. Использование неинициализированного списка приведет к ошибке.</string>
+    <string name="analysis_redundant_overwritten">Это действие мгновенно перезаписывается следующим блоком без какого-либо промежуточного использования, поэтому оно лишнее.</string>
+    <string name="analysis_leak_nn">Нейросеть загружена, но нигде не выгружается (отсутствует блок \"Выгрузить нейросеть\"). Это может привести к утечке памяти!</string>
+    <string name="analysis_leak_vm">Виртуальная машина запущена, но нигде не останавливается (отсутствует блок \"Остановить VM\").</string>
+    <string name="analysis_leak_server">Локальный сервер запущен, но нигде не останавливается (отсутствует блок \"Остановить сервер\").</string>
+    <string name="analysis_leak_recording">Запись звука запущена, но нигде не останавливается (отсутствует блок \"Остановить запись\").</string>
+    <string name="analysis_clone_delete_outside_cloned">Блок \"Удалить этот клон\" используется вне скрипта \"Когда клонирован\". Он не будет работать для оригинального спрайта.</string>
+    <string name="analysis_shadow_quality_not_power_of_two">Разрешение теней (%1$s) должно быть степенью двойки (например: 512, 1024, 2048, 4096) во избежание графических багов.</string>
+    <string name="analysis_scale_3d_unequal">Координаты 3D-масштаба (X: %1$s, Y: %2$s, Z: %3$s) различаются. Рекомендуется использовать одинаковые значения по осям X, Y, Z во избежание искажения модели.</string>
+    <string name="analysis_wait_inside_async">Блок \"Ждать\" игнорируется внутри асинхронного цикла \"Повторять асинхронно\" и не будет иметь эффекта.</string>
+    <string name="analysis_click_to_jump">Нажмите, чтобы перейти к блоку</string>
+    <string name="analysis_dialog_title">Проблемы в скрипте</string>
+    <string name="analysis_empty_loop_if_else_empty">Блок \'Если-Иначе\' не содержит действий ни в одной из веток.</string>
+    <string name="analysis_empty_loop_if_empty_else_not">Оптимизация: Этот блок можно заменить на простой \'Если\', инвертировав (поменяв на противоположное) условие.</string>
+    <string name="analysis_empty_loop_if_not_else_empty">Оптимизация: Ветка \'Иначе\' пуста. Этот блок можно заменить на более простой \'Если\'.</string>
+    <string name="analysis_empty_loop_try_catch_finally_empty">Блок \'Try-Catch-Finally\' полностью пуст.</string>
+    <string name="analysis_empty_loop_empty_brick">Блок \'%1$s\' пуст и не выполняет никаких действий.</string>
+    <string name="analysis_unreachable_stop_script">Этот блок никогда не будет выполнен, так как перед ним стоит блок, останавливающий скрипт.</string>
+    <string name="analysis_unreachable_after_forever">Этот блок никогда не будет выполнен, так как он находится после бесконечного цикла без блока \'остановить\'.</string>
+    <string name="analysis_constant_condition_repeat_until_true">Условие \'%1$s\' всегда истинно. Этот цикл завершится сразу, не выполнив ни одного действия.</string>
+    <string name="analysis_constant_condition_if_true">Условие \'%1$s\' всегда истинно. Код в ветке \'иначе\' (если она есть) никогда не будет выполнен.</string>
+    <string name="analysis_constant_condition_repeat_until_false">Условие \'%1$s\' всегда ложно. Этот цикл будет бесконечным.</string>
+    <string name="analysis_constant_condition_if_false">Условие \'%1$s\' всегда ложно. Код внутри этого блока никогда не будет выполнен.</string>
+    <string name="analysis_error_firebase_id_invalid">Некорректный ID базы данных Firebase. Он должен начинаться с \'https://\' и заканчиваться на \'firebaseio.com\'. Это приведет к ошибке во время выполнения.</string>
+    <string name="analysis_error_firebase_id_empty">ID базы данных Firebase не может быть пустым.</string>
+    <string name="analysis_redundant_same_action">Этот блок выполняет то же самое действие с теми же параметрами, что и предыдущий. Возможно, он лишний.</string>
+
+    <string name="brick_context_dialog_collapse">Свернуть блок</string>
+    <string name="brick_context_dialog_expand">Развернуть блок</string>
+
+    <string name="subcategory_device_scripting">Скрипты и код</string>
+    <string name="subcategory_device_vm">Виртуальные машины</string>
+    <string name="subcategory_device_views">Пользовательские интерфейсы</string>
+    <string name="subcategory_device_storage">Файлы и хранилище</string>
+    <string name="subcategory_device_hardware">Оборудование и камера</string>
+    <string name="subcategory_device_speech">Речь и взаимодействие</string>
+    <string name="subcategory_device_emulation">Эмуляция и сеть</string>
+    <string name="subcategory_device_misc">Разное</string>
+
+    <string name="subcategory_neural_llm">Облачный ИИ (LLM)</string>
+    <string name="subcategory_neural_local">Локальные модели (ONNX)</string>
+    <string name="subcategory_neural_tensors">Тензоры и массивы</string>
+    <string name="subcategory_neural_vision">Обработка изображений</string>
+
+    <string name="subcategory_sound_playback">Воспроизведение</string>
+    <string name="subcategory_sound_volume">Громкость и настройки</string>
+    <string name="subcategory_sound_files">Файлы и запись</string>
+    <string name="subcategory_sound_speech">Речь и микрофон</string>
+    <string name="subcategory_sound_music">Музыка и инструменты</string>
+
+    <string name="subcategory_looks_costumes">Образы и фоны</string>
+    <string name="subcategory_looks_visibility">Видимость и размер</string>
+    <string name="subcategory_looks_effects">Графические эффекты</string>
+    <string name="subcategory_looks_dialogs">Текст и диалоги</string>
+    <string name="subcategory_looks_camera2d">Камера 2D</string>
+    <string name="subcategory_looks_camera_device">Камера устройства и медиа</string>
+    <string name="subcategory_looks_buffers">Буферы (Buffers)</string>
+    <string name="subcategory_looks_primitives">Примитивы</string>
+
+    <string name="subcategory_data_variables">Переменные</string>
+    <string name="subcategory_data_lists">Списки и таблицы</string>
+    <string name="subcategory_data_visuals">Отображение данных</string>
+    <string name="subcategory_data_processing">Обработка текста</string>
+    <string name="subcategory_data_files">Файловая система и архивы</string>
+    <string name="subcategory_data_web">Сеть и взаимодействие</string>
+
+    <string name="subcategory_event_touch">Запуск и нажатия</string>
+    <string name="subcategory_event_messages">Сообщения</string>
+    <string name="subcategory_event_conditions">Условия и изменения</string>
+    <string name="subcategory_event_cloning">Клонирование</string>
+    <string name="subcategory_event_system">Системные</string>
+
+    <string name="subcategory_control_waiting">Ожидание и задержки</string>
+    <string name="subcategory_control_loops">Циклы</string>
+    <string name="subcategory_control_conditions">Условия</string>
+    <string name="subcategory_control_scenes">Сцены и проекты</string>
+    <string name="subcategory_control_stopping">Остановка и ошибки</string>
+    <string name="subcategory_control_cloning">Клонирование</string>
+    <string name="subcategory_control_messages">События и сообщения</string>
+    <string name="subcategory_control_touches">Эмуляция касаний</string>
+
+    <string name="subcategory_motion_coordinates">Координаты и плавность</string>
+    <string name="subcategory_motion_rotation">Вращение и направление</string>
+    <string name="subcategory_motion_layers">Слои и камера</string>
+    <string name="subcategory_motion_physics_core">Физика - Общее</string>
+    <string name="subcategory_motion_physics_forces">Физика - Силы и скорость</string>
+    <string name="subcategory_motion_physics_joints">Физика - Соединения</string>
+    <string name="subcategory_motion_robots">Роботы и эффекты</string>
+
+    <string name="subcategory_3d_objects">Объекты и меши</string>
+    <string name="subcategory_3d_transform">Движение и связь</string>
+    <string name="subcategory_3d_camera">Управление камерой</string>
+    <string name="subcategory_3d_physics">Физика и суставы</string>
+    <string name="subcategory_3d_render">Свет и окружение</string>
+    <string name="subcategory_3d_shaders">Материалы и шейдеры</string>
+    <string name="subcategory_3d_animation">Анимация и скелет</string>
+    <string name="subcategory_3d_voxels">Воксельная графика</string>
+    <string name="subcategory_3d_sound">Пространственный звук</string>
+    <string name="subcategory_3d_effects">Эффекты, сцены и ИИ</string>
+
+    <string name="preference_title_block_grouping">Группировка блоков</string>
+    <string name="preference_description_block_grouping">Сворачивать категории блоков в подкатегории</string>
+    <string name="preference_title_grouping_event">Категория События</string>
+    <string name="preference_description_grouping_event">Включить группировку блоков в событиях</string>
+    <string name="preference_title_grouping_control">Категория Управление</string>
+    <string name="preference_description_grouping_control">Включить группировку блоков в управлении</string>
+    <string name="preference_title_grouping_motion">Категория Движения</string>
+    <string name="preference_description_grouping_motion">Включить группировку блоков в движениях</string>
+    <string name="preference_title_grouping_sound">Категория Звуки</string>
+    <string name="preference_description_grouping_sound">Включить группировку блоков в звуках</string>
+    <string name="preference_title_grouping_looks">Категория Образы</string>
+    <string name="preference_description_grouping_looks">Включить группировку блоков в образах</string>
+    <string name="preference_title_grouping_data">Категория Данные</string>
+    <string name="preference_description_grouping_data">Включить группировку блоков в данных</string>
+    <string name="preference_title_grouping_device">Категория Устройство</string>
+    <string name="preference_description_grouping_device">Включить группировку блоков в устройствах</string>
+    <string name="preference_title_grouping_threed">Категория 3D</string>
+    <string name="preference_description_grouping_threed">Включить группировку блоков в 3D (Рекомендуется)</string>
+
+    <string name="dialog_add_brick_add">Добавить</string>
+    <string name="dialog_add_brick_cancel">Отмена</string>
+    <string name="dialog_add_brick_add_to_favorites">В избранное</string>
+    <string name="dialog_add_brick_remove_from_favorites">Из избранного</string>
+    <string name="dialog_add_brick_title">Свойства блока</string>
+    <string name="toast_added_to_favorites">Добавлено в избранное</string>
+    <string name="toast_removed_from_favorites">Удалено из избранного</string>
     <string name="formula_voxel_get_id" formatted="false">Voxel_получить_id</string>
     <string name="formula_voxel_get_id_param" formatted="false">(\'worldId\', x, y, z)</string>
     <string name="formula_voxel_get_data" formatted="false">Voxel_получить_данные</string>
@@ -613,6 +1074,8 @@
 
     <string name="category_file">Файлы</string>
 
+    <string name="category_favorites">Избранные</string>
+
     <string name="loading_fact_placeholder">Загрузка...</string>
 
     <string-array name="loading_facts">
@@ -758,6 +1221,7 @@
         <item>А у тебя спина белая. ну типа понял, да? 1 апреля там все дела... (и мне пофиг что это сообщение 99.9% показывается не 1 апреля)</item>
         <item>Ты ему яйца кенгуру... (далее поймут только кто слышал слова нашего информатика)</item>
         <item>Оторви их (локальный мем, думайте)</item>
+
     </string-array>
     <string name="rebuild_cache_button">Обновить кэш физики</string>
     <string name="insert_image">Вставить изображение</string>

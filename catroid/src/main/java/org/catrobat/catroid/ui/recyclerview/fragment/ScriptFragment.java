@@ -66,6 +66,7 @@ import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrick;
 import org.catrobat.catroid.content.bricks.VisualPlacementBrick;
 import org.catrobat.catroid.formulaeditor.InternToExternGenerator;
 import org.catrobat.catroid.formulaeditor.Sensors;
+import org.catrobat.catroid.formulaeditor.UserData;
 import org.catrobat.catroid.formulaeditor.UserList;
 import org.catrobat.catroid.formulaeditor.UserVariable;
 import org.catrobat.catroid.io.StorageOperations;
@@ -173,6 +174,10 @@ public class ScriptFragment extends ListFragment implements
 	private CodeAnalyzer codeAnalyzer;
 
 	private SpriteActivity activity;
+
+    private View analysisStatusIndicator;
+    private TextView errorCountText;
+    private TextView warningCountText;
 
 	public static ScriptFragment newInstance(Brick brickToFocus) {
 		ScriptFragment scriptFragment = new ScriptFragment();
@@ -358,6 +363,14 @@ public class ScriptFragment extends ListFragment implements
 			activity.findViewById(R.id.toolbar).setVisibility(View.GONE);
 		});
 
+        analysisStatusIndicator = view.findViewById(R.id.analysis_status_indicator);
+        errorCountText = view.findViewById(R.id.error_count_text);
+        warningCountText = view.findViewById(R.id.warning_count_text);
+
+        if (analysisStatusIndicator != null) {
+            analysisStatusIndicator.setOnClickListener(v -> showAnalysisSummaryDialog());
+        }
+
 		setHasOptionsMenu(true);
 		return view;
 	}
@@ -486,7 +499,6 @@ public class ScriptFragment extends ListFragment implements
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
         boolean isAnalysisEnabled = prefs.getBoolean("pref_code_analysis_enabled", true);
 
-        // Очищаем старые результаты в любом случае
         AnalysisManager.INSTANCE.clearResults();
 
         if (!isAnalysisEnabled) {
@@ -515,6 +527,7 @@ public class ScriptFragment extends ListFragment implements
                     if (adapter != null) {
                         adapter.notifyDataSetChanged();
                     }
+                    updateAnalysisIndicator();
                 });
             }
             return kotlin.Unit.INSTANCE;
@@ -755,62 +768,83 @@ public class ScriptFragment extends ListFragment implements
 		}
 	}
 
-	@Override
-	public void onBrickClick(Brick brick, int position) {
-		if (listView.isCurrentlyHighlighted()) {
-			listView.cancelHighlighting();
-			return;
-		}
+    @Override
+    public void onBrickClick(Brick brick, int position) {
+        if (listView.isCurrentlyHighlighted()) {
+            listView.cancelHighlighting();
+            return;
+        }
 
-		List<Integer> options = getContextMenuItems(brick);
-		List<String> names = new ArrayList<>();
-		for (Integer option : options) {
-			names.add(getString(option));
-		}
-		ListAdapter arrayAdapter = UiUtils.getAlertDialogAdapterForMenuIcons(options, names,
-				requireContext(), requireActivity());
+        List<Integer> options = getContextMenuItems(brick);
+        List<String> names = new ArrayList<>();
+        for (Integer option : options) {
+            names.add(getString(option));
+        }
+        ListAdapter arrayAdapter = UiUtils.getAlertDialogAdapterForMenuIcons(options, names,
+                requireContext(), requireActivity());
 
-		View dialogTitleView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_brick_context, null);
+        View dialogTitleView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_brick_context, null);
 
-		View brickView = brick.getView(getContext());
-		brick.disableSpinners();
-		ViewGroup brickContainer = dialogTitleView.findViewById(R.id.brick_view_container);
-		brickContainer.addView(brickView);
+        View brickView = brick.getView(getContext());
+        brick.disableSpinners();
+        ViewGroup brickContainer = dialogTitleView.findViewById(R.id.brick_view_container);
 
-		TextView descriptionView = dialogTitleView.findViewById(R.id.brick_description);
-		String description = BrickInfo.getDescription(brick);
-		descriptionView.setText(description);
+        final int maxBrickHeight = (int) (200 * getContext().getResources().getDisplayMetrics().density);
+        android.widget.ScrollView wrapperScrollView = new android.widget.ScrollView(getContext()) {
+            @Override
+            protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+                int heightMode = android.view.View.MeasureSpec.getMode(heightMeasureSpec);
+                int heightSize = android.view.View.MeasureSpec.getSize(heightMeasureSpec);
+                if (heightSize > maxBrickHeight || heightMode == android.view.View.MeasureSpec.UNSPECIFIED) {
+                    heightMeasureSpec = android.view.View.MeasureSpec.makeMeasureSpec(maxBrickHeight, android.view.View.MeasureSpec.AT_MOST);
+                }
+                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+            }
+        };
+        wrapperScrollView.addView(brickView);
+        brickContainer.addView(wrapperScrollView);
 
-		AnalysisResult result = AnalysisManager.INSTANCE.getResultFor(brick);
-		LinearLayout warningLayout = dialogTitleView.findViewById(R.id.warning_layout);
+        TextView descriptionView = dialogTitleView.findViewById(R.id.brick_description);
+        String description = BrickInfo.getDescription(brick);
+        descriptionView.setText(description);
 
-		if (result != null) {
-			TextView warningTitle = dialogTitleView.findViewById(R.id.warning_title);
-			TextView warningMessage = dialogTitleView.findViewById(R.id.warning_message);
+        AnalysisResult result = AnalysisManager.INSTANCE.getResultFor(brick);
+        LinearLayout warningLayout = dialogTitleView.findViewById(R.id.warning_layout);
 
-			String title = (result.getSeverity() == Severity.ERROR) ? "Ошибка:" : "Предупреждение:";
-			int color = (result.getSeverity() == Severity.ERROR) ? 0xFFFF4444 : 0xFFFFBB33;
+        if (result != null) {
+            TextView warningTitle = dialogTitleView.findViewById(R.id.warning_title);
+            TextView warningMessage = dialogTitleView.findViewById(R.id.warning_message);
 
-			warningTitle.setText(title);
-			warningTitle.setTextColor(color);
-			warningMessage.setText(result.getMessage());
+            String title = (result.getSeverity() == Severity.ERROR) ? "Ошибка:" : "Предупреждение:";
+            int color = (result.getSeverity() == Severity.ERROR) ? 0xFFFF4444 : 0xFFFFBB33;
 
-			warningLayout.setVisibility(View.VISIBLE);
-		} else {
-			warningLayout.setVisibility(View.GONE);
-		}
+            warningTitle.setText(title);
+            warningTitle.setTextColor(color);
+            warningMessage.setText(result.getMessage());
 
-		new AlertDialog.Builder(getContext())
-				.setCustomTitle(dialogTitleView)
-				.setAdapter(arrayAdapter, (dialog, which) ->
-						handleContextMenuItemClick(options.get(which), brick, position)
-				).show();
+            warningLayout.setVisibility(View.VISIBLE);
+        } else {
+            warningLayout.setVisibility(View.GONE);
+        }
 
-	}
+        new AlertDialog.Builder(getContext())
+                .setCustomTitle(dialogTitleView)
+                .setAdapter(arrayAdapter, (dialog, which) ->
+                        handleContextMenuItemClick(options.get(which), brick, position)
+                ).show();
+    }
 
 	@VisibleForTesting
 	public static List<Integer> getContextMenuItems(Brick brick) {
 		List<Integer> items = new ArrayList<>();
+
+        if (brick instanceof org.catrobat.catroid.content.bricks.CompositeBrick) {
+            if (org.catrobat.catroid.utils.BrickCollapseManager.INSTANCE.isCollapsed(brick)) {
+                items.add(R.string.brick_context_dialog_expand);
+            } else {
+                items.add(R.string.brick_context_dialog_collapse);
+            }
+        }
 
 		if (brick instanceof UserDefinedReceiverBrick) {
 			items.add(R.string.backpack_add);
@@ -863,6 +897,9 @@ public class ScriptFragment extends ListFragment implements
 				items.add(R.string.brick_context_dialog_help);
 			}
 		}
+
+        items.add(R.string.brick_context_dialog_system_info);
+
 		return items;
 	}
 
@@ -930,6 +967,14 @@ public class ScriptFragment extends ListFragment implements
 				}
 				listView.highlightControlStructureBricks(positions);
 				break;
+            case R.string.brick_context_dialog_collapse:
+            case R.string.brick_context_dialog_expand:
+                org.catrobat.catroid.utils.BrickCollapseManager.INSTANCE.toggleCollapsed(brick);
+                adapter.updateItems(ProjectManager.getInstance().getCurrentSprite());
+                break;
+            case R.string.brick_context_dialog_system_info:
+                showDetailedSystemInfoDialog(brick);
+                break;
 		}
 	}
 
@@ -1213,4 +1258,243 @@ public class ScriptFragment extends ListFragment implements
 			scriptFinder.close();
 		}
 	}
+
+    private void updateAnalysisIndicator() {
+        if (analysisStatusIndicator == null || errorCountText == null || warningCountText == null) {
+            return;
+        }
+
+        int errorCount = org.catrobat.catroid.codeanalysis.AnalysisManager.INSTANCE.getErrorCount();
+        int warningCount = org.catrobat.catroid.codeanalysis.AnalysisManager.INSTANCE.getWarningCount();
+
+        if (errorCount == 0 && warningCount == 0) {
+            analysisStatusIndicator.setVisibility(View.GONE);
+        } else {
+            analysisStatusIndicator.setVisibility(View.VISIBLE);
+            errorCountText.setText(String.valueOf(errorCount));
+            warningCountText.setText(String.valueOf(warningCount));
+
+            View errorDot = analysisStatusIndicator.findViewById(R.id.error_dot);
+            if (errorDot != null) errorDot.setVisibility(errorCount > 0 ? View.VISIBLE : View.GONE);
+            errorCountText.setVisibility(errorCount > 0 ? View.VISIBLE : View.GONE);
+
+            View warningDot = analysisStatusIndicator.findViewById(R.id.warning_dot);
+            if (warningDot != null) warningDot.setVisibility(warningCount > 0 ? View.VISIBLE : View.GONE);
+            warningCountText.setVisibility(warningCount > 0 ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    private void showAnalysisSummaryDialog() {
+        java.util.Map<Brick, org.catrobat.catroid.codeanalysis.AnalysisResult> results =
+                org.catrobat.catroid.codeanalysis.AnalysisManager.INSTANCE.getResults();
+
+        if (results.isEmpty() || getContext() == null) {
+            return;
+        }
+
+        Context context = getContext();
+        float density = context.getResources().getDisplayMetrics().density;
+
+        android.widget.ScrollView scrollView = new android.widget.ScrollView(context);
+        scrollView.setPadding((int) (16 * density), (int) (12 * density), (int) (16 * density), (int) (12 * density));
+
+        LinearLayout container = new LinearLayout(context);
+        container.setOrientation(LinearLayout.VERTICAL);
+
+        final AlertDialog[] dialogHolder = new AlertDialog[1];
+
+        for (java.util.Map.Entry<Brick, org.catrobat.catroid.codeanalysis.AnalysisResult> entry : results.entrySet()) {
+            final Brick brick = entry.getKey();
+            org.catrobat.catroid.codeanalysis.AnalysisResult result = entry.getValue();
+
+            LinearLayout row = new LinearLayout(context);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            row.setPadding((int) (12 * density), (int) (12 * density), (int) (12 * density), (int) (12 * density));
+
+            android.graphics.drawable.StateListDrawable stateListDrawable = new android.graphics.drawable.StateListDrawable();
+
+            android.graphics.drawable.GradientDrawable pressedDrawable = new android.graphics.drawable.GradientDrawable();
+            pressedDrawable.setColor(context.getResources().getColor(R.color.surface_card_pressed));
+            pressedDrawable.setCornerRadius(8 * density);
+
+            android.graphics.drawable.GradientDrawable normalDrawable = new android.graphics.drawable.GradientDrawable();
+            normalDrawable.setColor(context.getResources().getColor(R.color.surface_card));
+            normalDrawable.setCornerRadius(8 * density);
+
+            stateListDrawable.addState(new int[]{android.R.attr.state_pressed}, pressedDrawable);
+            stateListDrawable.addState(new int[]{android.R.attr.state_focused}, pressedDrawable);
+            stateListDrawable.addState(new int[]{}, normalDrawable);
+
+            row.setBackground(stateListDrawable);
+            row.setClickable(true);
+            row.setFocusable(true);
+
+            row.setOnClickListener(v -> {
+                org.catrobat.catroid.content.bricks.Brick parentBrick = brick.getParent();
+                boolean anyExpanded = false;
+
+                while (parentBrick != null) {
+                    if (org.catrobat.catroid.utils.BrickCollapseManager.INSTANCE.isCollapsed(parentBrick)) {
+                        org.catrobat.catroid.utils.BrickCollapseManager.INSTANCE.setCollapsed(parentBrick, false);
+                        anyExpanded = true;
+                    }
+                    parentBrick = parentBrick.getParent();
+                }
+
+                if (anyExpanded) {
+                    adapter.updateItems(org.catrobat.catroid.ProjectManager.getInstance().getCurrentSprite());
+                }
+
+                int position = adapter.getPosition(brick);
+                if (position != -1) {
+                    listView.smoothScrollToPosition(position);
+                    highlightBrickAtIndex(position);
+                    listView.invalidate();
+                }
+                if (dialogHolder[0] != null) {
+                    dialogHolder[0].dismiss();
+                }
+            });
+
+            View marker = new View(context);
+            int markerColor = (result.getSeverity() == org.catrobat.catroid.codeanalysis.Severity.ERROR)
+                    ? context.getResources().getColor(R.color.red)
+                    : context.getResources().getColor(R.color.orange);
+            marker.setBackgroundColor(markerColor);
+
+            LinearLayout.LayoutParams markerParams = new LinearLayout.LayoutParams((int) (4 * density), ViewGroup.LayoutParams.MATCH_PARENT);
+            markerParams.setMargins(0, 0, (int) (12 * density), 0);
+            marker.setLayoutParams(markerParams);
+            row.addView(marker);
+
+            LinearLayout textContainer = new LinearLayout(context);
+            textContainer.setOrientation(LinearLayout.VERTICAL);
+            LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            textContainer.setLayoutParams(textParams);
+
+            TextView msgView = new TextView(context);
+            msgView.setText(result.getMessage());
+            msgView.setTextColor(context.getResources().getColor(R.color.solid_white));
+            msgView.setTextSize(14);
+            msgView.setPadding(0, 0, 0, (int) (4 * density));
+            textContainer.addView(msgView);
+
+            TextView subView = new TextView(context);
+            subView.setText(context.getString(R.string.analysis_click_to_jump));
+            subView.setTextColor(context.getResources().getColor(R.color.text_secondary));
+            subView.setTextSize(11);
+            textContainer.addView(subView);
+
+            row.addView(textContainer);
+
+            LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            rowParams.setMargins(0, 0, 0, (int) (8 * density));
+            row.setLayoutParams(rowParams);
+
+            container.addView(row);
+        }
+
+        scrollView.addView(container);
+
+        dialogHolder[0] = new androidx.appcompat.app.AlertDialog.Builder(context, R.style.Theme_NewCatroid_Dialog)
+                .setTitle(R.string.analysis_dialog_title)
+                .setView(scrollView)
+                .setPositiveButton("OK", null)
+                .create();
+
+        dialogHolder[0].show();
+    }
+
+    private void showDetailedSystemInfoDialog(Brick brick) {
+        Context context = getContext();
+        if (context == null) return;
+        float density = context.getResources().getDisplayMetrics().density;
+
+        android.widget.ScrollView scrollView = new android.widget.ScrollView(context);
+        scrollView.setPadding((int) (16 * density), (int) (12 * density), (int) (16 * density), (int) (12 * density));
+
+        TextView infoTextView = new TextView(context);
+        infoTextView.setText(getBrickSystemInfo(brick));
+        infoTextView.setTextColor(context.getResources().getColor(R.color.solid_white));
+        infoTextView.setTextSize(13);
+        infoTextView.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.MONOSPACE, android.graphics.Typeface.NORMAL));
+
+        scrollView.addView(infoTextView);
+
+        new AlertDialog.Builder(context)
+                .setTitle(R.string.dialog_add_brick_system_info_title)
+                .setView(scrollView)
+                .setPositiveButton("OK", null)
+                .show();
+    }
+
+    private String getBrickSystemInfo(Brick brick) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Class Name:\n");
+        sb.append(brick.getClass().getName()).append("\n");
+        sb.append("---------------------------------------\n\n");
+
+        Class<?> superclass = brick.getClass().getSuperclass();
+        String superclassName = (superclass != null) ? superclass.getSimpleName() : "None";
+        sb.append("Superclass:\n");
+        sb.append(superclassName).append("\n");
+        sb.append("---------------------------------------\n\n");
+
+        if (brick instanceof org.catrobat.catroid.content.bricks.FormulaBrick) {
+            org.catrobat.catroid.content.bricks.FormulaBrick formulaBrick =
+                    (org.catrobat.catroid.content.bricks.FormulaBrick) brick;
+            java.util.Map<org.catrobat.catroid.content.bricks.Brick.BrickField, org.catrobat.catroid.formulaeditor.Formula> formulas =
+                    formulaBrick.getAllFormulaFieldsWithFormulas();
+            if (formulas != null && !formulas.isEmpty()) {
+                sb.append("Formula Fields (BrickFields):\n");;
+                for (java.util.Map.Entry<org.catrobat.catroid.content.bricks.Brick.BrickField, org.catrobat.catroid.formulaeditor.Formula> entry : formulas.entrySet()) {
+                    sb.append("  * ").append(entry.getKey()).append(" = ")
+                            .append(entry.getValue().getTrimmedFormulaString(getContext())).append("\n");
+                }
+                sb.append("---------------------------------------\n\n");
+            }
+        }
+
+        if (brick instanceof org.catrobat.catroid.content.bricks.UserDataBrick) {
+            org.catrobat.catroid.content.bricks.UserDataBrick userDataBrick =
+                    (org.catrobat.catroid.content.bricks.UserDataBrick) brick;
+            Map<Brick.BrickData, UserData> data =
+                    userDataBrick.getAllBrickDataWithValues();
+            if (data != null && !data.isEmpty()) {
+                sb.append("Data Fields (UserData):\n");
+                for (Map.Entry<Brick.BrickData, UserData> entry : data.entrySet()) {
+                    sb.append("  * ").append(entry.getKey()).append(" = ")
+                            .append(entry.getValue()).append("\n");
+                }
+                sb.append("---------------------------------------\n\n");
+            }
+        }
+
+        sb.append("Declared Fields:\n");
+        java.lang.reflect.Field[] fields = brick.getClass().getDeclaredFields();
+        if (fields != null && fields.length > 0) {
+            for (java.lang.reflect.Field field : fields) {
+                try {
+                    field.setAccessible(true);
+                    String nameStr = field.getName();
+                    if (!nameStr.startsWith("$") && !nameStr.equals("serialVersionUID") && !nameStr.equals("Companion")) {
+                        String type = field.getType().getSimpleName();
+                        Object value = field.get(brick);
+                        sb.append("  * ").append(nameStr).append(" (").append(type).append(") = ")
+                                .append(value != null ? value.toString() : "null").append("\n");
+                    }
+                } catch (Exception e) {
+                }
+            }
+        } else {
+            sb.append("  * No declared fields found\n");
+        }
+        sb.append("---------------------------------------\n\n");
+
+        return sb.toString();
+    }
 }

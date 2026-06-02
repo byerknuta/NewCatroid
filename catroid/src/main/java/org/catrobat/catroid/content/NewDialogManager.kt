@@ -1,6 +1,6 @@
 package org.catrobat.catroid.content
 
-import android.app.AlertDialog
+import androidx.appcompat.app.AlertDialog
 import android.graphics.Color
 import android.view.ContextThemeWrapper
 import android.view.ViewGroup
@@ -57,8 +57,9 @@ class NewDialogManager {
                 var radioGroup: RadioGroup? = null
 
                 for (defaultValue in dialogData.inputs) {
-                    val editText = EditText(context).apply {
+                    val editText = androidx.appcompat.widget.AppCompatEditText(context).apply {
                         setText(defaultValue)
+                        setTextColor(Color.WHITE)
                         layoutParams = LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT
@@ -110,7 +111,7 @@ class NewDialogManager {
                 }
 
                 val builder = AlertDialog.Builder(
-                    ContextThemeWrapper(context, R.style.Theme_AppCompat_Dialog)
+                    android.view.ContextThemeWrapper(context, R.style.Theme_NewCatroid_Dialog)
                 )
                     .setTitle(dialogData.title)
                     .setMessage(dialogData.message)

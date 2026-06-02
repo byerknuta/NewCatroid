@@ -70,13 +70,9 @@ class ProjectFilesFragment : Fragment() {
     private val binding get() = _binding!!
     private var project: Project? = null
     private var sceneName: String? = null
-    private var projectInZip: File? = null
-    private var buildFilename: String? = null
-    private var zipTempDir: File? = null
     private lateinit var recyclerView: RecyclerView
     private lateinit var filesAdapter: FilesAdapter
     private var filesList = mutableListOf<String>()
-    private var fileToExport: File? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -108,11 +104,9 @@ class ProjectFilesFragment : Fragment() {
 
     private fun setupAdd() {
         binding.projectFilesAdd.setOnClickListener {
-            //handleText()
             handleAdd()
         }
         binding.projectFilesCmd.setOnClickListener {
-            //handleText()
             handleCmd()
         }
     }
@@ -155,7 +149,7 @@ class ProjectFilesFragment : Fragment() {
 
 
             val extension = file.extension.lowercase()
-            val editableExtensions = listOf("txt", "py", "json", "xml", "lua", "md", "csv", "log")
+            val editableExtensions = listOf("txt", "py", "json", "xml", "lua", "md", "csv", "log", "rscene")
 
             if (extension in editableExtensions) {
 
@@ -215,7 +209,6 @@ class ProjectFilesFragment : Fragment() {
             }
         }
 
-
         oldFiles.forEach { fileName ->
             if (!newFiles.contains(fileName)) {
                 val position = filesList.indexOf(fileName)
@@ -227,9 +220,6 @@ class ProjectFilesFragment : Fragment() {
         }
 
         Log.d("ProjectFile", "Files: $filesList")
-
-
-
     }
 
 
@@ -258,10 +248,8 @@ class ProjectFilesFragment : Fragment() {
         val proj = project ?: return
         val fileName = getFileName(uri)
 
-        // Определяем целевую директорию (папка "files" внутри проекта)
         val filesDir = File(proj.directory, "files")
 
-        // Создаем директорию, если её нет
         if (!filesDir.exists()) {
             filesDir.mkdirs()
         }
@@ -269,21 +257,18 @@ class ProjectFilesFragment : Fragment() {
         val destinationFile = File(filesDir, fileName)
 
         try {
-            // Открываем поток чтения из полученного Uri
             val inputStream = requireContext().contentResolver.openInputStream(uri)
             if (inputStream == null) {
                 Toast.makeText(requireContext(), "Не удалось открыть файл", Toast.LENGTH_SHORT).show()
                 return
             }
 
-            // Записываем данные в файл проекта
             FileOutputStream(destinationFile).use { outputStream ->
                 inputStream.use { input ->
                     input.copyTo(outputStream)
                 }
             }
 
-            // Обновляем список файлов в интерфейсе
             updateFilesList(filesDir)
 
             Toast.makeText(requireContext(), getRandomMessage(), Toast.LENGTH_SHORT).show()

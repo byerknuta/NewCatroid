@@ -23,6 +23,7 @@
 package org.catrobat.catroid.ui.dialogs;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -73,6 +74,7 @@ public class FormulaEditorComputeDialog extends AlertDialog implements SensorEve
 			setContentView(R.layout.dialog_formulaeditor_compute);
 			computeTextView = findViewById(R.id.formula_editor_compute_dialog_textview);
 		}
+        if (computeTextView != null) computeTextView.setTextColor(Color.WHITE);
 		AndroidStringProvider stringProvider = new AndroidStringProvider(context);
 		showFormulaResult(scope, stringProvider);
 	}

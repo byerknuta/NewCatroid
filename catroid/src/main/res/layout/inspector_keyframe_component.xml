@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:padding="12dp"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/bg_inspector_card">
 
-    <!-- Настройки анимации -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -17,69 +19,74 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Auto Start"
+            android:text="@string/editor_3d_kf_autostart"
             android:textColor="@color/white"
-            android:buttonTint="@color/white"/>
+            android:buttonTint="@color/accent"/>
 
         <CheckBox
             android:id="@+id/keyframe_loop"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Looping"
+            android:text="@string/editor_3d_kf_loop"
             android:textColor="@color/white"
-            android:buttonTint="@color/white"/>
+            android:buttonTint="@color/accent"/>
     </LinearLayout>
 
-    <!-- Кнопки управления в редакторе -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp">
 
         <ImageButton
             android:id="@+id/btn_keyframe_play"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:src="@android:drawable/ic_media_play"
+            app:tint="@color/solid_white"
             android:background="?attr/selectableItemBackgroundBorderless"/>
 
         <ImageButton
             android:id="@+id/btn_keyframe_stop"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:src="@android:drawable/ic_media_pause"
-            android:background="?attr/selectableItemBackgroundBorderless"/>
+            app:tint="@color/solid_white"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_marginStart="8dp"/>
 
         <SeekBar
             android:id="@+id/keyframe_timeline_slider"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"/>
     </LinearLayout>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Keyframes:"
+        android:text="@string/editor_3d_kf_keyframes"
         android:textColor="@color/white"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
         android:textStyle="bold"/>
 
-    <!-- Сюда будем программно добавлять строки с кейфреймами -->
     <LinearLayout
         android:id="@+id/keyframe_list_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"/>
+        android:orientation="vertical"
+        android:layout_marginTop="8dp"/>
 
     <Button
         android:id="@+id/btn_add_keyframe"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="+ Add Keyframe at Current Position"
+        android:text="@string/editor_3d_kf_add_keyframe"
         style="@style/Widget.App.Button.Outlined"
-        android:layout_marginTop="8dp"/>
+        android:layout_marginTop="12dp"/>
 
 </LinearLayout>

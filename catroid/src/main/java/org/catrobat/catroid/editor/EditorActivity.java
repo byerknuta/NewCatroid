@@ -1,7 +1,7 @@
 package org.catrobat.catroid.editor;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -338,11 +338,10 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
             String query = ((EditText)findViewById(R.id.hierarchy_search)).getText().toString().trim();
             if (query.isEmpty()) return;
 
-            new AlertDialog.Builder(this)
-                    .setTitle("Mass Delete")
-                    .setMessage("Delete ALL objects containing '" + query + "'?")
-                    .setPositiveButton("Delete All", (dialog, which) -> {
-
+            new AlertDialog.Builder(this, R.style.Theme_NewCatroid_Dialog)
+                    .setTitle(R.string.editor_3d_mass_delete_title)
+                    .setMessage(getString(R.string.editor_3d_mass_delete_msg, query))
+                    .setPositiveButton(R.string.editor_3d_delete_all, (dialog, which) -> {
                         Gdx.app.postRunnable(() -> {
                             Commands.CompositeCommand compositeDelete = new Commands.CompositeCommand();
                             List<GameObject> toRemove = new ArrayList<>();
@@ -365,11 +364,11 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
                             runOnUiThread(() -> {
                                 updateHierarchy();
                                 onObjectSelected(null, false);
-                                Toast.makeText(this, "Removed " + toRemove.size() + " objects", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, getString(R.string.editor_3d_removed_objects_toast, toRemove.size()), Toast.LENGTH_SHORT).show();
                             });
                         });
                     })
-                    .setNegativeButton("Cancel", null)
+                    .setNegativeButton(R.string.cancel, null)
                     .show();
         });
 
@@ -389,7 +388,7 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
                     ));
                 }
 
-                Toast.makeText(this, "Aligned to camera", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.editor_3d_aligned_to_cam, Toast.LENGTH_SHORT).show();
                 onObjectSelected(currentSelectedObject, false);
             }
         });
@@ -402,14 +401,19 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
             EditText inputDist = viewDialog.findViewById(R.id.edit_array_step);
             Spinner spinAxis = viewDialog.findViewById(R.id.spinner_array_axis);
 
-            String[] axesOptions = {"Axis X", "Axis Y", "Axis Z", "Camera Forward"};
+            String[] axesOptions = {
+                    getString(R.string.editor_3d_axis_x),
+                    getString(R.string.editor_3d_axis_y),
+                    getString(R.string.editor_3d_axis_z),
+                    getString(R.string.editor_3d_axis_cam_forward)
+            };
             ArrayAdapter<String> spinAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, axesOptions);
             spinAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinAxis.setAdapter(spinAdapter);
 
-            new AlertDialog.Builder(this)
+            new AlertDialog.Builder(this, R.style.Theme_NewCatroid_Dialog)
                     .setView(viewDialog)
-                    .setPositiveButton("Clone", (dialog, which) -> {
+                    .setPositiveButton(R.string.editor_3d_clone, (dialog, which) -> {
                         try {
                             int count = Integer.parseInt(inputAmount.getText().toString());
                             float step = Float.parseFloat(inputDist.getText().toString());
@@ -443,15 +447,15 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
 
                                 runOnUiThread(() -> {
                                     updateHierarchy();
-                                    Toast.makeText(this, "Created " + count + " objects", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(this, getString(R.string.editor_3d_created_objects_toast, count), Toast.LENGTH_SHORT).show();
                                 });
                             });
 
                         } catch (Exception e) {
-                            Toast.makeText(this, "Error in inputs", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, R.string.editor_3d_error_inputs, Toast.LENGTH_SHORT).show();
                         }
                     })
-                    .setNegativeButton("Cancel", null)
+                    .setNegativeButton(R.string.cancel, null)
                     .show();
             return true;
         });
@@ -464,7 +468,7 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
                 currentSelectedObject.transform.position.set(newPos);
                 sceneManager.rebuildGameObject(currentSelectedObject);
 
-                Toast.makeText(this, "Object moved to view", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.editor_3d_moved_to_view, Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -481,7 +485,7 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
 
                     updateHierarchy();
                     onObjectSelected(copy, false);
-                    Toast.makeText(this, "Duplicated", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.editor_3d_duplicated, Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -497,7 +501,7 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
 
                 cam.update();
 
-                Toast.makeText(this, "Focused on " + currentSelectedObject.name, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.editor_3d_focused_on, currentSelectedObject.name), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -620,17 +624,17 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
             showSceneSettingsDialog();
             return true;
         } else if (id == R.id.action_clear_scene) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Clear scene?")
-                    .setMessage("The scene will be reset, and you may lose your changes. Continue?")
-                    .setPositiveButton("Clear", (dialog, which) -> {
+            new AlertDialog.Builder(this, R.style.Theme_NewCatroid_Dialog)
+                    .setTitle(R.string.editor_3d_clear_scene_title)
+                    .setMessage(R.string.editor_3d_clear_scene_msg)
+                    .setPositiveButton(R.string.editor_3d_clear_btn, (dialog, which) -> {
                         EditorStateManager.clearCache();
                         if (editorListener != null) {
                             editorListener.resetEngine();
                         }
-                        Toast.makeText(this, "Scene Cleared", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.editor_3d_cleared_toast, Toast.LENGTH_SHORT).show();
                     })
-                    .setNegativeButton("Cancel", null)
+                    .setNegativeButton(R.string.cancel, null)
                     .show();
             return true;
         } else if (id == R.id.action_exit) {
@@ -638,20 +642,6 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void showExitConfirmationDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("Exit Editor")
-                .setMessage("Do you want to save your changes before exiting?")
-                .setPositiveButton("Save & Exit", (dialog, which) -> {
-                    showSaveSceneDialog(this::finish);
-                })
-                .setNeutralButton("Exit without Saving", (dialog, which) -> {
-                    finish();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
     }
 
     private void cacheCurrentScene() {
@@ -666,81 +656,6 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
 
     private void showSaveSceneDialog() {
         showSaveSceneDialog(null);
-    }
-
-    private void showSaveSceneDialog(Runnable onSaveComplete) {
-        final EditText input = new EditText(this);
-        input.setHint("my_level_1");
-
-        new AlertDialog.Builder(this)
-                .setTitle("Save Scene As...")
-                .setMessage("Enter a file name (without extension):")
-                .setView(input)
-                .setPositiveButton("Save", (dialog, which) -> {
-                    String fileName = input.getText().toString();
-                    if (fileName.isEmpty()) {
-                        Toast.makeText(this, "File name cannot be empty", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    String fileNameWithExt = fileName + ".rscene";
-
-                    File projectFile = new File(ProjectManager.getInstance().getCurrentProject().getFilesDir(), fileNameWithExt);
-                    FileHandle fileHandle = Gdx.files.absolute(projectFile.getAbsolutePath());
-
-                    sceneManager.saveScene(fileHandle);
-                    Toast.makeText(this, "Scene saved to " + fileNameWithExt, Toast.LENGTH_SHORT).show();
-
-                    if (onSaveComplete != null) {
-                        onSaveComplete.run();
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-
-    private void showLoadSceneDialog() {
-        File projectFilesDir = ProjectManager.getInstance().getCurrentProject().getFilesDir();
-        File[] allFiles = projectFilesDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".rscene"));
-
-        if (allFiles == null || allFiles.length == 0) {
-            Toast.makeText(this, "No saved scenes (.rscene) found.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String[] sceneNames = new String[allFiles.length];
-        for(int i = 0; i < allFiles.length; i++) {
-            sceneNames[i] = allFiles[i].getName();
-        }
-
-        new AlertDialog.Builder(this)
-                .setTitle("Load Scene")
-                .setItems(sceneNames, (dialog, which) -> {
-                    File selectedFile = allFiles[which];
-                    FileHandle fileHandle = Gdx.files.absolute(selectedFile.getAbsolutePath());
-
-                    EditorFragment fragment = (EditorFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-                    if (fragment != null && fragment.getListener() != null) {
-                        ThreeDManager.SceneSettings settings = new ThreeDManager.SceneSettings();
-                        try {
-                            String sceneJson = fileHandle.readString();
-                            Json json = new Json();
-                            SceneData sceneData = json.fromJson(SceneData.class, sceneJson);
-                            if (sceneData != null && sceneData.renderSettings != null) {
-                                settings = sceneData.renderSettings;
-                            }
-                        } catch (Exception e) {
-                            Gdx.app.error("EditorActivity", "Could not parse scene settings, using defaults.", e);
-                        }
-
-                        fragment.getListener().resetEngine(fileHandle, settings);
-
-                        updateHierarchy();
-                        onObjectSelected(null);
-                        Toast.makeText(this, "Loading scene: " + selectedFile.getName(), Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .show();
     }
 
     public void onEngineReset(SceneManager manager, ThreeDManager engine) {
@@ -787,8 +702,8 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
 
 
         String[] resolutions = {"2", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "16384", "32768"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, resolutions);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.simple_spinner_item_white_text, resolutions);
+        adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
         shadowResSpinner.setAdapter(adapter);
 
 
@@ -911,7 +826,7 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
         dirLightsEditor.setText(String.valueOf(currentSettings.numDirectionalLights));
         bonesEditor.setText(String.valueOf(currentSettings.numBones));
 
-        AlertDialog dialog = new AlertDialog.Builder(this)
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.Theme_NewCatroid_Dialog)
                 .setTitle("Scene Settings")
                 .setView(dialogView)
                 .setPositiveButton("Close", null)
@@ -925,7 +840,7 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
                 newSettings.numDirectionalLights = Integer.parseInt(dirLightsEditor.getText().toString());
                 newSettings.numBones = Math.min(110, Integer.parseInt(bonesEditor.getText().toString()));
 
-                new AlertDialog.Builder(this)
+                new AlertDialog.Builder(this, R.style.Theme_NewCatroid_Dialog)
                         .setTitle("Restart 3D Engine")
                         .setMessage("Applying these settings requires reloading the 3D editor. Unsaved changes might be lost. Continue?")
                         .setPositiveButton("Restart", (d, which) -> {
@@ -967,7 +882,7 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
             return;
         }
 
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.Theme_NewCatroid_Dialog)
                 .setTitle("Select Skybox Texture")
                 .setItems(textureFiles.toArray(new String[0]), (dialog, which) -> {
                     String selectedFile = textureFiles.get(which);
@@ -977,6 +892,125 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
                     clearButton.setVisibility(View.VISIBLE);
                 })
                 .show();
+    }
+
+    private void showExitConfirmationDialog() {
+        new AlertDialog.Builder(this, R.style.Theme_NewCatroid_Dialog)
+                .setTitle(R.string.editor_3d_exit_title)
+                .setMessage(R.string.editor_3d_exit_msg)
+                .setPositiveButton(R.string.editor_3d_save_exit, (dialog, which) -> {
+                    showSaveSceneDialog(this::finish);
+                })
+                .setNeutralButton(R.string.editor_3d_exit_no_save, (dialog, which) -> {
+                    finish();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void showSaveSceneDialog(Runnable onSaveComplete) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.Theme_NewCatroid_Dialog);
+
+        final EditText input = new EditText(builder.getContext());
+        input.setHint("my_level_1");
+
+        builder.setTitle(R.string.editor_3d_save_scene_as)
+                .setMessage(R.string.editor_3d_enter_file_name)
+                .setView(input)
+                .setPositiveButton(R.string.save, (dialog, which) -> {
+                    String fileName = input.getText().toString();
+                    if (fileName.isEmpty()) {
+                        Toast.makeText(this, R.string.editor_3d_file_name_empty, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    String fileNameWithExt = fileName + ".rscene";
+
+                    File projectFile = new File(ProjectManager.getInstance().getCurrentProject().getFilesDir(), fileNameWithExt);
+                    FileHandle fileHandle = Gdx.files.absolute(projectFile.getAbsolutePath());
+
+                    sceneManager.saveScene(fileHandle);
+                    Toast.makeText(this, getString(R.string.editor_3d_scene_saved, fileNameWithExt), Toast.LENGTH_SHORT).show();
+
+                    if (onSaveComplete != null) {
+                        onSaveComplete.run();
+                    }
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void showLoadSceneDialog() {
+        File projectFilesDir = ProjectManager.getInstance().getCurrentProject().getFilesDir();
+        File[] allFiles = projectFilesDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".rscene"));
+
+        if (allFiles == null || allFiles.length == 0) {
+            Toast.makeText(this, R.string.editor_3d_no_scenes_found, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String[] sceneNames = new String[allFiles.length];
+        for(int i = 0; i < allFiles.length; i++) {
+            sceneNames[i] = allFiles[i].getName();
+        }
+
+        new AlertDialog.Builder(this, R.style.Theme_NewCatroid_Dialog)
+                .setTitle(R.string.editor_3d_load_scene)
+                .setItems(sceneNames, (dialog, which) -> {
+                    File selectedFile = allFiles[which];
+                    FileHandle fileHandle = Gdx.files.absolute(selectedFile.getAbsolutePath());
+
+                    EditorFragment fragment = (EditorFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+                    if (fragment != null && fragment.getListener() != null) {
+                        ThreeDManager.SceneSettings settings = new ThreeDManager.SceneSettings();
+                        try {
+                            String sceneJson = fileHandle.readString();
+                            Json json = new Json();
+                            SceneData sceneData = json.fromJson(SceneData.class, sceneJson);
+                            if (sceneData != null && sceneData.renderSettings != null) {
+                                settings = sceneData.renderSettings;
+                            }
+                        } catch (Exception e) {
+                            Gdx.app.error("EditorActivity", "Could not parse scene settings, using defaults.", e);
+                        }
+
+                        fragment.getListener().resetEngine(fileHandle, settings);
+
+                        updateHierarchy();
+                        onObjectSelected(null);
+                        Toast.makeText(this, getString(R.string.editor_3d_loading_scene, selectedFile.getName()), Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .show();
+    }
+
+    private void checkForRecovery() {
+        File projectDir = ProjectManager.getInstance().getCurrentProject().getFilesDir();
+        File recoveryFile = new File(projectDir, AUTOSAVE_FILE_NAME);
+
+        if (recoveryFile.exists()) {
+            new AlertDialog.Builder(this, R.style.Theme_NewCatroid_Dialog)
+                    .setTitle(R.string.editor_3d_crash_recovery_title)
+                    .setMessage(R.string.editor_3d_crash_recovery_msg)
+                    .setCancelable(false)
+                    .setPositiveButton(R.string.editor_3d_recover_btn, (dialog, which) -> {
+                        try {
+                            FileHandle fileHandle = Gdx.files.absolute(recoveryFile.getAbsolutePath());
+                            sceneManager.loadScene(fileHandle);
+
+                            updateHierarchy();
+                            onObjectSelected(null, false);
+                            Toast.makeText(this, R.string.editor_3d_recovered_success, Toast.LENGTH_LONG).show();
+                        } catch (Exception e) {
+                            Toast.makeText(this, R.string.editor_3d_recovered_failed, Toast.LENGTH_SHORT).show();
+                        } finally {
+                            recoveryFile.delete();
+                        }
+                    })
+                    .setNegativeButton(R.string.editor_3d_discard_btn, (dialog, which) -> {
+                        recoveryFile.delete();
+                    })
+                    .show();
+        }
     }
 
     public UndoManager getUndoManager() {
@@ -1022,36 +1056,6 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
                 defaultCrashHandler.uncaughtException(thread, exception);
             }
         });
-    }
-
-    private void checkForRecovery() {
-        File projectDir = ProjectManager.getInstance().getCurrentProject().getFilesDir();
-        File recoveryFile = new File(projectDir, AUTOSAVE_FILE_NAME);
-
-        if (recoveryFile.exists()) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Crash Recovery")
-                    .setMessage("The 3D Editor closed unexpectedly last time. Do you want to recover your unsaved scene?")
-                    .setCancelable(false)
-                    .setPositiveButton("Recover", (dialog, which) -> {
-                        try {
-                            FileHandle fileHandle = Gdx.files.absolute(recoveryFile.getAbsolutePath());
-                            sceneManager.loadScene(fileHandle);
-
-                            updateHierarchy();
-                            onObjectSelected(null, false);
-                            Toast.makeText(this, "Scene recovered successfully!", Toast.LENGTH_LONG).show();
-                        } catch (Exception e) {
-                            Toast.makeText(this, "Failed to recover scene.", Toast.LENGTH_SHORT).show();
-                        } finally {
-                            recoveryFile.delete();
-                        }
-                    })
-                    .setNegativeButton("Discard", (dialog, which) -> {
-                        recoveryFile.delete();
-                    })
-                    .show();
-        }
     }
 
     @Override

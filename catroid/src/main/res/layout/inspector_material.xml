@@ -1,67 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingStart="8dp"
-    android:paddingEnd="8dp"
-    android:paddingBottom="8dp">
+    android:padding="12dp"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/bg_inspector_card">
 
     <TextView
         style="@style/InspectorLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Base Color"/>
+        android:text="@string/editor_3d_mat_color"/>
     <Button
         android:id="@+id/btn_material_color"
         android:layout_width="match_parent"
-        android:layout_height="40dp"/>
+        android:layout_height="36dp"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/bg_inspector_input"/>
     <include layout="@layout/inspector_texture_slot" android:id="@+id/slot_base_color_texture"/>
 
     <TextView
         style="@style/InspectorLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Metallic"/>
+        android:text="@string/editor_3d_mat_metallic"/>
     <include layout="@layout/inspector_slider" android:id="@+id/slider_metallic"/>
 
     <TextView
         style="@style/InspectorLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Roughness"/>
+        android:text="@string/editor_3d_mat_roughness"/>
     <include layout="@layout/inspector_slider" android:id="@+id/slider_roughness"/>
 
     <TextView
         style="@style/InspectorLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Emissive"/>
+        android:text="@string/editor_3d_mat_emissive"/>
     <Button
         android:id="@+id/btn_emissive_color"
         android:layout_width="match_parent"
-        android:layout_height="40dp"/>
+        android:layout_height="36dp"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/bg_inspector_input"/>
     <include layout="@layout/inspector_texture_slot" android:id="@+id/slot_emissive_texture"/>
 
     <TextView
         style="@style/InspectorLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Normal Map"/>
+        android:text="@string/editor_3d_mat_normal"/>
     <include layout="@layout/inspector_texture_slot" android:id="@+id/slot_normal_texture"/>
 
     <TextView
         style="@style/InspectorLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Metallic/Roughness Map"/>
+        android:text="@string/editor_3d_mat_met_rough"/>
     <include layout="@layout/inspector_texture_slot" android:id="@+id/slot_mr_texture"/>
 
     <TextView
         style="@style/InspectorLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Occlusion Map"/>
+        android:text="@string/editor_3d_mat_occlusion"/>
     <include layout="@layout/inspector_texture_slot" android:id="@+id/slot_occlusion_texture"/>
 
     <LinearLayout

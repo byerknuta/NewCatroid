@@ -6,9 +6,22 @@ import org.catrobat.catroid.content.bricks.Brick
 import org.catrobat.catroid.content.bricks.CompositeBrick
 import org.catrobat.catroid.content.bricks.TryCatchFinallyBrick
 
-class CodeAnalyzer(context: Context) {
+class CodeAnalyzer(private val context: Context) {
     private val rules = listOf<AnalysisRule>(
-        ErrorRule(context), EmptyLoopRule(), ConstantConditionRule(context), UnreachableCodeRule(), RedundantBlockRule(context),
+        ErrorRule(context),
+        EmptyLoopRule(context),
+        ConstantConditionRule(context),
+        UnreachableCodeRule(context),
+        RedundantBlockRule(context),
+        ResourceLeakRule(context),
+        InvalidCloneUsageRule(context),
+        ParameterValidationRule(context),
+        UndefinedReferenceRule(context),
+        UnusedVariableRule(context),
+        DeadScriptRule(context),
+        ThreedCompatibilityRule(context),
+        EventCascadeRule(context),
+        DivisionByZeroRule(context)
     )
 
     fun analyzeScript(script: Script): Map<Brick, AnalysisResult> {

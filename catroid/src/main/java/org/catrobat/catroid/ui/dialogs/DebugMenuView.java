@@ -179,23 +179,15 @@ public class DebugMenuView extends FrameLayout {
     }
 
     private WindowManager.LayoutParams createLayoutParams() {
-        // ▼▼▼ НАЧАЛО ФИНАЛЬНОГО ИСПРАВЛЕНИЯ ▼▼▼
-
-        // Убираем FLAG_NOT_FOCUSABLE. Окно ДОЛЖНО быть фокусируемым, чтобы
-        // его дочерние элементы могли получать клики.
-        // Оставляем FLAG_NOT_TOUCH_MODAL, чтобы клики за пределами окна
-        // уходили в игру.
         final int flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
 
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.TYPE_APPLICATION_PANEL,
-                flags, // <-- Используем флаг без NOT_FOCUSABLE
+                flags,
                 android.graphics.PixelFormat.TRANSLUCENT
         );
-
-        // ▲▲▲ КОНЕЦ ФИНАЛЬНОГО ИСПРАВЛЕНИЯ ▲▲▲
 
         params.gravity = android.view.Gravity.TOP | android.view.Gravity.START;
         params.x = 100;

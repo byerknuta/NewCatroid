@@ -159,36 +159,39 @@ class CommandPromptDialogFragment : DialogFragment(), CommandOutputListener {
 
 
     override fun onOpenEditor(file: File) {
-        val editText = EditText(requireContext()).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-            typeface = Typeface.MONOSPACE
-            gravity = Gravity.TOP or Gravity.START
-            setTextColor(Color.WHITE)
-            setBackgroundColor(Color.parseColor("#1E1E1E"))
-            setPadding(24, 24, 24, 24)
-            if (file.exists()) {
-                setText(file.readText())
+        val dialog = android.app.Dialog(requireContext(), android.R.style.Theme_DeviceDefault_NoActionBar_Fullscreen)
+        dialog.setContentView(org.catrobat.catroid.R.layout.dialog_nano_editor)
+
+        val titleView = dialog.findViewById<android.widget.TextView>(org.catrobat.catroid.R.id.nano_title)
+        val editorInput = dialog.findViewById<EditText>(org.catrobat.catroid.R.id.nano_editor_input)
+        val btnSave = dialog.findViewById<android.widget.Button>(org.catrobat.catroid.R.id.nano_btn_save)
+        val btnExit = dialog.findViewById<android.widget.Button>(org.catrobat.catroid.R.id.nano_btn_exit)
+
+        titleView.text = "nano - ${file.name}"
+
+        if (file.exists()) {
+            editorInput.setText(file.readText())
+        }
+
+        btnSave.setOnClickListener {
+            try {
+                file.writeText(editorInput.text.toString())
+                onOutput("Saved ${file.name}\n")
+                android.widget.Toast.makeText(requireContext(), "Файл ${file.name} сохранен", android.widget.Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                onOutput("Error saving file: ${e.message}\n")
+                android.widget.Toast.makeText(requireContext(), "Ошибка сохранения", android.widget.Toast.LENGTH_SHORT).show()
             }
         }
 
-        AlertDialog.Builder(requireContext(), android.R.style.Theme_DeviceDefault_NoActionBar)
-            .setTitle("nano - ${file.name}")
-            .setView(editText)
-            .setPositiveButton("Save (Ctrl+O)") { _, _ ->
-                try {
-                    file.writeText(editText.text.toString())
-                    onOutput("Saved ${file.name}\n")
-                } catch (e: Exception) {
-                    onOutput("Error saving file: ${e.message}\n")
-                }
-                onComplete()
-            }
-            .setNegativeButton("Exit (Ctrl+X)") { _, _ ->
-                onOutput("Editor exited without saving\n")
-                onComplete()
-            }
-            .setCancelable(false)
-            .show()
+        btnExit.setOnClickListener {
+            onOutput("Editor exited\n")
+            onComplete()
+            dialog.dismiss()
+        }
+
+        dialog.setCancelable(false)
+        dialog.show()
     }
 
     private fun showLoading(isLoading: Boolean) {

@@ -155,7 +155,7 @@ class SpeechRecognitionHolder : SpeechRecognitionHolderInterface {
 
     private fun showDialog(stageActivity: StageActivity, stageResourceHolder: StageResourceHolder) {
         val builder = AlertDialog
-            .Builder(ContextThemeWrapper(stageActivity, R.style.Theme_AppCompat_Dialog))
+            .Builder(stageActivity)
         builder
             .setTitle(R.string.speech_recognition_offline_mode_error_dialog_title)
             .setMessage(

@@ -24,13 +24,14 @@ package org.catrobat.catroid.ui.recyclerview.adapter
 
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
-import android.graphics.Paint
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.RectShape
-import android.os.Build
 import android.util.Log
 import android.view.LayoutInflater
+import android.graphics.Typeface
+import android.graphics.Color
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
@@ -54,12 +55,9 @@ import org.catrobat.catroid.content.bricks.NoneBrick
 import org.catrobat.catroid.content.bricks.ScriptBrick
 import org.catrobat.catroid.content.bricks.SetParticleColorBrick
 import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrick
-import org.catrobat.catroid.ui.AnalyzedBrickLayout
-import org.catrobat.catroid.ui.BrickLayout
 import org.catrobat.catroid.ui.dragndrop.BrickAdapterInterface
 import org.catrobat.catroid.ui.recyclerview.adapter.draganddrop.ViewStateManager
 import org.catrobat.catroid.ui.recyclerview.adapter.multiselection.MultiSelectionManager
-import org.koin.ext.getScopeName
 import java.util.ArrayList
 import java.util.Collections
 
@@ -68,7 +66,7 @@ class BrickAdapter(private val sprite: Sprite) :
     BrickAdapterInterface,
     AdapterView.OnItemClickListener,
     OnItemLongClickListener {
-    @kotlin.annotation.Retention(AnnotationRetention.SOURCE)
+    @Retention(AnnotationRetention.SOURCE)
     @IntDef(NONE, ALL, SCRIPTS_ONLY, CONNECTED_ONLY)
     internal annotation class CheckBoxMode
 
@@ -139,19 +137,37 @@ class BrickAdapter(private val sprite: Sprite) :
     private fun updateItemsFromCurrentScripts() {
         items.clear()
         sprite.removeAllEmptyScriptBricks()
+
+        val tempItems = ArrayList<Brick>()
         for (script in scripts) {
             script.setParents()
-            script.addToFlatList(items)
+            script.addToFlatList(tempItems)
         }
-        notifyDataSetChanged()
 
+        for (brick in tempItems) {
+            if (isBrickVisibleInCollapsedHierarchy(brick)) {
+                items.add(brick)
+            }
+        }
+
+        notifyDataSetChanged()
         scriptChangedListener?.onScriptChanged()
+    }
+
+    private fun isBrickVisibleInCollapsedHierarchy(brick: Brick): Boolean {
+        var currentParent = brick.parent
+        while (currentParent != null) {
+            if (org.catrobat.catroid.utils.BrickCollapseManager.isCollapsed(currentParent)) {
+                return false
+            }
+            currentParent = currentParent.parent
+        }
+        return true
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         var item = items[position]
         Log.d("TestItem", item.javaClass.simpleName)
-        //val hasColorField = item.javaClass.declaredFields.any { it.name == "COLOR" }
 
         if (item is SetParticleColorBrick) {
             Log.d("BrickCheck", "SetParticleColorBrick recognized")
@@ -177,9 +193,11 @@ class BrickAdapter(private val sprite: Sprite) :
 
         itemView.visibility =
             if (viewStateManager.isVisible(position)) View.VISIBLE else View.INVISIBLE
-        itemView.alpha = if (viewStateManager.isEnabled(position)) 1F else DISABLED_BRICK_ALPHA
 
-        var brickViewContainer = (itemView as ViewGroup).getChildAt(1)
+        val baseAlpha = if (viewStateManager.isEnabled(position)) 1F else DISABLED_BRICK_ALPHA
+        itemView.alpha = baseAlpha
+
+        var brickViewContainer = itemView.getChildAt(1)
         if (item is UserDefinedReceiverBrick) {
             brickViewContainer = (itemView.getChildAt(1) as ViewGroup).getChildAt(0)
         }
@@ -191,10 +209,86 @@ class BrickAdapter(private val sprite: Sprite) :
             background.clearColorFilter()
         }
 
+        if (item is CompositeBrick) {
+            val itemViewViewGroup = itemView
+            if (itemViewViewGroup != null) {
+                val isCollapsed = org.catrobat.catroid.utils.BrickCollapseManager.isCollapsed(item)
+                val density = parent.context.resources.displayMetrics.density
+
+                var toggleWrapper = itemViewViewGroup.findViewWithTag<android.widget.RelativeLayout>("toggle_wrapper")
+
+                if (toggleWrapper == null) {
+                    val originalContainer = itemViewViewGroup.getChildAt(1)
+
+                    originalContainer.setPadding(
+                        originalContainer.paddingLeft,
+                        originalContainer.paddingTop,
+                        originalContainer.paddingRight + (42 * density).toInt(),
+                        originalContainer.paddingBottom
+                    )
+
+                    toggleWrapper = android.widget.RelativeLayout(parent.context).apply {
+                        tag = "toggle_wrapper"
+                        layoutParams = originalContainer.layoutParams
+                    }
+
+                    itemViewViewGroup.removeViewAt(1)
+
+                    originalContainer.layoutParams = android.widget.RelativeLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+
+                    val toggleView = TextView(parent.context).apply {
+                        tag = "collapse_toggle"
+                        textSize = 16f
+                        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                        setTextColor(Color.WHITE)
+                        gravity = Gravity.CENTER
+
+                        layoutParams = android.widget.RelativeLayout.LayoutParams(
+                            (70 * density).toInt(),
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        ).apply {
+                            addRule(android.widget.RelativeLayout.ALIGN_PARENT_RIGHT)
+                            addRule(android.widget.RelativeLayout.CENTER_VERTICAL)
+                        }
+
+                        setOnClickListener {
+                            org.catrobat.catroid.utils.BrickCollapseManager.toggleCollapsed(item)
+                            updateItemsFromCurrentScripts()
+                        }
+                    }
+
+                    toggleWrapper.addView(originalContainer)
+                    toggleWrapper.addView(toggleView)
+
+                    itemViewViewGroup.addView(toggleWrapper, 1)
+                }
+
+                val toggleBtn = toggleWrapper.findViewWithTag<TextView>("collapse_toggle")
+                toggleBtn?.text = if (isCollapsed) "[＋]" else "[－]"
+
+                itemView.alpha = if (isCollapsed) baseAlpha * 0.82f else baseAlpha
+            }
+        }
+
         checkBoxClickListener(item, itemView, position)
         item.checkBox.isChecked = selectionManager.isPositionSelected(position)
         item.checkBox.isEnabled = viewStateManager.isEnabled(position)
         return itemView
+    }
+
+    private fun findFirstTextView(view: View): TextView? {
+        if (view is TextView) return view
+        if (view is ViewGroup) {
+            for (i in 0 until view.childCount) {
+                val child = view.getChildAt(i)
+                val result = findFirstTextView(child)
+                if (result != null) return result
+            }
+        }
+        return null
     }
 
     private fun clearHighlights(group: ViewGroup) {
@@ -211,7 +305,7 @@ class BrickAdapter(private val sprite: Sprite) :
     private fun applyHighlight(group: ViewGroup, severity: Severity) {
         for (i in 0 until group.childCount) {
             val child = group.getChildAt(i)
-            if (child is TextView && child.id != View.NO_ID) {
+            if (child is TextView) {
                 val color = if (severity == Severity.ERROR) 0xFFFF4444.toInt() else 0xFFFFBB33.toInt()
 
                 val underline = object : ShapeDrawable(RectShape()) {
@@ -223,7 +317,7 @@ class BrickAdapter(private val sprite: Sprite) :
                         val b = bounds
                         canvas.drawRect(
                             b.left.toFloat(),
-                            (b.bottom - 4f),
+                            (b.bottom - (2f * group.context.resources.displayMetrics.density)),
                             b.right.toFloat(),
                             b.bottom.toFloat(),
                             paint
@@ -242,9 +336,9 @@ class BrickAdapter(private val sprite: Sprite) :
 
         //val brickLayout = brickView as? BrickLayout
 
-        //val textView: TextView? = brickLayout?.findViewById(R.id.brick_none_text) // Используем id, который вы добавили
+        //val textView: TextView? = brickLayout?.findViewById(R.id.brick_none_text)
 
-        //textView?.text = "Xz" // Устанавливает текст на TextView
+        //textView?.text = "Xz"
         return brickView
     }
 
