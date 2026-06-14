@@ -179,6 +179,24 @@ public class SceneManager {
             synchronizeTransformsFromEngine();
         }
 
+        if (!cameraAttachments.isEmpty()) {
+            com.badlogic.gdx.graphics.Camera cam = engine.getCamera();
+            if (cam != null) {
+                Matrix4 camWorld = new Matrix4(cam.view).inv();
+                for (CameraAttachment att : cameraAttachments) {
+                    GameObject child = findGameObject(att.childId);
+                    if (child != null) {
+                        child.transform.worldTransform.set(camWorld).mul(att.localOffsetMat);
+
+                        if (child.parentId == null) {
+                            child.transform.worldTransform.getTranslation(child.transform.position);
+                            child.transform.worldTransform.getRotation(child.transform.rotation, true);
+                        }
+                    }
+                }
+            }
+        }
+
         updateWorldTransforms();
 
         for (GameObject go : gameObjects.values()) {
@@ -1435,6 +1453,7 @@ public class SceneManager {
     private void clearScene_internal() {
         engine.clearScene();
         gameObjects.clear();
+        cameraAttachments.clear();
         this.skyboxPath = null;
         this.cachedFogComponent = null;
     }
@@ -1846,5 +1865,148 @@ public class SceneManager {
         }
 
         updateWorldTransforms();
+    }
+
+    private void syncCameraAttachmentsToGameObjects() {
+        for (CameraAttachment att : cameraAttachments) {
+            GameObject go = findGameObject(att.childId);
+            if (go == null) continue;
+
+            ModelInstance inst = engine.getModelInstance(att.childId);
+            if (inst != null) {
+                go.transform.worldTransform.set(inst.transform);
+                if (go.parentId == null) {
+                    go.transform.worldTransform.getTranslation(go.transform.position);
+                    go.transform.worldTransform.getRotation(go.transform.rotation, true);
+                }
+            }
+        }
+    }
+
+    public void promoteLightToGameObject(String lightId) {
+        if (gameObjects.containsKey(lightId)) return;
+
+        boolean found = false;
+        LightComponent lightComp = new LightComponent();
+        Vector3 pos = new Vector3();
+        Quaternion rot = new Quaternion();
+
+        if (engine.getPointLights().containsKey(lightId)) {
+            lightComp.type = LightComponent.LightType.POINT;
+            net.mgsx.gltf.scene3d.lights.PointLightEx pl = engine.getPointLights().get(lightId);
+            if (pl != null) {
+                lightComp.color.set(pl.color);
+                lightComp.intensity = pl.intensity;
+                lightComp.range = pl.range != null ? pl.range : 0f;
+                pos.set(pl.position);
+                found = true;
+            }
+        } else if (engine.getSpotLights().containsKey(lightId)) {
+            lightComp.type = LightComponent.LightType.SPOT;
+            net.mgsx.gltf.scene3d.lights.SpotLightEx sl = engine.getSpotLights().get(lightId);
+            if (sl != null) {
+                lightComp.color.set(sl.color);
+                lightComp.intensity = sl.intensity;
+                lightComp.range = sl.range != null ? sl.range : 0f;
+                lightComp.cutoffAngle = (sl.cutoffAngle + 1000f) * (360f / 2000f);
+                lightComp.exponent = sl.exponent / 1000f;
+                pos.set(sl.position);
+
+                Vector3 forward = new Vector3(0, 0, -1);
+                Vector3 dir = sl.direction.cpy().nor();
+                if (forward.isCollinearOpposite(dir, 0.01f)) {
+                    rot.setEulerAngles(0, 180, 0);
+                } else if (forward.isCollinear(dir, 0.01f)) {
+                    rot.idt();
+                } else {
+                    rot.setFromCross(forward, dir);
+                }
+                found = true;
+            }
+        }
+
+        if (!found) return;
+
+        GameObject go = new GameObject(lightId);
+        go.transform.position.set(pos);
+        go.transform.rotation.set(rot);
+        go.transform.scale.set(1, 1, 1);
+        go.transform.worldTransform.set(pos, rot, go.transform.scale);
+
+        go.addComponent(lightComp);
+
+        RenderComponent renderComp = new RenderComponent();
+        renderComp.modelFileName = "primitive:sphere";
+        go.addComponent(renderComp);
+
+        go.transform.scale.set(0.01f, 0.01f, 0.01f);
+
+        MaterialComponent matComp = new MaterialComponent();
+        matComp.baseColor = new Color(0, 0, 0, 0);
+        matComp.metallic = 0f;
+        matComp.roughness = 1f;
+        go.addComponent(matComp);
+
+        gameObjects.put(lightId, go);
+
+        rebuildGameObject_internal(go);
+    }
+
+    public void applyShaderToImage(String filename, String vertexCode, String fragmentCode) {
+        engine.applyShaderToImage(filename, vertexCode, fragmentCode);
+    }
+
+    private static class CameraAttachment {
+        String childId;
+        Matrix4 localOffsetMat = new Matrix4();
+
+        public CameraAttachment(String id, Matrix4 offset) {
+            this.childId = id;
+            this.localOffsetMat.set(offset);
+        }
+    }
+    private final List<CameraAttachment> cameraAttachments = new ArrayList<>();
+
+    public void attachObjectToCamera(String objectId) {
+        if (gameObjects.containsKey(objectId)) {
+            detachObjectFromCamera(objectId);
+            GameObject go = findGameObject(objectId);
+            com.badlogic.gdx.graphics.Camera cam = engine.getCamera();
+            if (go != null && cam != null) {
+                Matrix4 camWorld = new Matrix4(cam.view).inv();
+                Matrix4 offset = new Matrix4(camWorld).inv().mul(go.transform.worldTransform);
+                cameraAttachments.add(new CameraAttachment(objectId, offset));
+            }
+        } else {
+            engine.attachObjectToCamera(objectId);
+        }
+    }
+
+    public void detachObjectFromCamera(String objectId) {
+        cameraAttachments.removeIf(a -> a.childId.equals(objectId));
+        engine.detachObjectFromCamera(objectId);
+    }
+
+    public void setCameraTracking(String targetId, int mode, float px, float py, float pz, float yaw, float pitch, float roll) {
+        engine.setCameraTracking(targetId, mode, px, py, pz, yaw, pitch, roll);
+    }
+
+    public void removeObjectsByPrefix(String prefix) {
+        if (prefix == null || prefix.isEmpty()) return;
+
+        Gdx.app.postRunnable(() -> {
+            java.util.List<GameObject> toRemove = new java.util.ArrayList<>();
+            for (java.util.Map.Entry<String, GameObject> entry : gameObjects.entrySet()) {
+                if (entry.getKey().startsWith(prefix)) {
+                    toRemove.add(entry.getValue());
+                }
+            }
+
+            for (GameObject go : toRemove) {
+                removeGameObject(go);
+            }
+
+            engine.removeObjectsByPrefix(prefix);
+        });
     }
 }

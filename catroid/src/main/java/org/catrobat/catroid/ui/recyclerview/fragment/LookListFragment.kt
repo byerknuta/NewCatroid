@@ -60,7 +60,7 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
         val TAG = LookListFragment::class.java.simpleName
     }
 
-    override fun initializeAdapter() {
+    public override fun initializeAdapter() {
         sharedPreferenceDetailsKey = SHOW_DETAILS_LOOKS_PREFERENCE_KEY
         val items = projectManager.currentSprite.lookList
         adapter = LookAdapter(items)

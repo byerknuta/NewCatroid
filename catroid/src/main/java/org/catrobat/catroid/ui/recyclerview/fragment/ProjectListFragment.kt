@@ -278,6 +278,12 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             R.id.import_project -> showImportChooser()
             R.id.sort_projects -> sortProjects()
             R.id.libs_menu -> libsMenu()
+            R.id.menu_trash_bin -> {
+                org.catrobat.catroid.utils.ProjectTrashManager.showTrashBinDialog(requireContext()) {
+                    updateAdapterAsync()
+                }
+                return true
+            }
             else -> return super.onOptionsItemSelected(item)
         }
         return true
@@ -493,30 +499,40 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     override fun getDeleteAlertTitleId(): Int = R.plurals.delete_projects
 
     override fun deleteItems(selectedItems: MutableList<ProjectData?>?) {
-        setShowProgressBar(true)
-        var deletedItemCount = 0
         selectedItems ?: return
-        for (item in selectedItems) {
-            item ?: continue
-            try {
-                projectManager.deleteDownloadedProjectInformation(item.name)
-                StorageOperations.deleteDir(item.directory)
-            } catch (e: IOException) {
-                Log.e(TAG, Log.getStackTraceString(e))
+        val validItems = selectedItems.filterNotNull()
+        if (validItems.isEmpty()) return
+
+        val projectDirs = validItems.map { it.directory }
+
+        org.catrobat.catroid.utils.ProjectTrashManager.showDeleteMultipleProjectsDialog(
+            requireContext(),
+            projectDirs
+        ) {
+            requireActivity().runOnUiThread {
+                setShowProgressBar(true)
+
+                for (item in validItems) {
+                    projectManager.deleteDownloadedProjectInformation(item.name)
+                    adapter.remove(item)
+                }
+
+                val deletedItemCount = validItems.size
+                ToastUtil.showSuccess(
+                    requireContext(),
+                    resources.getQuantityString(
+                        R.plurals.deleted_projects,
+                        deletedItemCount,
+                        deletedItemCount
+                    )
+                )
+
+                finishActionMode()
+                setAdapterItems(adapter.projectsSorted)
+                checkForEmptyList()
+                setShowProgressBar(false)
             }
-            adapter.remove(item)
-            deletedItemCount++
         }
-        ToastUtil.showSuccess(
-            requireContext(), resources.getQuantityString(
-                R.plurals.deleted_projects,
-                deletedItemCount,
-                deletedItemCount
-            )
-        )
-        finishActionMode()
-        setAdapterItems(adapter.projectsSorted)
-        checkForEmptyList()
     }
 
     fun checkForEmptyList() {
@@ -565,6 +581,12 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             e.printStackTrace()
         }
 
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: android.view.MenuInflater) {
+        inflater.inflate(R.menu.menu_projects_activity, menu)
+        menu.findItem(R.id.merge)?.isVisible = org.catrobat.catroid.BuildConfig.FEATURE_MERGE_ENABLED
+        super.onCreateOptionsMenu(menu, inflater)
     }
 
     private fun onCopyProjectComplete(success: Boolean) {

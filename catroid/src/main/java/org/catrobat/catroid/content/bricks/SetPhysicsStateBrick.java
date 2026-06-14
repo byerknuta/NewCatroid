@@ -13,11 +13,11 @@ import org.catrobat.catroid.formulaeditor.Formula;
 
 public class SetPhysicsStateBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
-    private int stateSelection = 0; // 0: None, 1: Static, 2: Dynamic. По умолчанию "None"
+    private int stateSelection = 0; // 0: None, 1: Static, 2: Dynamic
     private int shapeSelection = 0; // 0: Box, 1: Sphere, 2: Capsule
 
     public SetPhysicsStateBrick() {
-        // Добавляем поля для формул как обычно
+
         addAllowedBrickField(BrickField.VALUE_1, R.id.brick_set_physics_state_id);
         addAllowedBrickField(BrickField.VALUE_2, R.id.brick_set_physics_state_mass_value);
     }
@@ -44,12 +44,10 @@ public class SetPhysicsStateBrick extends FormulaBrick {
         LinearLayout shapeLayout = view.findViewById(R.id.brick_set_physics_shape_layout);
         LinearLayout massLayout = view.findViewById(R.id.brick_set_physics_state_mass_layout);
 
-        // Настройка спиннера состояний
         ArrayAdapter<CharSequence> stateAdapter = ArrayAdapter.createFromResource(context, R.array.brick_physics_states, android.R.layout.simple_spinner_item);
         stateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         stateSpinner.setAdapter(stateAdapter);
 
-        // Настройка спиннера форм
         ArrayAdapter<CharSequence> shapeAdapter = ArrayAdapter.createFromResource(context, R.array.brick_physics_shapes, android.R.layout.simple_spinner_item);
         shapeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         shapeSpinner.setAdapter(shapeAdapter);
@@ -71,7 +69,6 @@ public class SetPhysicsStateBrick extends FormulaBrick {
             @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // Устанавливаем начальные значения
         stateSpinner.setSelection(stateSelection);
         shapeSpinner.setSelection(shapeSelection);
         updateVisibility();
@@ -83,9 +80,7 @@ public class SetPhysicsStateBrick extends FormulaBrick {
         LinearLayout shapeLayout = view.findViewById(R.id.brick_set_physics_shape_layout);
         LinearLayout massLayout = view.findViewById(R.id.brick_set_physics_state_mass_layout);
 
-        // Показываем выбор формы для Static и Dynamic
         shapeLayout.setVisibility(stateSelection == 1 || stateSelection == 2 ? View.VISIBLE : View.GONE);
-        // Показываем массу только для Dynamic
         massLayout.setVisibility(stateSelection == 2 ? View.VISIBLE : View.GONE);
     }
 
@@ -95,7 +90,7 @@ public class SetPhysicsStateBrick extends FormulaBrick {
                 .createSetPhysicsStateAction(sprite, sequence,
                         getFormulaWithBrickField(BrickField.VALUE_1),
                         stateSelection,
-                        shapeSelection, // Передаем новый параметр
+                        shapeSelection,
                         getFormulaWithBrickField(BrickField.VALUE_2)
                 ));
     }

@@ -49,3 +49,7 @@
 0	7	0	clean	d60c0ea4c7f1e19
 0	7	0	clean	d60c0ea4c7f1e19
 0	8	0	clean	d60c0ea4c7f1e19
+23	7352	8025354082802694	CMakeFiles/example_core.dir/example_core.cpp.o	abada6b586e571ca
+106	8428	8025354093553142	CMakeFiles/catroid.dir/catroid.cpp.o	545eb996b83a794c
+7352	8775	8025354099504869	D:/Catroid-develop/catroid/build/intermediates/cxx/RelWithDebInfo/6n3g5p1r/obj/x86/libexample_core.so	fb7750c2fed0eeb7
+8429	8808	8025354099843617	D:/Catroid-develop/catroid/build/intermediates/cxx/RelWithDebInfo/6n3g5p1r/obj/x86/libcatroid.so	7c618a28d644a4b0

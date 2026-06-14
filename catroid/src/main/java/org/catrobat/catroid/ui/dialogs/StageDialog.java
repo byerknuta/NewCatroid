@@ -148,7 +148,6 @@ public class StageDialog extends Dialog implements View.OnClickListener {
 	}
 
 	private void showDebugMenu() {
-		// Просто просим менеджер показать окно, передавая ему контекст
 		DebugMenuManager.getInstance().show(stageActivity);
 	}
 

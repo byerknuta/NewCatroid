@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_camera_track_layout"
+        style="@style/BrickContainer.Threed.Big">
+
+        <include layout="@layout/icon_brick_category_threed" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_camera_track_title" />
+        <TextView android:id="@+id/brick_camera_track_id" style="@style/BrickEditText" app:layout_newLine="true"/>
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_camera_track_mode" app:layout_newLine="true" />
+        <Spinner
+            android:id="@+id/brick_camera_track_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:id="@+id/brick_camera_track_pos_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_newLine="true"
+            android:visibility="gone">
+
+            <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_camera_track_pos_offset" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal">
+                <TextView android:text="X: " style="@style/BrickText.SingleLine"/>
+                <TextView android:id="@+id/brick_camera_track_px" style="@style/BrickEditText" />
+                <TextView android:text="Y: " style="@style/BrickText.SingleLine" android:layout_marginLeft="4dp"/>
+                <TextView android:id="@+id/brick_camera_track_py" style="@style/BrickEditText" />
+                <TextView android:text="Z: " style="@style/BrickText.SingleLine" android:layout_marginLeft="4dp"/>
+                <TextView android:id="@+id/brick_camera_track_pz" style="@style/BrickEditText" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/brick_camera_track_rot_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_newLine="true"
+            android:visibility="gone">
+
+            <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_camera_track_rot_offset" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal">
+                <TextView android:text="Yaw: " style="@style/BrickText.SingleLine"/>
+                <TextView android:id="@+id/brick_camera_track_ry" style="@style/BrickEditText" />
+                <TextView android:text="Pitch: " style="@style/BrickText.SingleLine" android:layout_marginLeft="4dp"/>
+                <TextView android:id="@+id/brick_camera_track_rp" style="@style/BrickEditText" />
+                <TextView android:text="Roll: " style="@style/BrickText.SingleLine" android:layout_marginLeft="4dp"/>
+                <TextView android:id="@+id/brick_camera_track_rr" style="@style/BrickEditText" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

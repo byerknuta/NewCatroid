@@ -40,7 +40,7 @@
         android:id="@+id/delete"
         android:title="@string/delete"
         app:showAsAction="never"
-        android:icon="@drawable/ic_delete"/>
+        android:icon="@drawable/ic_close"/>
     <item
         android:id="@+id/rename"
         android:title="@string/rename"
@@ -68,6 +68,11 @@
         android:title="@string/sort_projects"
         app:showAsAction="never"
         android:icon="@drawable/ic_sort"/>
+    <item
+        android:id="@+id/menu_trash_bin"
+        android:title="@string/trash_bin_title"
+        android:icon="@drawable/ic_delete"
+        app:showAsAction="never" />
     <item
         android:id="@+id/libs_menu"
         android:title="@string/libs_createlib"

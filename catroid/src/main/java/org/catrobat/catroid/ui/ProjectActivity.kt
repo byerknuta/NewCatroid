@@ -24,6 +24,7 @@ package org.catrobat.catroid.ui
 
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
@@ -32,16 +33,23 @@ import android.preference.PreferenceManager
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import com.danvexteam.lunoscript_annotations.LunoClass
+import org.catrobat.catroid.BuildConfig
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.R
 import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.common.Constants.DEFAULT_IMAGE_EXTENSION
 import org.catrobat.catroid.common.Constants.TMP_IMAGE_FILE_NAME
 import org.catrobat.catroid.common.FlavoredConstants
+import org.catrobat.catroid.common.FlavoredConstants.LIBRARY_BACKGROUNDS_URL_LANDSCAPE
+import org.catrobat.catroid.common.FlavoredConstants.LIBRARY_BACKGROUNDS_URL_PORTRAIT
+import org.catrobat.catroid.common.FlavoredConstants.LIBRARY_LOOKS_URL
+import org.catrobat.catroid.common.FlavoredConstants.LIBRARY_SOUNDS_URL
+import org.catrobat.catroid.common.SharedPreferenceKeys
 import org.catrobat.catroid.content.MyActivityManager
 import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.content.StartScript
@@ -51,13 +59,25 @@ import org.catrobat.catroid.databinding.ActivityRecyclerBinding
 import org.catrobat.catroid.databinding.DialogNewActorBinding
 import org.catrobat.catroid.databinding.ProgressBarBinding
 import org.catrobat.catroid.editor.EditorActivity
+import org.catrobat.catroid.formulaeditor.UserData
+import org.catrobat.catroid.formulaeditor.UserList
+import org.catrobat.catroid.formulaeditor.UserVariable
 import org.catrobat.catroid.io.StorageOperations
 import org.catrobat.catroid.io.asynctask.ProjectSaver
 import org.catrobat.catroid.libraries.LibraryManager
 import org.catrobat.catroid.merge.ImportProjectHelper
+import org.catrobat.catroid.pocketmusic.PocketMusicActivity
+import org.catrobat.catroid.soundrecorder.SoundRecorderActivity
 import org.catrobat.catroid.stage.StageActivity
 import org.catrobat.catroid.stage.TestResult
 import org.catrobat.catroid.ui.BottomBar.showBottomBar
+import org.catrobat.catroid.ui.SpriteActivity.LOOK_CAMERA
+import org.catrobat.catroid.ui.SpriteActivity.LOOK_FILE
+import org.catrobat.catroid.ui.SpriteActivity.LOOK_LIBRARY
+import org.catrobat.catroid.ui.SpriteActivity.LOOK_POCKET_PAINT
+import org.catrobat.catroid.ui.SpriteActivity.SOUND_FILE
+import org.catrobat.catroid.ui.SpriteActivity.SOUND_LIBRARY
+import org.catrobat.catroid.ui.SpriteActivity.SOUND_RECORD
 import org.catrobat.catroid.ui.controller.ActorsAndObjectsManager
 import org.catrobat.catroid.ui.controller.BackpackListManager
 import org.catrobat.catroid.ui.dialogs.LegoSensorConfigInfoDialog
@@ -104,6 +124,9 @@ class ProjectActivity : BaseCastActivity() {
     private lateinit var binding: ActivityRecyclerBinding
     private val projectManager: ProjectManager by inject()
 
+    private var workspaceLayout: org.catrobat.catroid.ui.workspace.WorkspaceLayout? = null
+    private var generatedVariableName: String? = null
+
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRecyclerBinding.inflate(layoutInflater)
@@ -111,15 +134,56 @@ class ProjectActivity : BaseCastActivity() {
             return
         }
         setContentView(binding.root)
-        setSupportActionBar(binding.toolbar.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        var fragmentPosition = FRAGMENT_SCENES
-        val bundle = intent.extras
-        if (bundle != null) {
-            fragmentPosition = bundle.getInt(EXTRA_FRAGMENT_POSITION, FRAGMENT_SCENES)
+        workspaceLayout = findViewById(R.id.workspace_layout)
+        val isWorkspaceEnabled = PreferenceManager.getDefaultSharedPreferences(this)
+            .getBoolean("pref_workspace_project_level", false)
+
+        if (isWorkspaceEnabled) {
+            if (projectManager.currentlyEditedScene == null) {
+                projectManager.currentlyEditedScene = projectManager.currentProject?.defaultScene
+            }
+            if (projectManager.currentSprite == null) {
+                projectManager.currentSprite = projectManager.currentlyEditedScene?.backgroundSprite
+            }
+
+            binding.fragmentContainer.visibility = View.GONE
+            binding.bottomBar.root.visibility = View.GONE
+            binding.toolbar.toolbar.visibility = View.GONE
+            workspaceLayout?.visibility = View.VISIBLE
+
+            val creators = mapOf(
+                SceneListFragment.TAG to Pair("Сцены", { SceneListFragment() }),
+                SpriteListFragment.TAG to Pair("Спрайты", { SpriteListFragment() }),
+                org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment.TAG to Pair("Скрипты", { org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment() }),
+                org.catrobat.catroid.ui.recyclerview.fragment.LookListFragment.TAG to Pair("Образы", { org.catrobat.catroid.ui.recyclerview.fragment.LookListFragment() }),
+                org.catrobat.catroid.ui.recyclerview.fragment.SoundListFragment.TAG to Pair("Звуки", { org.catrobat.catroid.ui.recyclerview.fragment.SoundListFragment() })
+            )
+
+            workspaceLayout?.restoreLayoutState(creators)
+
+            workspaceLayout?.post {
+                val prefs = getSharedPreferences("workspace_prefs", Context.MODE_PRIVATE)
+                val active = prefs.getString("active_tags", "") ?: ""
+                if (active.isEmpty()) {
+                    workspaceLayout?.openWindow(SpriteListFragment.TAG, "Спрайты") { SpriteListFragment() }
+                }
+            }
+
+        } else {
+            workspaceLayout?.visibility = View.GONE
+            setSupportActionBar(binding.toolbar.toolbar)
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+            setSupportActionBar(binding.toolbar.toolbar)
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+            var fragmentPosition = FRAGMENT_SCENES
+            val bundle = intent.extras
+            if (bundle != null) {
+                fragmentPosition = bundle.getInt(EXTRA_FRAGMENT_POSITION, FRAGMENT_SCENES)
+            }
+            loadFragment(fragmentPosition)
         }
-        loadFragment(fragmentPosition)
         showWarningForSuspiciousBricksOnce(this)
         showLegoSensorConfigInfo()
         binding.bottomBar.apply {
@@ -140,6 +204,11 @@ class ProjectActivity : BaseCastActivity() {
         if (loadedProject != null) {
             Log.i(ProjectListFragment.TAG, "Проект '${loadedProject.name}' загружен, запускаю синхронизацию библиотек...")
             LibraryManager.syncAndLoadLibraries(loadedProject)
+
+            if (projectManager.isNeedsPhysicsCacheWarning) {
+                showPhysicsCacheWarningDialog()
+                projectManager.isNeedsPhysicsCacheWarning = false
+            }
         } else {
             Log.w(ProjectListFragment.TAG, "Проект успешно загружен, но projectManager.currentProject равен null. Синхронизация пропущена.")
         }
@@ -164,7 +233,21 @@ class ProjectActivity : BaseCastActivity() {
     }
 
     private val currentFragment: Fragment?
-        get() = supportFragmentManager.findFragmentById(R.id.fragment_container)
+        get() {
+            val workspace = workspaceLayout
+            if (workspace != null && workspace.visibility == View.VISIBLE) {
+                val spriteFragment = supportFragmentManager.findFragmentByTag(SpriteListFragment.TAG)
+                if (spriteFragment != null) {
+                    return spriteFragment
+                }
+                val sceneFragment = supportFragmentManager.findFragmentByTag(SceneListFragment.TAG)
+                if (sceneFragment != null) {
+                    return sceneFragment
+                }
+            }
+
+            return supportFragmentManager.findFragmentById(R.id.fragment_container)
+        }
 
     fun setShowProgressBar(show: Boolean) {
         ProgressBarBinding.inflate(layoutInflater).progressBar.setVisibleOrGone(show)
@@ -180,29 +263,35 @@ class ProjectActivity : BaseCastActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val workspace = workspaceLayout
+        val isWorkspaceMode = workspace != null && workspace.visibility == View.VISIBLE
+
         when (item.itemId) {
             R.id.new_scene -> handleAddSceneButton()
-            R.id.project_options -> supportFragmentManager.beginTransaction()
-                .replace(
-                    R.id.fragment_container, ProjectOptionsFragment(),
-                    ProjectOptionsFragment.TAG
-                )
-                .addToBackStack(ProjectOptionsFragment.TAG)
-                .commit()
-            R.id.project_files -> supportFragmentManager.beginTransaction()
-                .replace(
-                    R.id.fragment_container, ProjectFilesFragment(),
-                    ProjectFilesFragment.TAG
-                )
-                .addToBackStack(ProjectFilesFragment.TAG)
-                .commit()
-            R.id.project_libs -> supportFragmentManager.beginTransaction()
-                .replace(
-                    R.id.fragment_container, ProjectLibsFragment(),
-                    ProjectLibsFragment.TAG
-                )
-                .addToBackStack(ProjectLibsFragment.TAG)
-                .commit()
+            R.id.project_options ->
+                if (isWorkspaceMode) {
+                    workspace?.openWindow(ProjectOptionsFragment.TAG, "Опции проекта") { ProjectOptionsFragment() }
+                } else {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, ProjectOptionsFragment(), ProjectOptionsFragment.TAG)
+                        .addToBackStack(ProjectOptionsFragment.TAG).commit()
+                }
+            R.id.project_files ->
+                if (isWorkspaceMode) {
+                    workspace?.openWindow(ProjectFilesFragment.TAG, "Файлы проекта") { ProjectFilesFragment() }
+                } else {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, ProjectFilesFragment(), ProjectFilesFragment.TAG)
+                        .addToBackStack(ProjectFilesFragment.TAG).commit()
+                }
+            R.id.project_libs ->
+                if (isWorkspaceMode) {
+                    workspace?.openWindow(ProjectLibsFragment.TAG, "Библиотеки") { ProjectLibsFragment() }
+                } else {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, ProjectLibsFragment(), ProjectLibsFragment.TAG)
+                        .addToBackStack(ProjectLibsFragment.TAG).commit()
+                }
             R.id.editor3d -> {
                 val intent = Intent(this, EditorActivity::class.java)
                 startActivity(intent)
@@ -214,10 +303,19 @@ class ProjectActivity : BaseCastActivity() {
 
     override fun onPause() {
         super.onPause()
+        if (workspaceLayout?.visibility == View.VISIBLE) {
+            workspaceLayout?.saveLayoutState()
+        }
         saveProject(projectManager.currentProject)
     }
 
     override fun onBackPressed() {
+        if (workspaceLayout?.visibility == View.VISIBLE) {
+            if (workspaceLayout?.handleBackPressed() == true) {
+                return
+            }
+        }
+
         val currentProject = projectManager.currentProject
         if (currentProject == null) {
             finish()
@@ -385,6 +483,22 @@ class ProjectActivity : BaseCastActivity() {
     }
 
     private fun handleAddButton() {
+        val workspace = workspaceLayout
+        if (workspace != null && workspace.visibility == View.VISIBLE) {
+            val focusedTag = workspace.focusedWindowTag
+
+            when (focusedTag) {
+                org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment.TAG -> workspace.openBrickCategoryWindow()
+                org.catrobat.catroid.ui.recyclerview.fragment.LookListFragment.TAG -> handleAddLookButton()
+                org.catrobat.catroid.ui.recyclerview.fragment.SoundListFragment.TAG -> handleAddSoundButton()
+                org.catrobat.catroid.ui.recyclerview.fragment.DataListFragment.TAG -> handleAddUserDataButton()
+                SceneListFragment.TAG -> handleAddSceneButton()
+                SpriteListFragment.TAG -> handleAddSpriteButton()
+                else -> workspace.openBrickCategoryWindow()
+            }
+            return
+        }
+
         if (currentFragment is SceneListFragment) {
             handleAddSceneButton()
             return
@@ -392,6 +506,165 @@ class ProjectActivity : BaseCastActivity() {
         if (currentFragment is SpriteListFragment) {
             handleAddSpriteButton()
         }
+    }
+
+    fun handleAddLookButton() {
+        val root = layoutInflater.inflate(R.layout.dialog_new_look, null)
+        val alertDialog = AlertDialog.Builder(this)
+            .setTitle(R.string.new_look_dialog_title)
+            .setView(root)
+            .create()
+
+        val mediaLibraryUrl = if (projectManager.currentSprite == projectManager.currentlyEditedScene.backgroundSprite) {
+            if (projectManager.isCurrentProjectLandscapeMode) LIBRARY_BACKGROUNDS_URL_LANDSCAPE else LIBRARY_BACKGROUNDS_URL_PORTRAIT
+        } else {
+            LIBRARY_LOOKS_URL
+        }
+
+        root.findViewById<View>(R.id.dialog_new_look_paintroid).setOnClickListener {
+            ImportFromPocketPaintLauncher(this).startActivityForResult(LOOK_POCKET_PAINT)
+            alertDialog.dismiss()
+        }
+        root.findViewById<View>(R.id.dialog_new_look_media_library).setOnClickListener {
+            ImportFormMediaLibraryLauncher(this, mediaLibraryUrl).startActivityForResult(LOOK_LIBRARY)
+            alertDialog.dismiss()
+        }
+        root.findViewById<View>(R.id.dialog_new_look_gallery).setOnClickListener {
+            ImportFromFileLauncher(this, "image/*", getString(R.string.select_look_from_gallery)).startActivityForResult(LOOK_FILE)
+            alertDialog.dismiss()
+        }
+        root.findViewById<View>(R.id.dialog_new_look_camera).setOnClickListener {
+            ImportFromCameraLauncher(this).startActivityForResult(LOOK_CAMERA)
+            alertDialog.dismiss()
+        }
+        alertDialog.show()
+    }
+
+    fun handleAddSoundButton() {
+        val root = layoutInflater.inflate(R.layout.dialog_new_sound, null)
+        val alertDialog = AlertDialog.Builder(this)
+            .setTitle(R.string.new_sound_dialog_title)
+            .setView(root)
+            .create()
+
+        root.findViewById<View>(R.id.dialog_new_sound_recorder).setOnClickListener {
+            startActivityForResult(Intent(this, SoundRecorderActivity::class.java), SOUND_RECORD)
+            alertDialog.dismiss()
+        }
+        root.findViewById<View>(R.id.dialog_new_sound_media_library).setOnClickListener {
+            ImportFormMediaLibraryLauncher(this, LIBRARY_SOUNDS_URL).startActivityForResult(SOUND_LIBRARY)
+            alertDialog.dismiss()
+        }
+        root.findViewById<View>(R.id.dialog_new_sound_gallery).setOnClickListener {
+            ImportFromFileLauncher(this, "audio/*", getString(R.string.sound_select_source)).startActivityForResult(SOUND_FILE)
+            alertDialog.dismiss()
+        }
+        if (BuildConfig.FEATURE_POCKETMUSIC_ENABLED) {
+            root.findViewById<View>(R.id.dialog_new_sound_pocketmusic).visibility = View.VISIBLE
+            root.findViewById<View>(R.id.dialog_new_sound_pocketmusic).setOnClickListener {
+                startActivity(Intent(this, PocketMusicActivity::class.java))
+                alertDialog.dismiss()
+            }
+        }
+        alertDialog.show()
+    }
+
+    fun handleAddUserDataButton() {
+        val view = layoutInflater.inflate(R.layout.dialog_new_user_data, null)
+
+        val makeListCheckBox = view.findViewById<android.widget.CheckBox>(R.id.make_list)
+        makeListCheckBox.visibility = View.VISIBLE
+
+        val multiplayerRadioButton = view.findViewById<android.widget.RadioButton>(R.id.multiplayer)
+        if (SettingsFragment.isMultiplayerVariablesPreferenceEnabled(applicationContext)) {
+            multiplayerRadioButton.visibility = View.VISIBLE
+            multiplayerRadioButton.setOnCheckedChangeListener { _, isChecked ->
+                makeListCheckBox.isEnabled = !isChecked
+            }
+        }
+
+        val addToProjectUserDataRadioButton = view.findViewById<android.widget.RadioButton>(R.id.global)
+
+        val variables = mutableListOf<UserData<*>>()
+        val currentProject = projectManager.currentProject
+        val currentSprite = projectManager.currentSprite
+
+        variables.addAll(currentProject.userVariables)
+        variables.addAll(currentProject.multiplayerVariables)
+        variables.addAll(currentSprite.userVariables)
+
+        val lists = mutableListOf<UserData<*>>()
+        lists.addAll(currentProject.userLists)
+        lists.addAll(currentSprite.userLists)
+
+        val textWatcher = DuplicateInputTextWatcher(variables)
+        val builder = TextInputDialog.Builder(this)
+        val uniqueVariableNameProvider = builder.createUniqueNameProvider(R.string.default_variable_name)
+        val uniqueListNameProvider = builder.createUniqueNameProvider(R.string.default_list_name)
+        generatedVariableName = uniqueVariableNameProvider.getUniqueName(getString(R.string.default_variable_name), null)
+
+        builder.setTextWatcher(textWatcher)
+            .setText(generatedVariableName)
+            .setPositiveButton(getString(R.string.ok), TextInputDialog.OnClickListener { _, textInput ->
+                val addToProjectUserData = addToProjectUserDataRadioButton.isChecked
+                val addToMultiplayerData = multiplayerRadioButton.isChecked
+
+                PreferenceManager.getDefaultSharedPreferences(this).edit()
+                    .putBoolean(SharedPreferenceKeys.INDEXING_VARIABLE_PREFERENCE_KEY, false).apply()
+
+                if (makeListCheckBox.isChecked) {
+                    val userList = UserList(textInput)
+                    if (addToProjectUserData) {
+                        currentProject.addUserList(userList)
+                    } else {
+                        currentSprite.addUserList(userList)
+                    }
+                } else {
+                    val userVariable = UserVariable(textInput)
+                    if (addToMultiplayerData) {
+                        currentProject.addMultiplayerVariable(userVariable)
+                    } else if (addToProjectUserData) {
+                        currentProject.addUserVariable(userVariable)
+                    } else {
+                        currentSprite.addUserVariable(userVariable)
+                    }
+                }
+
+                val dataFragment = supportFragmentManager.findFragmentByTag(org.catrobat.catroid.ui.recyclerview.fragment.DataListFragment.TAG)
+                        as? org.catrobat.catroid.ui.recyclerview.fragment.DataListFragment
+                dataFragment?.let {
+                    it.notifyDataSetChanged()
+                    it.indexAndSort()
+                }
+            })
+
+        val alertDialog = builder.setTitle(R.string.formula_editor_variable_dialog_title)
+            .setView(view)
+            .setNegativeButton(getString(R.string.cancel), null)
+            .create()
+
+        makeListCheckBox.setOnCheckedChangeListener { _, checked ->
+            val textInputEditText = alertDialog.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.input_edit_text)
+            val currentName = textInputEditText?.text.toString()
+            if (checked) {
+                alertDialog.setTitle(getString(R.string.formula_editor_list_dialog_title))
+                textWatcher.setOriginalScope(lists)
+                if (currentName == generatedVariableName) {
+                    generatedVariableName = uniqueListNameProvider.getUniqueName(getString(R.string.default_list_name), null)
+                    textInputEditText?.setText(generatedVariableName)
+                }
+            } else {
+                alertDialog.setTitle(getString(R.string.formula_editor_variable_dialog_title))
+                textWatcher.setOriginalScope(variables)
+                if (currentName == generatedVariableName) {
+                    generatedVariableName = uniqueVariableNameProvider.getUniqueName(getString(R.string.default_variable_name), null)
+                    textInputEditText?.setText(generatedVariableName)
+                }
+            }
+            multiplayerRadioButton.isEnabled = !checked
+        }
+
+        alertDialog.show()
     }
 
     fun handleAddSceneButton() {
@@ -529,5 +802,58 @@ class ProjectActivity : BaseCastActivity() {
             val dialog: DialogFragment = LegoSensorConfigInfoDialog.newInstance(Constants.EV3)
             dialog.show(supportFragmentManager, LegoSensorConfigInfoDialog.DIALOG_FRAGMENT_TAG)
         }
+    }
+
+
+    private fun showPhysicsCacheWarningDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.physics_warning_title)
+            .setMessage(R.string.physics_warning_message)
+            .setPositiveButton(R.string.physics_warning_update_now) { _, _ ->
+                recalculatePhysicsCache()
+            }
+            .setNegativeButton(R.string.physics_warning_later, null)
+            .show()
+    }
+
+    private fun recalculatePhysicsCache() {
+        val progressDialog = android.app.ProgressDialog(this).apply {
+            setMessage(getString(R.string.physics_warning_updating))
+            setCancelable(false)
+            show()
+        }
+
+        Thread {
+            try {
+                val project = projectManager.currentProject
+                if (project != null && project.sceneList != null) {
+                    for (scene in project.sceneList) {
+                        if (scene.spriteList == null) continue
+                        for (sprite in scene.spriteList) {
+                            if (sprite.lookList == null) continue
+                            for (look in sprite.lookList) {
+                                look.collisionInformation?.calculate()
+                            }
+                        }
+                    }
+                    org.catrobat.catroid.io.XstreamSerializer.getInstance().saveProject(project)
+                }
+
+                runOnUiThread {
+                    progressDialog.dismiss()
+                    ToastUtil.showSuccess(this, getString(R.string.physics_warning_success))
+                    val fragment = currentFragment
+                    if (fragment is RecyclerViewFragment<*>) {
+                        fragment.notifyDataSetChanged()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("ProjectActivity", "Failed to recalculate physics cache", e)
+                runOnUiThread {
+                    progressDialog.dismiss()
+                    ToastUtil.showError(this, getString(R.string.physics_warning_error))
+                }
+            }
+        }.start()
     }
 }

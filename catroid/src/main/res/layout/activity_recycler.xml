@@ -40,6 +40,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <org.catrobat.catroid.ui.workspace.WorkspaceLayout
+            android:id="@+id/workspace_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
         <include
             android:id="@+id/bottom_bar"
             layout="@layout/list_action_buttons" />

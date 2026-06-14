@@ -23,6 +23,106 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Physics warning -->
+    <string name="physics_warning_title">Обновление совместимости</string>
+    <string name="physics_warning_message">Этот проект был создан в более старой версии. Рекомендуется обновить кэш физики прямо сейчас, чтобы избежать зависаний и вылетов. P.S. рекомендуем обновить его в опциях проекта, а не здесь</string>
+    <string name="physics_warning_update_now">Обновить сейчас</string>
+    <string name="physics_warning_later">Позже</string>
+    <string name="physics_warning_updating">Обновление кэша физики, пожалуйста, подождите...</string>
+    <string name="physics_warning_success">Кэш физики успешно обновлен!</string>
+    <string name="physics_warning_error">Ошибка при обновлении кэша физики.</string>
+
+    <!-- Project Trash Bin -->
+    <string name="delete_project_multiple_message">Вы уверены, что хотите удалить эти %1$d проектов?</string>
+    <string name="delete_permanently">Удалить насовсем</string>
+    <string name="delete_project_title">Удалить %1$s</string>
+    <string name="delete_project_message">Вы уверены, что хотите удалить этот проект?</string>
+    <string name="trash_bin_title">Корзина</string>
+    <string name="trash_bin_empty">Корзина пуста</string>
+    <string name="trash_bin_item_action">Выберите действие для этого проекта:</string>
+    <string name="trash_bin_restore">Восстановить</string>
+    <string name="trash_bin_empty_all">Очистить корзину</string>
+    <string name="trash_bin_empty_all_confirm_title">Очистка корзины</string>
+    <string name="trash_bin_empty_all_confirm_message">Вы уверены, что хотите навсегда удалить все проекты из корзины?</string>
+
+    <string name="menu_enable_indentation">Включить табуляцию</string>
+    <string name="menu_disable_indentation">Выключить табуляцию</string>
+    <string name="free_window_mode_stage">Оконный режим плеера</string>
+    <string name="free_window_mode_stage_sum">Запускать сцену в плавающем окне с возможностью изменения размеров</string>
+
+    <string name="free_window_mode_project">Единое окно проекта</string>
+    <string name="free_window_mode_project_sum">Отображать сцены, спрайты, скрипты и образы на одном экране</string>
+
+    <string name="free_window_mode">Режим свободных окон</string>
+    <string name="free_window_mode_sum">Позволяет перетаскивать все окна</string>
+
+    <string name="debug_menu_global_data">ГЛОБАЛЬНЫЕ ДАННЫЕ</string>
+    <string name="debug_menu_sprite">СПРАЙТ</string>
+    <string name="debug_menu_list_format">%1$s%2$s: [%3$d эл.]</string>
+    <string name="debug_menu_more_items">      ... и еще %d элементов</string>
+    <string name="debug_menu_edit_variable">Изменить переменную: %s</string>
+    <string name="debug_menu_edit_list_item">Изменить элемент [%d] в %s</string>
+    <string name="debug_menu_copy_full">Копировать всё</string>
+    <string name="debug_menu_copied">Скопировано в буфер обмена</string>
+    <string name="debug_menu_save">Сохранить</string>
+    <string name="debug_menu_cancel">Отмена</string>
+
+    <string name="brick_run_as_sprite_title">Выполнить от имени</string>
+
+    <string name="brick_context_dialog_cut">Вырезать</string>
+    <string name="brick_context_dialog_paste_below">Вставить ниже</string>
+    <string name="brick_context_dialog_clipboard_history">Буфер обмена (История)</string>
+
+    <string formatted="false" name="remove_objects_by_prefix">Удалить 3D-объекты по префиксу</string>
+    <string formatted="false" name="remove_objects_prefix_val">Префикс</string>
+
+    <string formatted="false" name="set_object_shader">Задать шейдер для 3D-объекта</string>
+    <string formatted="false" name="set_object_shader_uniform">Задать параметр шейдера для 3D-объекта</string>
+    <string formatted="false" name="object_shader_id">ID объекта</string>
+    <string formatted="false" name="object_shader_vertex">Код вершинного</string>
+    <string formatted="false" name="object_shader_fragment">Код фрагментного</string>
+    <string formatted="false" name="object_shader_uniform_name">Имя параметра</string>
+    <string formatted="false" name="object_shader_uniform_val1">Значение 1</string>
+    <string formatted="false" name="object_shader_uniform_val2">Значение 2 (необяз.)</string>
+    <string formatted="false" name="object_shader_uniform_val3">Значение 3 (необяз.)</string>
+
+    <string formatted="false" name="brick_render_res">Масштаб 3D рендера</string>
+    <string formatted="false" name="brick_render_aspect">Соотношение (0:Авто, 4:3, 16:9, 1:1)</string>
+
+    <string formatted="false" name="brick_set_fps">Ограничить FPS до</string>
+
+    <string formatted="false" name="brick_set_emissive">Задать свечение материала</string>
+    <string formatted="false" name="param_emissive_intensity">Яркость свечения</string>
+    <string formatted="false" name="param_emissive_texture">Текстура свечения</string>
+
+    <string formatted="false" name="brick_3d_sound_max_distance">Задать макс. дистанцию 3D звука</string>
+    <string formatted="false" name="param_3d_sound_instance">Экземпляр</string>
+    <string formatted="false" name="param_3d_sound_distance">Расстояние</string>
+
+    <string formatted="false" name="brick_screen_shader">Шейдер Экрана (GLSL)</string>
+    <string formatted="false" name="brick_camera_track_title">Привязать камеру к</string>
+    <string formatted="false" name="brick_camera_track_mode">Режим</string>
+    <string formatted="false" name="brick_camera_track_pos_offset">Смещение позиции</string>
+    <string formatted="false" name="brick_camera_track_rot_offset">Смещение вращения</string>
+
+    <string-array name="brick_camera_track_modes">
+        <item>Отвязать</item>
+        <item>Только позицию</item>
+        <item>Только вращение</item>
+        <item>Позицию и Вращение</item>
+    </string-array>
+
+    <string formatted="false" name="brick_apply_shader_to_image">Применить шейдер к картинке</string>
+    <string formatted="false" name="brick_apply_shader_image_file">Файл проекта</string>
+
+    <string formatted="false" name="brick_promote_light">Превратить свет в объект</string>
+
+    <string formatted="false" name="brick_attach_to_camera">Привязать объект к камере</string>
+    <string formatted="false" name="brick_detach_from_camera">Отвязать объект от камеры</string>
+    <string formatted="false" name="brick_set_max_point_lights">Максимум точечных светов</string>
+    <string formatted="false" name="brick_3d_object_name">ID объекта</string>
+
+
     <string name="particle_lifetime">Время жизни</string>
     <string name="particle_color">Цвет</string>
     <string name="particle_size">Размер</string>
@@ -551,7 +651,7 @@
     <string name="formula_f2d_is_touched" formatted="false">F2D_объект_нажат</string>
     <string name="formula_f2d_is_touched_param" formatted="false">(\'id\')</string>
     <string name="formula_f2d_x" formatted="false">F2D_X</string>
-    <string name="formula_f2d_y" formatted="false">F2D_X</string>
+    <string name="formula_f2d_y" formatted="false">F2D_Y</string>
     <string name="formula_f2d_rotation" formatted="false">F2D_вращение</string>
     <string name="formula_f2d_scale_x" formatted="false">F2D_ширина</string>
     <string name="formula_f2d_scale_y" formatted="false">F2D_высота</string>
@@ -623,6 +723,7 @@
         <item>God Rays (Лучи)</item>
         <item>Volumetric Fog (3D Туман)</item>
         <item>FSR Upscaler (Резкость)</item>
+        <item>SSGI (Отражения)</item>
     </string-array>
 
 
@@ -651,6 +752,17 @@
     <string-array name="pp_params_godrays"><item>Включен</item><item>Экспозиция</item><item>Затухание (Decay)</item><item>Плотность</item><item>Вес</item></string-array>
     <string-array name="pp_params_volfog"><item>Включен</item><item>Плотность</item><item>Рассеивание</item><item>Шаги</item><item>Дистанция</item></string-array>
     <string-array name="pp_params_fsr"><item>Включен</item><item>Резкость</item></string-array>
+    <string-array name="pp_params_ssgi">
+        <item>Включен</item>
+        <item>Интенсивность</item>
+        <item>Радиус</item>
+        <item>Bias (Смещение)</item>
+        <item>Сила SSAO</item>
+        <item>Базовый цвет R</item>
+        <item>Базовый цвет G</item>
+        <item>Базовый цвет B</item>
+        <item>Переворот глубины (1/0)</item>
+    </string-array>
     <string name="brick_bake_prefix">Запечь объекты с именем</string>
     <string name="brick_bake_prefix_hint">Префикс (напр. wall_)</string>
     <string name="brick_bake_new_name">Название группы</string>
@@ -1692,7 +1804,7 @@
     <string formatted="false" name="formula_editor_function_table_y_parameter">(\'myTable\')</string>
     <string formatted="false" name="formula_editor_function_table_element">элемент_таблицы</string>
     <string formatted="false" name="formula_editor_function_table_element_parameter">(\'myTable\', 3, 2)</string>
-    <string formatted="false" name="formula_editor_function_table_join">соеденить_таблицу_через</string>
+    <string formatted="false" name="formula_editor_function_table_join">соединить_таблицу_через</string>
     <string formatted="false" name="formula_editor_function_table_join_parameter">(\'myTable\', \',\', \'\n\')</string>
     <string formatted="false" name="brick_delete_all_tables">Удалить все таблицы</string>
     <string formatted="false" name="brick_delete_table">Удалить таблицу с именем</string>
@@ -1823,7 +1935,7 @@
         world\')</string>
     <string formatted="false" name="formula_editor_function_clamp">ограничить</string>
     <string formatted="false" name="formula_editor_function_clamp_parameter">(-2,2,10)</string>
-    <string formatted="false" name="formula_editor_function_joinnumber">соеденить_цифры</string>
+    <string formatted="false" name="formula_editor_function_joinnumber">соединить_цифры</string>
     <string formatted="false" name="formula_editor_function_joinnumber_parameter">(1,1)</string>
     <string formatted="false" name="formula_editor_function_upper">верхний_регистр</string>
     <string formatted="false" name="formula_editor_function_upper_parameter">(\'aboudna\')</string>
@@ -3581,7 +3693,7 @@
     <string formatted="false" name="formula_editor_function_number_of_items_parameter">(*название списка*)</string>
     <string formatted="false" name="formula_editor_function_flatten">выравнивание</string>
     <string formatted="false" name="formula_editor_function_flatten_parameter">(*название списка*)</string>
-    <string formatted="false" name="formula_editor_function_connect">соеденить_элементы</string>
+    <string formatted="false" name="formula_editor_function_connect">соединить_элементы</string>
     <string formatted="false" name="formula_editor_function_connect_parameter">(*название списка*, \',\')</string>
     <string formatted="false" name="formula_editor_function_find">найти</string>
     <string formatted="false" name="formula_editor_function_find_parameter">(*название списка*, \'256\')</string>

@@ -54,7 +54,7 @@ class SoundListFragment : RecyclerViewFragment<SoundInfo?>() {
         val TAG = SoundListFragment::class.java.simpleName
     }
 
-    override fun initializeAdapter() {
+    public override fun initializeAdapter() {
         sharedPreferenceDetailsKey = SharedPreferenceKeys.SHOW_DETAILS_SOUNDS_PREFERENCE_KEY
         val items = projectManager.currentSprite.soundList
         adapter = SoundAdapter(items)

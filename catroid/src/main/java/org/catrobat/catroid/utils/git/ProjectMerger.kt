@@ -352,7 +352,6 @@ class ProjectMerger {
         return false
     }
 
-    // --- ФУНКЦИЯ ПОИСКА ПО ПУТИ ---
     /*private val pathPattern = Pattern.compile("(.*)\\[(.*)]")
 
     private fun findObjectByPath(root: Any, path: String): Any? {
@@ -392,10 +391,6 @@ class ProjectMerger {
         return areSemanticallyEqual(o1, o2)
     }
 
-    /**
-     * Эта функция — сердце мёрджера. Она рекурсивно сравнивает содержимое объектов,
-     * игнорируя их ID-based .equals() методы.
-     */
     private fun areSemanticallyEqual(o1: Any, o2: Any): Boolean {
         return when (o1) {
             is List<*> -> areListsSemanticallyEqual(o1, o2 as List<*>)

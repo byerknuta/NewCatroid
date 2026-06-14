@@ -78,7 +78,9 @@ public abstract class UserVariableBrickWithFormula extends FormulaBrick implemen
 
 		List<Nameable> items = new ArrayList<>();
 		items.add(new NewOption(context.getString(R.string.new_option)));
-		items.addAll(sprite.getUserVariables());
+        if (sprite != null) {
+            items.addAll(sprite.getUserVariables());
+        }
 		items.addAll(ProjectManager.getInstance().getCurrentProject().getUserVariables());
 		items.addAll(ProjectManager.getInstance().getCurrentProject().getMultiplayerVariables());
 

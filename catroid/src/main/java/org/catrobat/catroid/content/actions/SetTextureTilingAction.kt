@@ -1,4 +1,5 @@
 package org.catrobat.catroid.content.actions
+
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
@@ -11,14 +12,23 @@ class SetTextureTilingAction : TemporalAction() {
     var scaleV: Formula? = null
 
     override fun update(percent: Float) {
-        val manager = StageActivity.getActiveStageListener()?.sceneManager ?: return
+        val sceneManager = StageActivity.getActiveStageListener()?.sceneManager ?: return
         val id = objectId?.interpretString(scope) ?: return
-        val go = manager.findGameObject(id) ?: return
 
-        val mat = go.getComponent(org.catrobat.catroid.raptor.MaterialComponent::class.java) ?: return
-        mat.uvScaleX = scaleU?.interpretDouble(scope)?.toFloat() ?: 1f
-        mat.uvScaleY = scaleV?.interpretDouble(scope)?.toFloat() ?: 1f
+        val u = scaleU?.interpretDouble(scope)?.toFloat() ?: 1f
+        val v = scaleV?.interpretDouble(scope)?.toFloat() ?: 1f
 
-        StageActivity.getActiveStageListener()?.threeDManager?.applyPBRMaterial(id, mat)
+        val go = sceneManager.findGameObject(id)
+        if (go != null) {
+            var mat = go.getComponent(org.catrobat.catroid.raptor.MaterialComponent::class.java)
+            if (mat == null) {
+                mat = org.catrobat.catroid.raptor.MaterialComponent()
+                go.addComponent(mat)
+            }
+            mat.uvScaleX = u
+            mat.uvScaleY = v
+        }
+
+        StageActivity.getActiveStageListener()?.threeDManager?.setTextureTiling(id, u, v)
     }
 }

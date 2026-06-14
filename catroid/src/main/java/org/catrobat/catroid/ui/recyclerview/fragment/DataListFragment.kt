@@ -25,8 +25,10 @@ package org.catrobat.catroid.ui.recyclerview.fragment
 
 import android.annotation.SuppressLint
 import android.content.DialogInterface
+import android.os.Build
 import android.os.Bundle
 import android.preference.PreferenceManager
+import android.text.TextWatcher
 import android.view.ActionMode
 import android.view.LayoutInflater
 import android.view.Menu
@@ -34,11 +36,13 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.IntDef
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.AdapterDataObserver
@@ -75,11 +79,21 @@ class DataListFragment : Fragment(),
     private var recyclerView: RecyclerView? = null
     private var adapter: DataListAdapter? = null
     private var actionMode: ActionMode? = null
+    private var isObserverRegistered = false
     private var formulaEditorDataInterface: FormulaEditorDataInterface? = null
     private var parentScriptBrick: ScriptBrick? = null
     private var emptyView: TextView? = null
     private var sortData = false
     private var indexVariable = false
+
+    private var originalUserDefinedBrickInputs = listOf<UserDefinedBrickInput>()
+    private var originalGlobalVars = mutableListOf<UserVariable>()
+    private var originalLocalVars = mutableListOf<UserVariable>()
+    private var originalMultiplayerVars = mutableListOf<UserVariable>()
+    private var originalGlobalLists = mutableListOf<UserList>()
+    private var originalLocalLists = mutableListOf<UserList>()
+
+    private var currentSearchQuery = ""
 
     @ActionModeType
     var actionModeType = NONE
@@ -151,11 +165,106 @@ class DataListFragment : Fragment(),
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val parent = inflater.inflate(R.layout.fragment_list_view, container, false)
-        recyclerView = parent.findViewById(R.id.recycler_view)
-        emptyView = parent.findViewById(R.id.empty_view)
+        val originalView = inflater.inflate(R.layout.fragment_list_view, container, false)
+        recyclerView = originalView.findViewById(R.id.recycler_view)
+        emptyView = originalView.findViewById(R.id.empty_view)
         setHasOptionsMenu(true)
-        return parent
+
+        val context = requireContext()
+        val density = resources.displayMetrics.density
+
+        val searchViewId = View.generateViewId()
+
+        val containerLayout = android.widget.FrameLayout(context).apply {
+            layoutParams = android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        }
+
+        recyclerView?.let { rv ->
+            val topPadding = (72 * density).toInt()
+            rv.setPadding(
+                rv.paddingLeft,
+                topPadding,
+                rv.paddingRight,
+                rv.paddingBottom
+            )
+            rv.clipToPadding = false
+
+            rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                    super.onScrollStateChanged(recyclerView, newState)
+                    containerLayout.findViewById<View>(searchViewId)?.clearFocus()
+                }
+            })
+        }
+
+        val cardView = com.google.android.material.card.MaterialCardView(context).apply {
+            radius = 12 * density
+            cardElevation = 4 * density
+            strokeWidth = 0
+            setCardBackgroundColor(ContextCompat.getColor(context, R.color.button_background))
+
+            layoutParams = android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                val marginHorizontal = (16 * density).toInt()
+                val marginVertical = (8 * density).toInt()
+                setMargins(marginHorizontal, marginVertical, marginHorizontal, marginVertical)
+            }
+        }
+
+        val searchView = androidx.appcompat.widget.SearchView(context).apply {
+            id = searchViewId
+            layoutParams = android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
+            )
+            queryHint = getString(R.string.search) + "..."
+            isIconified = false
+
+            val searchPlate = findViewById<View>(androidx.appcompat.R.id.search_plate)
+            searchPlate?.background = null
+
+            val searchAutoComplete = findViewById<android.widget.EditText>(androidx.appcompat.R.id.search_src_text)
+            searchAutoComplete?.apply {
+                background = null
+                setTextColor(ContextCompat.getColor(context, R.color.solid_white))
+                setHintTextColor(ContextCompat.getColor(context, R.color.spinner_icon_and_inactive_elements))
+                setPadding((8 * density).toInt(), paddingTop, paddingRight, paddingBottom)
+            }
+
+            val searchMagIcon = findViewById<android.widget.ImageView>(androidx.appcompat.R.id.search_mag_icon)
+            searchMagIcon?.apply {
+                val params = layoutParams as? android.widget.LinearLayout.LayoutParams
+                params?.setMargins((12 * density).toInt(), 0, (4 * density).toInt(), 0)
+                layoutParams = params
+            }
+
+            setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?): Boolean {
+                    currentSearchQuery = query ?: ""
+                    applyFilterAndSetAdapter()
+                    return true
+                }
+
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    currentSearchQuery = newText ?: ""
+                    applyFilterAndSetAdapter()
+                    return true
+                }
+            })
+
+            clearFocus()
+        }
+
+        cardView.addView(searchView)
+        containerLayout.addView(originalView)
+        containerLayout.addView(cardView)
+
+        return containerLayout
     }
 
     override fun onActivityCreated(savedInstance: Bundle?) {
@@ -177,8 +286,12 @@ class DataListFragment : Fragment(),
 
     override fun onPause() {
         super.onPause()
-        if (adapter?.hasObservers() == true) {
-            adapter?.unregisterAdapterDataObserver(observer)
+        if (isObserverRegistered && adapter != null) {
+            try {
+                adapter?.unregisterAdapterDataObserver(observer)
+            } catch (_: IllegalStateException) {
+            }
+            isObserverRegistered = false
         }
     }
 
@@ -195,27 +308,85 @@ class DataListFragment : Fragment(),
         val currentProject = ProjectManager.getInstance().currentProject
         val currentSprite = ProjectManager.getInstance().currentSprite
 
-        var userDefinedBrickInputs = listOf<UserDefinedBrickInput>()
-        if (parentScriptBrick is UserDefinedReceiverBrick) {
-            userDefinedBrickInputs =
-                (parentScriptBrick as UserDefinedReceiverBrick).userDefinedBrick.userDefinedBrickInputs
+        originalUserDefinedBrickInputs = if (parentScriptBrick is UserDefinedReceiverBrick) {
+            (parentScriptBrick as UserDefinedReceiverBrick).userDefinedBrick.userDefinedBrickInputs
+        } else {
+            emptyList()
         }
-        val globalVars = currentProject.userVariables
-        val localVars = currentSprite.userVariables
-        val multiplayerVars = currentProject.multiplayerVariables
-        val globalLists = currentProject.userLists
-        val localLists = currentSprite.userLists
+        originalGlobalVars = currentProject.userVariables
+        originalLocalVars = currentSprite.userVariables
+        originalMultiplayerVars = currentProject.multiplayerVariables
+        originalGlobalLists = currentProject.userLists
+        originalLocalLists = currentSprite.userLists
 
         indexAndSort()
-        adapter = DataListAdapter(
-            userDefinedBrickInputs, multiplayerVars, globalVars,
-            localVars, globalLists, localLists
-        )
-        if (adapter?.hasObservers() == false) {
-            adapter?.registerAdapterDataObserver(observer)
+
+        applyFilterAndSetAdapter()
+    }
+
+    private fun applyFilterAndSetAdapter() {
+        val query = currentSearchQuery.trim()
+
+        val filteredUserDefinedInputs = if (query.isEmpty()) {
+            originalUserDefinedBrickInputs.toList()
+        } else {
+            originalUserDefinedBrickInputs.filter { it.name.contains(query, ignoreCase = true) }
         }
-        emptyView?.setText(R.string.fragment_data_text_description)
-        onAdapterReady()
+
+        val filteredMultiplayerVars = if (query.isEmpty()) {
+            originalMultiplayerVars.toMutableList()
+        } else {
+            originalMultiplayerVars.filter { it.name.contains(query, ignoreCase = true) }.toMutableList()
+        }
+
+        val filteredGlobalVars = if (query.isEmpty()) {
+            originalGlobalVars.toMutableList()
+        } else {
+            originalGlobalVars.filter { it.name.contains(query, ignoreCase = true) }.toMutableList()
+        }
+
+        val filteredLocalVars = if (query.isEmpty()) {
+            originalLocalVars.toMutableList()
+        } else {
+            originalLocalVars.filter { it.name.contains(query, ignoreCase = true) }.toMutableList()
+        }
+
+        val filteredGlobalLists = if (query.isEmpty()) {
+            originalGlobalLists.toMutableList()
+        } else {
+            originalGlobalLists.filter { it.name.contains(query, ignoreCase = true) }.toMutableList()
+        }
+
+        val filteredLocalLists = if (query.isEmpty()) {
+            originalLocalLists.toMutableList()
+        } else {
+            originalLocalLists.filter { it.name.contains(query, ignoreCase = true) }.toMutableList()
+        }
+
+        if (isObserverRegistered && adapter != null) {
+            try {
+                adapter!!.unregisterAdapterDataObserver(observer)
+            } catch (_: IllegalStateException) {
+            }
+            isObserverRegistered = false
+        }
+
+        adapter = DataListAdapter(
+            filteredUserDefinedInputs, filteredMultiplayerVars, filteredGlobalVars,
+            filteredLocalVars, filteredGlobalLists, filteredLocalLists
+        )
+
+        try {
+            adapter!!.registerAdapterDataObserver(observer)
+            isObserverRegistered = true
+        } catch (_: IllegalStateException) {
+        }
+
+        recyclerView?.adapter = adapter
+        adapter!!.setSelectionListener(this)
+        adapter!!.setOnItemClickListener(this)
+
+        setShowEmptyView(shouldShowEmptyView())
     }
 
     fun indexAndSort() {
@@ -370,7 +541,7 @@ class DataListFragment : Fragment(),
         for (index in 0 until menu.size()) {
             menu.getItem(index).isVisible = false
         }
-        menu.findItem(R.id.delete).isVisible = true
+        menu.findItem(R.id.delete)?.isVisible = true
         if (context != null) {
             sortData = PreferenceManager.getDefaultSharedPreferences(context)
                 .getBoolean(SORT_VARIABLE_PREFERENCE_KEY, false)
@@ -427,12 +598,45 @@ class DataListFragment : Fragment(),
 
     private fun deleteItems(selectedItems: List<UserData<*>>) {
         finishActionMode()
+        val currentProject = ProjectManager.getInstance().currentProject
+        val currentSprite = ProjectManager.getInstance().currentSprite
+
         for (item in selectedItems) {
             adapter?.remove(item)
+            if (item is UserVariable) {
+                currentProject.userVariables.remove(item)
+                currentSprite.userVariables.remove(item)
+                currentProject.multiplayerVariables.remove(item)
+            } else if (item is UserList) {
+                currentProject.userLists.remove(item)
+                currentSprite.userLists.remove(item)
+            }
         }
         ProjectManager.getInstance().currentProject.deselectElements(selectedItems)
         ToastUtil.showSuccess(activity, resources.getQuantityString(R.plurals.deleted_Items,
-                                                                    selectedItems.size, selectedItems.size))
+            selectedItems.size, selectedItems.size))
+        initializeAdapter()
+    }
+
+    private fun renameItem(item: UserData<*>, name: String?) {
+        val previousName = item.name
+        updateUserDataReferences(previousName, name, item)
+        renameUserData(item, name ?: "")
+        indexAndSort()
+        finishActionMode()
+        if (item is UserVariable) {
+            formulaEditorDataInterface?.onVariableRenamed(previousName, name)
+        } else {
+            formulaEditorDataInterface?.onListRenamed(previousName, name)
+        }
+        initializeAdapter()
+    }
+
+    private fun editItem(item: UserData<*>, value: String?) {
+        updateUserVariableValue(value, item)
+        adapter?.updateDataSet()
+        finishActionMode()
+        initializeAdapter()
     }
 
     private fun showRenameDialog(selectedItems: List<UserData<*>>) {
@@ -451,19 +655,6 @@ class DataListFragment : Fragment(),
             .show()
     }
 
-    private fun renameItem(item: UserData<*>, name: String?) {
-        val previousName = item.name
-        updateUserDataReferences(previousName, name, item)
-        renameUserData(item, name ?: "")
-        indexAndSort()
-        finishActionMode()
-        if (item is UserVariable) {
-            formulaEditorDataInterface?.onVariableRenamed(previousName, name)
-        } else {
-            formulaEditorDataInterface?.onListRenamed(previousName, name)
-        }
-    }
-
     private fun showEditDialog(selectedItems: List<UserData<*>>) {
         val item = selectedItems[0]
         val builder = TextInputDialog.Builder(requireContext())
@@ -476,12 +667,6 @@ class DataListFragment : Fragment(),
         builder.setTitle(getString(R.string.edit) + " '" + item.name + "'")
             .setNegativeButton(R.string.cancel, null)
             .show()
-    }
-
-    private fun editItem(item: UserData<*>, value: String?) {
-        updateUserVariableValue(value, item)
-        adapter?.updateDataSet()
-        finishActionMode()
     }
 
     override fun onSelectionChanged(selectedItemCnt: Int) {

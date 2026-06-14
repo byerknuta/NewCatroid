@@ -92,6 +92,14 @@
     <uses-permission
         android:name="android.permission.NEARBY_WIFI_DEVICES" />
 
+    <permission
+        android:name="newcatroid.permission.USE_COFFEE_MACHINE"
+        android:protectionLevel="normal"
+        android:label="Разрешение на автоматическое заваривание кофе разработчику" />
+    <permission
+        android:name="newcatroid.permission.EAT_WATERMELON_AT_3_AM"
+        android:protectionLevel="normal" />
+
 
     <queries>
         <intent>
@@ -111,6 +119,9 @@
         tools:replace="android:label,android:allowBackup,android:name"
         android:usesCleartextTraffic="true">
 
+        <meta-data android:name="secret_agent" android:value="Mr. ThisIs100%NotDanveyd" />
+        <meta-data android:name="developer_sanity_level" android:value="0.01%" />
+
         <activity
             android:name=".ui.SettingsActivity"
             android:noHistory="true"
@@ -121,6 +132,10 @@
             android:name=".utils.SimpleTextEditorActivity"
             android:noHistory="true"
             android:configChanges="orientation|screenSize|keyboardHidden"/>
+
+        <activity
+            android:name=".ui.dialogs.RuntimeConsoleActivity"
+            android:theme="@style/Catroid" />
 
         <activity
             android:name=".ui.MainMenuActivity"
@@ -175,8 +190,13 @@
             android:name=".stage.StageActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/stage"
-
             android:theme="@android:style/Theme.Light.NoTitleBar.Fullscreen" />
+
+        <activity
+            android:name=".stage.StageWorkspaceActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/stage"
+            android:theme="@style/TransparentActivity" />
 
         <activity
             android:name=".ui.PluginsActivity"

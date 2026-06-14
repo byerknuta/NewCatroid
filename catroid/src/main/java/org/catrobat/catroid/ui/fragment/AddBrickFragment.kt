@@ -118,7 +118,7 @@ class AddBrickFragment : ListFragment() {
                     org.catrobat.catroid.utils.SubCategoryStateManager.setExpanded(requireContext(), brick.title, brick.isExpanded)
                     updateVisibleBricks()
                 } else {
-                    addBrickToScript(brick, activity as SpriteActivity, addBrickListener, parentFragmentManager, ADD_BRICK_FRAGMENT_TAG)
+                    addBrickToScript(brick, requireActivity(), addBrickListener, parentFragmentManager, ADD_BRICK_FRAGMENT_TAG)
                 }
             }
         }
@@ -215,7 +215,7 @@ class AddBrickFragment : ListFragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, menuInflater)
-        menu.findItem(R.id.comment_in_out).isVisible = false
+        menu.findItem(R.id.comment_in_out)?.isVisible = false
     }
 
     override fun onDestroy() {
@@ -322,7 +322,7 @@ class AddBrickFragment : ListFragment() {
             .setPositiveButton(R.string.dialog_add_brick_add) { dialog, _ ->
                 addBrickToScript(
                     brick,
-                    activity as SpriteActivity,
+                    requireActivity(),
                     addBrickListener,
                     parentFragmentManager,
                     ADD_BRICK_FRAGMENT_TAG
@@ -424,7 +424,7 @@ class AddBrickFragment : ListFragment() {
         return sb.toString()
     }
 }
-fun addBrickToScript(brick: Brick, activity: SpriteActivity, addBrickListener: AddBrickFragment.OnAddBrickListener?, parentFragmentManager: FragmentManager, tag: String) {
+fun addBrickToScript(brick: Brick, activity: android.app.Activity, addBrickListener: AddBrickFragment.OnAddBrickListener?, parentFragmentManager: FragmentManager, tag: String) {
     if (ProjectManager.getInstance().currentProject.isCastProject && CastManager.unsupportedBricks.contains(brick.javaClass)) {
         ToastUtil.showError(activity, R.string.error_unsupported_bricks_chromecast)
         return
@@ -433,18 +433,31 @@ fun addBrickToScript(brick: Brick, activity: SpriteActivity, addBrickListener: A
         val brickToAdd = brick.clone()
         addBrickListener?.addBrick(brickToAdd)
         SnackbarUtil.showHintSnackbar(activity, R.string.hint_scripts)
-        val fragmentTransaction = parentFragmentManager.beginTransaction()
-        val categoryFragment = parentFragmentManager.findFragmentByTag(BrickCategoryFragment.BRICK_CATEGORY_FRAGMENT_TAG)
-        if (categoryFragment != null) {
-            fragmentTransaction.remove(categoryFragment)
-            parentFragmentManager.popBackStack()
+        val workspace = activity.findViewById<View>(R.id.workspace_layout)
+        if (workspace != null && workspace.visibility == View.VISIBLE) {
+            val workspaceLayout = workspace as? org.catrobat.catroid.ui.workspace.WorkspaceLayout
+            if (workspaceLayout != null) {
+                workspaceLayout.removeWindow(tag, false)
+                workspaceLayout.removeWindow(
+                    BrickCategoryFragment.BRICK_CATEGORY_FRAGMENT_TAG,
+                    false
+                )
+            }
+        } else {
+            val fragmentTransaction = parentFragmentManager.beginTransaction()
+            val categoryFragment =
+                parentFragmentManager.findFragmentByTag(BrickCategoryFragment.BRICK_CATEGORY_FRAGMENT_TAG)
+            if (categoryFragment != null) {
+                fragmentTransaction.remove(categoryFragment)
+                parentFragmentManager.popBackStack()
+            }
+            val fragment = parentFragmentManager.findFragmentByTag(tag)
+            if (fragment != null) {
+                fragmentTransaction.remove(fragment)
+                parentFragmentManager.popBackStack()
+            }
+            fragmentTransaction.commit()
         }
-        val fragment = parentFragmentManager.findFragmentByTag(tag)
-        if (fragment != null) {
-            fragmentTransaction.remove(fragment)
-            parentFragmentManager.popBackStack()
-        }
-        fragmentTransaction.commit()
     } catch (e: CloneNotSupportedException) {
         Log.e(tag, e.localizedMessage)
         ToastUtil.showError(activity, R.string.error_adding_brick)

@@ -111,6 +111,11 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
     override fun isBackpackEmpty() = BackpackListManager.getInstance().scenes.isEmpty()
 
     override fun switchToBackpack() {
+        val workspace = activity?.findViewById<View>(R.id.workspace_layout) as? org.catrobat.catroid.ui.workspace.WorkspaceLayout
+        if (workspace != null && workspace.visibility == View.VISIBLE) {
+            workspace.openWindow("BackpackScenes", "Рюкзак: Сцены") { org.catrobat.catroid.ui.recyclerview.backpack.BackpackSceneFragment() }
+            return
+        }
         val intent = Intent(activity, BackpackActivity::class.java)
         intent.putExtra(BackpackActivity.EXTRA_FRAGMENT_POSITION, BackpackActivity.FRAGMENT_SCENES)
         startActivity(intent)
@@ -212,6 +217,18 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
             }
             NONE -> {
                 projectManager.currentlyEditedScene = item
+
+                val workspace = activity?.findViewById<View>(R.id.workspace_layout) as? org.catrobat.catroid.ui.workspace.WorkspaceLayout
+                if (workspace != null && workspace.visibility == View.VISIBLE) {
+                    workspace.openWindow(SpriteListFragment.TAG, "Спрайты") { SpriteListFragment() }
+
+                    workspace.removeWindow(SceneListFragment.TAG, force = false)
+
+                    val sprites = requireActivity().supportFragmentManager.findFragmentByTag(SpriteListFragment.TAG) as? SpriteListFragment
+                    sprites?.initializeAdapter()
+                    return
+                }
+
                 parentFragmentManager.beginTransaction()
                     .replace(R.id.fragment_container, SpriteListFragment(), SpriteListFragment.TAG)
                     .addToBackStack(SpriteListFragment.TAG)

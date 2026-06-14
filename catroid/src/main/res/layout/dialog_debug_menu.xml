@@ -1,11 +1,9 @@
-<!-- В файле res/layout/dialog_debug_menu.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="300dp"
     android:layout_height="wrap_content"
     android:background="@drawable/dialog_background"
     android:orientation="vertical">
 
-    <!-- Заголовок, за который можно будет таскать окно -->
     <LinearLayout
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/title_bar"
@@ -36,7 +34,6 @@
             app:tint="@android:color/white"/>
     </LinearLayout>
 
-    <!-- Контейнер для прокрутки, куда мы будем добавлять переменные -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

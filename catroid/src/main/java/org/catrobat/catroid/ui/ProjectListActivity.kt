@@ -24,6 +24,7 @@ package org.catrobat.catroid.ui
 
 import android.os.Bundle
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import androidx.fragment.app.Fragment
 import com.danvexteam.lunoscript_annotations.LunoClass
@@ -64,18 +65,13 @@ class ProjectListActivity : BaseCastActivity() {
         }
 
         loadFragment(projectListFragment)
+        org.catrobat.catroid.utils.ProjectTrashManager.cleanExpiredTrash(applicationContext)
     }
 
     private fun loadFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment, ProjectListFragment.TAG)
             .commit()
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_projects_activity, menu)
-        menu.findItem(R.id.merge).isVisible = BuildConfig.FEATURE_MERGE_ENABLED
-        return super.onCreateOptionsMenu(menu)
     }
 
     override fun onBackPressed() {

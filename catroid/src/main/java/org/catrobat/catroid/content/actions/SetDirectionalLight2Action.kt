@@ -6,6 +6,7 @@
 
 package org.catrobat.catroid.content.actions
 
+import android.util.Log
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
@@ -26,6 +27,7 @@ class SetDirectionalLigh2tAction : TemporalAction() {
             val z = dirZ?.interpretFloat(scope) ?: -0.2f
             val i = intensity?.interpretFloat(scope) ?: 5f
 
+            Log.d("SetDirLight", "X: $x  Y: $y  Z: $z     Int: $i")
             threeDManager.setRealisticSunLight(x, y, z, i)
         } catch (e: Exception) {
             e.printStackTrace()

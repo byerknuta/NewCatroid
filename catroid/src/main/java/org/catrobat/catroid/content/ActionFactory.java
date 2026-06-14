@@ -36,6 +36,7 @@ import org.catrobat.catroid.common.SoundInfo;
 import org.catrobat.catroid.content.actions.*;
 import org.catrobat.catroid.content.actions.conditional.GlideToAction;
 import org.catrobat.catroid.content.actions.conditional.IfOnEdgeBounceAction;
+import org.catrobat.catroid.content.bricks.Brick;
 import org.catrobat.catroid.content.bricks.LegoEv3MotorMoveBrick;
 import org.catrobat.catroid.content.bricks.LegoEv3MotorStopBrick;
 import org.catrobat.catroid.content.bricks.LegoEv3MotorTurnAngleBrick;
@@ -4470,6 +4471,156 @@ public class ActionFactory extends Actions {
         action.setZ(z);
         action.setType(type);
         action.setData(data);
+        return action;
+    }
+
+    public Action createAttachToCameraAction(Sprite sprite, SequenceAction sequence, Formula objectName) {
+        AttachToCameraAction action = action(AttachToCameraAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectName(objectName);
+        return action;
+    }
+
+    public Action createDetachFromCameraAction(Sprite sprite, SequenceAction sequence, Formula objectName) {
+        DetachFromCameraAction action = action(DetachFromCameraAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectName(objectName);
+        return action;
+    }
+
+    public Action createSetMaxPointLightsAction(Sprite sprite, SequenceAction sequence, Formula maxLights) {
+        SetMaxPointLightsAction action = action(SetMaxPointLightsAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setMaxLights(maxLights);
+        return action;
+    }
+
+    public Action createPromoteLightAction(Sprite sprite, SequenceAction sequence, Formula lightId) {
+        PromoteLightAction action = action(PromoteLightAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setLightId(lightId);
+        return action;
+    }
+
+    public Action createApplyShaderToImageAction(Sprite sprite, SequenceAction sequence, Formula filename, Formula vsh, Formula fsh) {
+        ApplyShaderToImageAction action = action(ApplyShaderToImageAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setFilename(filename);
+        action.setVertexCode(vsh);
+        action.setFragmentCode(fsh);
+        return action;
+    }
+
+    public Action createCameraTrackingAction(Sprite sprite, SequenceAction sequence, Formula id, int mode, Formula px, Formula py, Formula pz, Formula yaw, Formula pitch, Formula roll) {
+        CameraTrackingAction action = action(CameraTrackingAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectId(id);
+        action.setMode(mode);
+        action.setPx(px);
+        action.setPy(py);
+        action.setPz(pz);
+        action.setRy(yaw);
+        action.setRp(pitch);
+        action.setRr(roll);
+        return action;
+    }
+
+    public Action createSetScreenShaderAction(Sprite sprite, SequenceAction sequence, Formula vertex, Formula fragment) {
+        SetScreenShaderAction action = action(SetScreenShaderAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setVertex(vertex);
+        action.setFragment(fragment);
+        return action;
+    }
+
+    public Action createSet3DSoundMaxDistanceAction(Sprite sprite, SequenceAction sequence, Formula instanceName, Formula distance) {
+        Set3DSoundMaxDistanceAction action = action(Set3DSoundMaxDistanceAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setInstanceName(instanceName);
+        action.setDistance(distance);
+        return action;
+    }
+
+    public Action createSetEmissiveAction(Sprite sprite, SequenceAction sequence,
+                                          Formula objectName, Formula colorR, Formula colorG, Formula colorB, Formula colorA,
+                                          Formula intensity, Formula texturePath) {
+        SetEmissiveAction action = action(SetEmissiveAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectName(objectName);
+        action.setColorR(colorR);
+        action.setColorG(colorG);
+        action.setColorB(colorB);
+        action.setColorA(colorA);
+        action.setIntensity(intensity);
+        action.setTexturePath(texturePath);
+        return action;
+    }
+
+    public Action createSetFpsAction(Sprite sprite, SequenceAction sequence, Formula fps) {
+        SetFpsAction action = action(SetFpsAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setFps(fps);
+        return action;
+    }
+
+    public Action createSetRenderResolutionAction(Sprite sprite, SequenceAction sequence, Formula scale, Formula mode) {
+        SetRenderResolutionAction action = action(SetRenderResolutionAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setScale(scale);
+        action.setAspectMode(mode);
+        return action;
+    }
+
+    public Action createSetObjectShaderAction(Sprite sprite, SequenceAction sequence,
+                                              Formula objectId, Formula vertexCode, Formula fragmentCode) {
+        SetObjectShaderAction action = action(SetObjectShaderAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectIdFormula(objectId);
+        action.setVertexFormula(vertexCode);
+        action.setFragmentFormula(fragmentCode);
+        return action;
+    }
+
+    public Action createSetObjectShaderUniformAction(Sprite sprite, SequenceAction sequence,
+                                                     Formula objectId, Formula name, Formula val1, Formula val2, Formula val3) {
+        SetObjectShaderUniformAction action = action(SetObjectShaderUniformAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectIdFormula(objectId);
+        action.setNameFormula(name);
+        action.setVal1Formula(val1);
+        action.setVal2Formula(val2);
+        action.setVal3Formula(val3);
+        return action;
+    }
+
+    public Action createRemoveObjectsByPrefixAction(Sprite sprite, SequenceAction sequence, Formula prefix) {
+        RemoveObjectsByPrefixAction action = action(RemoveObjectsByPrefixAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setPrefixFormula(prefix);
+        return action;
+    }
+
+    public Action createRunAsSpriteAction(Sprite sprite, com.badlogic.gdx.scenes.scene2d.actions.SequenceAction sequence,
+                                          org.catrobat.catroid.content.Script script,
+                                          Formula spriteName, List<Brick> nestedBricks) {
+        RunAsSpriteAction action = new RunAsSpriteAction(script, nestedBricks);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setSpriteName(spriteName);
         return action;
     }
 }

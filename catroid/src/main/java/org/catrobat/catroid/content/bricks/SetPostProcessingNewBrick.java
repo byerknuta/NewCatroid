@@ -91,6 +91,7 @@ public class SetPostProcessingNewBrick extends FormulaBrick {
             case 22: arrayRes = R.array.pp_params_godrays; break;
             case 23: arrayRes = R.array.pp_params_volfog; break;
             case 24: arrayRes = R.array.pp_params_fsr; break;
+            case 25: arrayRes = R.array.pp_params_ssgi; break;
             default: arrayRes = R.array.pp_params_global;
         }
 

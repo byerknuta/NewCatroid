@@ -56,6 +56,7 @@ class EmptyLoopRule(private val context: Context) : AnalysisRule {
                 "IntervalRepeatBrick" -> "Interval Repeat"
                 "ForVariableFromToBrick" -> "For Variable"
                 "ForItemInUserListBrick" -> "For Each Item"
+                "RunAsSpriteBrick" -> "Run As"
                 else -> brickClass.replace("Brick", "").replace("LogicBegin", "")
             }
             return AnalysisResult(

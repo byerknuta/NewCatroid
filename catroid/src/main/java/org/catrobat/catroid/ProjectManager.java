@@ -128,7 +128,6 @@ public final class ProjectManager {
 	 */
 	@Deprecated
 	public void loadProject(File projectDir, Context context) throws ProjectException {
-
 		Project previousProject = project;
 
 		try {
@@ -138,6 +137,11 @@ public final class ProjectManager {
 			restorePreviousProject(previousProject);
 			throw new LoadingProjectException(context.getString(R.string.error_load_project));
 		}
+
+        double loadedVersion = project.getCatrobatLanguageVersion();
+        if (loadedVersion < 1.17) {
+            this.needsPhysicsCacheWarning = true;
+        }
 
 		if (project.getCatrobatLanguageVersion() > CURRENT_CATROBAT_LANGUAGE_VERSION) {
 			restorePreviousProject(previousProject);
@@ -693,7 +697,11 @@ public final class ProjectManager {
 	}
 
 	public Sprite getCurrentSprite() {
-		return currentSprite;
+        if (currentSprite != null){
+            return currentSprite;
+        } else {
+            return project.getDefaultScene().getBackgroundSprite();
+        }
 	}
 
 	public void setCurrentSprite(Sprite sprite) {
@@ -808,4 +816,14 @@ public final class ProjectManager {
 		}
 		return projectCallStack.pop();
 	}
+
+    private boolean needsPhysicsCacheWarning = false;
+
+    public boolean isNeedsPhysicsCacheWarning() {
+        return needsPhysicsCacheWarning;
+    }
+
+    public void setNeedsPhysicsCacheWarning(boolean needsPhysicsCacheWarning) {
+        this.needsPhysicsCacheWarning = needsPhysicsCacheWarning;
+    }
 }

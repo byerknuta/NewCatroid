@@ -27,7 +27,6 @@ import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Rect
@@ -44,6 +43,9 @@ import org.catrobat.catroid.content.bricks.CompositeBrick
 import org.catrobat.catroid.content.bricks.EndBrick
 import org.catrobat.catroid.ui.settingsfragments.SettingsFragment
 import java.util.ArrayList
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.graphics.withTranslation
 
 private const val SMOOTH_SCROLL_BY = 15
 private const val SMOOTH_SCROLL_BY_NEW = 20
@@ -211,7 +213,7 @@ class BrickListView : ListView {
         hoveringDrawable?.draw(canvas)
 
         for (pos in brickPositionsToHighlight) {
-            if (firstVisiblePosition <= pos && pos <= lastVisiblePosition) {
+            if (pos in firstVisiblePosition..lastVisiblePosition) {
                 drawHighlightedItem(getChildAtVisiblePosition(pos), canvas)
             }
         }
@@ -219,26 +221,23 @@ class BrickListView : ListView {
 
     @VisibleForTesting
     fun drawHighlightedItem(view: View?, canvas: Canvas?) {
-        if (view == null) {
+        if (view == null || canvas == null) {
             return
         }
-        val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
-        view.draw(Canvas(bitmap))
-
-        val drawable = BitmapDrawable(resources, bitmap)
-        drawable.setBounds(view.left, view.top, view.right, view.bottom)
-        drawable.draw(canvas!!)
+        canvas.withTranslation(view.left.toFloat(), view.top.toFloat()) {
+            view.draw(canvas)
+        }
     }
 
     private fun prepareHoveringItem(view: View?) {
         if (view == null) {
             return
         }
-        val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(view.width, view.height)
         view.draw(Canvas(bitmap))
 
         viewBounds[view.left, view.top, view.right] = view.bottom
-        val drawable = BitmapDrawable(resources, bitmap)
+        val drawable = bitmap.toDrawable(resources)
         drawable.bounds = viewBounds
         hoveringDrawable = drawable
         setOffsetToCenter(viewBounds)
@@ -301,13 +300,12 @@ class BrickListView : ListView {
         when (dragMode) {
             DragMode.NEW -> {
                 val scrollZoneSize = height / 5
-                var distance = 0f
 
                 if (downY < upperScrollBound) {
-                    distance = (upperScrollBound - downY) / scrollZoneSize
+                    val distance = (upperScrollBound - downY) / scrollZoneSize
                     scrollSpeed = (-SMOOTH_SCROLL_BY_NEW * distance).toInt()
                 } else if (downY > lowerScrollBound) {
-                    distance = (downY - lowerScrollBound) / scrollZoneSize
+                    val distance = (downY - lowerScrollBound) / scrollZoneSize
                     scrollSpeed = (SMOOTH_SCROLL_BY_NEW * distance).toInt()
                 } else {
                     scrollSpeed = 0

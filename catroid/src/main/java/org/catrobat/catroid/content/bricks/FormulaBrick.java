@@ -346,7 +346,9 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 	private void saveCodeFile(View view) {
 		ScriptFragment scriptFragment = getScriptFragment(view);
 		if (scriptFragment != null && scriptFragment.copyProjectForUndoOption()) {
-			((SpriteActivity) scriptFragment.getActivity()).setUndoMenuItemVisibility(true);
+            if (scriptFragment.getActivity() instanceof SpriteActivity) {
+                ((SpriteActivity) scriptFragment.getActivity()).setUndoMenuItemVisibility(true);
+            }
 			scriptFragment.setUndoBrickPosition(this);
 		}
 	}

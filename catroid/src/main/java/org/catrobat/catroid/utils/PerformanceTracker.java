@@ -12,7 +12,6 @@ public class PerformanceTracker {
     public static long formulaEvaluations = 0;
     public static long blocksExecuted = 0;
 
-    // НОВЫЕ МЕТРИКИ
     public static long activeThreads = 0;
     public static long totalBlockTimeNs = 0;
 
@@ -32,7 +31,6 @@ public class PerformanceTracker {
         }
     }
 
-    // НОВЫЙ МЕТОД: Отлов "тяжелых" скриптов
     public static void logHeavyScript(Script script, long durationNs) {
         double ms = durationNs / 1_000_000.0;
         String scriptName = (script != null) ? script.getClass().getSimpleName() : "Unknown Script";

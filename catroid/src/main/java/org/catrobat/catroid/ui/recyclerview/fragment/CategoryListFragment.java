@@ -83,8 +83,8 @@ import static org.catrobat.catroid.common.SharedPreferenceKeys.LANGUAGE_TAG_KEY;
 import static org.catrobat.catroid.ui.fragment.FormulaEditorFragment.FORMULA_EDITOR_FRAGMENT_TAG;
 import static org.koin.java.KoinJavaComponent.get;
 
-import org.catrobat.catroid.formulaeditor.CustomFormula; // Добавьте этот импорт
-import org.catrobat.catroid.formulaeditor.CustomFormulaManager; // Добавьте этот импорт
+import org.catrobat.catroid.formulaeditor.CustomFormula;
+import org.catrobat.catroid.formulaeditor.CustomFormulaManager;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -607,9 +607,12 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View parent = inflater.inflate(R.layout.fragment_list_view, container, false);
         recyclerView = parent.findViewById(R.id.recycler_view);
+        recyclerView.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(getContext()));
         setHasOptionsMenu(true);
 
         float density = getResources().getDisplayMetrics().density;
+
+        recyclerView.setBackgroundColor(androidx.core.content.ContextCompat.getColor(getContext(), R.color.app_background));
 
         android.widget.FrameLayout containerLayout = new android.widget.FrameLayout(getContext());
         containerLayout.setLayoutParams(new android.widget.FrameLayout.LayoutParams(
@@ -677,11 +680,11 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
         return containerLayout;
     }
 
-	@Override
-	public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-		super.onActivityCreated(savedInstanceState);
-		initializeAdapter();
-	}
+    @Override
+    public void onViewCreated(@androidx.annotation.NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        initializeAdapter();
+    }
 
 	@Override
 	public void onResume() {
@@ -704,6 +707,11 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 	@Override
 	public void onPrepareOptionsMenu(Menu menu) {
 		super.onPrepareOptionsMenu(menu);
+
+        if (menu == null) {
+            return;
+        }
+
 		for (int index = 0; index < menu.size(); index++) {
 			menu.getItem(index).setVisible(false);
 		}
@@ -1000,17 +1008,22 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
     private void initializeAdapter() {
         String argument = getArguments().getString(FRAGMENT_TAG_BUNDLE_ARGUMENT);
 
+        android.util.Log.d("WorkspaceUI", "initializeAdapter called. Argument received: " + argument);
+
         if (OBJECT_TAG.equals(argument)) {
             allItems = getObjectItems();
-        } else if (FUNCTION_TAG.equals(argument)) {
+        } else if (FUNCTION_TAG.equals(argument) || "functionFragment".equals(argument)) {
             allItems = getFunctionItems();
-        } else if (LOGIC_TAG.equals(argument)) {
+        } else if (LOGIC_TAG.equals(argument) || "logicFragment".equals(argument)) {
             allItems = getLogicItems();
-        } else if (SENSOR_TAG.equals(argument)) {
+        } else if (SENSOR_TAG.equals(argument) || "sensorFragment".equals(argument)) {
             allItems = getSensorItems();
         } else {
-            throw new IllegalArgumentException("Argument for CategoryListFragent null or unknown: " + argument);
+            android.util.Log.e("WorkspaceUI", "Unknown or null fragmentTag argument: " + argument);
+            allItems = new ArrayList<>();
         }
+
+        android.util.Log.d("WorkspaceUI", "Items loaded count: " + allItems.size());
 
         adapter = new CategoryListRVAdapter(new ArrayList<>(allItems), false);
         adapter.setOnItemClickListener(this);

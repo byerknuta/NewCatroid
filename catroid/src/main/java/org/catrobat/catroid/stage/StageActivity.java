@@ -148,6 +148,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 import androidx.test.espresso.idling.CountingIdlingResource;
 
 import static org.catrobat.catroid.common.Constants.SCREENSHOT_AUTOMATIC_FILE_NAME;
@@ -254,22 +255,19 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	private boolean newFrameAvailable = false;
 
 
-
+    private org.catrobat.catroid.ui.workspace.WindowContainer window;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-
 		if (getIntent().hasExtra(EXTRA_PROJECT_PATH)) {
 			String projectPath = getIntent().getStringExtra(EXTRA_PROJECT_PATH);
 			File projectDir = new File(projectPath);
 
-			// Проверяем, запеченный ли это проект (наличие init.luno.txt или init.bin)
 			File initTxt = new File(projectDir, "init.luno.txt");
 			File initBin = new File(projectDir, "init.bin");
 
 			if (initTxt.exists() || initBin.exists()) {
 				try {
-					// Инициализируем движок Luno
 					org.catrobat.catroid.utils.lunoscript.LunoScriptEngine engine =
 							new org.catrobat.catroid.utils.lunoscript.LunoScriptEngine(this, null);
 
@@ -280,21 +278,15 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 					String scriptCode = "";
 					if (initTxt.exists()) {
-						// Читаем текст (для отладки)
 						scriptCode = new String(java.nio.file.Files.readAllBytes(initTxt.toPath()));
 					} else {
-						// Дешифруем (для релиза)
-						// scriptCode = LunoSecurity.INSTANCE.loadDecrypted(initBin);
 						scriptCode = new String(java.nio.file.Files.readAllBytes(initBin.toPath()));
 					}
 
-					// Выполняем скрипт!
-					// Скрипт создаст объект Project и установит его в ProjectManager
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         engine.execute(scriptCode);
                     }
 
-                    // Важно: Устанавливаем текущий путь к файлам, чтобы ресурсы (images/sounds) грузились
 					if (ProjectManager.getInstance().getCurrentProject() != null) {
 						ProjectManager.getInstance().getCurrentProject().setDirectory(projectDir);
 					}
@@ -306,11 +298,9 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 					return;
 				}
 			} else if (projectDir.exists() && projectDir.isDirectory()) {
-				// Стандартная загрузка по пути (если вдруг понадобится)
 				try {
 					ProjectManager.getInstance().loadProject(projectDir);
 				} catch (ProjectException e) {
-					// ... handle error
 				}
 			}
 		}
@@ -339,15 +329,18 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 		injectSafeKeyboardProvider();
 
+        boolean isFreeStageEnabled = this instanceof StageWorkspaceActivity;
 
-		if (gameView instanceof android.view.SurfaceView) {
-			android.view.SurfaceView glView = (android.view.SurfaceView) gameView;
+        if (gameView instanceof android.view.SurfaceView) {
+            android.view.SurfaceView glView = (android.view.SurfaceView) gameView;
 
-			glView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
-
-
-
-		}
+            if (isFreeStageEnabled) {
+                glView.getHolder().setFormat(PixelFormat.OPAQUE);
+                glView.setZOrderMediaOverlay(true);
+            } else {
+                glView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
+            }
+        }
 
 
 		rootLayout.addView(cameraContainer);
@@ -357,9 +350,56 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 		activeNativeLayer = foregroundLayout;
 
+        if (isFreeStageEnabled) {
+            getWindow().setFormat(PixelFormat.TRANSLUCENT);
 
-		setContentView(rootLayout);
+            FrameLayout canvas = new FrameLayout(this);
+            canvas.setBackgroundColor(Color.TRANSPARENT);
 
+            window = new org.catrobat.catroid.ui.workspace.WindowContainer(this);
+            window.initWindow("StageGame", "Игровой экран");
+
+            FrameLayout.LayoutParams rootParams = new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+            );
+            window.contentFrame.addView(rootLayout, rootParams);
+
+            float density = getResources().getDisplayMetrics().density;
+            boolean isProjectLandscape = ProjectManager.getInstance().getCurrentProject().getXmlHeader().islandscapeMode();
+
+            int width, height;
+            if (isProjectLandscape) {
+                width = (int) (580 * density);
+                height = (int) (360 * density);
+            } else {
+                width = (int) (360 * density);
+                height = (int) (580 * density);
+            }
+
+            int screenWidth = getResources().getDisplayMetrics().widthPixels;
+            int screenHeight = getResources().getDisplayMetrics().heightPixels;
+            int initialLeft = (screenWidth - width) / 2;
+            int initialTop = (screenHeight - height) / 2;
+
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height);
+            params.gravity = Gravity.TOP | Gravity.START;
+            params.leftMargin = initialLeft;
+            params.topMargin = initialTop;
+            window.setLayoutParams(params);
+
+            window.setOnCloseClickListener(() -> {
+                finish();
+                return null;
+            });
+
+            canvas.addView(window);
+            setContentView(canvas);
+
+            updateStageSize(width, height);
+        } else {
+            setContentView(rootLayout);
+        }
 
 		GlobalManager.Companion.setSaveScenes(true);
 		GlobalManager.Companion.setStopSounds(true);
@@ -1614,29 +1654,24 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	@Override
 	public void onBackPressed() {
-		Project currentProject = ProjectManager.getInstance().getCurrentProject();
+        if (this instanceof StageWorkspaceActivity && window != null && window.isMaximized()) {
+            window.toggleMaximize();
+            return;
+        }
 
+		Project currentProject = ProjectManager.getInstance().getCurrentProject();
 
 		boolean backPressedScriptExists = EventManager.projectHasScriptOfType(
 				currentProject, BackPressedScript.class);
 
 		if (backPressedScriptExists) {
-
-
-
 			if (backPressedTime + BACK_PRESS_EXIT_TIMEOUT > System.currentTimeMillis()) {
 				handleBack();
 			} else {
-
-
 				broadcastEventToAllSprites(new EventId(EventId.BACK_PRESSED));
-
 				Toast.makeText(this, "Нажмите еще раз для вызова меню", Toast.LENGTH_SHORT).show();
-
-
 				backPressedTime = System.currentTimeMillis();
 			}
-
 		} else {
 			handleBack();
 		}
@@ -1693,27 +1728,27 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		return resizePossible;
 	}
 
-	void calculateScreenSizes() {
-		ScreenValueHandler.updateScreenWidthAndHeight(getContext());
+    void calculateScreenSizes() {
+        ScreenValueHandler.updateScreenWidthAndHeight(getContext());
 
-		Resolution projectResolution = new Resolution(
-				ProjectManager.getInstance().getCurrentProject().getXmlHeader().getVirtualScreenWidth(),
-				ProjectManager.getInstance().getCurrentProject().getXmlHeader().getVirtualScreenHeight());
+        Resolution projectResolution = new Resolution(
+                ProjectManager.getInstance().getCurrentProject().getXmlHeader().getVirtualScreenWidth(),
+                ProjectManager.getInstance().getCurrentProject().getXmlHeader().getVirtualScreenHeight());
 
-		ScreenValues.currentScreenResolution =
-				ScreenValues.currentScreenResolution.flipToFit(projectResolution);
+        ScreenValues.currentScreenResolution =
+                ScreenValues.currentScreenResolution.flipToFit(projectResolution);
 
-		resizePossible = !ScreenValues.currentScreenResolution.sameRatioOrMeasurements(projectResolution) &&
-				!ProjectManager.getInstance().getCurrentProject().isCastProject();
+        resizePossible = !ScreenValues.currentScreenResolution.sameRatioOrMeasurements(projectResolution) &&
+                !ProjectManager.getInstance().getCurrentProject().isCastProject();
 
-		if (resizePossible) {
-			stageListener.setMaxViewPort(projectResolution.resizeToFit(ScreenValues.currentScreenResolution));
-		} else {
-			stageListener.setMaxViewPort(ScreenValues.currentScreenResolution);
-		}
-	}
+        if (resizePossible) {
+            stageListener.setMaxViewPort(projectResolution.resizeToFit(ScreenValues.currentScreenResolution));
+        } else {
+            stageListener.setMaxViewPort(ScreenValues.currentScreenResolution);
+        }
+    }
 
-	@Override
+    @Override
 	public ApplicationListener getApplicationListener() {
 
 		if (this.stageListener == null) {
@@ -1995,8 +2030,16 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
 	private static void startStageActivity(Activity activity) {
-		Intent intent = new Intent(activity, StageActivity.class);
-		activity.startActivityForResult(intent, StageActivity.REQUEST_START_STAGE);
+        boolean isFreeStageEnabled = PreferenceManager.getDefaultSharedPreferences(activity)
+                .getBoolean("pref_workspace_stage", false);
+
+        Intent intent;
+        if (isFreeStageEnabled) {
+            intent = new Intent(activity, StageWorkspaceActivity.class);
+        } else {
+            intent = new Intent(activity, StageActivity.class);
+        }
+        activity.startActivityForResult(intent, StageActivity.REQUEST_START_STAGE);
 	}
 
 	public static void finishStage() {
@@ -2015,4 +2058,11 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			stageActivity.finish();
 		}
 	}
+
+    public void updateStageSize(int width, int height) {
+        if (gameView instanceof android.view.SurfaceView) {
+            android.view.SurfaceView glView = (android.view.SurfaceView) gameView;
+            //glView.getHolder().setFixedSize(width, height);
+        }
+    }
 }

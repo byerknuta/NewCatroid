@@ -182,4 +182,17 @@ public abstract class PostProcessingData {
         public float sharpness = 0.5f;
         @Override public String getType() { return "FSR Upscaler (CAS)"; }
     }
+
+    public static class SSGI extends PostProcessingData {
+        public float radius = 0.5f;
+        public float intensity = 1.0f;
+        public float bias = 0.05f;
+        public float ssaoStrength = 1.0f;
+        public float baseAlbedoR = 0.1f;
+        public float baseAlbedoG = 0.1f;
+        public float baseAlbedoB = 0.1f;
+        public boolean flipDepth = true;
+
+        @Override public String getType() { return "Global Illumination (SSGI)"; }
+    }
 }

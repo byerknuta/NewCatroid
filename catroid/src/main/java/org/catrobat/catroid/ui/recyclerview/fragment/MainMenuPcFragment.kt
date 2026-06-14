@@ -1,0 +1,156 @@
+package org.catrobat.catroid.ui.recyclerview.fragment
+
+import android.content.Intent
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.catrobat.catroid.ProjectManager
+import org.catrobat.catroid.R
+import org.catrobat.catroid.common.FlavoredConstants
+import org.catrobat.catroid.common.FlavoredConstants.DEFAULT_ROOT_DIRECTORY
+import org.catrobat.catroid.databinding.FragmentMainMenuPcBinding
+import org.catrobat.catroid.io.ProjectAndSceneScreenshotLoader
+import org.catrobat.catroid.io.asynctask.ProjectLoader
+import org.catrobat.catroid.io.asynctask.ProjectLoader.ProjectLoadListener
+import org.catrobat.catroid.io.asynctask.loadProject
+import org.catrobat.catroid.stage.StageActivity
+import org.catrobat.catroid.ui.ProjectActivity
+import org.catrobat.catroid.ui.WebViewActivity
+import org.catrobat.catroid.ui.dialogs.NewProjectDialogFragment
+import org.catrobat.catroid.utils.FileMetaDataExtractor
+import org.catrobat.catroid.utils.ToastUtil
+import org.catrobat.catroid.utils.Utils
+import org.koin.android.ext.android.inject
+import java.io.File
+
+class MainMenuPcFragment : Fragment(), View.OnClickListener, ProjectLoadListener {
+
+    private val projectManager: ProjectManager by inject()
+    private var _binding: FragmentMainMenuPcBinding? = null
+    private val binding get() = _binding!!
+
+    private var currentProject: String? = null
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentMainMenuPcBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+
+        binding.editProject.setOnClickListener(this)
+        binding.projectImageView.setOnClickListener(this)
+        binding.playProject.setOnClickListener(this)
+        binding.btnWeb.setOnClickListener(this)
+        binding.btnCommunity.setOnClickListener(this)
+        binding.btnNewProjectFab.setOnClickListener(this)
+
+
+        if (savedInstanceState == null) {
+            childFragmentManager.beginTransaction()
+                .replace(R.id.pc_project_list_container, ProjectListFragment())
+                .commit()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        loadCurrentProjectData()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    private fun loadCurrentProjectData() {
+        currentProject = Utils.getCurrentProjectName(requireContext())
+
+        val projectDir = File(
+            DEFAULT_ROOT_DIRECTORY,
+            FileMetaDataExtractor.encodeSpecialCharsForFileSystem(currentProject)
+        )
+
+        CoroutineScope(Dispatchers.IO).launch {
+            loadProject(projectDir, requireContext())
+        }
+
+        val loader = ProjectAndSceneScreenshotLoader(CURRENT_THUMBNAIL_SIZE, CURRENT_THUMBNAIL_SIZE)
+        loader.loadAndShowScreenshot(
+            projectDir.name,
+            loader.getScreenshotSceneName(projectDir),
+            false,
+            binding.projectImageView
+        )
+    }
+
+    override fun onClick(view: View) {
+        when (view.id) {
+
+            R.id.projectImageView,
+            R.id.editProject -> {
+                val projectDir = File(
+                    DEFAULT_ROOT_DIRECTORY,
+                    FileMetaDataExtractor.encodeSpecialCharsForFileSystem(currentProject)
+                )
+                ProjectLoader(projectDir, requireContext())
+                    .setListener(this)
+                    .loadProjectAsync()
+            }
+
+
+            R.id.playProject -> {
+                StageActivity.handlePlayButton(projectManager, activity)
+            }
+
+
+            R.id.btnWeb -> {
+                startActivity(Intent(activity, WebViewActivity::class.java))
+            }
+
+
+            R.id.btnCommunity -> {
+                val webIntent = Intent(activity, WebViewActivity::class.java)
+                webIntent.putExtra(WebViewActivity.INTENT_PARAMETER_URL, FlavoredConstants.COMMUNITY_URL)
+                startActivity(webIntent)
+            }
+
+
+            R.id.btnNewProjectFab -> {
+                val dialog = NewProjectDialogFragment()
+                dialog.show(parentFragmentManager, NewProjectDialogFragment.TAG)
+            }
+        }
+    }
+
+
+    override fun onLoadFinished(success: Boolean) {
+        if (success) {
+            val intent = Intent(activity, ProjectActivity::class.java)
+            intent.putExtra(
+                ProjectActivity.EXTRA_FRAGMENT_POSITION,
+                ProjectActivity.FRAGMENT_SCENES
+            )
+            startActivity(intent)
+        } else {
+            ToastUtil.showError(activity, R.string.error_load_project)
+        }
+    }
+
+    companion object {
+        val TAG: String = MainMenuPcFragment::class.java.simpleName
+        private const val CURRENT_THUMBNAIL_SIZE = 500
+    }
+}

@@ -4,7 +4,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.widget.BaseAdapter
+import android.widget.LinearLayout
 import org.catrobat.catroid.content.bricks.Brick
+import org.catrobat.catroid.ui.recyclerview.util.IndentedBrickLayout
 
 class PrototypeBrickAdapter(private var brickList: List<Brick>) : BaseAdapter() {
 
@@ -59,6 +61,44 @@ class PrototypeBrickAdapter(private var brickList: List<Brick>) : BaseAdapter() 
             }
         }
 
+        val context = parent?.context ?: return cachedView
+        val prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
+        val useIndentation = prefs.getBoolean("pref_enable_brick_indentation", false)
+
+        if (useIndentation && cachedView != null) {
+            val depth = getBrickDepth(position)
+            if (depth > 0) {
+                val existingParent = cachedView.parent
+                if (existingParent is IndentedBrickLayout) {
+                    existingParent.setDepth(depth)
+                    return existingParent
+                } else {
+                    (existingParent as? ViewGroup)?.removeView(cachedView)
+
+                    val indentedLayout = IndentedBrickLayout(context, depth)
+                    indentedLayout.layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                    indentedLayout.addView(
+                        cachedView,
+                        LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                        )
+                    )
+                    return indentedLayout
+                }
+            }
+        }
+
+        if (cachedView != null) {
+            val existingParent = cachedView.parent
+            if (existingParent is IndentedBrickLayout) {
+                existingParent.removeView(cachedView)
+            }
+        }
+
         return cachedView
     }
 
@@ -81,4 +121,19 @@ class PrototypeBrickAdapter(private var brickList: List<Brick>) : BaseAdapter() 
         viewCache.clear()
         itemsToAnimate.clear()
     }
+
+    private fun getBrickDepth(position: Int): Int {
+        val currentBrick = brickList[position]
+        if (currentBrick is org.catrobat.catroid.content.bricks.SubCategoryHeaderBrick) {
+            return 0
+        }
+
+        for (i in position - 1 downTo 0) {
+            if (brickList[i] is org.catrobat.catroid.content.bricks.SubCategoryHeaderBrick) {
+                return 1
+            }
+        }
+        return 0
+    }
+
 }

@@ -61,6 +61,7 @@ class SetPostProcessingNewAction : TemporalAction() {
             22 -> PostProcessingData.GodRays::class.java
             23 -> PostProcessingData.VolumetricFog::class.java
             24 -> PostProcessingData.Upscaler::class.java
+            25 -> PostProcessingData.SSGI::class.java
             else -> null
         } ?: return null
 
@@ -161,6 +162,16 @@ class SetPostProcessingNewAction : TemporalAction() {
                 1 -> data.intensity = fVal
                 2 -> data.radius = fVal
                 3 -> data.bias = fVal
+            }
+            is PostProcessingData.SSGI -> when (pIdx) {
+                1 -> data.intensity = fVal
+                2 -> data.radius = fVal
+                3 -> data.bias = fVal
+                4 -> data.ssaoStrength = fVal
+                5 -> data.baseAlbedoR = fVal.coerceIn(0f, 1f)
+                6 -> data.baseAlbedoG = fVal.coerceIn(0f, 1f)
+                7 -> data.baseAlbedoB = fVal.coerceIn(0f, 1f)
+                8 -> data.flipDepth = bVal
             }
             is PostProcessingData.HeightFog -> when (pIdx) {
                 1 -> data.density = fVal

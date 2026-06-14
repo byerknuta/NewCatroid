@@ -92,6 +92,7 @@ import org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment;
 import org.catrobat.catroid.ui.runtimepermissions.BrickResourcesToRuntimePermissions;
 import org.catrobat.catroid.ui.runtimepermissions.RequiresPermissionTask;
 import org.catrobat.catroid.ui.settingsfragments.SettingsFragment;
+import org.catrobat.catroid.ui.workspace.WorkspaceLayout;
 import org.catrobat.catroid.userbrick.UserDefinedBrickInput;
 import org.catrobat.catroid.utils.ProjectManagerExtensionsKt;
 import org.catrobat.catroid.utils.ShowTextUtils.AndroidStringProvider;
@@ -206,23 +207,34 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 		}
 	}
 
-	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
-		super.onActivityCreated(savedInstanceState);
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
-		ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-		actionBarTitleBuffer = actionBar.getTitle().toString();
-		actionBar.setTitle(R.string.formula_editor_title);
+        ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        if (actionBar != null) {
+            CharSequence title = actionBar.getTitle();
+            actionBarTitleBuffer = title != null ? title.toString() : "";
+            actionBar.setTitle(R.string.formula_editor_title);
+        } else {
+            actionBarTitleBuffer = "";
+        }
 
-		setHasOptionsMenu(true);
-		SettingsFragment.setToChosenLanguage(getActivity());
-	}
+        setHasOptionsMenu(true);
+        SettingsFragment.setToChosenLanguage(getActivity());
+    }
 
 	private static void showFragment(Context context, FormulaBrick formulaBrick, Brick.FormulaField formulaField, boolean showCustomView) {
 		AppCompatActivity activity = UiUtils.getActivityFromContextWrapper(context);
 		if (activity == null) {
 			return;
 		}
+
+        WorkspaceLayout workspaceLayout = activity.findViewById(R.id.workspace_layout);
+        if (workspaceLayout != null && workspaceLayout.getVisibility() == View.VISIBLE) {
+            workspaceLayout.openFormulaEditorWindow(formulaBrick, formulaField, showCustomView);
+            return;
+        }
 
 		FormulaEditorFragment formulaEditorFragment = (FormulaEditorFragment) activity.getSupportFragmentManager()
 				.findFragmentByTag(FORMULA_EDITOR_FRAGMENT_TAG);
@@ -303,15 +315,21 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 		setInputFormula(currentFormulaField, SET_FORMULA_ON_RETURN_FROM_COLOR_PICKER);
 	}
 
-	private void onUserDismiss() {
-		refreshFormulaPreviewString(currentFormula.getTrimmedFormulaString(getActivity()));
-		formulaEditorEditText.endEdit();
-		getFragmentManager().popBackStack();
-		if (getActivity() != null) {
-			BottomBar.showBottomBar(getActivity());
-			BottomBar.showPlayButton(getActivity());
-		}
-	}
+    private void onUserDismiss() {
+        refreshFormulaPreviewString(currentFormula.getTrimmedFormulaString(getActivity()));
+        formulaEditorEditText.endEdit();
+        View workspaceLayout = getActivity().findViewById(R.id.workspace_layout);
+        if (workspaceLayout != null && workspaceLayout.getVisibility() == View.VISIBLE) {
+        } else {
+            getFragmentManager().popBackStack();
+        }
+        if (getActivity() != null) {
+            if (!(getActivity() instanceof org.catrobat.catroid.ui.dialogs.RuntimeConsoleActivity)) {
+                BottomBar.showBottomBar(getActivity());
+                BottomBar.showPlayButton(getActivity());
+            }
+        }
+    }
 
 	@Override
 	public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -686,15 +704,18 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 		return formulaEditorEditText;
 	}
 
-	@Override
-	public void onStop() {
-		super.onStop();
-		AppCompatActivity activity = (AppCompatActivity) getActivity();
-		if (activity == null || activity.getSupportActionBar() == null) {
-			return;
-		}
-		activity.getSupportActionBar().setTitle(actionBarTitleBuffer);
-	}
+    @Override
+    public void onStop() {
+        super.onStop();
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        if (activity == null) {
+            return;
+        }
+        ActionBar actionBar = activity.getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle(actionBarTitleBuffer);
+        }
+    }
 
 	private boolean isSelectedTextFirstParamOfRegularExpression() {
 		return getFormulaEditorEditText().isSelectedTokenFirstParamOfRegularExpression();
@@ -1079,25 +1100,40 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 		return false;
 	}
 
-	public void exitFormulaEditorFragment() {
-		((SpriteActivity) getActivity()).setUndoMenuItemVisibility(false);
-		if (hasFormulaBeenChanged || formulaEditorEditText.hasChanges()) {
-			if (saveFormulaIfPossible()) {
-				hasFormulaBeenChanged = false;
-			} else {
-				return;
-			}
-		}
-		onUserDismiss();
+    public void exitFormulaEditorFragment() {
+        if (getActivity() instanceof SpriteActivity) {
+            ((SpriteActivity) getActivity()).setUndoMenuItemVisibility(false);
+        }
 
-		ScriptFragment fragment = (ScriptFragment) getActivity().getSupportFragmentManager().findFragmentByTag(ScriptFragment.TAG);
+        if (hasFormulaBeenChanged || formulaEditorEditText.hasChanges()) {
+            if (saveFormulaIfPossible()) {
+                hasFormulaBeenChanged = false;
+            } else {
+                return;
+            }
+        }
 
-		XstreamSerializer.getInstance().saveProject(ProjectManager.getInstance().getCurrentProject());
+        ScriptFragment scriptFragment = (ScriptFragment) getActivity().getSupportFragmentManager().findFragmentByTag(ScriptFragment.TAG);
+        if (scriptFragment != null) {
+            scriptFragment.notifyDataSetChanged();
+        }
 
-		if (hasFileChanged() || fragment.checkVariables()) {
-			((SpriteActivity) getActivity()).setUndoMenuItemVisibility(true);
-		}
-	}
+        onUserDismiss();
+
+        if (!(getActivity() instanceof org.catrobat.catroid.ui.dialogs.RuntimeConsoleActivity)) {
+            XstreamSerializer.getInstance().saveProject(ProjectManager.getInstance().getCurrentProject());
+        }
+
+        if (getActivity() != null) {
+            ScriptFragment fragment = (ScriptFragment) getActivity().getSupportFragmentManager().findFragmentByTag(ScriptFragment.TAG);
+
+            if (fragment != null && (hasFileChanged() || fragment.checkVariables())) {
+                if (getActivity() instanceof SpriteActivity) {
+                    ((SpriteActivity) getActivity()).setUndoMenuItemVisibility(true);
+                }
+            }
+        }
+    }
 
 	@VisibleForTesting
 	public void endFormulaEditor() {
@@ -1121,6 +1157,14 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 	}
 
 	private void showCategoryListFragment(String tag, int actionbarResId) {
+        View workspaceLayoutView = getActivity().findViewById(R.id.workspace_layout);
+        if (workspaceLayoutView != null && workspaceLayoutView.getVisibility() == View.VISIBLE) {
+            org.catrobat.catroid.ui.workspace.WorkspaceLayout workspaceLayout =
+                    (org.catrobat.catroid.ui.workspace.WorkspaceLayout) workspaceLayoutView;
+            workspaceLayout.openCategoryListWindow(tag, getActivity().getString(actionbarResId));
+            return;
+        }
+
 		CategoryListFragment fragment = new CategoryListFragment();
 		Bundle bundle = new Bundle();
 		bundle.putString(CategoryListFragment.ACTION_BAR_TITLE_BUNDLE_ARGUMENT,
@@ -1137,6 +1181,14 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 	}
 
 	private void showDataFragment() {
+        View workspaceLayoutView = getActivity().findViewById(R.id.workspace_layout);
+        if (workspaceLayoutView != null && workspaceLayoutView.getVisibility() == View.VISIBLE) {
+            org.catrobat.catroid.ui.workspace.WorkspaceLayout workspaceLayout =
+                    (org.catrobat.catroid.ui.workspace.WorkspaceLayout) workspaceLayoutView;
+            workspaceLayout.openDataListWindow(formulaBrick.getScript().getScriptBrick());
+            return;
+        }
+
 		DataListFragment fragment = new DataListFragment();
 		fragment.setFormulaEditorDataInterface(this);
 
@@ -1223,27 +1275,49 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 
 	public void setChosenCategoryItem(CategoryListRVAdapter.CategoryListItem chosenCategoryItem) {
 		this.chosenCategoryItem = chosenCategoryItem;
+
+        View workspaceView = getActivity() != null ? getActivity().findViewById(R.id.workspace_layout) : null;
+        if (workspaceView != null && workspaceView.getVisibility() == View.VISIBLE) {
+            WorkspaceLayout workspace = (WorkspaceLayout) workspaceView;
+            workspace.setProgrammaticBackPress(true);
+            onHiddenChanged(false);
+        }
 	}
 
-	public void setChosenUserDataItem(UserData<?> chosenUserDataItem) {
-		this.chosenUserDataItem = chosenUserDataItem;
-	}
+    public void setChosenUserDataItem(UserData<?> chosenUserDataItem) {
+        this.chosenUserDataItem = chosenUserDataItem;
+
+        View workspaceView = getActivity() != null ? getActivity().findViewById(R.id.workspace_layout) : null;
+        if (workspaceView != null && workspaceView.getVisibility() == View.VISIBLE) {
+            WorkspaceLayout workspace = (WorkspaceLayout) workspaceView;
+            workspace.setProgrammaticBackPress(true);
+            onHiddenChanged(false);
+            if (getActivity() instanceof SpriteActivity) {
+                getActivity().onBackPressed();
+            }
+        }
+    }
 
     @Override
     public void onHiddenChanged(boolean hidden) {
+        if (getActivity() == null) {
+            return;
+        }
+
         if (!hidden) {
             ActionBar actionBar = null;
             if (getActivity() instanceof AppCompatActivity) {
                 actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
             }
 
-            boolean isRestoringPreviouslyDestroyedActivity = actionBar == null;
-            if (!isRestoringPreviouslyDestroyedActivity) {
+            if (actionBar != null) {
                 actionBar.setTitle(R.string.formula_editor_title);
-                BottomBar.hideBottomBar(getActivity());
-                updateButtonsOnKeyboardAndInvalidateOptionsMenu();
-                updateBrickView();
             }
+
+            BottomBar.hideBottomBar(getActivity());
+            updateButtonsOnKeyboardAndInvalidateOptionsMenu();
+            updateBrickView();
+
             if (chosenCategoryItem != null) {
                 if (chosenCategoryItem.isCustomFunction && chosenCategoryItem.customFunctionName != null) {
                     addCustomFunctionToActiveFormula(chosenCategoryItem.customFunctionName);
@@ -1269,21 +1343,31 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
         }
     }
 
-	public void updateButtonsOnKeyboardAndInvalidateOptionsMenu() {
-		getActivity().invalidateOptionsMenu();
-		updateButtonsOnKeyboard();
-	}
+    public void updateButtonsOnKeyboardAndInvalidateOptionsMenu() {
+        androidx.fragment.app.FragmentActivity activity = getActivity();
+        if (activity != null) {
+            activity.invalidateOptionsMenu();
+        }
+        updateButtonsOnKeyboard();
+    }
 
-	public void updateButtonsOnKeyboard() {
-		ImageButton backspaceOnKeyboard = getActivity().findViewById(R.id.formula_editor_keyboard_delete);
-		if (!formulaEditorEditText.isThereSomethingToDelete()) {
-			backspaceOnKeyboard.setAlpha(255 / 3);
-			backspaceOnKeyboard.setEnabled(false);
-		} else {
-			backspaceOnKeyboard.setAlpha(255);
-			backspaceOnKeyboard.setEnabled(true);
-		}
-	}
+    public void updateButtonsOnKeyboard() {
+        androidx.fragment.app.FragmentActivity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        ImageButton backspaceOnKeyboard = activity.findViewById(R.id.formula_editor_keyboard_delete);
+        if (backspaceOnKeyboard == null) {
+            return;
+        }
+        if (!formulaEditorEditText.isThereSomethingToDelete()) {
+            backspaceOnKeyboard.setAlpha(255 / 3);
+            backspaceOnKeyboard.setEnabled(false);
+        } else {
+            backspaceOnKeyboard.setAlpha(255);
+            backspaceOnKeyboard.setEnabled(true);
+        }
+    }
 
 	public int getIndexOfCorrespondingRegularExpression() {
 		return formulaEditorEditText.getIndexOfCorrespondingRegularExpression();

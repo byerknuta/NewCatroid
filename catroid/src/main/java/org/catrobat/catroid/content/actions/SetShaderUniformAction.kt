@@ -17,14 +17,29 @@ class SetShaderUniformAction : TemporalAction() {
         val name = uniformName?.interpretString(scope)
         if (name.isNullOrEmpty()) return
 
+        fun Formula?.isValid(): Boolean {
+            if (this == null) return false
+            return !this.interpretString(scope).isNullOrEmpty()
+        }
+
+        val hasY = valueY.isValid()
+        val hasZ = valueZ.isValid()
+
         val x = valueX?.interpretFloat(scope) ?: 0f
 
-        if (valueY != null && valueZ != null) {
-            val y = valueY?.interpretFloat(scope) ?: 0f
-            val z = valueZ?.interpretFloat(scope) ?: 0f
-            manager.setShaderUniform(name, x, y, z)
-        } else {
-            manager.setShaderUniform(name, x)
+        when {
+            hasY && hasZ -> {
+                val y = valueY?.interpretFloat(scope) ?: 0f
+                val z = valueZ?.interpretFloat(scope) ?: 0f
+                manager.setShaderUniform(name, x, y, z)
+            }
+            hasY -> {
+                val y = valueY?.interpretFloat(scope) ?: 0f
+                manager.setShaderUniform(name, x, y)
+            }
+            else -> {
+                manager.setShaderUniform(name, x)
+            }
         }
     }
 }

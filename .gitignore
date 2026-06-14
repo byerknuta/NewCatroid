@@ -72,3 +72,9 @@ fastlane/*
 !fastlane/Fastfile
 !fastlane/staticContent/
 Gemfile
+
+
+# Не коммитить личную жизнь (все равно равно нет после этого апдейта)
+*.personal_life
+# Не коммитить здравый смысл, пж
+/sanity_logic/

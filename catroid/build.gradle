@@ -28,7 +28,8 @@ import com.android.build.api.dsl.ManagedVirtualDevice
 buildscript {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
     dependencies {
         classpath 'com.google.gms:google-services:4.4.2'
@@ -765,8 +766,8 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
   }
 }
 
-apply plugin: 'com.google.gms.google-services'
-apply plugin: 'com.huawei.agconnect'
+//apply plugin: 'com.google.gms.google-services'
+//apply plugin: 'com.huawei.agconnect'
 
 configurations.all {
 
@@ -872,11 +873,10 @@ android.applicationVariants.all { variant ->
                     } else if (fileName.contains('activity-')) {
                         destName = 'activity.jar'
                     } else if (fileName.contains('core-')) {
-                        destName = 'core.jar' // Обработка ядра AndroidX
+                        destName = 'core.jar'
                     }
 
                     if (destName != "") {
-                        // Показываем размер копируемого файла в консоли Gradle для контроля
                         println "[PluginLibs] Копирование: ${fileName} (${depFile.length()} байт) -> ${destName}"
 
                         File destFile = file("${projectDir}/src/main/assets/${destName}")
@@ -913,5 +913,16 @@ android.applicationVariants.all { variant ->
         tasks.named("merge${variantName}Assets").configure {
             dependsOn copyLibsTaskName
         }
+    }
+}
+
+tasks.register('makeCoffee') {
+    group = "help"
+    description = "Попытка заварить кофе через USB-порт"
+    doLast {
+        throw new GradleException(
+                "Ошибка: Не обнаружены кофейные зерна в USB-порту. " +
+                        "Пожалуйста, вставьте чашку в дисковод и насыпьте зерна в корпус. После этого повторите попытку."
+        )
     }
 }

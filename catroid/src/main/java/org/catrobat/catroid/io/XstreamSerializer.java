@@ -226,6 +226,7 @@ public final class XstreamSerializer {
 		xstream.alias("brick", AskGemini2Brick.class);
 		xstream.alias("brick", CustomBrick.class);
 		xstream.alias("brick", SetPhysicsStateBrick.class);
+        xstream.alias("brick", CameraTrackingBrick.class);
 		xstream.alias("brick", SetActiveBrick.class);
 		xstream.alias("brick", SetSpotLightBrick.class);
 		xstream.alias("brick", RemovePbrLightBrick.class);
@@ -277,6 +278,7 @@ public final class XstreamSerializer {
 		xstream.alias("brick", LaunchProjectBrick.class);
 		xstream.alias("brick", AsyncRepeatBrick.class);
 		xstream.alias("brick", IntervalRepeatBrick.class);
+        xstream.alias("brick", RunAsSpriteBrick.class);
 		xstream.alias("brick", SetViewPositionBrick.class);
 		xstream.alias("brick", TryCatchFinallyBrick.class);
 		xstream.alias("brick", LoadSceneBrick.class);
@@ -293,10 +295,14 @@ public final class XstreamSerializer {
 		xstream.alias("brick", Set3DSoundPositionBrick.class);
 		xstream.alias("brick", PrepareMusicAs3DSoundBrick.class);
 		xstream.alias("brick", StopSoundBrick2.class);
+        xstream.alias("brick", Set3DSoundMaxDistanceBrick.class);
 		xstream.alias("brick", PrepareSoundBrick2.class);
 		xstream.alias("brick", SetGlobalSoundVolumeBrick.class);
 		xstream.alias("brick", PlaySoundAtPositionBrick.class);
 		xstream.alias("brick", SetMaterialBrick.class);
+        xstream.alias("brick", SetFpsBrick.class);
+        xstream.alias("brick", SetRenderResolutionBrick.class);
+        xstream.alias("brick", ApplyShaderToImageBrick.class);
 		xstream.alias("brick", CloneObjectBrick.class);
 		xstream.alias("brick", RemoveParentBrick.class);
 		xstream.alias("brick", SetParentBrick.class);
@@ -305,6 +311,10 @@ public final class XstreamSerializer {
 		xstream.alias("brick", SetShaderUniformFloatBrick.class);
 		xstream.alias("brick", SetShaderUniformVec3Brick.class);
 		xstream.alias("brick", SetShaderCodeBrick.class);
+        xstream.alias("brick", SetScreenShaderBrick.class);
+        xstream.alias("brick", SetObjectShaderBrick.class);
+        xstream.alias("brick", SetObjectShaderUniformBrick.class);
+        xstream.alias("brick", RemoveObjectsByPrefixBrick.class);
 		xstream.alias("brick", UploadFileBrick.class);
 		xstream.alias("brick", SetFogBrick.class);
 		xstream.alias("brick", CastRayBrick.class);
@@ -349,10 +359,15 @@ public final class XstreamSerializer {
         xstream.alias("brick", AddHingeBrick.class);
         xstream.alias("brick", BakeByPrefixBrick.class);
         xstream.alias("brick", AttachRaySensorBrick.class);
+        xstream.alias("brick", AttachToCameraBrick.class);
+        xstream.alias("brick", PromoteLightBrick.class);
+        xstream.alias("brick", DetachFromCameraBrick.class);
+        xstream.alias("brick", SetMaxPointLightsBrick.class);
         xstream.alias("brick", SetParticleEmissionBrick.class);
         xstream.alias("brick", SetAnimationSpeedBrick.class);
         xstream.alias("brick", SetTextureTilingBrick.class);
         xstream.alias("brick", SetSoundInstancePitchBrick.class);
+        xstream.alias("brick", SetEmissiveBrick.class);
         xstream.alias("brick", SetSoundInstanceVolumeBrick.class);
         xstream.alias("brick", RotateCameraByBrick.class);
         xstream.alias("brick", CameraTouchControlBrick.class);

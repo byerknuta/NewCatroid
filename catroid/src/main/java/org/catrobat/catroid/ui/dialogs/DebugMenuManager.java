@@ -1,4 +1,3 @@
-// В пакете .../ui/dialogs/
 package org.catrobat.catroid.ui.dialogs;
 
 import android.content.Context;
@@ -22,9 +21,9 @@ public class DebugMenuManager {
 
     public void show(Context context) {
         if (debugMenuView == null) {
-            debugMenuView = new DebugMenuView(context.getApplicationContext());
+            debugMenuView = new DebugMenuView(context);
             WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-            windowManager.addView(debugMenuView, debugMenuView.getLayoutParams()); // Используем LayoutParams из View
+            windowManager.addView(debugMenuView, debugMenuView.getLayoutParams());
         }
     }
 
@@ -36,10 +35,8 @@ public class DebugMenuManager {
         }
     }
 
-    // Добавим метод для получения LayoutParams из View
     private WindowManager.LayoutParams getLayoutParamsFromView() {
         if (debugMenuView != null) {
-            // Убедимся, что возвращаем копию, а не сам объект, на всякий случай
             return new WindowManager.LayoutParams(
                     debugMenuView.getLayoutParams().width,
                     debugMenuView.getLayoutParams().height,

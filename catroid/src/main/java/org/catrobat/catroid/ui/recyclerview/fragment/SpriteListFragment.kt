@@ -131,6 +131,7 @@ class SpriteListFragment : RecyclerViewFragment<Sprite?>() {
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
         menu.findItem(R.id.new_group).isVisible = true
+        menu.findItem(R.id.editor3d).isVisible = true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -170,7 +171,7 @@ class SpriteListFragment : RecyclerViewFragment<Sprite?>() {
             .show()
     }
 
-    override fun initializeAdapter() {
+    public override fun initializeAdapter() {
         sharedPreferenceDetailsKey = SharedPreferenceKeys.SHOW_DETAILS_SPRITES_PREFERENCE_KEY
         val items = projectManager.currentlyEditedScene.spriteList
         adapter = MultiViewSpriteAdapter(items)
@@ -206,6 +207,12 @@ class SpriteListFragment : RecyclerViewFragment<Sprite?>() {
     override fun isBackpackEmpty() = BackpackListManager.getInstance().sprites.isEmpty()
 
     override fun switchToBackpack() {
+        val workspace = activity?.findViewById<View>(R.id.workspace_layout) as? org.catrobat.catroid.ui.workspace.WorkspaceLayout
+        if (workspace != null && workspace.visibility == View.VISIBLE) {
+            workspace.openWindow("BackpackSprites", "Рюкзак: Спрайты") { org.catrobat.catroid.ui.recyclerview.backpack.BackpackSpriteFragment() }
+            return
+        }
+
         val intent = Intent(requireContext(), BackpackActivity::class.java)
         intent.putExtra(BackpackActivity.EXTRA_FRAGMENT_POSITION, BackpackActivity.FRAGMENT_SPRITES)
         startActivity(intent)
@@ -340,6 +347,31 @@ class SpriteListFragment : RecyclerViewFragment<Sprite?>() {
                 }
                 NONE -> {
                     projectManager.currentSprite = item
+
+                    val workspace = activity?.findViewById<View>(R.id.workspace_layout) as? org.catrobat.catroid.ui.workspace.WorkspaceLayout
+                    if (workspace != null && workspace.visibility == View.VISIBLE) {
+
+                        val scriptTag = org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment.TAG
+                        if (workspace.isWindowOpen(scriptTag)) {
+                            workspace.replaceWindowContent(scriptTag) { org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment() }
+                        } else {
+                            workspace.openWindow(scriptTag, "Скрипты") { org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment() }
+                        }
+
+                        val lookTag = org.catrobat.catroid.ui.recyclerview.fragment.LookListFragment.TAG
+                        if (workspace.isWindowOpen(lookTag)) {
+                            workspace.replaceWindowContent(lookTag) { org.catrobat.catroid.ui.recyclerview.fragment.LookListFragment() }
+                        }
+
+                        val soundTag = org.catrobat.catroid.ui.recyclerview.fragment.SoundListFragment.TAG
+                        if (workspace.isWindowOpen(soundTag)) {
+                            workspace.replaceWindowContent(soundTag) { org.catrobat.catroid.ui.recyclerview.fragment.SoundListFragment() }
+                        }
+
+                        workspace.removeWindow(SpriteListFragment.TAG, force = false)
+                        return
+                    }
+
                     val intent = Intent(requireContext(), SpriteActivity::class.java)
                     intent.putExtra(
                         SpriteActivity.EXTRA_FRAGMENT_POSITION,

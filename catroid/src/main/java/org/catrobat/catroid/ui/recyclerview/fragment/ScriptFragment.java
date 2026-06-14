@@ -23,7 +23,6 @@
 package org.catrobat.catroid.ui.recyclerview.fragment;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -64,6 +63,7 @@ import org.catrobat.catroid.content.bricks.ScriptBrick;
 import org.catrobat.catroid.content.bricks.UserDefinedBrick;
 import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrick;
 import org.catrobat.catroid.content.bricks.VisualPlacementBrick;
+import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.formulaeditor.InternToExternGenerator;
 import org.catrobat.catroid.formulaeditor.Sensors;
 import org.catrobat.catroid.formulaeditor.UserData;
@@ -108,6 +108,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.ActionBar;
@@ -179,7 +180,9 @@ public class ScriptFragment extends ListFragment implements
     private TextView errorCountText;
     private TextView warningCountText;
 
-	public static ScriptFragment newInstance(Brick brickToFocus) {
+    private static final boolean DEBUG_SPRITE_PRINTER = false;
+
+    public static ScriptFragment newInstance(Brick brickToFocus) {
 		ScriptFragment scriptFragment = new ScriptFragment();
 		Bundle bundle = new Bundle();
 		bundle.putSerializable(BRICK_TAG, brickToFocus);
@@ -256,13 +259,11 @@ public class ScriptFragment extends ListFragment implements
 
 	@Override
 	public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-		switch (item.getItemId()) {
-			case R.id.confirm:
-				handleContextualAction();
-				break;
-			default:
-				return false;
-		}
+        if (item.getItemId() == R.id.confirm) {
+            handleContextualAction();
+        } else {
+            return false;
+        }
 		return true;
 	}
 
@@ -305,24 +306,35 @@ public class ScriptFragment extends ListFragment implements
 	}
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+	public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View view = View.inflate(getActivity(), R.layout.fragment_script, null);
-		listView = view.findViewById(android.R.id.list);
-		int bottomListPadding;
-		if (BuildConfig.FEATURE_AI_ASSIST_ENABLED) {
+		listView = view.findViewById(android.R.id.list);int bottomListPadding;
+        if (BuildConfig.FEATURE_AI_ASSIST_ENABLED) {
             bottomListPadding = (ScreenValues.currentScreenResolution != null)
                     ? (int) (ScreenValues.currentScreenResolution.getHeight() / 2.5)
                     : DEFAULT_SCREEN_RESOLUTION.getHeight();
-		} else {
+        } else {
             bottomListPadding = (ScreenValues.currentScreenResolution != null)
                     ? ScreenValues.currentScreenResolution.getHeight() / 3
                     : DEFAULT_SCREEN_RESOLUTION.getHeight() / 3;
-		}
-		listView.setPadding(0, 0, 0, bottomListPadding);
-		listView.setClipToPadding(false);
+        }
 
-		activity = (SpriteActivity) getActivity();
-		SettingsFragment.setToChosenLanguage(activity);
+        View footerView = new View(getActivity());
+        footerView.setLayoutParams(new android.widget.AbsListView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                bottomListPadding
+        ));
+        listView.addFooterView(footerView, null, false);
+
+        listView.setPadding(0, 0, 0, 0);
+        listView.setClipToPadding(false);
+
+        listView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+
+        if (getActivity() instanceof SpriteActivity) {
+            activity = (SpriteActivity) getActivity();
+        }
+        SettingsFragment.setToChosenLanguage(getActivity());
 
 		scriptFinder = view.findViewById(R.id.findview);
 		scriptFinder.setOnResultFoundListener((sceneIndex, spriteIndex, brickIndex, totalResults,
@@ -344,6 +356,12 @@ public class ScriptFragment extends ListFragment implements
 			listView.smoothScrollToPosition(brickIndex);
 			highlightBrickAtIndex(brickIndex);
 			hideKeyboard();
+
+            refreshFastScroll();
+
+            if (DEBUG_SPRITE_PRINTER) {
+                printSpriteScriptsToLog(currentSprite);
+            }
 		});
 
 		scriptFinder.setOnCloseListener(() -> {
@@ -354,14 +372,16 @@ public class ScriptFragment extends ListFragment implements
 						ProjectManager.getInstance().getCurrentSprite());
 				activity.getSupportActionBar().setTitle(activity.createActionBarTitle());
 				activity.addTabs();
+                activity.findViewById(R.id.toolbar).setVisibility(View.VISIBLE);
 			}
-			activity.findViewById(R.id.toolbar).setVisibility(View.VISIBLE);
 		});
 
-		scriptFinder.setOnOpenListener(() -> {
-			activity.removeTabs();
-			activity.findViewById(R.id.toolbar).setVisibility(View.GONE);
-		});
+        scriptFinder.setOnOpenListener(() -> {
+            if (activity != null) {
+                activity.removeTabs();
+                activity.findViewById(R.id.toolbar).setVisibility(View.GONE);
+            }
+        });
 
         analysisStatusIndicator = view.findViewById(R.id.analysis_status_indicator);
         errorCountText = view.findViewById(R.id.error_count_text);
@@ -470,6 +490,9 @@ public class ScriptFragment extends ListFragment implements
 
         if (sprite != null && adapter != null) {
             adapter.updateItems(sprite);
+            if (DEBUG_SPRITE_PRINTER) {
+                printSpriteScriptsToLog(sprite);
+            }
         }
 
         if (savedListViewState != null && listView != null) {
@@ -480,20 +503,27 @@ public class ScriptFragment extends ListFragment implements
         SnackbarUtil.showHintSnackbar(getActivity(), R.string.hint_scripts);
 
         runCodeAnalysis();
+
+        refreshFastScroll();
     }
 
-	@Override
-	public void onPause() {
-		super.onPause();
-		Project currentProject = ProjectManager.getInstance().getCurrentProject();
-		new ProjectSaver(currentProject, getContext()).saveProjectAsync();
+    @Override
+    public void onPause() {
+        super.onPause();
 
-		savedListViewState = listView.onSaveInstanceState();
+        if (!(getActivity() instanceof org.catrobat.catroid.ui.dialogs.RuntimeConsoleActivity)) {
+            Project currentProject = ProjectManager.getInstance().getCurrentProject();
+            new ProjectSaver(currentProject, getContext()).saveProjectAsync();
+        }
 
-		((SpriteActivity) getActivity()).setUndoMenuItemVisibility(false);
+        savedListViewState = listView.onSaveInstanceState();
 
-		AnalysisManager.INSTANCE.clearResults();
-	}
+        if (getActivity() instanceof SpriteActivity) {
+            ((SpriteActivity) getActivity()).setUndoMenuItemVisibility(false);
+        }
+
+        AnalysisManager.INSTANCE.clearResults();
+    }
 
     private void runCodeAnalysis() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
@@ -534,17 +564,31 @@ public class ScriptFragment extends ListFragment implements
         });
     }
 
-	@Override
-	public void onPrepareOptionsMenu(Menu menu) {
-		menu.findItem(R.id.show_details).setVisible(false);
-		menu.findItem(R.id.rename).setVisible(false);
-		menu.findItem(R.id.catblocks_reorder_scripts).setVisible(false);
-		menu.findItem(R.id.find).setVisible(true);
-		/*if (!BuildConfig.FEATURE_CATBLOCKS_ENABLED) {
-			menu.findItem(R.id.catblocks).setVisible(false);
-		}*/
-		super.onPrepareOptionsMenu(menu);
-	}
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        MenuItem detailsItem = menu.findItem(R.id.show_details);
+        if (detailsItem != null) detailsItem.setVisible(false);
+
+        MenuItem renameItem = menu.findItem(R.id.rename);
+        if (renameItem != null) renameItem.setVisible(false);
+
+        MenuItem catblocksItem = menu.findItem(R.id.catblocks_reorder_scripts);
+        if (catblocksItem != null) catblocksItem.setVisible(false);
+
+        MenuItem findItem = menu.findItem(R.id.find);
+        if (findItem != null) findItem.setVisible(true);
+
+        MenuItem indentItem = menu.findItem(R.id.menu_toggle_indentation);
+        if (indentItem != null) {
+            indentItem.setVisible(true);
+            boolean enabled = PreferenceManager.getDefaultSharedPreferences(getContext())
+                    .getBoolean("pref_enable_brick_indentation", false);
+
+            indentItem.setTitle(enabled ? R.string.menu_disable_indentation : R.string.menu_enable_indentation);
+        }
+
+        super.onPrepareOptionsMenu(menu);
+    }
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -577,6 +621,15 @@ public class ScriptFragment extends ListFragment implements
 			case R.id.find:
 				scriptFinder.open();
 				break;
+            case R.id.menu_toggle_indentation:
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+                boolean enabled = prefs.getBoolean("pref_enable_brick_indentation", true);
+                prefs.edit().putBoolean("pref_enable_brick_indentation", !enabled).apply();
+
+                adapter.notifyDataSetChanged();
+
+                getActivity().invalidateOptionsMenu();
+                break;
 			default:
 				return super.onOptionsItemSelected(item);
 		}
@@ -727,7 +780,9 @@ public class ScriptFragment extends ListFragment implements
 		if (listView.isCurrentlyMoving()) {
 			listView.highlightMovingItem();
 		} else {
-			((SpriteActivity) getActivity()).setUndoMenuItemVisibility(false);
+            if (getActivity() instanceof SpriteActivity) {
+                ((SpriteActivity) getActivity()).setUndoMenuItemVisibility(false);
+            }
 			showCategoryFragment();
 		}
 	}
@@ -854,6 +909,13 @@ public class ScriptFragment extends ListFragment implements
 			return items;
 		}
 
+        items.add(R.string.brick_context_dialog_cut);
+
+        if (org.catrobat.catroid.utils.BlockClipboard.getInstance().getLatest() != null) {
+            items.add(R.string.brick_context_dialog_paste_below);
+            items.add(R.string.brick_context_dialog_clipboard_history);
+        }
+
 		if (brick instanceof ScriptBrick) {
 			items.add(R.string.backpack_add);
 
@@ -975,8 +1037,105 @@ public class ScriptFragment extends ListFragment implements
             case R.string.brick_context_dialog_system_info:
                 showDetailedSystemInfoDialog(brick);
                 break;
+            case R.string.brick_context_dialog_cut:
+                if (copyProjectForUndoOption()) {
+                    showUndo(true);
+                    setUndoBrickPosition(brick);
+                }
+                org.catrobat.catroid.utils.BlockClipboard.getInstance().copy(brick.getAllParts());
+                Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
+                brickController.delete(brick.getAllParts(), sprite);
+                adapter.updateItems(sprite);
+                break;
+
+            case R.string.brick_context_dialog_paste_below:
+                List<Brick> latestBricks = org.catrobat.catroid.utils.BlockClipboard.getInstance().getLatest();
+                if (latestBricks != null) {
+                    pasteBricksBelow(latestBricks, brick);
+                }
+                break;
+
+            case R.string.brick_context_dialog_clipboard_history:
+                showClipboardHistoryDialog(brick);
+                break;
 		}
 	}
+
+    private void pasteBricksBelow(List<Brick> originalBricks, Brick targetBrick) {
+        if (originalBricks == null || originalBricks.isEmpty()) return;
+
+        Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
+        List<Brick> clonedBricks = new ArrayList<>();
+
+        for (Brick b : originalBricks) {
+            try {
+                clonedBricks.add(b.clone());
+            } catch (CloneNotSupportedException e) {
+                Log.e(TAG, "Ошибка клонирования при вставке", e);
+            }
+        }
+
+        if (clonedBricks.isEmpty()) return;
+
+        if (copyProjectForUndoOption()) {
+            showUndo(true);
+        }
+
+        if (clonedBricks.get(0) instanceof ScriptBrick) {
+            for (Brick b : clonedBricks) {
+                if (b instanceof ScriptBrick) {
+                    sprite.addScript(((ScriptBrick) b).getScript());
+                }
+            }
+        } else {
+            List<Brick> targetList = targetBrick.getDragAndDropTargetList();
+            int startIndex = targetBrick.getPositionInDragAndDropTargetList() + 1;
+
+            for (int i = 0; i < clonedBricks.size(); i++) {
+                Brick b = clonedBricks.get(i);
+                b.setParent(targetBrick.getParent());
+                if (startIndex + i <= targetList.size()) {
+                    targetList.add(startIndex + i, b);
+                } else {
+                    targetList.add(b);
+                }
+            }
+        }
+
+        adapter.updateItems(sprite);
+    }
+
+    private void showClipboardHistoryDialog(Brick targetBrick) {
+        List<List<Brick>> history = org.catrobat.catroid.utils.BlockClipboard.getInstance().getHistory();
+        if (history.isEmpty()) return;
+
+        List<String> displayNames = new ArrayList<>();
+        for (int i = 0; i < history.size(); i++) {
+            List<Brick> group = history.get(i);
+            StringBuilder sb = new StringBuilder();
+            sb.append(i + 1).append(". ");
+            if (group.size() == 1) {
+                sb.append(group.get(0).getClass().getSimpleName());
+            } else {
+                sb.append("Group (").append(group.size()).append(" bricks): ");
+                for (int j = 0; j < Math.min(3, group.size()); j++) {
+                    if (j > 0) sb.append(", ");
+                    sb.append(group.get(j).getClass().getSimpleName());
+                }
+                if (group.size() > 3) sb.append("...");
+            }
+            displayNames.add(sb.toString());
+        }
+
+        new AlertDialog.Builder(getContext())
+                .setTitle(getContext().getString(R.string.brick_context_dialog_clipboard_history))
+                .setItems(displayNames.toArray(new CharSequence[0]), (dialog, which) -> {
+                    List<Brick> selectedGroup = history.get(which);
+                    pasteBricksBelow(selectedGroup, targetBrick);
+                })
+                .setNegativeButton(getContext().getString(R.string.cancel), null)
+                .show();
+    }
 
 	private void openWebViewWithHelpPage(Brick brick) {
 		Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
@@ -1044,6 +1203,16 @@ public class ScriptFragment extends ListFragment implements
 	}
 
 	private void switchToBackpack() {
+        View workspace = getActivity() != null ? getActivity().findViewById(R.id.workspace_layout) : null;
+        if (workspace != null && workspace.getVisibility() == View.VISIBLE) {
+            org.catrobat.catroid.ui.workspace.WorkspaceLayout workspaceLayout =
+                    (org.catrobat.catroid.ui.workspace.WorkspaceLayout) workspace;
+
+            workspaceLayout.openWindow("Backpack_Scripts", "Рюкзак: Скрипты",
+                    org.catrobat.catroid.ui.recyclerview.backpack.BackpackScriptFragment::new);
+            return;
+        }
+
 		Intent intent = new Intent(getActivity(), BackpackActivity.class);
 		intent.putExtra(BackpackActivity.EXTRA_FRAGMENT_POSITION, BackpackActivity.FRAGMENT_SCRIPTS);
 		startActivity(intent);
@@ -1155,6 +1324,8 @@ public class ScriptFragment extends ListFragment implements
 			loadVariables();
 		}
 		refreshFragmentAfterUndo();
+
+        refreshFastScroll();
 	}
 
 	private void saveVariables() {
@@ -1204,12 +1375,11 @@ public class ScriptFragment extends ListFragment implements
 		}
 	}
 
-	public void showUndo(boolean visible) {
-		SpriteActivity activity = (SpriteActivity) getActivity();
-		if (activity != null) {
-			((SpriteActivity) getActivity()).showUndo(visible);
-		}
-	}
+    public void showUndo(boolean visible) {
+        if (getActivity() instanceof SpriteActivity) {
+            ((SpriteActivity) getActivity()).showUndo(visible);
+        }
+    }
 
 	private void scrollToFocusItem() {
 		if (scriptToFocus == null && brickToFocus == null) {
@@ -1476,7 +1646,7 @@ public class ScriptFragment extends ListFragment implements
 
         sb.append("Declared Fields:\n");
         java.lang.reflect.Field[] fields = brick.getClass().getDeclaredFields();
-        if (fields != null && fields.length > 0) {
+        if (fields.length > 0) {
             for (java.lang.reflect.Field field : fields) {
                 try {
                     field.setAccessible(true);
@@ -1487,7 +1657,7 @@ public class ScriptFragment extends ListFragment implements
                         sb.append("  * ").append(nameStr).append(" (").append(type).append(") = ")
                                 .append(value != null ? value.toString() : "null").append("\n");
                     }
-                } catch (Exception e) {
+                } catch (Exception ignored) {
                 }
             }
         } else {
@@ -1496,5 +1666,226 @@ public class ScriptFragment extends ListFragment implements
         sb.append("---------------------------------------\n\n");
 
         return sb.toString();
+    }
+
+    private void printSpriteScriptsToLog(Sprite sprite) {
+        if (sprite == null) return;
+        Context context = getContext();
+        if (context == null) return;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n==================================================\n");
+        sb.append(" SCRIPTS FOR SPRITE: ").append(sprite.getName().toUpperCase()).append("\n");
+        sb.append("==================================================\n");
+
+        List<Script> scriptList = sprite.getScriptList();
+        if (scriptList == null || scriptList.isEmpty()) {
+            sb.append(" (Скрипты отсутствуют)\n");
+        } else {
+            for (Script script : scriptList) {
+                sb.append("\n").append(formatScriptHeader(script)).append("\n");
+                List<Brick> bricks = getBricksFromScript(script);
+                printBricks(bricks, 1, sb, context);
+            }
+        }
+        sb.append("==================================================\n");
+
+        String fullLog = sb.toString();
+        int maxLogSize = 2000;
+        for (int i = 0; i <= fullLog.length() / maxLogSize; i++) {
+            int start = i * maxLogSize;
+            int end = Math.min((i + 1) * maxLogSize, fullLog.length());
+            if (start < end) {
+                Log.d("SpritePrinter", fullLog.substring(start, end));
+            }
+        }
+    }
+
+    private void printBricks(List<Brick> bricks, int indentLevel, StringBuilder sb, Context context) {
+        if (bricks == null || bricks.isEmpty()) return;
+
+        for (Brick brick : bricks) {
+            boolean isComposite = brick instanceof org.catrobat.catroid.content.bricks.CompositeBrick;
+
+            String indent = getIndentString(indentLevel);
+            String formatted = formatBrick(brick, context);
+
+            if (brick.isCommentedOut()) {
+                sb.append(indent).append("// [ОТКЛЮЧЕН] ").append(formatted).append("\n");
+            } else {
+                sb.append(indent).append(formatted).append("\n");
+            }
+
+            if (isComposite) {
+                org.catrobat.catroid.content.bricks.CompositeBrick composite =
+                        (org.catrobat.catroid.content.bricks.CompositeBrick) brick;
+
+                List<Brick> nested = composite.getNestedBricks();
+                if (nested != null && !nested.isEmpty()) {
+                    printBricks(nested, indentLevel + 1, sb, context);
+                }
+
+                if (composite.hasSecondaryList()) {
+                    List<Brick> secondary = composite.getSecondaryNestedBricks();
+                    if (secondary != null && !secondary.isEmpty()) {
+                        sb.append(getIndentString(indentLevel)).append("IfLogicElseBrick\n");
+                        printBricks(secondary, indentLevel + 1, sb, context);
+                    }
+                }
+
+                String endName = getEndBlockName(brick);
+                sb.append(indent).append(endName).append("\n");
+            }
+        }
+    }
+
+    private String getEndBlockName(Brick brick) {
+        String name = brick.getClass().getSimpleName();
+        if (name.contains("Forever") || name.contains("LoopEndless")) {
+            return "LoopEndBrick";
+        }
+        if (name.contains("If") || name.contains("IfThen") || name.contains("IfLogic")) {
+            return "IfThenLogicEndBrick";
+        }
+        if (name.contains("Repeat")) {
+            return "LoopEndBrick";
+        }
+        if (name.contains("ForVariable") || name.contains("ForItem")) {
+            return "LoopEndBrick";
+        }
+        if (name.contains("TryCatchFinally")) {
+            return "TryCatchFinallyEndBrick";
+        }
+        return "EndBlock";
+    }
+
+    private String formatScriptHeader(Script script) {
+        String name = script.getClass().getSimpleName();
+        switch (name) {
+            case "StartScript": return "При запуске сцены:";
+            case "WhenScript": return "При нажатии на спрайт:";
+            case "WhenTouchDownScript": return "При касании экрана:";
+            case "BroadcastScript": return "Когда я получу вещание:";
+            case "WhenConditionScript": return "Когда условие становится истинным:";
+            case "WhenClonedScript": return "Когда я начинаю как клон:";
+            case "WhenBackgroundChangesScript": return "Когда фон меняется:";
+            default: return "Скрипт [" + name + "]:";
+        }
+    }
+
+    private String formatBrick(Brick brick, Context context) {
+        String className = brick.getClass().getSimpleName();
+        StringBuilder sb = new StringBuilder(className);
+
+        Map<Brick.BrickField, String> printedFormulas = new java.util.LinkedHashMap<>();
+        if (brick instanceof FormulaBrick) {
+            FormulaBrick formulaBrick = (FormulaBrick) brick;
+            Map<Brick.BrickField, Formula> formulas = formulaBrick.getAllFormulaFieldsWithFormulas();
+            if (formulas != null) {
+                for (Map.Entry<Brick.BrickField, Formula> entry : formulas.entrySet()) {
+                    String valStr = "null";
+                    if (entry.getValue() != null) {
+                        try {
+                            valStr = entry.getValue().getTrimmedFormulaString(context);
+                        } catch (Exception e) {
+                            valStr = entry.getValue().toString();
+                        }
+                    }
+                    printedFormulas.put(entry.getKey(), valStr);
+                }
+            }
+        }
+
+        List<String> parameters = new ArrayList<>();
+
+        for (Map.Entry<Brick.BrickField, String> entry : printedFormulas.entrySet()) {
+            parameters.add(entry.getKey().name() + ": '" + entry.getValue() + "'");
+        }
+
+        Class<?> clazz = brick.getClass();
+        while (clazz != null && clazz != Object.class) {
+            java.lang.reflect.Field[] fields = clazz.getDeclaredFields();
+            for (java.lang.reflect.Field field : fields) {
+                try {
+                    field.setAccessible(true);
+                    String name = field.getName();
+
+                    if (name.startsWith("$") ||
+                            name.equals("serialVersionUID") ||
+                            name.equals("Companion") ||
+                            name.equals("parent") ||
+                            name.equals("view") ||
+                            name.equals("checkbox") ||
+                            name.equals("formulaMap") ||
+                            name.equals("brickFieldToTextViewIdMap") ||
+                            name.contains("cached") ||
+                            name.contains("spinnerValues") ||
+                            java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
+                        continue;
+                    }
+
+                    Class<?> type = field.getType();
+                    if (type.isPrimitive() ||
+                            type.isEnum() ||
+                            type == String.class ||
+                            Number.class.isAssignableFrom(type) ||
+                            type == Boolean.class) {
+
+                        Object val = field.get(brick);
+                        if (val != null) {
+                            boolean alreadyPrinted = false;
+                            for (Brick.BrickField bf : printedFormulas.keySet()) {
+                                if (bf.name().equalsIgnoreCase(name)) {
+                                    alreadyPrinted = true;
+                                    break;
+                                }
+                            }
+                            if (!alreadyPrinted) {
+                                parameters.add(name + ": " + val.toString());
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+            clazz = clazz.getSuperclass();
+        }
+
+        if (!parameters.isEmpty()) {
+            sb.append(" [").append(android.text.TextUtils.join(", ", parameters)).append("]");
+        }
+
+        return sb.toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Brick> getBricksFromScript(Script script) {
+        try {
+            java.lang.reflect.Method getBrickListMethod = script.getClass().getMethod("getBrickList");
+            return (List<Brick>) getBrickListMethod.invoke(script);
+        } catch (Exception e) {
+            try {
+                java.lang.reflect.Method getBricksMethod = script.getClass().getMethod("getBricks");
+                return (List<Brick>) getBricksMethod.invoke(script);
+            } catch (Exception ex) {
+                return new ArrayList<>();
+            }
+        }
+    }
+
+    private String getIndentString(int level) {
+        StringBuilder indent = new StringBuilder();
+        for (int i = 0; i < level; i++) {
+            indent.append("  ");
+        }
+        return indent.toString();
+    }
+
+    private void refreshFastScroll() {
+        if (listView != null) {
+            listView.setFastScrollEnabled(false);
+            listView.setFastScrollEnabled(true);
+            listView.setFastScrollAlwaysVisible(true);
+        }
     }
 }

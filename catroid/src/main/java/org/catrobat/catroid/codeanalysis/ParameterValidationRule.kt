@@ -17,7 +17,7 @@ class ParameterValidationRule(private val context: Context) : AnalysisRule {
         }
 
         if (brick is SetShadowQualityBrick) {
-            val formula = brick.allFormulaFieldsWithFormulas.values.firstOrNull()
+            val formula = brick.getFormulaWithBrickField(Brick.BrickField.SHADOW_RESOLUTION)
             if (formula != null && isFormulaConstant(formula)) {
                 val valueStr = formula.getTrimmedFormulaString(context).replace("'", "").trim()
                 val value = valueStr.toIntOrNull()

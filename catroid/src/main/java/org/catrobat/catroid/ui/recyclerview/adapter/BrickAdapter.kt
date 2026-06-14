@@ -37,6 +37,7 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemLongClickListener
 import android.widget.BaseAdapter
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.IntDef
 import org.catrobat.catroid.R
@@ -58,6 +59,7 @@ import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrick
 import org.catrobat.catroid.ui.dragndrop.BrickAdapterInterface
 import org.catrobat.catroid.ui.recyclerview.adapter.draganddrop.ViewStateManager
 import org.catrobat.catroid.ui.recyclerview.adapter.multiselection.MultiSelectionManager
+import org.catrobat.catroid.ui.recyclerview.util.IndentedBrickLayout
 import java.util.ArrayList
 import java.util.Collections
 
@@ -94,6 +96,8 @@ class BrickAdapter(private val sprite: Sprite) :
     private var selectionListener: SelectionListener? = null
 
     val items: MutableList<Brick> = ArrayList()
+
+    private var useIndentationCached: Boolean? = null
 
     init {
         updateItems(sprite)
@@ -166,21 +170,12 @@ class BrickAdapter(private val sprite: Sprite) :
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        var item = items[position]
+        val item = items[position]
         Log.d("TestItem", item.javaClass.simpleName)
 
         if (item is SetParticleColorBrick) {
-            Log.d("BrickCheck", "SetParticleColorBrick recognized")
-
             val colorFormula = item.getFormulaWithBrickField(BrickField.COLOR, true)
-            if (colorFormula != null) {
-                Log.d("BrickCheck", "Color formula exists: $colorFormula")
-            } else {
-                Log.d("BrickCheck", "Color formula is null")
-                item = NoneBrick()
-                items[position] = item
-                return createUnknownView(item.javaClass.simpleName, parent)
-            }
+                ?: return createUnknownView("NoneBrick", parent)
         }
         val itemView = item.getView(parent.context)
 
@@ -276,6 +271,48 @@ class BrickAdapter(private val sprite: Sprite) :
         checkBoxClickListener(item, itemView, position)
         item.checkBox.isChecked = selectionManager.isPositionSelected(position)
         item.checkBox.isEnabled = viewStateManager.isEnabled(position)
+
+        val useIndentation = getUseIndentation(parent.context)
+
+        if (useIndentation) {
+            val depth = getBrickDepth(item)
+            if (depth > 0) {
+                val existingParent = itemView.parent
+                if (existingParent is IndentedBrickLayout) {
+                    existingParent.setDepth(depth)
+                    return existingParent
+                } else {
+                    (existingParent as? ViewGroup)?.removeView(itemView)
+
+                    val indentedLayout = IndentedBrickLayout(parent.context, depth)
+                    indentedLayout.layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                    indentedLayout.addView(
+                        itemView,
+                        LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                        )
+                    )
+
+                    val parentWidth = if (parent.width > 0) parent.width else parent.resources.displayMetrics.widthPixels
+                    val widthSpec = View.MeasureSpec.makeMeasureSpec(parentWidth, View.MeasureSpec.EXACTLY)
+                    val heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+                    indentedLayout.measure(widthSpec, heightSpec)
+                    indentedLayout.layout(0, 0, indentedLayout.measuredWidth, indentedLayout.measuredHeight)
+
+                    return indentedLayout
+                }
+            }
+        }
+
+        val existingParent = itemView.parent
+        if (existingParent is IndentedBrickLayout) {
+            existingParent.removeView(itemView)
+        }
+
         return itemView
     }
 
@@ -557,9 +594,25 @@ class BrickAdapter(private val sprite: Sprite) :
         return false
     }
 
+    private fun getUseIndentation(context: android.content.Context): Boolean {
+        if (useIndentationCached == null) {
+            val prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
+            useIndentationCached = prefs.getBoolean("pref_enable_brick_indentation", false)
+        }
+        return useIndentationCached!!
+    }
+
+    override fun notifyDataSetChanged() {
+        useIndentationCached = null
+        super.notifyDataSetChanged()
+    }
+
     override fun getPosition(brick: Brick?): Int = items.indexOf(brick)
 
     override fun onItemMove(sourcePosition: Int, targetPosition: Int): Boolean {
+        if (sourcePosition < 0 || sourcePosition >= items.size) return false
+        if (targetPosition < 0 || targetPosition >= items.size) return false
+
         val source = items[sourcePosition]
         if (source !is ScriptBrick && targetPosition == 0) {
             return false
@@ -731,6 +784,35 @@ class BrickAdapter(private val sprite: Sprite) :
             position--
         }
         return items[position]
+    }
+
+    private fun isElseBrick(brick: Brick): Boolean {
+        if (brick is CompositeBrick) return false
+        val name = brick.javaClass.simpleName
+        return name.endsWith("ElseBrick") || name.contains("Else")
+    }
+
+    private fun isEndOrElseBrick(brick: Brick): Boolean {
+        if (brick is CompositeBrick) return false
+        if (brick is EndBrick) return true
+        val name = brick.javaClass.simpleName
+        return name.endsWith("EndBrick") || name.endsWith("ElseBrick")
+    }
+
+    private fun getBrickDepth(brick: Brick): Int {
+        var depth = 0
+        var currentParent = brick.parent
+        while (currentParent != null) {
+            if (!isElseBrick(currentParent)) {
+                depth++
+            }
+            currentParent = currentParent.parent
+        }
+
+        if (depth > 0 && isEndOrElseBrick(brick)) {
+            depth--
+        }
+        return depth
     }
 
     override fun getCount(): Int = items.size

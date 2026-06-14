@@ -97,30 +97,20 @@ class LunoScriptEngine(
             var outputStream: OutputStream? = null
             var uri: Uri? = null
 
-            // --- НАЧАЛО ИЗМЕНЕНИЙ ---
-
-            // 1. ИЩЕМ СУЩЕСТВУЮЩИЙ ФАЙЛ (только для Android Q и выше)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val collection = MediaStore.Downloads.EXTERNAL_CONTENT_URI
-                // Какие колонки нам нужны из базы данных MediaStore
                 val projection = arrayOf(MediaStore.Downloads._ID)
-                // Условие поиска: имя файла И путь
                 val selection = "${MediaStore.Downloads.DISPLAY_NAME} = ? AND ${MediaStore.Downloads.RELATIVE_PATH} = ?"
                 val selectionArgs = arrayOf(logFileName, android.os.Environment.DIRECTORY_DOWNLOADS + "/")
 
-                // Выполняем запрос
                 resolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
-                    // Если курсор не пустой и в нем есть хотя бы одна запись
                     if (cursor.moveToFirst()) {
-                        // Получаем ID найденного файла
                         val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Downloads._ID))
-                        // Создаем Uri для этого конкретного файла
                         uri = ContentUris.withAppendedId(collection, id)
                     }
                 }
             }
 
-            // 2. ЕСЛИ ФАЙЛ НЕ НАЙДЕН (uri == null), ТО СОЗДАЕМ НОВЫЙ
             if (uri == null) {
                 val contentValues = ContentValues().apply {
                     put(MediaStore.MediaColumns.DISPLAY_NAME, logFileName)
@@ -136,21 +126,16 @@ class LunoScriptEngine(
                 throw Exception("Failed to find or create MediaStore record.")
             }
 
-            // 3. ОТКРЫВАЕМ ПОТОК ДЛЯ ЗАПИСИ (он автоматически перезапишет файл)
             outputStream = resolver.openOutputStream(uri!!)
-
-            // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
             if (outputStream == null) {
                 throw Exception("Failed to open output stream for URI: $uri")
             }
 
-            // 4. Пишем в файл
             outputStream.use { stream ->
                 stream.write(logMessage.toByteArray())
             }
 
-            // 5. Показываем сообщение об успехе
             val finalToastMsg = "$toastMessagePrefix. Log saved to Downloads/$logFileName"
             android.os.Handler(android.os.Looper.getMainLooper()).post {
                 toast(finalToastMsg)
@@ -159,7 +144,6 @@ class LunoScriptEngine(
         } catch (e: Exception) {
             System.err.println("LunoScript Error: Failed to write to log file: ${e.message}")
             e.printStackTrace(System.err)
-            // Показываем сообщение о неудаче
             val finalToastMsg = "$toastMessagePrefix (Failed to save log)"
             android.os.Handler(android.os.Looper.getMainLooper()).post {
                 toast(finalToastMsg)

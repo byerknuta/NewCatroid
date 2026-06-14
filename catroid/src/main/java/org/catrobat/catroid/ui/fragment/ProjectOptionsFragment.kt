@@ -894,25 +894,16 @@ class ProjectOptionsFragment : Fragment() {
     }
 
     private fun handleDeleteButtonPressed() {
-        project ?: return
+        val currentProject = project ?: return
 
-        val projectData = ProjectData(
-            project!!.name,
-            project!!.directory,
-            project!!.catrobatLanguageVersion,
-            project!!.hasScene()
-        )
-        AlertDialog.Builder(requireContext())
-            .setTitle(resources.getQuantityString(R.plurals.delete_projects, 1))
-            .setMessage(R.string.dialog_confirm_delete)
-            .setPositiveButton(R.string.yes) { _: DialogInterface?, _: Int ->
-                deleteProject(
-                    projectData
-                )
-            }
-            .setNegativeButton(R.string.no, null)
-            .setCancelable(false)
-            .show()
+        org.catrobat.catroid.utils.ProjectTrashManager.showDeleteProjectDialog(
+            requireContext(),
+            currentProject.directory
+        ) {
+            project = null
+            projectManager.currentProject = null
+            requireActivity().onBackPressed()
+        }
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {

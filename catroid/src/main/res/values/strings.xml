@@ -23,6 +23,104 @@
   -->
 <resources  xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Physics warning -->
+    <string name="physics_warning_title">Compatibility Update</string>
+    <string name="physics_warning_message">This project was created in an older version. It is highly recommended to update the physics cache now to prevent crashes and freezes. P.S. recommend to update it in Project Options</string>
+    <string name="physics_warning_update_now">Update Now</string>
+    <string name="physics_warning_later">Later</string>
+    <string name="physics_warning_updating">Updating physics cache, please wait...</string>
+    <string name="physics_warning_success">Physics cache updated successfully!</string>
+    <string name="physics_warning_error">Error updating physics cache.</string>
+
+    <!-- Project Trash Bin -->
+    <string name="delete_project_multiple_message">Are you sure you want to delete these %1$d projects?</string>
+    <string name="delete_permanently">Delete permanently</string>
+    <string name="delete_project_title">Delete %1$s</string>
+    <string name="delete_project_message">Are you sure you want to delete this project?</string>
+    <string name="trash_bin_title">Recycle Bin</string>
+    <string name="trash_bin_empty">Recycle Bin is empty</string>
+    <string name="trash_bin_item_action">Select action for this project:</string>
+    <string name="trash_bin_restore">Restore</string>
+    <string name="trash_bin_empty_all">Empty Bin</string>
+    <string name="trash_bin_empty_all_confirm_title">Empty Recycle Bin</string>
+    <string name="trash_bin_empty_all_confirm_message">Are you sure you want to permanently delete all projects in the Recycle Bin?</string>
+
+    <string name="menu_enable_indentation">Enable Indentation</string>
+    <string name="menu_disable_indentation">Disable Indentation</string>
+    <string name="free_window_mode_stage">Windowed player mode</string>
+    <string name="free_window_mode_stage_sum">Run the scene in a floating, resizable window</string>
+
+    <string name="free_window_mode_project">Single window project</string>
+    <string name="free_window_mode_project_sum">Display scenes, sprites, scripts, and looks on one screen</string>
+
+    <string name="free_window_mode">Free window mode</string>
+    <string name="free_window_mode_sum">Allow to drag-n-drop windows</string>
+
+    <string name="debug_menu_global_data">GLOBAL DATA</string>
+    <string name="debug_menu_sprite">SPRITE</string>
+    <string name="debug_menu_list_format">%1$s%2$s: [%3$d items]</string>
+    <string name="debug_menu_more_items">      ... and %d more items</string>
+    <string name="debug_menu_edit_variable">Edit Variable: %s</string>
+    <string name="debug_menu_edit_list_item">Edit Item [%d] in %s</string>
+    <string name="debug_menu_copy_full">Copy Full</string>
+    <string name="debug_menu_copied">Copied to clipboard</string>
+    <string name="debug_menu_save">Save</string>
+    <string name="debug_menu_cancel">Cancel</string>
+
+    <string name="brick_run_as_sprite_title">Run on behalf</string>
+
+    <string name="brick_context_dialog_cut">Cut</string>
+    <string name="brick_context_dialog_paste_below">Paste bellow</string>
+    <string name="brick_context_dialog_clipboard_history">Clipboard history</string>
+
+    <string formatted="false" name="remove_objects_by_prefix">Remove 3D objects by prefix</string>
+    <string formatted="false" name="remove_objects_prefix_val">Prefix</string>
+    <string formatted="false" name="set_object_shader">Set shader for 3D object</string>
+    <string formatted="false" name="set_object_shader_uniform">Set shader param for 3D object</string>
+    <string formatted="false" name="object_shader_id">Object ID</string>
+    <string formatted="false" name="object_shader_vertex">Vertex code</string>
+    <string formatted="false" name="object_shader_fragment">Fragment code</string>
+    <string formatted="false" name="object_shader_uniform_name">Param name</string>
+    <string formatted="false" name="object_shader_uniform_val1">Val 1</string>
+    <string formatted="false" name="object_shader_uniform_val2">Val 2 (optional)</string>
+    <string formatted="false" name="object_shader_uniform_val3">Val 3 (optional)</string>
+
+    <string formatted="false" name="brick_render_res">Set render scale to</string>
+    <string formatted="false" name="brick_render_aspect">Aspect ratio (0:Auto, 1: 4:3, 2: 16:9, 3: 1:1)</string>
+
+    <string formatted="false" name="brick_set_fps">Limit FPS to</string>
+
+    <string formatted="false" name="brick_set_emissive">Set Material Emissive</string>
+    <string formatted="false" name="param_emissive_intensity">Glow Intensity</string>
+    <string formatted="false" name="param_emissive_texture">Glow Texture</string>
+
+    <string formatted="false" name="brick_3d_sound_max_distance">Set 3D Sound Max Distance</string>
+    <string formatted="false" name="param_3d_sound_instance">Sound Instance</string>
+    <string formatted="false" name="param_3d_sound_distance">Max Distance</string>
+
+    <string formatted="false" name="brick_screen_shader">Custom Screen Shader</string>
+    <string formatted="false" name="brick_camera_track_title">Attach camera to</string>
+    <string formatted="false" name="brick_camera_track_mode">Mode</string>
+    <string formatted="false" name="brick_camera_track_pos_offset">Position offset</string>
+    <string formatted="false" name="brick_camera_track_rot_offset">Rotation offset</string>
+
+    <string-array name="brick_camera_track_modes">
+        <item>Detach</item>
+        <item>Only Position</item>
+        <item>Only Rotation</item>
+        <item>Position and Rotation</item>
+    </string-array>
+
+    <string formatted="false" name="brick_apply_shader_to_image">Apply shader to image file</string>
+    <string formatted="false" name="brick_apply_shader_image_file">Project file</string>
+
+    <string formatted="false" name="brick_promote_light">Promote light to object</string>
+
+    <string formatted="false" name="brick_attach_to_camera">Attach object to camera</string>
+    <string formatted="false" name="brick_detach_from_camera">Detach object from camera</string>
+    <string formatted="false" name="brick_set_max_point_lights">Set max active point lights</string>
+    <string formatted="false" name="brick_3d_object_name">Object ID</string>
+
     <string name="particle_lifetime">Lifetime</string>
     <string name="particle_color">Color</string>
     <string name="particle_size">Size</string>
@@ -626,6 +724,7 @@
         <item>God Rays</item> <!-- 22 -->
         <item>Volumetric Fog</item> <!-- 23 -->
         <item>FSR Upscaler</item> <!-- 24 -->
+        <item>SSGI (Global Illum.)</item> <!-- 25 -->
     </string-array>
 
     <string-array name="pp_params_global"><item>Active (1/0)</item><item>Quality Scale</item></string-array>
@@ -653,6 +752,17 @@
     <string-array name="pp_params_godrays"><item>Enabled</item><item>Exposure</item><item>Decay</item><item>Density</item><item>Weight</item></string-array>
     <string-array name="pp_params_volfog"><item>Enabled</item><item>Density</item><item>Scattering</item><item>Steps</item><item>Max Distance</item></string-array>
     <string-array name="pp_params_fsr"><item>Enabled</item><item>Sharpness</item></string-array>
+    <string-array name="pp_params_ssgi">
+        <item>Enabled</item>
+        <item>Intensity</item>
+        <item>Radius</item>
+        <item>Bias</item>
+        <item>SSAO Strength</item>
+        <item>Base Albedo R</item>
+        <item>Base Albedo G</item>
+        <item>Base Albedo B</item>
+        <item>Flip Depth (1/0)</item>
+    </string-array>
     <string name="brick_bake_prefix">Bake objects with name</string>
     <string name="brick_bake_prefix_hint">Prefix (e.g. wall_)</string>
     <string name="brick_bake_new_name">Group name</string>

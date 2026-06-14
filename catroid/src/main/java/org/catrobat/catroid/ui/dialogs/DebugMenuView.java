@@ -1,19 +1,27 @@
-// В пакете .../ui/dialogs/ (или в другом подходящем месте)
 package org.catrobat.catroid.ui.dialogs;
 
 import android.annotation.SuppressLint;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Typeface;
+import android.text.InputType;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
@@ -33,11 +41,21 @@ public class DebugMenuView extends FrameLayout {
     private final WindowManager windowManager;
     private final WindowManager.LayoutParams params;
 
-    private float dX, dY; // Для отслеживания смещения при перетаскивании
-
+    private float dX, dY;
     private final LinearLayout variablesContainer;
-
     private final Map<String, TextView> entryViewMap = new HashMap<>();
+
+    private boolean isUpdatePending = false;
+    private long lastUpdateTime = 0;
+    private static final int UPDATE_INTERVAL_MS = 250;
+    private static final int MAX_TEXT_DISPLAY_LENGTH = 60;
+    private static final int MAX_LIST_ITEMS_DISPLAY = 50;
+
+    private static final int COLOR_ACCENT = Color.parseColor("#A8DFF4");
+    private static final int COLOR_TEXT_PRIMARY = Color.parseColor("#FFFFFF");
+    private static final int COLOR_TEXT_SECONDARY = Color.parseColor("#B0BEC5");
+    private static final int COLOR_LIST_TITLE = Color.parseColor("#AADBF0");
+    private static final int COLOR_INPUT_BG = Color.parseColor("#00476F");
 
     public DebugMenuView(Context context) {
         super(context);
@@ -46,150 +64,455 @@ public class DebugMenuView extends FrameLayout {
 
         LayoutInflater.from(context).inflate(R.layout.dialog_debug_menu, this, true);
 
+        View xmlRoot = getChildAt(0);
+        if (xmlRoot != null) {
+            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) xmlRoot.getLayoutParams();
+            lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
+            lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
+            xmlRoot.setLayoutParams(lp);
+        }
+
         this.variablesContainer = findViewById(R.id.variables_container);
         if (this.variablesContainer == null) {
             throw new IllegalStateException("Could not find variables_container in dialog_debug_menu.xml");
         }
 
         setupWindowControls();
+        setupResizer();
         buildInitialLayout();
     }
 
     @SuppressLint("DefaultLocale")
     public void update() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastUpdateTime < UPDATE_INTERVAL_MS) {
+            return;
+        }
+        lastUpdateTime = currentTime;
+
         post(() -> {
             Project project = ProjectManager.getInstance().getCurrentProject();
             if (project == null) return;
 
-            // Обновляем глобальные переменные
             for (UserVariable var : project.getUserVariables()) {
-                TextView tv = entryViewMap.get("global." + var.getName());
-                if (tv != null) {
-                    tv.setText(String.format("  • %s: %s", var.getName(), var.getValue().toString()));
-                }
-            }
-            // Обновляем глобальные списки
-            for (UserList list : project.getUserLists()) {
-                TextView tv = entryViewMap.get("global." + list.getName());
-                ListState state = (ListState) tv.getTag();
-                if (tv != null && !state.isExpanded) { // Не трогаем заголовок, если список развернут
-                    tv.setText(String.format("  ▶ %s: [%d items]", list.getName(), list.getValue().size()));
-                }
-                // Если список развернут, обновляем его элементы
-                if (state.isExpanded) {
-                    tv.setText(String.format("  ▶ %s: [%d items]", list.getName(), list.getValue().size()));
-                    updateListItems(list, state, variablesContainer, tv);
-                }
+                updateVariableView("global." + var.getName(), var.getName(), String.valueOf(var.getValue()));
             }
 
-            // Обновляем данные спрайтов (аналогично)
+            for (UserList list : project.getUserLists()) {
+                updateListView("global." + list.getName(), list, variablesContainer);
+            }
+
             List<Sprite> spritesCopy;
             try { spritesCopy = new ArrayList<>(project.getSpriteListWithClones()); }
             catch (Exception e) { return; }
 
             for (Sprite sprite : spritesCopy) {
                 for (UserVariable var : sprite.getUserVariables()) {
-                    TextView tv = entryViewMap.get(sprite.getName() + "." + var.getName());
-                    if (tv != null) {
-                        tv.setText(String.format("  • %s: %s", var.getName(), var.getValue().toString()));
-                    }
+                    updateVariableView(sprite.getName() + "." + var.getName(), var.getName(), String.valueOf(var.getValue()));
                 }
                 for (UserList list : sprite.getUserLists()) {
-                    TextView tv = entryViewMap.get(sprite.getName() + "." + list.getName());
-                    if (tv != null) {
-                        ListState state = (ListState) tv.getTag();
-                        if (!state.isExpanded) {
-                            tv.setText(String.format("  ▶ %s: [%d items]", list.getName(), list.getValue().size()));
-                        }
-                        if (state.isExpanded) {
-                            tv.setText(String.format("  ▶ %s: [%d items]", list.getName(), list.getValue().size()));
-                            updateListItems(list, state, variablesContainer, tv);
-                        }
-                    }
+                    updateListView(sprite.getName() + "." + list.getName(), list, variablesContainer);
                 }
             }
         });
     }
 
-    private void updateListItems(UserList listData, ListState state, ViewGroup container, TextView headerView) {
-        /*for (int i = 0; i < state.childViews.size(); i++) {
-            TextView itemView = (TextView) state.childViews.get(i);
-            if (i < listData.getValue().size()) {
-                Object item = listData.getValue().get(i);
-                itemView.setText(String.format("      %d: %s", i + 1, item.toString()));
-                itemView.setVisibility(View.VISIBLE);
-            } else {
-                itemView.setVisibility(View.GONE); // Скрываем лишние View, если список уменьшился
+    private void updateVariableView(String uniqueId, String name, String rawValue) {
+        TextView tv = entryViewMap.get(uniqueId);
+        if (tv != null) {
+            String newText = formatVariableText(name, rawValue);
+            if (!tv.getText().toString().equals(newText)) {
+                tv.setText(newText);
             }
         }
-        // Если список увеличился, нужно добавить новые View (для простоты можно перестроить только этот список)
-        if (listData.getValue().size() > state.childViews.size()) {
-            // (здесь можно добавить логику досоздания View, но пока пропустим для простоты)
-        }*/
-        int headerIndex = container.indexOfChild(headerView);
+    }
 
-        for (View child : state.childViews) {
-            container.removeView(child);
+    private void updateListView(String uniqueId, UserList list, ViewGroup container) {
+        TextView tv = entryViewMap.get(uniqueId);
+        if (tv != null) {
+            ListState state = (ListState) tv.getTag();
+            String newText = formatListText(list.getName(), list.getValue().size(), state.isExpanded);
+            if (!tv.getText().toString().equals(newText)) {
+                tv.setText(newText);
+            }
+            if (state.isExpanded) {
+                refreshListItems(list, state, container, tv);
+            }
         }
-        state.childViews.clear();
+    }
 
-        // Добавляем элементы списка ПОСЛЕ заголовка
-        for (int i = 0; i < listData.getValue().size(); i++) {
-            Object item = listData.getValue().get(i);
-            TextView itemView = new TextView(getContext());
-            itemView.setText(String.format("      %d: %s", i + 1, item.toString()));
-            itemView.setTextSize(12);
-            itemView.setTextColor(Color.GRAY);
-
-            // Добавляем View в контейнер и в наш список для отслеживания
-            container.addView(itemView, headerIndex + 1 + i);
-            state.childViews.add(itemView);
+    private String formatVariableText(String name, String value) {
+        String displayValue = value;
+        if (value.length() > MAX_TEXT_DISPLAY_LENGTH) {
+            displayValue = value.substring(0, MAX_TEXT_DISPLAY_LENGTH) + "…";
         }
+        return "  • " + name + " = " + displayValue;
+    }
+
+    private String formatListText(String name, int size, boolean isExpanded) {
+        String prefix = isExpanded ? "  ▼ " : "  ▶ ";
+        return getContext().getString(R.string.debug_menu_list_format, prefix, name, size);
     }
 
     private void buildInitialLayout() {
         Project project = ProjectManager.getInstance().getCurrentProject();
         if (project == null) return;
 
-        // Очищаем все перед построением
         variablesContainer.removeAllViews();
         entryViewMap.clear();
 
-        // Глобальные данные
-        addHeader(variablesContainer, "Global Data");
+        addHeader(variablesContainer, getContext().getString(R.string.debug_menu_global_data));
         for (UserVariable var : project.getUserVariables()) {
-            addDebugEntry(variablesContainer, "global." + var.getName(), var.getName(), var.getValue().toString(), false, null);
+            addDebugVariable(variablesContainer, "global." + var.getName(), var);
         }
         for (UserList list : project.getUserLists()) {
-            addDebugEntry(variablesContainer, "global." + list.getName(), list.getName(), String.format("[%d items]", list.getValue().size()), true, list);
+            addDebugList(variablesContainer, "global." + list.getName(), list);
         }
 
-        // Данные спрайтов
         for (Sprite sprite : project.getSpriteListWithClones()) {
             if (sprite != null && (!sprite.getUserVariables().isEmpty() || !sprite.getUserLists().isEmpty())) {
-                addHeader(variablesContainer, "Sprite: " + sprite.getName());
+                addHeader(variablesContainer, getContext().getString(R.string.debug_menu_sprite) + ": " + sprite.getName().toUpperCase());
                 for (UserVariable var : sprite.getUserVariables()) {
-                    addDebugEntry(variablesContainer, sprite.getName() + "." + var.getName(), var.getName(), var.getValue().toString(), false, null);
+                    addDebugVariable(variablesContainer, sprite.getName() + "." + var.getName(), var);
                 }
                 for (UserList list : sprite.getUserLists()) {
-                    addDebugEntry(variablesContainer, sprite.getName() + "." + list.getName(), list.getName(), String.format("[%d items]", list.getValue().size()), true, list);
+                    addDebugList(variablesContainer, sprite.getName() + "." + list.getName(), list);
                 }
             }
         }
     }
 
+    private void addHeader(ViewGroup container, String text) {
+        TextView header = new TextView(getContext());
+        header.setText(text);
+        header.setTextSize(12);
+        header.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+        header.setTextColor(COLOR_ACCENT);
+        header.setPadding(8, 24, 8, 4);
+        container.addView(header);
+    }
+
+    private void addDebugVariable(ViewGroup container, String uniqueId, UserVariable var) {
+        TextView entryView = new TextView(getContext());
+        entryView.setText(formatVariableText(var.getName(), String.valueOf(var.getValue())));
+        entryView.setTextSize(13);
+        entryView.setTypeface(Typeface.MONOSPACE);
+        entryView.setTextColor(COLOR_TEXT_PRIMARY);
+        entryView.setPadding(8, 8, 8, 8);
+
+        entryView.setOnClickListener(v -> showEditVariableDialog(var));
+        entryView.setOnLongClickListener(v -> {
+            copyToClipboard(var.getName(), String.valueOf(var.getValue()));
+            return true;
+        });
+
+        container.addView(entryView);
+        entryViewMap.put(uniqueId, entryView);
+    }
+
+    private void addDebugList(ViewGroup container, String uniqueId, UserList list) {
+        TextView entryView = new TextView(getContext());
+        entryView.setText(formatListText(list.getName(), list.getValue().size(), false));
+        entryView.setTextSize(13);
+        entryView.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+        entryView.setTextColor(COLOR_LIST_TITLE);
+        entryView.setPadding(8, 8, 8, 8);
+
+        entryView.setTag(new ListState(false, new ArrayList<>()));
+        entryView.setOnClickListener(v -> toggleList(container, entryView, list));
+
+        entryView.setOnLongClickListener(v -> {
+            copyToClipboard(list.getName(), String.valueOf(list.getValue()));
+            return true;
+        });
+
+        container.addView(entryView);
+        entryViewMap.put(uniqueId, entryView);
+    }
+
+    private void toggleList(ViewGroup container, TextView headerView, UserList listData) {
+        ListState state = (ListState) headerView.getTag();
+
+        if (state.isExpanded) {
+            for (View child : state.childViews) {
+                container.removeView(child);
+            }
+            if (state.moreView != null) {
+                container.removeView(state.moreView);
+                state.moreView = null;
+            }
+            state.childViews.clear();
+            state.isExpanded = false;
+        } else {
+            state.isExpanded = true;
+            refreshListItems(listData, state, container, headerView);
+        }
+        headerView.setText(formatListText(listData.getName(), listData.getValue().size(), state.isExpanded));
+    }
+
+    @SuppressLint("DefaultLocale")
+    private void refreshListItems(UserList listData, ListState state, ViewGroup container, TextView headerView) {
+        int headerIndex = container.indexOfChild(headerView);
+        int itemsCount = listData.getValue().size();
+        int displayLimit = Math.min(itemsCount, MAX_LIST_ITEMS_DISPLAY);
+
+        if (state.moreView != null) {
+            container.removeView(state.moreView);
+            state.moreView = null;
+        }
+
+        while (state.childViews.size() > displayLimit) {
+            View v = state.childViews.remove(state.childViews.size() - 1);
+            container.removeView(v);
+        }
+
+        for (int i = 0; i < displayLimit; i++) {
+            Object item = listData.getValue().get(i);
+            String rawVal = String.valueOf(item);
+            String displayVal = rawVal.length() > MAX_TEXT_DISPLAY_LENGTH ? rawVal.substring(0, MAX_TEXT_DISPLAY_LENGTH) + "…" : rawVal;
+            String newText = String.format("      [%d] %s", i + 1, displayVal);
+
+            if (i < state.childViews.size()) {
+                TextView itemView = (TextView) state.childViews.get(i);
+                if (!itemView.getText().toString().equals(newText)) {
+                    itemView.setText(newText);
+                }
+                final int index = i;
+                itemView.setOnClickListener(v -> showEditListItemDialog(listData, index, rawVal));
+                itemView.setOnLongClickListener(v -> {
+                    copyToClipboard("Item " + (index+1), rawVal);
+                    return true;
+                });
+            } else {
+                TextView itemView = new TextView(getContext());
+                itemView.setText(newText);
+                itemView.setTextSize(12);
+                itemView.setTypeface(Typeface.MONOSPACE);
+                itemView.setTextColor(COLOR_TEXT_SECONDARY);
+                itemView.setPadding(8, 4, 8, 4);
+
+                final int index = i;
+                itemView.setOnClickListener(v -> showEditListItemDialog(listData, index, rawVal));
+                itemView.setOnLongClickListener(v -> {
+                    copyToClipboard("Item " + (index+1), rawVal);
+                    return true;
+                });
+
+                container.addView(itemView, headerIndex + 1 + i);
+                state.childViews.add(itemView);
+            }
+        }
+
+        if (itemsCount > MAX_LIST_ITEMS_DISPLAY) {
+            TextView moreView = new TextView(getContext());
+            moreView.setText(String.format(getContext().getString(R.string.debug_menu_more_items), itemsCount - MAX_LIST_ITEMS_DISPLAY));
+            moreView.setTextSize(12);
+            moreView.setTypeface(Typeface.MONOSPACE, Typeface.ITALIC);
+            moreView.setTextColor(Color.GRAY);
+            container.addView(moreView, headerIndex + 1 + displayLimit);
+            state.moreView = moreView;
+        }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void setupResizer() {
+        TextView resizer = new TextView(getContext());
+        resizer.setText("↘");
+        resizer.setTextColor(COLOR_ACCENT);
+        resizer.setTextSize(22);
+        resizer.setPadding(32, 32, 32, 32);
+
+        FrameLayout.LayoutParams handleParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.BOTTOM | Gravity.END
+        );
+        addView(resizer, handleParams);
+
+        resizer.setOnTouchListener(new View.OnTouchListener() {
+            private int originalX, originalY;
+            private int originalWidth, originalHeight;
+            private float initialX, initialY;
+            private View resizePreview;
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        originalX = params.x;
+                        originalY = params.y;
+                        originalWidth = getWidth();
+                        originalHeight = getHeight();
+                        initialX = event.getRawX();
+                        initialY = event.getRawY();
+
+                        View dialogRoot = getChildAt(0);
+                        if (dialogRoot != null) {
+                            dialogRoot.setVisibility(View.GONE);
+                        }
+
+                        resizePreview = new View(getContext());
+                        android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable();
+                        gd.setColor(Color.argb(80, 255, 255, 255));
+                        gd.setCornerRadius(32f);
+                        gd.setStroke(6, COLOR_ACCENT);
+                        resizePreview.setBackground(gd);
+
+                        FrameLayout.LayoutParams previewParams = new FrameLayout.LayoutParams(originalWidth, originalHeight);
+                        previewParams.leftMargin = originalX;
+                        previewParams.topMargin = originalY;
+                        previewParams.gravity = Gravity.TOP | Gravity.START;
+                        resizePreview.setLayoutParams(previewParams);
+                        addView(resizePreview);
+
+                        params.width = WindowManager.LayoutParams.MATCH_PARENT;
+                        params.height = WindowManager.LayoutParams.MATCH_PARENT;
+                        params.x = 0;
+                        params.y = 0;
+                        windowManager.updateViewLayout(DebugMenuView.this, params);
+
+                        resizer.bringToFront();
+                        return true;
+
+                    case MotionEvent.ACTION_MOVE:
+                        int dx = (int) (event.getRawX() - initialX);
+                        int dy = (int) (event.getRawY() - initialY);
+
+                        int minSize = (int)(200 * getResources().getDisplayMetrics().density);
+                        int newWidth = Math.max(originalWidth + dx, minSize);
+                        int newHeight = Math.max(originalHeight + dy, minSize);
+
+                        if (resizePreview != null) {
+                            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) resizePreview.getLayoutParams();
+                            lp.width = newWidth;
+                            lp.height = newHeight;
+                            resizePreview.setLayoutParams(lp);
+                        }
+                        return true;
+
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        int finalWidth = originalWidth;
+                        int finalHeight = originalHeight;
+
+                        if (resizePreview != null) {
+                            finalWidth = resizePreview.getWidth();
+                            finalHeight = resizePreview.getHeight();
+                            removeView(resizePreview);
+                            resizePreview = null;
+                        }
+
+                        View root = getChildAt(0);
+                        if (root != null) {
+                            root.setVisibility(View.VISIBLE);
+                        }
+
+                        params.width = finalWidth;
+                        params.height = finalHeight;
+                        params.x = originalX;
+                        params.y = originalY;
+                        windowManager.updateViewLayout(DebugMenuView.this, params);
+                        return true;
+                }
+                return false;
+            }
+        });
+    }
+
+    private void showEditVariableDialog(UserVariable var) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.Theme_NewCatroid_Dialog);
+        builder.setTitle(String.format(getContext().getString(R.string.debug_menu_edit_variable), var.getName()));
+
+        View container = createStyledInputContainer(String.valueOf(var.getValue()));
+        EditText input = container.findViewById(R.id.formula_editor_edit_field);
+
+        builder.setView(container);
+        builder.setPositiveButton(R.string.debug_menu_save, (dialog, which) -> {
+            var.setValue(input.getText().toString());
+            update();
+        });
+        builder.setNegativeButton(R.string.debug_menu_cancel, (dialog, which) -> dialog.cancel());
+        builder.setNeutralButton(R.string.debug_menu_copy_full, (dialog, which) -> copyToClipboard(var.getName(), String.valueOf(var.getValue())));
+        builder.show();
+    }
+
+    private void showEditListItemDialog(UserList list, int index, String currentValue) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.Theme_NewCatroid_Dialog);
+        builder.setTitle(String.format(getContext().getString(R.string.debug_menu_edit_list_item), index + 1, list.getName()));
+
+        View container = createStyledInputContainer(currentValue);
+        EditText input = container.findViewById(R.id.formula_editor_edit_field);
+
+        builder.setView(container);
+        builder.setPositiveButton(R.string.debug_menu_save, (dialog, which) -> {
+            list.getValue().set(index, input.getText().toString());
+            update();
+        });
+        builder.setNegativeButton(R.string.debug_menu_cancel, (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
+
+    private View createStyledInputContainer(String initialText) {
+        float density = getResources().getDisplayMetrics().density;
+
+        FrameLayout container = new FrameLayout(getContext());
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        int margin = (int) (16 * density);
+        lp.setMargins(margin, margin, margin, margin);
+
+        EditText input = new EditText(getContext());
+        input.setId(R.id.formula_editor_edit_field);
+        input.setText(initialText);
+        input.setTextColor(COLOR_TEXT_PRIMARY);
+        input.setHintTextColor(COLOR_TEXT_SECONDARY);
+        int padding = (int) (12 * density);
+        input.setPadding(padding, padding, padding, padding);
+
+        android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable();
+        gd.setColor(COLOR_INPUT_BG);
+        gd.setCornerRadius(12 * density);
+        gd.setStroke((int)(2 * density), COLOR_ACCENT);
+        input.setBackground(gd);
+
+        if (initialText.length() > 30) {
+            input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+            input.setMaxLines(8);
+        } else {
+            input.setInputType(InputType.TYPE_CLASS_TEXT);
+        }
+
+        input.setLayoutParams(lp);
+        container.addView(input);
+
+        ScrollView scrollView = new ScrollView(getContext());
+        scrollView.addView(container);
+        return scrollView;
+    }
+
+    private void copyToClipboard(String label, String text) {
+        ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText(label, text);
+        if (clipboard != null) {
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(getContext(), R.string.debug_menu_copied, Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private WindowManager.LayoutParams createLayoutParams() {
         final int flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
+        int widthPx = (int) (280 * getContext().getResources().getDisplayMetrics().density);
 
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
+                widthPx,
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.TYPE_APPLICATION_PANEL,
                 flags,
                 android.graphics.PixelFormat.TRANSLUCENT
         );
-
-        params.gravity = android.view.Gravity.TOP | android.view.Gravity.START;
+        params.gravity = Gravity.TOP | Gravity.START;
         params.x = 100;
         params.y = 100;
         return params;
@@ -202,6 +525,40 @@ public class DebugMenuView extends FrameLayout {
 
         closeButton.setOnClickListener(v -> DebugMenuManager.getInstance().hide());
 
+        if (titleBar instanceof ViewGroup) {
+            ViewGroup titleGroup = (ViewGroup) titleBar;
+
+            TextView consoleBtn = new TextView(getContext());
+            consoleBtn.setText(">_");
+            consoleBtn.setTextColor(COLOR_ACCENT);
+            consoleBtn.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+            consoleBtn.setTextSize(20);
+            consoleBtn.setPadding(24, 0, 24, 0);
+            consoleBtn.setGravity(android.view.Gravity.CENTER);
+
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            lp.gravity = android.view.Gravity.CENTER_VERTICAL;
+            consoleBtn.setLayoutParams(lp);
+
+            consoleBtn.setOnClickListener(v -> {
+                DebugMenuManager.getInstance().hide();
+
+                int currentOrientation = getContext().getResources().getConfiguration().orientation;
+                int activityOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+                if (currentOrientation == android.content.res.Configuration.ORIENTATION_PORTRAIT) {
+                    activityOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+                }
+
+                android.content.Intent intent = new android.content.Intent(getContext(), RuntimeConsoleActivity.class);
+                intent.putExtra("orientation", activityOrientation);
+                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(intent);
+            });
+
+            titleGroup.addView(consoleBtn, titleGroup.getChildCount() - 1);
+        }
+
         titleBar.setOnTouchListener((view, event) -> {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
@@ -211,7 +568,12 @@ public class DebugMenuView extends FrameLayout {
                 case MotionEvent.ACTION_MOVE:
                     params.x = (int) (event.getRawX() + dX);
                     params.y = (int) (event.getRawY() + dY);
-                    windowManager.updateViewLayout(this, params);
+
+                    scheduleWindowUpdate();
+                    return true;
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                    scheduleWindowUpdate();
                     return true;
             }
             return false;
@@ -222,114 +584,31 @@ public class DebugMenuView extends FrameLayout {
         return params;
     }
 
-    // Метод populateVariables и его хелперы остаются такими же, как были в DialogFragment
-    private void populateVariables(View view) {
-        LinearLayout container = view.findViewById(R.id.variables_container);
-        Project project = ProjectManager.getInstance().getCurrentProject();
-        if (project == null) return;
-
-        // --- Глобальные переменные ---
-        addHeader(container, "Global Variables");
-        for (UserVariable var : project.getUserVariables()) {
-            addVariableView(container, var.getName(), var.getValue().toString());
+    private void scheduleWindowUpdate() {
+        if (isUpdatePending) {
+            return;
         }
-
-        // --- Переменные спрайтов ---
-        for (Sprite sprite : project.getSpriteListWithClones()) {
-            if (!sprite.getUserVariables().isEmpty()) {
-                addHeader(container, "Sprite: " + sprite.getName());
-                for (UserVariable var : sprite.getUserVariables()) {
-                    addVariableView(container, var.getName(), var.getValue().toString());
+        isUpdatePending = true;
+        android.view.Choreographer.getInstance().postFrameCallback(frameTimeNanos -> {
+            isUpdatePending = false;
+            if (getParent() != null) {
+                try {
+                    windowManager.updateViewLayout(DebugMenuView.this, params);
+                } catch (Exception ignored) {
                 }
             }
-        }
+        });
     }
 
-    private void addHeader(ViewGroup container, String text) {
-        TextView header = new TextView(getContext());
-        header.setText(text);
-        header.setTextSize(16);
-        header.setTextColor(Color.WHITE);
-        header.setPadding(0, 16, 0, 4);
-        container.addView(header);
-    }
-
-    private void addVariableView(ViewGroup container, String name, String value) {
-        TextView varView = new TextView(getContext());
-        varView.setText(String.format("  • %s: %s", name, value));
-        varView.setTextSize(14);
-        varView.setTextColor(Color.LTGRAY);
-        container.addView(varView);
-    }
-
-    /**
-     * Универсальный метод для добавления записи в дебаг-меню.
-     * @param container     ViewGroup, куда добавлять View.
-     * @param name          Имя переменной или списка.
-     * @param valueOrInfo   Значение переменной или информация о списке (кол-во элементов).
-     * @param isExpandable  true, если это список, который можно развернуть.
-     * @param listData      Сам объект UserList, если это список (иначе null).
-     */
-    private void addDebugEntry(ViewGroup container, String uniqueId, String name, String valueOrInfo, boolean isExpandable, @Nullable UserList listData) {
-        TextView entryView = new TextView(getContext());
-        String prefix = isExpandable ? "▶ " : "• ";
-        entryView.setText(String.format("  %s%s: %s", prefix, name, valueOrInfo));
-        entryView.setTextSize(14);
-        entryView.setTextColor(Color.LTGRAY);
-
-        if (isExpandable) {
-            entryView.setTag(new ListState(false, new ArrayList<>()));
-            entryView.setOnClickListener(v -> toggleList(container, entryView, listData));
-        }
-
-        container.addView(entryView);
-        // --- НОВОЕ: Сохраняем ссылку на View в карту ---
-        entryViewMap.put(uniqueId, entryView);
-    }
-
-    @SuppressLint("DefaultLocale")
-    private void toggleList(ViewGroup container, TextView headerView, UserList listData) {
-        ListState state = (ListState) headerView.getTag();
-        int headerIndex = container.indexOfChild(headerView);
-        String listName = listData.getName();
-
-        if (state.isExpanded) {
-            // --- СВОРАЧИВАЕМ СПИСОК ---
-            // Удаляем все дочерние View, которые мы ранее добавили
-            for (View child : state.childViews) {
-                container.removeView(child);
-            }
-            state.childViews.clear();
-            headerView.setText(String.format("  ▶ %s: [%d items]", listName, listData.getValue().size()));
-            state.isExpanded = false;
-        } else {
-            // --- РАЗВОРАЧИВАЕМ СПИСОК ---
-            headerView.setText(String.format("  ▶ %s: [%d items]", listName, listData.getValue().size()));
-            state.isExpanded = true;
-
-            // Добавляем элементы списка ПОСЛЕ заголовка
-            for (int i = 0; i < listData.getValue().size(); i++) {
-                Object item = listData.getValue().get(i);
-                TextView itemView = new TextView(getContext());
-                itemView.setText(String.format("      %d: %s", i + 1, item.toString()));
-                itemView.setTextSize(12);
-                itemView.setTextColor(Color.GRAY);
-
-                // Добавляем View в контейнер и в наш список для отслеживания
-                container.addView(itemView, headerIndex + 1 + i);
-                state.childViews.add(itemView);
-            }
-        }
-    }
-
-    /** Вспомогательный класс для хранения состояния раскрывающегося списка. */
     private static class ListState {
         boolean isExpanded;
         List<View> childViews;
+        View moreView;
 
         ListState(boolean isExpanded, List<View> childViews) {
             this.isExpanded = isExpanded;
             this.childViews = childViews;
+            this.moreView = null;
         }
     }
 }

@@ -23,7 +23,7 @@ import org.catrobat.catroid.formulaeditor.UserVariable;
 public class DebugMenuDialogFragment extends DialogFragment {
     public static final String TAG = "DebugMenuDialogFragment";
 
-    private float dX, dY; // Для отслеживания смещения при перетаскивании
+    private float dX, dY;
 
     @Nullable
     @Override
@@ -35,9 +35,7 @@ public class DebugMenuDialogFragment extends DialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Настраиваем перетаскивание и закрытие
         setupWindowControls(view);
-        // Заполняем данными
         populateVariables(view);
     }
 
@@ -54,12 +52,10 @@ public class DebugMenuDialogFragment extends DialogFragment {
 
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
-                    // Запоминаем начальное смещение от левого верхнего угла окна до точки касания
                     dX = window.getAttributes().x - event.getRawX();
                     dY = window.getAttributes().y - event.getRawY();
                     return true;
                 case MotionEvent.ACTION_MOVE:
-                    // Обновляем позицию окна
                     window.getAttributes().x = (int) (event.getRawX() + dX);
                     window.getAttributes().y = (int) (event.getRawY() + dY);
                     window.getWindowManager().updateViewLayout(window.getDecorView(), window.getAttributes());
@@ -74,13 +70,11 @@ public class DebugMenuDialogFragment extends DialogFragment {
         Project project = ProjectManager.getInstance().getCurrentProject();
         if (project == null) return;
 
-        // --- Глобальные переменные ---
         addHeader(container, "Global Variables");
         for (UserVariable var : project.getUserVariables()) {
             addVariableView(container, var.getName(), var.getValue().toString());
         }
 
-        // --- Переменные спрайтов ---
         for (Sprite sprite : project.getSpriteListWithClones()) {
             if (!sprite.getUserVariables().isEmpty()) {
                 addHeader(container, "Sprite: " + sprite.getName());
@@ -112,7 +106,6 @@ public class DebugMenuDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
-        // Убираем стандартный заголовок
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         return dialog;
     }
@@ -120,7 +113,6 @@ public class DebugMenuDialogFragment extends DialogFragment {
     @Override
     public void onStart() {
         super.onStart();
-        // Убираем затемнение фона
         Dialog dialog = getDialog();
         if (dialog != null) {
             dialog.getWindow().setDimAmount(0.0f);

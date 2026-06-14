@@ -80,6 +80,7 @@ import org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment;
 import org.catrobat.catroid.ui.recyclerview.fragment.SoundListFragment;
 import org.catrobat.catroid.ui.recyclerview.util.UniqueNameProvider;
 import org.catrobat.catroid.ui.settingsfragments.SettingsFragment;
+import org.catrobat.catroid.ui.workspace.WorkspaceLayout;
 import org.catrobat.catroid.utils.SnackbarUtil;
 import org.catrobat.catroid.utils.ToastUtil;
 import org.catrobat.catroid.utils.Utils;
@@ -175,6 +176,8 @@ public class SpriteActivity extends BaseActivity {
 
 	private boolean isUndoMenuItemVisible = false;
 
+    private WorkspaceLayout workspaceLayout;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -189,22 +192,53 @@ public class SpriteActivity extends BaseActivity {
 		currentScene = projectManager.getCurrentlyEditedScene();
 
 		setContentView(R.layout.activity_sprite);
-		setSupportActionBar(findViewById(R.id.toolbar));
-		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-		getSupportActionBar().setTitle(createActionBarTitle());
 
-		if (RecentBrickListManager.getInstance().getRecentBricks(true).size() == 0) {
-			RecentBrickListManager.getInstance().loadRecentBricks();
-		}
+        workspaceLayout = findViewById(R.id.workspace_layout);
 
-		int fragmentPosition = FRAGMENT_SCRIPTS;
+        boolean isFreeWindowModeEnabled = PreferenceManager.getDefaultSharedPreferences(this)
+                .getBoolean("pref_free_window_mode", false);
 
-		Bundle bundle = getIntent().getExtras();
-		if (bundle != null) {
-			fragmentPosition = bundle.getInt(EXTRA_FRAGMENT_POSITION, FRAGMENT_SCRIPTS);
-		}
-		loadFragment(this, fragmentPosition);
-		addTabLayout(this, fragmentPosition);
+        if (isFreeWindowModeEnabled) {
+            findViewById(R.id.fragment_container).setVisibility(View.GONE);
+            findViewById(R.id.bottom_bar).setVisibility(View.GONE);
+            findViewById(R.id.fragment_container).setVisibility(View.GONE);
+
+            View toolbar = findViewById(R.id.toolbar);
+            if (toolbar != null) {
+                toolbar.setVisibility(View.GONE);
+            }
+
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().hide();
+            }
+
+            workspaceLayout.setVisibility(View.VISIBLE);
+
+            java.util.Map<String, kotlin.Pair<String, kotlin.jvm.functions.Function0<Fragment>>> creators = new java.util.HashMap<>();
+            creators.put(ScriptFragment.TAG, new kotlin.Pair<>("Скрипты", ScriptFragment::new));
+            creators.put(LookListFragment.TAG, new kotlin.Pair<>("Образы", LookListFragment::new));
+            creators.put(SoundListFragment.TAG, new kotlin.Pair<>("Звуки", SoundListFragment::new));
+
+            workspaceLayout.restoreLayoutState(creators);
+        } else {
+            workspaceLayout.setVisibility(View.GONE);
+            setSupportActionBar(findViewById(R.id.toolbar));
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle(createActionBarTitle());
+
+            if (RecentBrickListManager.getInstance().getRecentBricks(true).size() == 0) {
+                RecentBrickListManager.getInstance().loadRecentBricks();
+            }
+
+            int fragmentPosition = FRAGMENT_SCRIPTS;
+
+            Bundle bundle = getIntent().getExtras();
+            if (bundle != null) {
+                fragmentPosition = bundle.getInt(EXTRA_FRAGMENT_POSITION, FRAGMENT_SCRIPTS);
+            }
+            loadFragment(this, fragmentPosition);
+            addTabLayout(this, fragmentPosition);
+        }
 		MyActivityManager.Companion.setSprite_activity(this);
 	}
 
@@ -289,12 +323,23 @@ public class SpriteActivity extends BaseActivity {
 	@Override
 	protected void onPause() {
 		super.onPause();
+
+        if (workspaceLayout != null && workspaceLayout.getVisibility() == View.VISIBLE) {
+            workspaceLayout.saveLayoutState();
+        }
+
 		saveProject();
 		RecentBrickListManager.getInstance().saveRecentBrickList();
 	}
 
 	@Override
 	public void onBackPressed() {
+        if (workspaceLayout != null && workspaceLayout.getVisibility() == View.VISIBLE) {
+            if (workspaceLayout.handleBackPressed()) {
+                return;
+            }
+        }
+
 		saveProject();
 
 		Fragment currentFragment = getCurrentFragment();
@@ -729,6 +774,26 @@ public class SpriteActivity extends BaseActivity {
 	}
 
 	public void handleAddButton(View view) {
+        if (workspaceLayout != null && workspaceLayout.getVisibility() == View.VISIBLE) {
+            String focusedTag = workspaceLayout.getFocusedWindowTag();
+
+            if (focusedTag == null || focusedTag.equals(ScriptFragment.TAG)) {
+                workspaceLayout.openBrickCategoryWindow();
+                return;
+            }
+
+            if (DataListFragment.TAG.equals(focusedTag)) {
+                handleAddUserDataButton();
+            } else if (LookListFragment.TAG.equals(focusedTag)) {
+                handleAddLookButton();
+            } else if (SoundListFragment.TAG.equals(focusedTag)) {
+                handleAddSoundButton();
+            } else {
+                workspaceLayout.openBrickCategoryWindow();
+            }
+            return;
+        }
+
 		if (getCurrentFragment() instanceof ScriptFragment) {
 			((ScriptFragment) getCurrentFragment()).handleAddButton();
 			return;

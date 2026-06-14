@@ -11,6 +11,7 @@ public class MusicWrapper implements PlayableAudio {
     private Vector3 position = new Vector3();
     private String attachedToObjectId;
     private float baseVolume = 1.0f;
+    private float maxDistance = 250f;
 
     public MusicWrapper(Music music, float volume, float pitch, boolean loop) {
         this.music = music;
@@ -57,5 +58,15 @@ public class MusicWrapper implements PlayableAudio {
     @Override
     public float getBaseVolume() {
         return baseVolume;
+    }
+
+    @Override
+    public void setMaxDistance(float maxDistance) {
+        this.maxDistance = maxDistance;
+    }
+
+    @Override
+    public float getMaxDistance() {
+        return this.maxDistance;
     }
 }

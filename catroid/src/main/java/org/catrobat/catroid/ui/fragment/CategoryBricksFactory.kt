@@ -45,6 +45,7 @@ import org.catrobat.catroid.content.bricks.ApplyAngularImpulseBrick
 import org.catrobat.catroid.content.bricks.ApplyBufferLookBrick
 import org.catrobat.catroid.content.bricks.ApplyForceBrick
 import org.catrobat.catroid.content.bricks.ApplyImpulseBrick
+import org.catrobat.catroid.content.bricks.ApplyShaderToImageBrick
 import org.catrobat.catroid.content.bricks.ApplyTorqueBrick
 import org.catrobat.catroid.content.bricks.ArduinoSendDigitalValueBrick
 import org.catrobat.catroid.content.bricks.ArduinoSendPWMValueBrick
@@ -58,6 +59,7 @@ import org.catrobat.catroid.content.bricks.AssertUserListsBrick
 import org.catrobat.catroid.content.bricks.AsyncRepeatBrick
 import org.catrobat.catroid.content.bricks.AttachRaySensorBrick
 import org.catrobat.catroid.content.bricks.AttachSOBrick
+import org.catrobat.catroid.content.bricks.AttachToCameraBrick
 import org.catrobat.catroid.content.bricks.BackgroundRequestBrick
 import org.catrobat.catroid.content.bricks.BakeByPrefixBrick
 import org.catrobat.catroid.content.bricks.BigAskBrick
@@ -70,6 +72,7 @@ import org.catrobat.catroid.content.bricks.CameraBrick
 import org.catrobat.catroid.content.bricks.CameraLookAtBrick
 import org.catrobat.catroid.content.bricks.CameraSettingsBrick
 import org.catrobat.catroid.content.bricks.CameraTouchControlBrick
+import org.catrobat.catroid.content.bricks.CameraTrackingBrick
 import org.catrobat.catroid.content.bricks.CastRayBrick
 import org.catrobat.catroid.content.bricks.ChangeBrightnessByNBrick
 import org.catrobat.catroid.content.bricks.ChangeColorByNBrick
@@ -136,6 +139,7 @@ import org.catrobat.catroid.content.bricks.DeleteVarBrick
 import org.catrobat.catroid.content.bricks.DeleteVarsBrick
 import org.catrobat.catroid.content.bricks.DeleteWebBrick
 import org.catrobat.catroid.content.bricks.DestroyJointBrick
+import org.catrobat.catroid.content.bricks.DetachFromCameraBrick
 import org.catrobat.catroid.content.bricks.DroneEmergencyBrick
 import org.catrobat.catroid.content.bricks.DroneFlipBrick
 import org.catrobat.catroid.content.bricks.DroneMoveBackwardBrick
@@ -282,6 +286,7 @@ import org.catrobat.catroid.content.bricks.PrepareMusicAs3DSoundBrick
 import org.catrobat.catroid.content.bricks.PrepareSoundBrick
 import org.catrobat.catroid.content.bricks.PrepareSoundBrick2
 import org.catrobat.catroid.content.bricks.PreviousLookBrick
+import org.catrobat.catroid.content.bricks.PromoteLightBrick
 import org.catrobat.catroid.content.bricks.PtBackwardBrick
 import org.catrobat.catroid.content.bricks.PtCreateTensorBrick
 import org.catrobat.catroid.content.bricks.PtOpBrick
@@ -303,6 +308,7 @@ import org.catrobat.catroid.content.bricks.RegexBrick
 import org.catrobat.catroid.content.bricks.Remove3dObjectBrick
 import org.catrobat.catroid.content.bricks.RemoveFromBufferBrick
 import org.catrobat.catroid.content.bricks.RemoveJointBrick
+import org.catrobat.catroid.content.bricks.RemoveObjectsByPrefixBrick
 import org.catrobat.catroid.content.bricks.RemoveParentBrick
 import org.catrobat.catroid.content.bricks.RemovePbrLightBrick
 import org.catrobat.catroid.content.bricks.RepeatBrick
@@ -313,6 +319,7 @@ import org.catrobat.catroid.content.bricks.ResetTimerBrick
 import org.catrobat.catroid.content.bricks.ResizeImgBrick
 import org.catrobat.catroid.content.bricks.ReturnToPreviousProjectBrick
 import org.catrobat.catroid.content.bricks.RotateCameraByBrick
+import org.catrobat.catroid.content.bricks.RunAsSpriteBrick
 import org.catrobat.catroid.content.bricks.RunChip8Brick
 import org.catrobat.catroid.content.bricks.RunJSBrick
 import org.catrobat.catroid.content.bricks.RunLuaBrick
@@ -335,6 +342,7 @@ import org.catrobat.catroid.content.bricks.ScreenShotBrick
 import org.catrobat.catroid.content.bricks.SeekVideoBrick
 import org.catrobat.catroid.content.bricks.SendServerBrick
 import org.catrobat.catroid.content.bricks.SendVmInputBrick
+import org.catrobat.catroid.content.bricks.Set3DSoundMaxDistanceBrick
 import org.catrobat.catroid.content.bricks.Set3DSoundPositionBrick
 import org.catrobat.catroid.content.bricks.Set3dFrictionBrick
 import org.catrobat.catroid.content.bricks.Set3dGravityBrick
@@ -373,7 +381,9 @@ import org.catrobat.catroid.content.bricks.SetDampingBrick
 import org.catrobat.catroid.content.bricks.SetDirectionalLight2Brick
 import org.catrobat.catroid.content.bricks.SetDirectionalLightBrick
 import org.catrobat.catroid.content.bricks.SetDnsBrick
+import org.catrobat.catroid.content.bricks.SetEmissiveBrick
 import org.catrobat.catroid.content.bricks.SetFogBrick
+import org.catrobat.catroid.content.bricks.SetFpsBrick
 import org.catrobat.catroid.content.bricks.SetFreeCameraBrick
 import org.catrobat.catroid.content.bricks.SetFrictionBrick
 import org.catrobat.catroid.content.bricks.SetGeminiKeyBrick
@@ -389,10 +399,13 @@ import org.catrobat.catroid.content.bricks.SetLookByIndexBrick
 import org.catrobat.catroid.content.bricks.SetLookFilesBrick
 import org.catrobat.catroid.content.bricks.SetMassBrick
 import org.catrobat.catroid.content.bricks.SetMaterialBrick
+import org.catrobat.catroid.content.bricks.SetMaxPointLightsBrick
 import org.catrobat.catroid.content.bricks.SetNegativeBrick
 import org.catrobat.catroid.content.bricks.SetNeutralBrick
 import org.catrobat.catroid.content.bricks.SetNfcTagBrick
 import org.catrobat.catroid.content.bricks.SetObjectColorBrick
+import org.catrobat.catroid.content.bricks.SetObjectShaderBrick
+import org.catrobat.catroid.content.bricks.SetObjectShaderUniformBrick
 import org.catrobat.catroid.content.bricks.SetObjectTextureBrick
 import org.catrobat.catroid.content.bricks.SetParentBrick
 import org.catrobat.catroid.content.bricks.SetParticleColorBrick
@@ -405,10 +418,12 @@ import org.catrobat.catroid.content.bricks.SetPointLightBrick
 import org.catrobat.catroid.content.bricks.SetPositiveBrick
 import org.catrobat.catroid.content.bricks.SetPostProcessingBrick
 import org.catrobat.catroid.content.bricks.SetPostProcessingNewBrick
+import org.catrobat.catroid.content.bricks.SetRenderResolutionBrick
 import org.catrobat.catroid.content.bricks.SetRestitutionBrick
 import org.catrobat.catroid.content.bricks.SetRotationLockBrick
 import org.catrobat.catroid.content.bricks.SetRotationStyleBrick
 import org.catrobat.catroid.content.bricks.SetSaveScenesBrick
+import org.catrobat.catroid.content.bricks.SetScreenShaderBrick
 import org.catrobat.catroid.content.bricks.SetShaderCodeBrick
 import org.catrobat.catroid.content.bricks.SetShaderUniformFloatBrick
 import org.catrobat.catroid.content.bricks.SetShaderUniformVec3Brick
@@ -764,6 +779,7 @@ open class CategoryBricksFactory {
                 controlBrickList.add(RepeatUntilBrick(ifConditionFormula))
                 controlBrickList.add(ForVariableFromToBrick(Formula(BrickValues.FOR_LOOP_FROM), Formula(BrickValues.FOR_LOOP_TO)))
                 controlBrickList.add(ForItemInUserListBrick())
+                controlBrickList.add(RunAsSpriteBrick(Formula("Sprite")))
                 controlBrickList.add(SceneTransitionBrick(null))
                 controlBrickList.add(SceneStartBrick(null))
                 controlBrickList.add(SceneIdBrick("1"))
@@ -778,7 +794,7 @@ open class CategoryBricksFactory {
                 controlBrickList.add(ExitStageBrick())
                 controlBrickList.add(StopScriptBrick(BrickValues.STOP_THIS_SCRIPT))
                 controlBrickList.add(WaitTillIdleBrick())
-                controlBrickList.add(TryCatchFinallyBrick());
+                controlBrickList.add(TryCatchFinallyBrick())
                 controlBrickList.add(WhenClonedBrick())
                 controlBrickList.add(CloneBrick())
                 controlBrickList.add(CloneAndNameBrick("clone"))
@@ -851,6 +867,7 @@ open class CategoryBricksFactory {
         controlBrickList.add(CloneBrick())
         controlBrickList.add(CloneAndNameBrick("clone"))
         controlBrickList.add(DeleteThisCloneBrick())
+        controlBrickList.add(RunAsSpriteBrick(Formula("Sprite")))
 
         controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_messages), template))
         val broadcastMessages =
@@ -1610,6 +1627,30 @@ print("Bot has stopped.")""", "myVar"))
                 deviceBrickList.add(ExportProjectFileBrick("file.txt"))
                 deviceBrickList.add(SaveToInternalStorageBrick("file.txt", "myAwesomeApp/file.txt"))
                 deviceBrickList.add(LoadFromInternalStorageBrick("myAwesomeApp/file.txt"))
+                deviceBrickList.add(ApplyShaderToImageBrick("image.png", """attribute vec4 a_position;
+attribute vec4 a_color;
+attribute vec2 a_texCoord0;
+
+uniform mat4 u_projTrans;
+
+varying vec4 v_color;
+varying vec2 v_texCoords;
+
+void main() {
+    v_color = a_color;
+    v_texCoords = a_texCoord0;
+    gl_Position = u_projTrans * a_position;
+}""", """#ifdef GL_ES
+precision mediump float;
+#endif
+varying vec2 v_texCoords;
+uniform sampler2D u_texture;
+void main() {
+    vec4 original = texture2D(u_texture, v_texCoords);
+    float roughness = original.r;
+    float metallic = 0.0;
+    gl_FragColor = vec4(1.0, roughness, metallic, 1.0);
+}"""))
                 deviceBrickList.add(WhenBrick())
                 deviceBrickList.add(WhenTouchDownBrick())
                 if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
@@ -1766,6 +1807,30 @@ bot.polling()""", "myVar"))
         deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_misc), template))
         deviceBrickList.add(ResetTimerBrick())
         deviceBrickList.add(TestBrick())
+        deviceBrickList.add(ApplyShaderToImageBrick("image.png", """attribute vec4 a_position;
+attribute vec4 a_color;
+attribute vec2 a_texCoord0;
+
+uniform mat4 u_projTrans;
+
+varying vec4 v_color;
+varying vec2 v_texCoords;
+
+void main() {
+    v_color = a_color;
+    v_texCoords = a_texCoord0;
+    gl_Position = u_projTrans * a_position;
+}""", """#ifdef GL_ES
+precision mediump float;
+#endif
+varying vec2 v_texCoords;
+uniform sampler2D u_texture;
+void main() {
+    vec4 original = texture2D(u_texture, v_texCoords);
+    float roughness = original.r;
+    float metallic = 0.0;
+    gl_FragColor = vec4(1.0, roughness, metallic, 1.0);
+}"""))
         deviceBrickList.add(WhenBrick())
         deviceBrickList.add(WhenTouchDownBrick())
         if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
@@ -1920,6 +1985,30 @@ bot.polling()""", "myVar"))
                 neuralBrickList.add(GrayscaleImgBrick("image.png"))
                 neuralBrickList.add(NormalizeImgBrick("image.png", "rTable", "gTable", "bTable"))
                 neuralBrickList.add(CutLookBrick(100, 200, 300, 400))
+                neuralBrickList.add(ApplyShaderToImageBrick("image.png", """attribute vec4 a_position;
+attribute vec4 a_color;
+attribute vec2 a_texCoord0;
+
+uniform mat4 u_projTrans;
+
+varying vec4 v_color;
+varying vec2 v_texCoords;
+
+void main() {
+    v_color = a_color;
+    v_texCoords = a_texCoord0;
+    gl_Position = u_projTrans * a_position;
+}""", """#ifdef GL_ES
+precision mediump float;
+#endif
+varying vec2 v_texCoords;
+uniform sampler2D u_texture;
+void main() {
+    vec4 original = texture2D(u_texture, v_texCoords);
+    float roughness = original.r;
+    float metallic = 0.0;
+    gl_FragColor = vec4(1.0, roughness, metallic, 1.0);
+}"""))
                 return neuralBrickList
             }
         }
@@ -1949,6 +2038,30 @@ bot.polling()""", "myVar"))
         neuralBrickList.add(GrayscaleImgBrick("image.png"))
         neuralBrickList.add(NormalizeImgBrick("image.png", "rTable", "gTable", "bTable"))
         neuralBrickList.add(CutLookBrick(100, 200, 300, 400))
+        neuralBrickList.add(ApplyShaderToImageBrick("image.png", """attribute vec4 a_position;
+attribute vec4 a_color;
+attribute vec2 a_texCoord0;
+
+uniform mat4 u_projTrans;
+
+varying vec4 v_color;
+varying vec2 v_texCoords;
+
+void main() {
+    v_color = a_color;
+    v_texCoords = a_texCoord0;
+    gl_Position = u_projTrans * a_position;
+}""", """#ifdef GL_ES
+precision mediump float;
+#endif
+varying vec2 v_texCoords;
+uniform sampler2D u_texture;
+void main() {
+    vec4 original = texture2D(u_texture, v_texCoords);
+    float roughness = original.r;
+    float metallic = 0.0;
+    gl_FragColor = vec4(1.0, roughness, metallic, 1.0);
+}"""))
 
         return neuralBrickList
     }
@@ -2028,6 +2141,30 @@ bot.polling()""", "myVar"))
         fileBrickList.add(ResizeImgBrick("image.png", 64, 64))
         fileBrickList.add(GrayscaleImgBrick("image.png"))
         fileBrickList.add(NormalizeImgBrick("image.png", "rTable", "gTable", "bTable"))
+        fileBrickList.add(ApplyShaderToImageBrick("image.png", """attribute vec4 a_position;
+attribute vec4 a_color;
+attribute vec2 a_texCoord0;
+
+uniform mat4 u_projTrans;
+
+varying vec4 v_color;
+varying vec2 v_texCoords;
+
+void main() {
+    v_color = a_color;
+    v_texCoords = a_texCoord0;
+    gl_Position = u_projTrans * a_position;
+}""", """#ifdef GL_ES
+precision mediump float;
+#endif
+varying vec2 v_texCoords;
+uniform sampler2D u_texture;
+void main() {
+    vec4 original = texture2D(u_texture, v_texCoords);
+    float roughness = original.r;
+    float metallic = 0.0;
+    gl_FragColor = vec4(1.0, roughness, metallic, 1.0);
+}"""))
         fileBrickList.add(UploadFileBrick(Formula("https://"), Formula("file.txt"), 0, Formula("application/"), 0))
 
         fileBrickList.add(CreateVideoBrick("myVideoPlayer", "video.mp4", 0, 0, 750, 500, 1, 0))
@@ -2058,6 +2195,7 @@ bot.polling()""", "myVar"))
         threedBrickList.add(CreateSphereBrick("myObject"))
         threedBrickList.add(ThreedCreateCylinderBrick("myObject"))
         threedBrickList.add(Remove3dObjectBrick("myObject"))
+        threedBrickList.add(RemoveObjectsByPrefixBrick("wall_"))
         threedBrickList.add(CloneObjectBrick("myObject", "clonedObject"))
         threedBrickList.add(SetSpawnInvisibleBrick("myObject"))
         threedBrickList.add(SetActiveBrick("myObject", true))
@@ -2074,6 +2212,8 @@ bot.polling()""", "myVar"))
         threedBrickList.add(ThreedAlignNormalBrick("myObject", -1.0, 0.0, 0.0))
         threedBrickList.add(SetParentBrick("child", "parent"))
         threedBrickList.add(RemoveParentBrick("child"))
+        threedBrickList.add(AttachToCameraBrick("myObject"))
+        threedBrickList.add(DetachFromCameraBrick("myObject"))
 
         // Camera
         threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_camera), template))
@@ -2084,6 +2224,7 @@ bot.polling()""", "myVar"))
         threedBrickList.add(SetCameraRangeBrick(0.1, 2500.0))
         threedBrickList.add(CameraSettingsBrick(67f, 2f, 2f))
         threedBrickList.add(SetThirdPersonCameraBrick("myObject", 10.0, 10.0, -20.0))
+        threedBrickList.add(CameraTrackingBrick("myObject", 0, 0f, 1f, 0f, 0f, 0f, 0f))
         threedBrickList.add(SetFreeCameraBrick())
         threedBrickList.add(CameraTouchControlBrick(1, 1f, 0f, 0f, 50f, 50f))
 
@@ -2118,6 +2259,8 @@ bot.polling()""", "myVar"))
         threedBrickList.add(SetSpotLightBrick("sun", 100.0, 100.0, 0.0, 0.3, -0.4, 0.2, 255, 255, 230, 5.0, 60.0, 1.0, 300.0))
         threedBrickList.add(SetDirectionalLight2Brick(0.3, -0.2, -0.3, 5.0))
         threedBrickList.add(RemovePbrLightBrick("sun"))
+        threedBrickList.add(PromoteLightBrick("sun"))
+        threedBrickList.add(SetMaxPointLightsBrick(5))
         threedBrickList.add(SetShadowQualityBrick(Formula(100), Formula(2048)))
 
         // Materials
@@ -2160,10 +2303,132 @@ void main() {
     // 5. Устанавливаем итоговый цвет пикселя, сохраняя исходную прозрачность
     gl_FragColor = vec4(finalColor, baseColor.a);
 }"""))
+        threedBrickList.add(SetScreenShaderBrick("""attribute vec4 a_position;
+attribute vec2 a_texCoord0;
+varying vec2 v_texCoords;
+
+void main() {
+    v_texCoords = a_texCoord0;
+    gl_Position = a_position;
+}""", """#ifdef GL_ES
+precision highp float;
+#endif
+
+varying vec2 v_texCoords;
+uniform sampler2D u_texture0;
+uniform float u_time;
+
+const float DISTORTION = 0.22;   // Сила рыбьего глаза
+const float ZOOM = 1.12;         // Приближение
+const float CHROMATIC = 0.007;   // Сила RGB-расщепления по краям
+
+void main() {
+    vec2 uv = v_texCoords;
+
+    vec2 cc = uv - vec2(0.5);
+    float dist = dot(cc, cc);
+
+    vec2 distortedUV = vec2(0.5) + cc * (1.0 + DISTORTION * dist) / ZOOM;
+
+    if (distortedUV.x < 0.0 || distortedUV.x > 1.0 || distortedUV.y < 0.0 || distortedUV.y > 1.0) {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+
+    vec2 splitOffset = cc * CHROMATIC * dist * 3.0;
+    float r = texture2D(u_texture0, distortedUV - splitOffset).r;
+    float g = texture2D(u_texture0, distortedUV).g;
+    float b = texture2D(u_texture0, distortedUV + splitOffset).b;
+    vec3 color = vec3(r, g, b);
+
+    color.r *= 1.02;
+    color.g *= 1.04;
+    color.b *= 0.93;
+
+    float scanline = sin(distortedUV.y * 650.0 + u_time * 2.5) * 0.03;
+    color -= vec3(scanline);
+
+    float vignette = smoothstep(0.35, 0.75, dist);
+    color *= (1.0 - vignette * 0.55);
+
+    gl_FragColor = vec4(color, 1.0);
+}"""))
+        threedBrickList.add(SetObjectShaderBrick("myObject", """attribute vec3 a_position;
+
+uniform mat4 u_projViewTrans;
+uniform mat4 u_worldTrans;
+uniform float u_time;
+
+uniform float u_waveSpeed;
+uniform float u_waveHeight;
+uniform float u_waveScale;
+
+varying vec3 v_worldPos;
+varying vec3 v_normal;
+
+void main() {
+    vec4 worldPos = u_worldTrans * vec4(a_position, 1.0);
+    
+    float waveSpeed = u_waveSpeed > 0.001 ? u_waveSpeed : 1.0;
+    float waveHeight = u_waveHeight > 0.001 ? u_waveHeight : 0.05;
+    float waveScale = u_waveScale > 0.001 ? u_waveScale : 0.2;
+
+    float wave = sin(worldPos.x * waveScale + u_time * waveSpeed) * 
+                 cos(worldPos.z * waveScale + u_time * waveSpeed * 0.8) * waveHeight;
+    worldPos.y += wave;
+
+    v_worldPos = worldPos.xyz;
+    v_normal = vec3(0.0, 1.0, 0.0); 
+
+    gl_Position = u_projViewTrans * worldPos;
+}""", """#ifdef GL_ES
+precision highp float;
+#endif
+
+varying vec3 v_worldPos;
+varying vec3 v_normal;
+
+uniform float u_time;
+uniform vec3 u_customCameraPosition;
+
+uniform vec3 u_waterColor;
+uniform vec3 u_skyColor;
+uniform float u_waveSpeed;
+uniform float u_waveScale;
+
+void main() {
+    vec3 waterColor = length(u_waterColor) > 0.001 ? u_waterColor : vec3(0.02, 0.35, 0.45);
+    vec3 skyColor = length(u_skyColor) > 0.001 ? u_skyColor : vec3(0.7, 0.85, 0.95);
+    float waveSpeed = u_waveSpeed > 0.001 ? u_waveSpeed : 1.2;
+    float waveScale = u_waveScale > 0.001 ? u_waveScale : 0.3;
+
+    float speed = u_time * waveSpeed;
+    vec2 waveUV1 = v_worldPos.xz * waveScale + vec2(speed * 0.03, speed * 0.015);
+    vec2 waveUV2 = v_worldPos.xz * waveScale * 1.5 - vec2(speed * 0.01, speed * 0.025);
+
+    float nX = sin(waveUV1.x * 10.0) * cos(waveUV2.y * 12.0) * 0.1;
+    float nZ = cos(waveUV1.y * 8.0) * sin(waveUV2.x * 10.0) * 0.1;
+    vec3 waveNormal = normalize(v_normal + vec3(nX, 0.0, nZ));
+
+    vec3 viewDir = normalize(u_customCameraPosition - v_worldPos);
+    vec3 lightDir = normalize(vec3(0.3, 1.0, 0.4)); 
+
+    float fresnel = pow(1.0 - max(0.0, dot(v_normal, viewDir)), 3.0);
+
+    vec3 halfDir = normalize(lightDir + viewDir);
+    float spec = pow(max(0.0, dot(waveNormal, halfDir)), 64.0) * 1.5;
+
+    vec3 finalColor = mix(waterColor, skyColor, fresnel);
+    finalColor += vec3(spec);
+
+    gl_FragColor = vec4(finalColor, 0.9);
+}"""))
         threedBrickList.add(SetShaderUniformVec3Brick("lightColor", 0.4, 1.0, 0.4))
         threedBrickList.add(SetShaderUniformFloatBrick("meaningOfLife", 42.0))
+        threedBrickList.add(SetObjectShaderUniformBrick(Formula("myObject"), Formula("waveSpeed"), Formula(2.5f), Formula(""), Formula("")))
         threedBrickList.add(SetMaterialBrick("myObject", 255.0, 0.0, 255.0, 255.0, 100.0, 0.0, "none.png", "none.png", "none.png"))
         threedBrickList.add(SetTextureTilingBrick("myObject", 10f, 10f))
+        threedBrickList.add(SetEmissiveBrick("myObject", 1f, 1f, 1f, 1f, 10f, "emissive_texture.png"))
         threedBrickList.add(SetAnisotropicFilterBrick("myObject", 2.0))
 
         // Animations
@@ -2190,6 +2455,7 @@ void main() {
         threedBrickList.add(PrepareSoundBrick2("sound.mp3", "sound"))
         threedBrickList.add(PrepareMusicAs3DSoundBrick("sound.mp3", "sound"))
         threedBrickList.add(PlaySoundAtPositionBrick("sound", "soundInstance"))
+        threedBrickList.add(Set3DSoundMaxDistanceBrick("soundInstance", 250f))
         threedBrickList.add(SetSoundInstanceVolumeBrick("soundInstance", 60f))
         threedBrickList.add(SetSoundInstancePitchBrick("soundInstance", 140f))
         threedBrickList.add(Set3DSoundPositionBrick("soundInstance", 10, 10, 10))
@@ -2203,6 +2469,8 @@ void main() {
         threedBrickList.add(LoadSceneAdditiveBrick("my_level.rscene"))
         threedBrickList.add(SetPostProcessingBrick(1, 4, Formula(2)))
         threedBrickList.add(SetPostProcessingNewBrick())
+        threedBrickList.add(SetRenderResolutionBrick(0.5f, 1))
+        threedBrickList.add(SetFpsBrick(24))
         threedBrickList.add(CreateParticlesBrick("particles"))
         threedBrickList.add(SetParticleEmissionBrick("particles", 10f))
         threedBrickList.add(DeleteParticlesBrick("particles"))

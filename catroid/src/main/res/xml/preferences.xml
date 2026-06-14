@@ -65,6 +65,25 @@
         android:summary="@string/preference_title_pcmode"
         android:defaultValue="false" />
 
+    <PreferenceScreen
+        android:key="setting_workspace_screen"
+        android:title="@string/free_window_mode"
+        android:summary="@string/free_window_mode_sum">
+
+        <CheckBoxPreference
+            android:key="pref_workspace_project_level"
+            android:title="@string/free_window_mode_project"
+            android:summary="@string/free_window_mode_project_sum"
+            android:defaultValue="false" />
+
+        <CheckBoxPreference
+            android:key="pref_workspace_stage"
+            android:title="@string/free_window_mode_stage"
+            android:summary="@string/free_window_mode_stage_sum"
+            android:defaultValue="false" />
+
+    </PreferenceScreen>
+
     <CheckBoxPreference
         android:defaultValue="@string/FEATURE_EMBROIDERY_PREFERENCES_ENABLED"
         android:key="setting_embroidery_bricks_checkbox_preference"
@@ -268,7 +287,8 @@
             android:key="setting_ide_screen"
             android:title="IDE"
             android:summary="@string/ide_desc"
-            android:icon="@android:drawable/ic_menu_add" />
+            android:icon="@android:drawable/ic_menu_add"
+            app:isPreferenceVisible="false" />
 
     </PreferenceCategory>
 

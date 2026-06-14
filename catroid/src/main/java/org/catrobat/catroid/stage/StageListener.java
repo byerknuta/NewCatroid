@@ -298,6 +298,9 @@ public class StageListener implements ApplicationListener {
 	public void create() {
 		deltaActionTimeDivisor = 10f;
 
+        stage = null;
+        uiStage = null;
+
 		brightnessContrastHueShader = new Look.BrightnessContrastHueShader();
 		shapeRenderer = new ShapeRenderer();
 
@@ -685,15 +688,14 @@ public class StageListener implements ApplicationListener {
 
 		InputListener uiPassThroughListener = new InputListener() {
 			private void updateTouchInWorldCoords(float screenX, float screenY, int pointer, boolean isDown) {
-				tempVec3ForTouch.set(screenX, Gdx.graphics.getHeight() - screenY, 0);
+                tempVec3ForTouch.set(Gdx.input.getX(pointer), Gdx.input.getY(pointer), 0);
+                viewPort.unproject(tempVec3ForTouch);
 
-				camera.unproject(tempVec3ForTouch);
-
-				if (isDown) {
-					TouchUtil.touchDown(tempVec3ForTouch.x, tempVec3ForTouch.y, pointer);
-				} else {
-					TouchUtil.updatePosition(tempVec3ForTouch.x, tempVec3ForTouch.y, pointer);
-				}
+                if (isDown) {
+                    TouchUtil.touchDown(tempVec3ForTouch.x, tempVec3ForTouch.y, pointer);
+                } else {
+                    TouchUtil.updatePosition(tempVec3ForTouch.x, tempVec3ForTouch.y, pointer);
+                }
 			}
 
 			@Override
@@ -858,13 +860,10 @@ public class StageListener implements ApplicationListener {
 			mouseInputAdapter = new InputAdapter() {
 				@Override
 				public boolean mouseMoved(int screenX, int screenY) {
-
-					tempVec3.set(screenX, screenY, 0);
-					camera.unproject(tempVec3);
-
-
-					SensorHandler.getInstance(null).updateMousePosition(tempVec3.x, tempVec3.y);
-					return false;
+                    tempVec3.set(screenX, screenY, 0);
+                    viewPort.unproject(tempVec3);
+                    SensorHandler.getInstance(null).updateMousePosition(tempVec3.x, tempVec3.y);
+                    return false;
 				}
 
 				@Override
@@ -877,9 +876,7 @@ public class StageListener implements ApplicationListener {
 
 				@Override
 				public boolean scrolled(float amountX, float amountY) {
-
 					SensorHandler.getInstance(null).setLastScrollAmount(-amountY);
-
 
 					EventWrapper e = new EventWrapper(new EventId(EventId.MOUSE_WHEEL_SCROLLED), false);
 					if (project != null) project.fireToAllSprites(e);
@@ -1285,7 +1282,8 @@ public class StageListener implements ApplicationListener {
 			Look.tickGlobalFrame();
 
 			float color = 0f;
-			Gdx.gl20.glClearColor(color, color, color, 0f);
+
+            Gdx.gl20.glClearColor(color, color, color, 0f);
 			Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
 			StageActivity stageActivity = StageActivity.activeStageActivity.get();
@@ -1512,7 +1510,7 @@ public class StageListener implements ApplicationListener {
                 float y = tempPhysicsObject.getY();
                 float h = font.getXHeight();
 
-                debugTextBuilder.setLength(0); // Очищаем билдер без аллокации
+                debugTextBuilder.setLength(0);
                 debugTextBuilder.append("velocity_x: ").append(tempPhysicsObject.getVelocity().x);
                 font.draw(batch, debugTextBuilder, x, y);
 
@@ -1562,12 +1560,15 @@ public class StageListener implements ApplicationListener {
 		return plotActor;
 	}
 
-	@Override
-	public void resize(int width, int height) {
+    @Override
+    public void resize(int width, int height) {
+        StageActivity activity = StageActivity.activeStageActivity.get();
+        boolean isFreeStageEnabled = (activity instanceof StageWorkspaceActivity);
+
         boolean isScreenLandscape = width > height;
         boolean isVirtualLandscape = virtualWidth > virtualHeight;
 
-        if (isScreenLandscape != isVirtualLandscape) {
+        if (!isFreeStageEnabled && isScreenLandscape != isVirtualLandscape) {
             float temp = virtualWidth;
             virtualWidth = virtualHeight;
             virtualHeight = temp;
@@ -1604,17 +1605,29 @@ public class StageListener implements ApplicationListener {
                         virtualWidth, virtualHeight);
             }
         }
-        camera.viewportHeight = height;
+        if (stage != null && viewPort != null) {
+            stage.setViewport(viewPort);
+        }
+        if (uiStage != null && uiViewPort != null) {
+            uiStage.setViewport(uiViewPort);
+        }
         camera.viewportWidth = width;
-		if (viewPort != null) {
-			viewPort.update(width, height, false);
-		}
-		if (uiViewPort != null) {
-			uiViewPort.update(width, height, true);
-		}
-		if (threeDManager != null) threeDManager.resize(width, height);
+        camera.viewportHeight = height;
+
+        if (viewPort != null) {
+            viewPort.update(width, height, false);
+        }
+        if (uiViewPort != null) {
+            uiViewPort.update(width, height, true);
+        }
+
+        if (camera != null) {
+            camera.update();
+        }
+
+        if (threeDManager != null) threeDManager.resize(width, height);
         if (fastTwoDManager != null) fastTwoDManager.resize(width, height);
-	}
+    }
 
 
 	public void executeExitScriptsSynchronously() {
@@ -1693,6 +1706,10 @@ public class StageListener implements ApplicationListener {
 				}
 			}
 		}
+        if (stage != null) {
+            stage.dispose();
+            stage = null;
+        }
 		if (uiStage != null) {
 			uiStage.dispose();
 			uiStage = null;
@@ -1832,8 +1849,14 @@ public class StageListener implements ApplicationListener {
 	}
 
 	private void initScreenMode() {
-		screenshotWidth = ScreenValues.getResolutionForProject(project).getWidth();
-		screenshotHeight = ScreenValues.getResolutionForProject(project).getHeight();
+        int currentWidth = Gdx.graphics.getWidth();
+        int currentHeight = Gdx.graphics.getHeight();
+
+        if (currentWidth <= 0) currentWidth = ScreenValues.currentScreenResolution.getWidth();
+        if (currentHeight <= 0) currentHeight = ScreenValues.currentScreenResolution.getHeight();
+
+        screenshotWidth = ScreenValues.getResolutionForProject(project).getWidth();
+        screenshotHeight = ScreenValues.getResolutionForProject(project).getHeight();
 
 		switch (project.getScreenMode()) {
 			case STRETCH:
@@ -1863,12 +1886,15 @@ public class StageListener implements ApplicationListener {
 			default:
 				break;
 		}
-		viewPort.update(ScreenValues.currentScreenResolution.getWidth(),
-				ScreenValues.currentScreenResolution.getHeight(),
-				false);
-		camera.position.set(0, 0, 0);
-		camera.update();
-		shapeRenderer.updateMatrices();
+
+        if (stage != null) {
+            stage.setViewport(viewPort);
+        }
+
+        viewPort.update(currentWidth, currentHeight, false);
+        camera.position.set(0, 0, 0);
+        camera.update();
+        shapeRenderer.updateMatrices();
 	}
 
 	private void disposeTextures() {
@@ -2080,4 +2106,20 @@ public class StageListener implements ApplicationListener {
 	public String getScreenshotPath() {
 		return scene.getDirectory().getAbsolutePath() + "/";
 	}
+
+    public void executeConsoleScript(Sprite targetSprite, Script script) {
+        if (targetSprite == null || script == null) return;
+
+        Gdx.app.postRunnable(() -> {
+            try {
+                ScriptSequenceAction sequence = targetSprite.createSequenceAction(script);
+                sequence.restart();
+
+                targetSprite.look.addAction(sequence);
+
+            } catch (Exception e) {
+                Log.e("RuntimeConsole", "Failed to execute sandbox script", e);
+            }
+        });
+    }
 }

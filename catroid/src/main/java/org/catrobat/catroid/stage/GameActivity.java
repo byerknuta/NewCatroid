@@ -27,12 +27,11 @@ public class GameActivity extends AppCompatActivity {
                         WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
 
         myWebView = findViewById(R.id.myWebView);
-        myWebView.setWebViewClient(new WebViewClient()); // Чтобы открывать ссылки в WebView
+        myWebView.setWebViewClient(new WebViewClient());
 
-        myWebView.getLayoutParams().width = 300;  // Установи ширину (в пикселях)
-        myWebView.getLayoutParams().height = 400; // Установи высоту (в пикселях)
-        myWebView.requestLayout(); // Обновление компоновки
-        // Загрузи URL
+        myWebView.getLayoutParams().width = 300;
+        myWebView.getLayoutParams().height = 400;
+        myWebView.requestLayout();
         myWebView.loadUrl("https://uchi.ru/");
     }
 
@@ -46,14 +45,12 @@ public class GameActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        // Не вызываем super, чтобы предотвратить стандартное поведение
-        // Здесь можно добавить логику, если необходимо
         onDestroy();
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        return false; // Пропускает касания
+        return false;
     }
 
 }

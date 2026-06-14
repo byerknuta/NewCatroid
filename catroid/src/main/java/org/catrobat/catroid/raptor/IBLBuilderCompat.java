@@ -13,7 +13,6 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
-// Этот класс - замена для недостающей функциональности в IBLBuilder
 public class IBLBuilderCompat implements Disposable {
 
     private final ShaderProgram irradianceShader;
@@ -87,9 +86,6 @@ public class IBLBuilderCompat implements Disposable {
     }
 
     public Cubemap buildRadianceMap(Cubemap source, int size, int maxMipLevels) {
-        // This is a simplified version. For a true radiance map with mipmaps,
-        // it's more complex. We'll generate the base level here.
-        // The real gdx-gltf uses a more advanced method. Let's just create one level for now.
         return renderToCubemap(source, size, radianceShader, 1.0f);
     }
 

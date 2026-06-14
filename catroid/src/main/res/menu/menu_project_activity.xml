@@ -86,6 +86,7 @@
         android:id="@+id/editor3d"
         android:title="@string/editor3d"
         app:showAsAction="never"
+        android:visible="false"
         android:icon="@drawable/threed_24px"/>
     <item
         android:id="@+id/from_library"

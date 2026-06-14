@@ -22,4 +22,7 @@ public interface PlayableAudio {
 
     void setBaseVolume(float volume);
     float getBaseVolume();
+
+    void setMaxDistance(float maxDistance);
+    float getMaxDistance();
 }

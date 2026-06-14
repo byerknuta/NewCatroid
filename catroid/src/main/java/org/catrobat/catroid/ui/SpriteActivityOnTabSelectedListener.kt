@@ -59,6 +59,11 @@ private class SpriteActivityOnTabSelectedListener(val loadFragment: KFunction1<I
 
 fun Activity?.removeTabLayout() {
     if (this is SpriteActivity) {
+        val workspace = this.findViewById<View>(R.id.workspace_layout)
+        if (workspace != null && workspace.visibility == View.VISIBLE) {
+            return
+        }
+
         val tabLayout = findViewById<View>(R.id.tab_layout)
         val viewGroup = findViewById<ViewGroup>(R.id.activity_sprite)
         viewGroup?.removeView(tabLayout)
@@ -68,6 +73,11 @@ fun Activity?.removeTabLayout() {
 @SuppressLint("InflateParams")
 fun Activity?.addTabLayout(selectedTabPosition: Int) {
     if (this is SpriteActivity) {
+        val workspace = this.findViewById<View>(R.id.workspace_layout)
+        if (workspace != null && workspace.visibility == View.VISIBLE) {
+            return
+        }
+
         val tabLayoutView = layoutInflater.inflate(R.layout.layout_tabs_sprite_activity, null)
         val gv = findViewById<ViewGroup?>(R.id.activity_sprite)
         gv?.addView(tabLayoutView, 1)

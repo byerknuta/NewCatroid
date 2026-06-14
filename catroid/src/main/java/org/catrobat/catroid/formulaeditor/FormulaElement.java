@@ -117,8 +117,6 @@ public class FormulaElement implements Serializable {
 
     private transient Double cachedDoubleValue = null;
 
-    private transient org.catrobat.catroid.raptor.ThreeDManager cachedThreeDManager = null;
-
     private static org.luaj.vm2.Globals luaGlobals = null;
 
     public enum ElementType {
@@ -1784,15 +1782,11 @@ public class FormulaElement implements Serializable {
     }
 
     private org.catrobat.catroid.raptor.ThreeDManager getThreeDManager() {
-        if (cachedThreeDManager != null) {
-            return cachedThreeDManager;
-        }
-
         org.catrobat.catroid.stage.StageListener listener = org.catrobat.catroid.stage.StageActivity.getActiveStageListener();
         if (listener != null) {
-            cachedThreeDManager = listener.getThreeDManager();
+            return listener.getThreeDManager();
         }
-        return cachedThreeDManager;
+        return null;
     }
 
     public long getFileSize(File file) {
