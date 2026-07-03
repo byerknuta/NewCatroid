@@ -8,7 +8,7 @@
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * An additional term exception under section 7 of the GNU Affero
+ * An additional term exception under section section 3 of the GNU Affero
  * General Public License, version 3, is available at
  * http://developer.catrobat.org/license_additional_term
  *
@@ -27,7 +27,6 @@ import android.graphics.ColorMatrixColorFilter
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.RectShape
-import android.util.Log
 import android.view.LayoutInflater
 import android.graphics.Typeface
 import android.graphics.Color
@@ -53,7 +52,6 @@ import org.catrobat.catroid.content.bricks.EmptyEventBrick
 import org.catrobat.catroid.content.bricks.EndBrick
 import org.catrobat.catroid.content.bricks.FormulaBrick
 import org.catrobat.catroid.content.bricks.ListSelectorBrick
-import org.catrobat.catroid.content.bricks.NoneBrick
 import org.catrobat.catroid.content.bricks.ScriptBrick
 import org.catrobat.catroid.content.bricks.SetParticleColorBrick
 import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrick
@@ -69,6 +67,7 @@ class BrickAdapter(private val sprite: Sprite) :
     BrickAdapterInterface,
     AdapterView.OnItemClickListener,
     OnItemLongClickListener {
+
     @Retention(AnnotationRetention.SOURCE)
     @IntDef(NONE, ALL, SCRIPTS_ONLY, CONNECTED_ONLY)
     internal annotation class CheckBoxMode
@@ -100,6 +99,8 @@ class BrickAdapter(private val sprite: Sprite) :
 
     private var useIndentationCached: Boolean? = null
 
+    private val brickDepthCache = HashMap<Int, Int>()
+
     init {
         updateItems(sprite)
     }
@@ -118,6 +119,31 @@ class BrickAdapter(private val sprite: Sprite) :
             val filter = ColorMatrixColorFilter(matrix)
             background.mutate()
             background.colorFilter = filter
+        }
+    }
+
+    private class BrickViewHolder(val itemView: View) {
+        val textViews: List<TextView> by lazy {
+            val list = ArrayList<TextView>()
+            findTextViewsRecursive(itemView, list)
+            list
+        }
+
+        var toggleWrapper: View? = null
+        var collapseToggle: TextView? = null
+        var originalContainer: View? = null
+        var lastAppliedSeverity: Severity? = null
+        var lastIsCommentedOutOrEmpty: Boolean? = null
+        var lastIsCollapsed: Boolean? = null
+
+        private fun findTextViewsRecursive(view: View, list: MutableList<TextView>) {
+            if (view is TextView) {
+                list.add(view)
+            } else if (view is ViewGroup) {
+                for (i in 0 until view.childCount) {
+                    findTextViewsRecursive(view.getChildAt(i), list)
+                }
+            }
         }
     }
 
@@ -177,28 +203,43 @@ class BrickAdapter(private val sprite: Sprite) :
             val colorFormula = item.getFormulaWithBrickField(BrickField.COLOR, true)
                 ?: return createUnknownView("NoneBrick", parent)
         }
-        val itemView = item.getView(parent.context)
 
-        clearHighlights(itemView as ViewGroup)
+        val itemView = item.getView(parent.context) as ViewGroup
+
+        val holder = itemView.tag as? BrickViewHolder ?: BrickViewHolder(itemView).also { itemView.tag = it }
 
         val result = AnalysisManager.getResultFor(item)
-        if (result != null) {
-            applyHighlight(itemView, result.severity)
+        val currentSeverity = result?.severity
+
+        if (holder.lastAppliedSeverity != currentSeverity) {
+            if (currentSeverity == null) {
+                clearHighlightsOptimized(holder)
+            } else {
+                applyHighlightOptimized(holder, currentSeverity)
+            }
+            holder.lastAppliedSeverity = currentSeverity
         }
 
         val baseAlpha = if (viewStateManager.isEnabled(position)) 1F else DISABLED_BRICK_ALPHA
-        itemView.alpha = if (item.isPhantom) baseAlpha * 0.5f else baseAlpha
+        val targetAlpha = if (item.isPhantom) baseAlpha * 0.5f else baseAlpha
+        if (itemView.alpha != targetAlpha) {
+            itemView.alpha = targetAlpha
+        }
 
         var brickViewContainer = itemView.getChildAt(1)
         if (item is UserDefinedReceiverBrick) {
             brickViewContainer = (itemView.getChildAt(1) as ViewGroup).getChildAt(0)
         }
 
-        val background = brickViewContainer.background
-        if (item.isCommentedOut || item is EmptyEventBrick) {
-            colorAsCommentedOut(background)
-        } else {
-            background.clearColorFilter()
+        val isCommentedOutOrEmpty = item.isCommentedOut || item is EmptyEventBrick
+        if (holder.lastIsCommentedOutOrEmpty != isCommentedOutOrEmpty) {
+            val background = brickViewContainer.background
+            if (isCommentedOutOrEmpty) {
+                colorAsCommentedOut(background)
+            } else {
+                background.clearColorFilter()
+            }
+            holder.lastIsCommentedOutOrEmpty = isCommentedOutOrEmpty
         }
 
         if (item is CompositeBrick) {
@@ -207,7 +248,17 @@ class BrickAdapter(private val sprite: Sprite) :
                 val isCollapsed = org.catrobat.catroid.utils.BrickCollapseManager.isCollapsed(item)
                 val density = parent.context.resources.displayMetrics.density
 
-                var toggleWrapper = itemViewViewGroup.findViewWithTag<android.widget.RelativeLayout>("toggle_wrapper")
+                var toggleWrapper = holder.toggleWrapper
+                var toggleBtn = holder.collapseToggle
+
+                if (toggleWrapper == null) {
+                    toggleWrapper = itemViewViewGroup.findViewWithTag<View>("toggle_wrapper")
+                    if (toggleWrapper != null) {
+                        holder.toggleWrapper = toggleWrapper
+                        toggleBtn = toggleWrapper.findViewWithTag<TextView>("collapse_toggle")
+                        holder.collapseToggle = toggleBtn
+                    }
+                }
 
                 if (toggleWrapper == null) {
                     val originalContainer = itemViewViewGroup.getChildAt(1)
@@ -256,12 +307,18 @@ class BrickAdapter(private val sprite: Sprite) :
                     toggleWrapper.addView(toggleView)
 
                     itemViewViewGroup.addView(toggleWrapper, 1)
+
+                    holder.toggleWrapper = toggleWrapper
+                    holder.collapseToggle = toggleView
+                    holder.originalContainer = originalContainer
+                    toggleBtn = toggleView
                 }
 
-                val toggleBtn = toggleWrapper.findViewWithTag<TextView>("collapse_toggle")
-                toggleBtn?.text = if (isCollapsed) "[＋]" else "[－]"
-
-                itemView.alpha = if (isCollapsed) baseAlpha * 0.82f else baseAlpha
+                if (holder.lastIsCollapsed != isCollapsed) {
+                    toggleBtn?.text = if (isCollapsed) "[＋]" else "[－]"
+                    itemView.alpha = if (isCollapsed) baseAlpha * 0.82f else baseAlpha
+                    holder.lastIsCollapsed = isCollapsed
+                }
             }
         }
 
@@ -273,41 +330,41 @@ class BrickAdapter(private val sprite: Sprite) :
         var rootView: View = itemView
 
         if (useIndentation) {
-            val depth = getBrickDepth(item)
-            if (depth > 0) {
-                val existingParent = itemView.parent
-                if (existingParent is IndentedBrickLayout) {
+            val depth = getBrickDepthCached(item)
+            val existingParent = itemView.parent
+            if (existingParent is IndentedBrickLayout) {
+                val lastDepth = existingParent.tag as? Int
+                if (lastDepth != depth) {
                     existingParent.setDepth(depth)
-                    rootView = existingParent
-                } else {
-                    (existingParent as? ViewGroup)?.removeView(itemView)
+                    existingParent.tag = depth
+                }
+                rootView = existingParent
+            } else {
+                (existingParent as? ViewGroup)?.removeView(itemView)
 
-                    val indentedLayout = IndentedBrickLayout(parent.context, depth)
-                    indentedLayout.layoutParams = ViewGroup.LayoutParams(
+                val indentedLayout = IndentedBrickLayout(parent.context, depth)
+                indentedLayout.layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                indentedLayout.tag = depth
+                indentedLayout.addView(
+                    itemView,
+                    LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                     )
-                    indentedLayout.addView(
-                        itemView,
-                        LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT
-                        )
-                    )
+                )
 
+                if (indentedLayout.measuredWidth == 0 || indentedLayout.measuredHeight == 0) {
                     val parentWidth = if (parent.width > 0) parent.width else parent.resources.displayMetrics.widthPixels
                     val widthSpec = View.MeasureSpec.makeMeasureSpec(parentWidth, View.MeasureSpec.EXACTLY)
                     val heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
                     indentedLayout.measure(widthSpec, heightSpec)
                     indentedLayout.layout(0, 0, indentedLayout.measuredWidth, indentedLayout.measuredHeight)
+                }
 
-                    rootView = indentedLayout
-                }
-            } else {
-                val existingParent = itemView.parent
-                if (existingParent is IndentedBrickLayout) {
-                    existingParent.removeView(itemView)
-                }
+                rootView = indentedLayout
             }
         } else {
             val existingParent = itemView.parent
@@ -322,69 +379,44 @@ class BrickAdapter(private val sprite: Sprite) :
         return rootView
     }
 
-    private fun findFirstTextView(view: View): TextView? {
-        if (view is TextView) return view
-        if (view is ViewGroup) {
-            for (i in 0 until view.childCount) {
-                val child = view.getChildAt(i)
-                val result = findFirstTextView(child)
-                if (result != null) return result
-            }
-        }
-        return null
-    }
-
-    private fun clearHighlights(group: ViewGroup) {
-        for (i in 0 until group.childCount) {
-            val child = group.getChildAt(i)
-            if (child is TextView) {
-                child.foreground = null
-            } else if (child is ViewGroup) {
-                clearHighlights(child)
-            }
+    private fun clearHighlightsOptimized(holder: BrickViewHolder) {
+        val textViews = holder.textViews
+        for (i in textViews.indices) {
+            textViews[i].foreground = null
         }
     }
 
-    private fun applyHighlight(group: ViewGroup, severity: Severity) {
-        for (i in 0 until group.childCount) {
-            val child = group.getChildAt(i)
-            if (child is TextView) {
-                val color = if (severity == Severity.ERROR) 0xFFFF4444.toInt() else 0xFFFFBB33.toInt()
+    private fun applyHighlightOptimized(holder: BrickViewHolder, severity: Severity) {
+        val textViews = holder.textViews
+        val context = holder.itemView.context
+        val color = if (severity == Severity.ERROR) 0xFFFF4444.toInt() else 0xFFFFBB33.toInt()
+        val density = context.resources.displayMetrics.density
 
-                val underline = object : ShapeDrawable(RectShape()) {
-                    init {
-                        paint.color = color
-                    }
-
-                    override fun draw(canvas: android.graphics.Canvas) {
-                        val b = bounds
-                        canvas.drawRect(
-                            b.left.toFloat(),
-                            (b.bottom - (2f * group.context.resources.displayMetrics.density)),
-                            b.right.toFloat(),
-                            b.bottom.toFloat(),
-                            paint
-                        )
-                    }
+        for (i in textViews.indices) {
+            val child = textViews[i]
+            val underline = object : ShapeDrawable(RectShape()) {
+                init {
+                    paint.color = color
                 }
-                child.foreground = underline
-            } else if (child is ViewGroup) {
-                applyHighlight(child, severity)
+
+                override fun draw(canvas: android.graphics.Canvas) {
+                    val b = bounds
+                    canvas.drawRect(
+                        b.left.toFloat(),
+                        (b.bottom - (2f * density)),
+                        b.right.toFloat(),
+                        b.bottom.toFloat(),
+                        paint
+                    )
+                }
             }
+            child.foreground = underline
         }
     }
 
     private fun createUnknownView(className: String, container: ViewGroup): View {
-        val brickView = LayoutInflater.from(container.context).inflate(R.layout.brick_none, container, false)
-
-        //val brickLayout = brickView as? BrickLayout
-
-        //val textView: TextView? = brickLayout?.findViewById(R.id.brick_none_text)
-
-        //textView?.text = "Xz"
-        return brickView
+        return LayoutInflater.from(container.context).inflate(R.layout.brick_none, container, false)
     }
-
 
     private fun checkBoxClickListener(item: Brick, itemView: ViewGroup, position: Int) {
         item.checkBox.setOnClickListener { onCheckBoxClick(position) }
@@ -547,12 +579,12 @@ class BrickAdapter(private val sprite: Sprite) :
 
     private fun isItemWithinConnectedRange(brickPosition: Int, scriptSelected: Boolean): Boolean {
         return brickPosition >= firstConnectedItem && brickPosition <= firstConnectedItem + 1 ||
-            brickPosition <= lastConnectedItem && brickPosition >= lastConnectedItem - 1 && !scriptSelected
+                brickPosition <= lastConnectedItem && brickPosition >= lastConnectedItem - 1 && !scriptSelected
     }
 
     private fun isItemOfNewScript(brickPosition: Int, scriptSelected: Boolean): Boolean {
         return lastConnectedItem == brickPosition && items[brickPosition] is ScriptBrick ||
-            scriptSelected && brickPosition <= firstConnectedItem
+                scriptSelected && brickPosition <= firstConnectedItem
     }
 
     private fun noConnectedItemsSelected(): Boolean =
@@ -626,8 +658,36 @@ class BrickAdapter(private val sprite: Sprite) :
         return useIndentationCached!!
     }
 
+    private fun cacheBrickProperties() {
+        brickDepthCache.clear()
+        for (item in items) {
+            brickDepthCache[item.hashCode()] = calculateBrickDepth(item)
+        }
+    }
+
+    private fun getBrickDepthCached(brick: Brick): Int {
+        return brickDepthCache[brick.hashCode()] ?: calculateBrickDepth(brick)
+    }
+
+    private fun calculateBrickDepth(brick: Brick): Int {
+        var depth = 0
+        var currentParent = brick.parent
+        while (currentParent != null) {
+            if (!isElseBrick(currentParent)) {
+                depth++
+            }
+            currentParent = currentParent.parent
+        }
+
+        if (depth > 0 && isEndOrElseBrick(brick)) {
+            depth--
+        }
+        return depth
+    }
+
     override fun notifyDataSetChanged() {
         useIndentationCached = null
+        cacheBrickProperties()
         super.notifyDataSetChanged()
     }
 
@@ -673,7 +733,7 @@ class BrickAdapter(private val sprite: Sprite) :
         }
 
         return brickInEnclosure to
-            enclosureBrick.dragAndDropTargetList.indexOf(brickInEnclosure) + 1
+                enclosureBrick.dragAndDropTargetList.indexOf(brickInEnclosure) + 1
     }
 
     private fun moveEndIntoExtendedSection(
@@ -821,22 +881,6 @@ class BrickAdapter(private val sprite: Sprite) :
         if (brick is EndBrick) return true
         val name = brick.javaClass.simpleName
         return name.endsWith("EndBrick") || name.endsWith("ElseBrick")
-    }
-
-    private fun getBrickDepth(brick: Brick): Int {
-        var depth = 0
-        var currentParent = brick.parent
-        while (currentParent != null) {
-            if (!isElseBrick(currentParent)) {
-                depth++
-            }
-            currentParent = currentParent.parent
-        }
-
-        if (depth > 0 && isEndOrElseBrick(brick)) {
-            depth--
-        }
-        return depth
     }
 
     override fun getCount(): Int = items.size

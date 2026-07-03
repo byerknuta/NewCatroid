@@ -174,12 +174,15 @@ public class ScriptFragment extends ListFragment implements
 	private Script scriptToFocus;
 
 	private CodeAnalyzer codeAnalyzer;
+    private kotlinx.coroutines.Job codeAnalysisJob = null;
 
 	private SpriteActivity activity;
 
     private View analysisStatusIndicator;
     private TextView errorCountText;
     private TextView warningCountText;
+
+    private Sprite currentSprite;
 
     private static final boolean DEBUG_SPRITE_PRINTER = false;
 
@@ -365,6 +368,8 @@ public class ScriptFragment extends ListFragment implements
 			ProjectManager.getInstance().setCurrentSceneAndSprite(currentScene.getName(),
 					currentSprite.getName());
 
+            this.currentSprite = currentSprite;
+
 			adapter.updateItems(currentSprite);
 			adapter.notifyDataSetChanged();
 			listView.smoothScrollToPosition(brickIndex);
@@ -428,13 +433,61 @@ public class ScriptFragment extends ListFragment implements
 		imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
 	}
 
-	@Override
-	public void onDestroyView() {
-		super.onDestroyView();
-		if (scriptFinder.isOpen() && activity != null) {
-			activity.findViewById(R.id.toolbar).setVisibility(View.VISIBLE);
-		}
-	}
+    private static void clearBrickViewsReflection(Brick brick) {
+        if (brick == null) return;
+
+        Class<?> clazz = brick.getClass();
+        while (clazz != null && clazz != Object.class) {
+            java.lang.reflect.Field[] fields = clazz.getDeclaredFields();
+            for (java.lang.reflect.Field field : fields) {
+                try {
+                    if (android.view.View.class.isAssignableFrom(field.getType())) {
+                        field.setAccessible(true);
+                        field.set(brick, null);
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+            clazz = clazz.getSuperclass();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        if (codeAnalysisJob != null) {
+            codeAnalysisJob.cancel(null);
+            codeAnalysisJob = null;
+        }
+
+        if (this.currentSprite != null && this.currentSprite.getScriptList() != null) {
+            for (Script script : this.currentSprite.getScriptList()) {
+                List<Brick> bricks = getBricksFromScript(script);
+                if (bricks != null) {
+                    for (Brick brick : bricks) {
+                        clearBrickViewsReflection(brick);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (scriptFinder.isOpen() && activity != null) {
+            activity.findViewById(R.id.toolbar).setVisibility(View.VISIBLE);
+        }
+
+        if (adapter != null) {
+            adapter.setSelectionListener(null);
+            adapter.setOnItemClickListener(null);
+            adapter.setOnScriptChangedListener(null);
+            adapter = null;
+        }
+        listView = null;
+    }
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -442,12 +495,12 @@ public class ScriptFragment extends ListFragment implements
 
 		Project currentProject = ProjectManager.getInstance().getCurrentProject();
 		Scene currentScene = ProjectManager.getInstance().getCurrentlyEditedScene();
-		Sprite currentSprite = ProjectManager.getInstance().getCurrentSprite();
+        this.currentSprite = ProjectManager.getInstance().getCurrentSprite();
 		currentProject.getBroadcastMessageContainer().update();
 
-		adapter = new BrickAdapter(ProjectManager.getInstance().getCurrentSprite());
-		adapter.setSelectionListener(this);
-		adapter.setOnItemClickListener(this);
+        adapter = new BrickAdapter(this.currentSprite);
+        adapter.setSelectionListener(this);
+        adapter.setOnItemClickListener(this);
 
 		adapter.setOnScriptChangedListener(this);
 
@@ -476,6 +529,10 @@ public class ScriptFragment extends ListFragment implements
         Project project = ProjectManager.getInstance().getCurrentProject();
         Scene scene = ProjectManager.getInstance().getCurrentlyEditedScene();
         Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
+
+        if (sprite != null) {
+            this.currentSprite = sprite;
+        }
 
         ActionBar actionBar = null;
         if (getActivity() instanceof AppCompatActivity) {
@@ -525,6 +582,11 @@ public class ScriptFragment extends ListFragment implements
     public void onPause() {
         super.onPause();
 
+        if (codeAnalysisJob != null) {
+            codeAnalysisJob.cancel(null);
+            codeAnalysisJob = null;
+        }
+
         KoveAutocompleteController.getInstance().cancelActiveJob();
         KoveAutocompleteController.getInstance().dismissSuggestions();
 
@@ -558,7 +620,7 @@ public class ScriptFragment extends ListFragment implements
         Sprite currentSprite = ProjectManager.getInstance().getCurrentSprite();
         if (currentSprite == null) return;
 
-        BuildersKt.launch(GlobalScope.INSTANCE, Dispatchers.getIO(), CoroutineStart.DEFAULT, (scope, continuation) -> {
+        codeAnalysisJob = BuildersKt.launch(GlobalScope.INSTANCE, Dispatchers.getIO(), CoroutineStart.DEFAULT, (scope, continuation) -> {
             final Map<Brick, AnalysisResult> allResults = new HashMap<>();
 
             for (Script script : currentSprite.getScriptList()) {

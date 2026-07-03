@@ -436,6 +436,9 @@ dependencies {
         implementation fileTree(dir: 'src/main/libs', include: ['*.aar'])
     }
 
+    // Find memory leak :/
+    // debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
+
     implementation 'org.eclipse.jgit:org.eclipse.jgit:5.13.1.202206130422-r'
 
     implementation 'org.xmlunit:xmlunit-core:2.9.1'
