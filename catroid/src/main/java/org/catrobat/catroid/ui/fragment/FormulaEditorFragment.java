@@ -201,6 +201,10 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 		updateButtonsOnKeyboardAndInvalidateOptionsMenu();
 	}
 
+    public void setShowCustomView(boolean showCustomView) {
+        this.showCustomView = showCustomView;
+    }
+
 	private void addTokensToActiveFormula(List<InternToken> tokens) {
 		if (formulaEditorEditText != null) {
 			formulaEditorEditText.addTokensToActiveFormula(tokens);
@@ -981,15 +985,19 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 						return;
 					}
 				}
-				MenuItem undo = currentMenu.findItem(R.id.menu_undo);
-				if (undo != null) {
-					undo.setIcon(R.drawable.icon_undo_disabled);
-					undo.setEnabled(false);
-				}
+                if (currentMenu != null) {
+                    MenuItem undo = currentMenu.findItem(R.id.menu_undo);
+                    if (undo != null) {
+                        undo.setIcon(R.drawable.icon_undo_disabled);
+                        undo.setEnabled(false);
+                    }
 
-				MenuItem redo = currentMenu.findItem(R.id.menu_redo);
-				redo.setIcon(R.drawable.icon_redo_disabled);
-				redo.setEnabled(false);
+                    MenuItem redo = currentMenu.findItem(R.id.menu_redo);
+                    if (redo != null) {
+                        redo.setIcon(R.drawable.icon_redo_disabled);
+                        redo.setEnabled(false);
+                    }
+                }
 
 				formulaEditorEditText.endEdit();
 				currentFormulaField = formulaField;

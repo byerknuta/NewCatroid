@@ -195,10 +195,15 @@ public class BrickSpinner<T extends Nameable> implements AdapterView.OnItemSelec
 			return null;
 		}
 
-		Fragment currentFragment = activity.getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-		if (currentFragment instanceof ScriptFragment) {
-			return (ScriptFragment) currentFragment;
-		}
+        Fragment currentFragment = activity.getSupportFragmentManager().findFragmentByTag(ScriptFragment.TAG);
+        if (currentFragment instanceof ScriptFragment) {
+            return (ScriptFragment) currentFragment;
+        }
+
+        currentFragment = activity.getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+        if (currentFragment instanceof ScriptFragment) {
+            return (ScriptFragment) currentFragment;
+        }
 		return null;
 	}
 

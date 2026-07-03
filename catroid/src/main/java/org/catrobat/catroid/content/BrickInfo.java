@@ -38,6 +38,8 @@ public final class BrickInfo {
         add(BroadcastReceiverBrick.class, "Вызывается, когда любой спрайт в этой сцене отправит выбранное сообщение.");
         add(WhenProjectExitsBrick.class, "Вызывается, когда пользователь выходит из проекта. Можно использовать для выгрузки данных или сохранения.");
         add(WhenBackPressedBrick.class, "Вызывается, когда пользователь нажимает на кнопку \"назад\" на устройстве.");
+        add(WhenBeforeUpdateBrick.class, "Вызывается все время ПЕРЕД ОТРИСОВКОЙ! используйте для синхронизации логики и рендера");
+        add(WhenBeforeUpdateBrick.class, "Вызывается все время ПОСЛЕ ОТРИСОВКИ!");
         add(WhenConditionBrick.class, "Вызывается, как только условие в станет истиной.");
         add(WhenBackgroundChangesBrick.class, "Вызывается, когда фон изменит образ на выбранный.");
         add(WhenClonedBrick.class, "Вызывается ТОЛЬКО для клона, сразу после его клорования.");
@@ -52,6 +54,10 @@ public final class BrickInfo {
         add(IfLogicElseBrick.class, "Выполняет блоки внутри, если условие ложь.");
         add(IfThenLogicEndBrick.class, "Конец блока \"Если\"");
         add(AsyncRepeatBrick.class, "Повторяет блоки без задержек. ВАЖНО: плохо работает. игнорирует блоки \"Ждать\"");
+        add(InstantBrick.class, "Выполняет все блоки внутри без задержек. ВАЖНО: может вызвать фризы при тяжелых действиях");
+        add(SpawnThreadBrick.class, "Запускает блоки в новом потоке с ID (не ждет окончания!). Используйте для многопоточности!");
+        add(WaitThreadBrick.class, "Ждет окончания выполнения блоков внутри потока с ID");
+        add(StopThreadBrick.class, "Принудительно останавливает выполнение блоков в потоке с ID");
         add(IntervalRepeatBrick.class, "Повторяет блоки с определенным интервалом");
         add(WaitUntilBrick.class, "Приостанавливает выполнение, пока условие не станет истинным");
         add(RepeatBrick.class, "Повторяет блоки несколько раз");
@@ -148,6 +154,7 @@ public final class BrickInfo {
         add(NextLookBrick.class, "Задает следующий образ");
         add(PreviousLookBrick.class, "Задает предыдущий образ");
         add(SetSizeToBrick.class, "Задает размер спрайта");
+        add(EasePropertyBrick.class, "Плавно изменяет свойство обьекта с определенной анимацией");
         add(ChangeSizeByNBrick.class, "Изменяет размер спрайта");
         add(HideBrick.class, "Скрывает спрайт (он становится невидимым)");
         add(ShowBrick.class, "Показывает спрайт (он снова видимый)");
@@ -339,6 +346,21 @@ public final class BrickInfo {
         add(ReadBaseBrick.class, "Читает значение из FireBase ВАЖНО: если айди базы неправильный - может вызывать фатальную ошибку");
         add(DeleteBaseBrick.class, "Удаляет ключ из FireBase ВАЖНО: если айди базы неправильный - может вызывать фатальную ошибку");
         add(UploadFileBrick.class, "Отправляет файл проекта на сервер");
+        add(CreateBufferBrick.class, "Создает виртуальный кадровый буфер (FrameBuffer) с заданным именем и физическим разрешением в пикселях.");
+        add(SetBufferModeBrick.class, "Настраивает режим работы буфера: определяет, будет ли в него отрисовываться 2D сцена, 3D сцена или все вместе.");
+        add(SetBufferAutoUpdateBrick.class, "Задает режим автоматического обновления буфера. При отключении автообновления буфер будет обновляться только по запросу.");
+        add(AddToBufferBrick.class, "Добавляет текущий спрайт, вызвавший этот блок, в очередь рендеринга выбранного буфера.");
+        add(RemoveFromBufferBrick.class, "Исключает текущий спрайт из очереди рендеринга выбранного буфера.");
+        add(SetBufferOnlyBrick.class, "При значении 1 отключает отрисовку спрайта на физический экран, оставляя его видимым только внутри текстуры буфера.");
+        add(SetBufferCameraBrick.class, "Задает параметры 2D камеры буфера: смещение по осям X/Y, степень приближения (Zoom) и угол вращения.");
+        add(SetBufferCamera3DBrick.class, "Задает параметры 3D камеры буфера: координаты камеры, углы наклона (Yaw, Pitch, Roll) и поле зрения (FOV).");
+        add(ApplyBufferLookBrick.class, "Задает текущему спрайту образ, динамически транслирующий содержимое выбранного буфера в реальном времени.");
+        add(SaveBufferBrick.class, "Захватывает текущее изображение буфера и сохраняет его в файлы проекта в формате .png.");
+        add(AddTextToBufferBrick.class, "Добавляет текст для рендеринга внутрь кадрового буфера.");
+        add(SetBufferShaderBrick.class, "Устанавливает кастомные вершинный (vsh) и фрагментный (fsh) шейдеры на буфер для постобработки графики.");
+        add(SetBufferShaderUniformBrick.class, "Передает кастомные Uniform-переменные (числа или векторы) в шейдер выбранного буфера.");
+        add(SetMainRenderLoopsBrick.class, "Позволяет отключать стандартные рендер-циклы (2D, Fast2D, 3D) на дисплей смартфона для экономии ресурсов видеокарты.");
+        add(SetBufferEffectsBrick.class, "Позволяет включать 3D VFX эффекты постобработки (Bloom, SSAO, SSR) или мипмаппинг (сглаживание под углами) внутри буфера.");
     }
 
     private static <T extends Brick> void add(Class<T> brickClass, String description) {

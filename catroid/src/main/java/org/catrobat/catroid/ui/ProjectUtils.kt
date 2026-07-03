@@ -46,6 +46,7 @@ import org.catrobat.catroid.content.bricks.ForVariableFromToBrick
 import org.catrobat.catroid.content.bricks.ForeverBrick
 import org.catrobat.catroid.content.bricks.IfLogicBeginBrick
 import org.catrobat.catroid.content.bricks.IfThenLogicBeginBrick
+import org.catrobat.catroid.content.bricks.InstantBrick
 import org.catrobat.catroid.content.bricks.IntervalRepeatBrick
 import org.catrobat.catroid.content.bricks.LookRequestBrick
 import org.catrobat.catroid.content.bricks.ParameterizedBrick
@@ -53,6 +54,7 @@ import org.catrobat.catroid.content.bricks.PhiroIfLogicBeginBrick
 import org.catrobat.catroid.content.bricks.RepeatBrick
 import org.catrobat.catroid.content.bricks.RepeatUntilBrick
 import org.catrobat.catroid.content.bricks.RunAsSpriteBrick
+import org.catrobat.catroid.content.bricks.SpawnThreadBrick
 import org.catrobat.catroid.content.bricks.StartListeningBrick
 import org.catrobat.catroid.content.bricks.WebRequestBrick
 
@@ -96,6 +98,12 @@ public fun Sprite.getListAllBricks(): List<Brick> {
                 bricks.addAll(brick.nestedBricks)
 
             is AsyncRepeatBrick ->
+                bricks.addAll(brick.nestedBricks)
+
+            is InstantBrick ->
+                bricks.addAll(brick.nestedBricks)
+
+            is SpawnThreadBrick ->
                 bricks.addAll(brick.nestedBricks)
 
             is IntervalRepeatBrick ->

@@ -277,6 +277,10 @@ public final class XstreamSerializer {
 		xstream.alias("brick", ReturnToPreviousProjectBrick.class);
 		xstream.alias("brick", LaunchProjectBrick.class);
 		xstream.alias("brick", AsyncRepeatBrick.class);
+        xstream.alias("brick", InstantBrick.class);
+        xstream.alias("brick", SpawnThreadBrick.class);
+        xstream.alias("brick", WaitThreadBrick.class);
+        xstream.alias("brick", StopThreadBrick.class);
 		xstream.alias("brick", IntervalRepeatBrick.class);
         xstream.alias("brick", RunAsSpriteBrick.class);
 		xstream.alias("brick", SetViewPositionBrick.class);
@@ -346,8 +350,13 @@ public final class XstreamSerializer {
         xstream.alias("brick", Fast2DSetColorBrick.class);
         xstream.alias("brick", Fast2DSetCameraBrick.class);
         xstream.alias("brick", CreateBufferBrick.class);
+        xstream.alias("brick", AddTextToBufferBrick.class);
         xstream.alias("brick", SetBufferModeBrick.class);
+        xstream.alias("brick", SetBufferShaderBrick.class);
+        xstream.alias("brick", SetBufferShaderUniformBrick.class);
         xstream.alias("brick", SetBufferCamera3DBrick.class);
+        xstream.alias("brick", SetMainRenderLoopsBrick.class);
+        xstream.alias("brick", SetBufferEffectsBrick.class);
         xstream.alias("brick", SaveBufferBrick.class);
         xstream.alias("brick", SetBufferAutoUpdateBrick.class);
         xstream.alias("brick", RemoveFromBufferBrick.class);
@@ -562,6 +571,8 @@ public final class XstreamSerializer {
 		xstream.alias("brick", SetPenSizeBrick.class);
 		xstream.alias("brick", SetRotationStyleBrick.class);
 		xstream.alias("brick", SetSizeToBrick.class);
+        xstream.alias("brick", SetVariableEasingBrick.class);
+        xstream.alias("brick", EasePropertyBrick.class);
 		xstream.alias("brick", SetWidthBrick.class);
 		xstream.alias("brick", SetHeightBrick.class);
 		xstream.alias("brick", ChangeWidthBrick.class);
@@ -595,6 +606,8 @@ public final class XstreamSerializer {
 		xstream.alias("brick", WhenBackgroundChangesBrick.class);
 		xstream.alias("brick", WhenStartedBrick.class);
 		xstream.alias("brick", WhenProjectExitsBrick.class);
+        xstream.alias("brick", WhenBeforeUpdateBrick.class);
+        xstream.alias("brick", WhenAfterUpdateBrick.class);
 		xstream.alias("brick", WhenBackPressedBrick.class);
 		xstream.alias("brick", WhenMouseButtonClickedBrick.class);
 		xstream.alias("brick", LockMouseBrick.class);

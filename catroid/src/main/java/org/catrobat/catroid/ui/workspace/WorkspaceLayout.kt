@@ -347,21 +347,13 @@ class WorkspaceLayout @JvmOverloads constructor(
                 val fragment = activity?.supportFragmentManager?.findFragmentByTag(tag)
                         as? org.catrobat.catroid.ui.fragment.FormulaEditorFragment
 
-                fragment?.exitFormulaEditorFragment()
+                fragment?.saveFormulaIfPossible()
+
                 removeWindow(tag, force = true)
 
                 val scriptsFragment = activity?.supportFragmentManager
-                    ?.findFragmentByTag(ScriptFragment.TAG)
-                        as? ScriptFragment
-
-                scriptsFragment?.view?.post {
-                    val recycler = scriptsFragment.view?.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.recycler_view)
-                    if (recycler != null) {
-                        val currentAdapter = recycler.adapter
-                        recycler.adapter = null
-                        recycler.adapter = currentAdapter
-                    }
-                }
+                    ?.findFragmentByTag(ScriptFragment.TAG) as? ScriptFragment
+                scriptsFragment?.notifyDataSetChanged()
             } else {
                 removeWindow(tag, force = true)
             }
@@ -735,7 +727,7 @@ class WorkspaceLayout @JvmOverloads constructor(
             val fragment = (context as? androidx.fragment.app.FragmentActivity)
                 ?.supportFragmentManager
                 ?.findFragmentByTag(tag) as? org.catrobat.catroid.ui.fragment.FormulaEditorFragment
-            fragment?.setInputFormula(formulaField, 1)
+            fragment?.setInputFormula(formulaField, if (showCustomView) 0 else 1)
             return
         }
 
@@ -746,6 +738,7 @@ class WorkspaceLayout @JvmOverloads constructor(
                     putSerializable(org.catrobat.catroid.ui.fragment.FormulaEditorFragment.FORMULA_FIELD_BUNDLE_ARGUMENT, formulaField)
                 }
                 arguments = bundle
+                setShowCustomView(showCustomView)
             }
         }
     }
@@ -807,11 +800,17 @@ class WorkspaceLayout @JvmOverloads constructor(
         val formulaTag = org.catrobat.catroid.ui.fragment.FormulaEditorFragment.FORMULA_EDITOR_FRAGMENT_TAG
         val formulaWindow = activeWindows[formulaTag]
         if (formulaWindow != null && !formulaWindow.isPinned) {
-            val fragment = (context as? androidx.fragment.app.FragmentActivity)
-                ?.supportFragmentManager
-                ?.findFragmentByTag(formulaTag) as? org.catrobat.catroid.ui.fragment.FormulaEditorFragment
+            val activity = context as? androidx.fragment.app.FragmentActivity
+            val fragment = activity?.supportFragmentManager?.findFragmentByTag(formulaTag)
+                    as? org.catrobat.catroid.ui.fragment.FormulaEditorFragment
+
             fragment?.saveFormulaIfPossible()
-            removeWindow(formulaTag, force = false)
+
+            removeWindow(formulaTag, force = true)
+
+            val scriptsFragment = activity?.supportFragmentManager
+                ?.findFragmentByTag(ScriptFragment.TAG) as? ScriptFragment
+            scriptsFragment?.notifyDataSetChanged()
             return true
         }
 

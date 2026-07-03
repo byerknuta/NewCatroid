@@ -17,6 +17,6 @@ public class ExitProjectScript extends Script {
 
     @Override
     public EventId createEventId(Sprite sprite) {
-        return new EventId(EventId.PROJECT_EXIT); // <-- Связываем с нашим новым ID
+        return new EventId(EventId.PROJECT_EXIT);
     }
 }

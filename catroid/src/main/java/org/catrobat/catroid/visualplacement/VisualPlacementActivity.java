@@ -36,6 +36,7 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -139,8 +140,8 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 	private VisualPlacementTouchListener visualPlacementTouchListener;
 
 	private ScaleGestureDetector scaleGestureDetector;
-	private float currentScale = 1.0f; // Текущий общий масштаб
-	private float currentRotation = 0.0f; // Текущий угол поворота
+	private float currentScale = 1.0f;
+	private float currentRotation = 0.0f;
 
 	public static final String WIDTH_BUNDLE_ARGUMENT = "widthPercentage";
 	public static final String HEIGHT_BUNDLE_ARGUMENT = "heightPercentage";
@@ -349,25 +350,24 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		imageView.setImageBitmap(scaledBitmap);
 		imageView.setScaleType(ImageView.ScaleType.CENTER);
 
-		float finalX = translateX; // - (scaledBitmap.getWidth() / 2.0f);
-		float finalY = -translateY;// - (scaledBitmap.getHeight() / 2.0f); // -Y т.к. ось Y перевернута
+		float finalX = translateX;
+		float finalY = -translateY;
 
-		if (isText) {
-			imageView.setTranslationX(finalX + xOffsetText);
-			imageView.setTranslationY(finalY + yOffsetText);
-		} else {
-			imageView.setTranslationX(finalX);
-			imageView.setTranslationY(finalY);
-		}
+        if (isText) {
+            imageView.setTranslationX(finalX + xOffsetText);
+            imageView.setTranslationY(finalY + yOffsetText - (float) visualPlacementBitmap.getHeight() / 2);
+        } else {
+            imageView.setTranslationX(finalX);
+            imageView.setTranslationY(finalY);
+        }
 
-		xCoord = translateX; // Сохраняем "чистые" координаты без смещения
+		xCoord = translateX;
 		yCoord = translateY;
 
-		// Устанавливаем начальный масштаб и вращение
 		imageView.setScaleX(scaleX);
 		imageView.setScaleY(scaleY);
 		imageView.setRotation(initialRotation);
-		initialScale = scaleX; // Сохраняем начальный масштаб для проверки изменений
+		initialScale = scaleX;
 
 		frameLayout.addView(imageView);
 	}
@@ -416,21 +416,29 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 
 	@Override
 	public boolean onTouch(View view, MotionEvent event) {
-		// Сначала отдаем событие детектору масштабирования/вращения
 		scaleGestureDetector.onTouchEvent(event);
 
-		// Затем нашему старому обработчику для перетаскивания (только если не идет масштабирование)
 		if (!scaleGestureDetector.isInProgress()) {
 			visualPlacementTouchListener.onTouch(imageView, event, this);
 		}
-		return true; // Всегда возвращаем true, чтобы получать все события
+		return true;
 	}
 
 	@Override
 	protected void onStart() {
 		super.onStart();
-		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            );
+        } else {
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }
 	}
 
 	@Override
@@ -466,12 +474,8 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		int xCoordinate = Math.round(xCoord / layoutWidthRatio);
 		int yCoordinate = Math.round(yCoord / layoutHeightRatio);
 
-		// Вычисляем размер в процентах от исходного.
-		// imageView.getScaleX() вернет ОБЩИЙ масштаб.
-		// Делим его на исходный масштаб спрайта.
 		float sizePercentage = (imageView.getScaleX() / scaleX) * 100f;
 
-		// Проверяем, изменилось ли что-нибудь
 		boolean hasChanges = (initialX != xCoordinate || initialY != yCoordinate
 				|| Math.abs(initialRotation - imageView.getRotation()) > 0.1
 				|| Math.abs(initialScale - imageView.getScaleX()) > 0.01);
@@ -479,8 +483,8 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		extras.putInt(X_COORDINATE_BUNDLE_ARGUMENT, xCoordinate);
 		extras.putInt(Y_COORDINATE_BUNDLE_ARGUMENT, yCoordinate);
 		extras.putFloat(ROTATION_ANGLE_BUNDLE_ARGUMENT, imageView.getRotation());
-		extras.putFloat(SIZE_PERCENT_BUNDLE_ARGUMENT, sizePercentage); // Используем новую константу
-		extras.putBoolean(CHANGED_COORDINATES, hasChanges); // Реализованная проверка
+		extras.putFloat(SIZE_PERCENT_BUNDLE_ARGUMENT, sizePercentage);
+		extras.putBoolean(CHANGED_COORDINATES, hasChanges);
 
 		returnIntent.putExtras(extras);
 		setResult(Activity.RESULT_OK, returnIntent);
@@ -510,11 +514,11 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 
 	@Override
 	public void setYCoordinate(float yCoordinate) {
-		if (isText) {
-			yCoord = yCoordinate + yOffsetText;
-		} else {
-			yCoord = yCoordinate;
-		}
+        if (isText) {
+            yCoord = yCoordinate + yOffsetText - (float) imageView.getDrawable().getIntrinsicHeight() / 2;
+        } else {
+            yCoord = yCoordinate;
+        }
 	}
 
 	private class MyScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
@@ -528,17 +532,14 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 
 		@Override
 		public boolean onScale(ScaleGestureDetector detector) {
-			// Масштабирование
 			float scaleFactor = detector.getScaleFactor();
 			imageView.setScaleX(imageView.getScaleX() * scaleFactor);
 			imageView.setScaleY(imageView.getScaleY() * scaleFactor);
 
-			// Вращение (только если есть два пальца)
 			if (detector.getCurrentSpan() > 0) {
 				float angle = getAngle(detector.getCurrentSpanX(), detector.getCurrentSpanY());
 				float deltaAngle = angle - lastAngle;
 
-				// Сглаживание, чтобы избежать резких скачков
 				if (Math.abs(deltaAngle) < 10) {
 					imageView.setRotation(imageView.getRotation() + deltaAngle);
 				}

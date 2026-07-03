@@ -89,6 +89,8 @@ import org.catrobat.catroid.common.LookData;
 import org.catrobat.catroid.common.ScreenModes;
 import org.catrobat.catroid.common.ScreenValues;
 import org.catrobat.catroid.common.ThreadScheduler;
+import org.catrobat.catroid.content.AfterUpdateScript;
+import org.catrobat.catroid.content.BeforeUpdateScript;
 import org.catrobat.catroid.content.EventWrapper;
 import org.catrobat.catroid.content.ExitProjectScript;
 import org.catrobat.catroid.content.GlobalManager;
@@ -294,8 +296,16 @@ public class StageListener implements ApplicationListener {
 
 	private ShaderProgram vncSwizzleShader;
 
+    private final List<ScriptSequenceAction> beforeUpdateActions = new ArrayList<>();
+    private boolean hasBeforeUpdateScripts = false;
+
+    private final List<ScriptSequenceAction> afterUpdateActions = new ArrayList<>();
+    private boolean hasAfterUpdateScripts = false;
+
 	@Override
 	public void create() {
+        org.catrobat.catroid.utils.ActionThreadRegistry.clear();
+
 		deltaActionTimeDivisor = 10f;
 
         stage = null;
@@ -436,6 +446,9 @@ public class StageListener implements ApplicationListener {
 		} catch (Exception e) {
 			Log.e("SHADER_ERROR", "Could not load VNC Swizzle Shader files", e);
 		}
+
+        cacheBeforeUpdateScripts();
+        cacheAfterUpdateScripts();
 	}
 
 	public void setCameraPosition(float x, float y) {
@@ -777,6 +790,8 @@ public class StageListener implements ApplicationListener {
 		}
 		copy.initializeEventThreads(EventId.START_AS_CLONE);
 		copy.initConditionScriptTriggers();
+        cacheBeforeUpdateScripts();
+        cacheAfterUpdateScripts();
 	}
 
 	public void cloneSpriteAndAddToStage(Sprite cloneMe, String newName) {
@@ -796,6 +811,8 @@ public class StageListener implements ApplicationListener {
 		}
 		copy.initializeEventThreads(EventId.START_AS_CLONE);
 		copy.initConditionScriptTriggers();
+        cacheBeforeUpdateScripts();
+        cacheAfterUpdateScripts();
 	}
 
 	public void addCloneActorToStage(Stage stage, Group rootGroup, Look cloneMeLook, Look copyLook) {
@@ -813,6 +830,8 @@ public class StageListener implements ApplicationListener {
 		if (removedSprite) {
 			sprite.look.destroy();
 			sprite.invalidate();
+            cacheBeforeUpdateScripts();
+            cacheAfterUpdateScripts();
 		}
 		return removedSprite;
 	}
@@ -1201,8 +1220,75 @@ public class StageListener implements ApplicationListener {
 			Log.e("StageListener", "INITIALIZE ERROR: " + e);
 		}
 
+        org.catrobat.catroid.utils.ActionThreadRegistry.clear();
+
 		reloadProject = true;
 	}
+
+    private void cacheBeforeUpdateScripts() {
+        beforeUpdateActions.clear();
+        hasBeforeUpdateScripts = false;
+        if (sprites == null) return;
+
+        for (Sprite sprite : sprites) {
+            for (Script script : sprite.getScriptList()) {
+                if (script instanceof BeforeUpdateScript && !script.isCommentedOut()) {
+                    ScriptSequenceAction action = sprite.createSequenceAction(script);
+                    action.setActor(sprite.look);
+
+                    beforeUpdateActions.add(action);
+                }
+            }
+        }
+        hasBeforeUpdateScripts = !beforeUpdateActions.isEmpty();
+    }
+
+    private void cacheAfterUpdateScripts() {
+        afterUpdateActions.clear();
+        hasAfterUpdateScripts = false;
+        if (sprites == null) return;
+
+        for (Sprite sprite : sprites) {
+            for (Script script : sprite.getScriptList()) {
+                if (script instanceof AfterUpdateScript && !script.isCommentedOut()) {
+                    ScriptSequenceAction action = sprite.createSequenceAction(script);
+                    action.setActor(sprite.look);
+                    afterUpdateActions.add(action);
+                }
+            }
+        }
+        hasAfterUpdateScripts = !afterUpdateActions.isEmpty();
+    }
+
+    private void executeAfterUpdateScripts(float delta) {
+        for (int i = 0; i < afterUpdateActions.size(); i++) {
+            ScriptSequenceAction action = afterUpdateActions.get(i);
+            action.restart();
+
+            int iterations = 0;
+            while (iterations < 10000) {
+                if (action.act(delta)) {
+                    break;
+                }
+                iterations++;
+            }
+        }
+    }
+
+    private void executeBeforeUpdateScripts(float delta) {
+        for (int i = 0; i < beforeUpdateActions.size(); i++) {
+            ScriptSequenceAction action = beforeUpdateActions.get(i);
+            action.restart();
+
+            int iterations = 0;
+            while (iterations < 10000) {
+                if (action.act(delta)) {
+                    break;
+                }
+                iterations++;
+            }
+        }
+    }
 
 	@Override
 	public void resume() {
@@ -1420,22 +1506,25 @@ public class StageListener implements ApplicationListener {
                             threeDManager.update(Gdx.graphics.getDeltaTime());
                         }
                     }
+                    if (hasBeforeUpdateScripts && !paused) {
+                        executeBeforeUpdateScripts(Gdx.graphics.getDeltaTime());
+                    }
                     try {
-						if (threeDManager != null) {
-							threeDManager.render();
-						}
+                        if (threeDManager != null && org.catrobat.catroid.content.RenderTextureManager.isMain3DRenderEnabled()) {
+                            threeDManager.render();
+                        }
                     } catch (Exception e) {
                         Log.e("3DRENDER", "ERROR: " + e);
                     }
 
-                    if (fastTwoDManager != null && !paused) {
+                    if (fastTwoDManager != null && !paused && org.catrobat.catroid.content.RenderTextureManager.isMainFast2DRenderEnabled()) {
                         fastTwoDManager.updateAndRender(Gdx.graphics.getDeltaTime());
                     }
 
-                    stage.draw();
-
-
-                    uiStage.draw();
+                    if (org.catrobat.catroid.content.RenderTextureManager.isMain2DRenderEnabled()) {
+                        stage.draw();
+                        uiStage.draw();
+                    }
                 } catch (Exception e) {
                     Log.e("RENDER", "FATAL ERROR: " + e);
                 }
@@ -1485,6 +1574,10 @@ public class StageListener implements ApplicationListener {
 			}
 
 			cameraPositioner.updateCameraPositionForFocusedSprite();
+
+            if (hasAfterUpdateScripts && !paused) {
+                executeAfterUpdateScripts(Gdx.graphics.getDeltaTime());
+            }
 		} catch (Exception e) {
 			Log.e("RENDER_CRASH", "Fatal error during render loop", e);
 		}
@@ -1643,12 +1736,7 @@ public class StageListener implements ApplicationListener {
 
 				if (script instanceof ExitProjectScript && !script.isCommentedOut()) {
 					Log.d("StageListener", "Found exit script in sprite: " + sprite.getName());
-
 					ScriptSequenceAction sequence = sprite.createSequenceAction(script);
-
-
-
-
 					sequence.act(Float.MAX_VALUE);
 				}
 			}
@@ -2090,7 +2178,9 @@ public class StageListener implements ApplicationListener {
 			SoundManager.getInstance().playSoundFileWithStartTime(soundBackup.getPathToSoundFile(),
 					soundBackup.getStartedBySprite(), soundBackup.getCurrentPosition());
 		}
-		initStageInputListener();
+        initStageInputListener();
+        cacheBeforeUpdateScripts();
+        cacheAfterUpdateScripts();
 	}
 
 	private float calculateScreenRatio() {

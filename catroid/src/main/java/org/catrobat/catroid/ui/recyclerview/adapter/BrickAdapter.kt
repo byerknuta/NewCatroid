@@ -41,6 +41,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.IntDef
 import org.catrobat.catroid.R
+import org.catrobat.catroid.ai.KoveAutocompleteController
 import org.catrobat.catroid.codeanalysis.AnalysisManager
 import org.catrobat.catroid.codeanalysis.Severity
 import org.catrobat.catroid.content.Script
@@ -171,7 +172,6 @@ class BrickAdapter(private val sprite: Sprite) :
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val item = items[position]
-        Log.d("TestItem", item.javaClass.simpleName)
 
         if (item is SetParticleColorBrick) {
             val colorFormula = item.getFormulaWithBrickField(BrickField.COLOR, true)
@@ -186,11 +186,8 @@ class BrickAdapter(private val sprite: Sprite) :
             applyHighlight(itemView, result.severity)
         }
 
-        itemView.visibility =
-            if (viewStateManager.isVisible(position)) View.VISIBLE else View.INVISIBLE
-
         val baseAlpha = if (viewStateManager.isEnabled(position)) 1F else DISABLED_BRICK_ALPHA
-        itemView.alpha = baseAlpha
+        itemView.alpha = if (item.isPhantom) baseAlpha * 0.5f else baseAlpha
 
         var brickViewContainer = itemView.getChildAt(1)
         if (item is UserDefinedReceiverBrick) {
@@ -205,7 +202,7 @@ class BrickAdapter(private val sprite: Sprite) :
         }
 
         if (item is CompositeBrick) {
-            val itemViewViewGroup = itemView
+            val itemViewViewGroup = itemView as? ViewGroup
             if (itemViewViewGroup != null) {
                 val isCollapsed = org.catrobat.catroid.utils.BrickCollapseManager.isCollapsed(item)
                 val density = parent.context.resources.displayMetrics.density
@@ -268,11 +265,12 @@ class BrickAdapter(private val sprite: Sprite) :
             }
         }
 
-        checkBoxClickListener(item, itemView, position)
+        checkBoxClickListener(item, itemView as ViewGroup, position)
         item.checkBox.isChecked = selectionManager.isPositionSelected(position)
         item.checkBox.isEnabled = viewStateManager.isEnabled(position)
 
         val useIndentation = getUseIndentation(parent.context)
+        var rootView: View = itemView
 
         if (useIndentation) {
             val depth = getBrickDepth(item)
@@ -280,7 +278,7 @@ class BrickAdapter(private val sprite: Sprite) :
                 val existingParent = itemView.parent
                 if (existingParent is IndentedBrickLayout) {
                     existingParent.setDepth(depth)
-                    return existingParent
+                    rootView = existingParent
                 } else {
                     (existingParent as? ViewGroup)?.removeView(itemView)
 
@@ -303,17 +301,25 @@ class BrickAdapter(private val sprite: Sprite) :
                     indentedLayout.measure(widthSpec, heightSpec)
                     indentedLayout.layout(0, 0, indentedLayout.measuredWidth, indentedLayout.measuredHeight)
 
-                    return indentedLayout
+                    rootView = indentedLayout
                 }
+            } else {
+                val existingParent = itemView.parent
+                if (existingParent is IndentedBrickLayout) {
+                    existingParent.removeView(itemView)
+                }
+            }
+        } else {
+            val existingParent = itemView.parent
+            if (existingParent is IndentedBrickLayout) {
+                existingParent.removeView(itemView)
             }
         }
 
-        val existingParent = itemView.parent
-        if (existingParent is IndentedBrickLayout) {
-            existingParent.removeView(itemView)
-        }
+        itemView.visibility = View.VISIBLE
+        rootView.visibility = if (viewStateManager.isVisible(position)) View.VISIBLE else View.INVISIBLE
 
-        return itemView
+        return rootView
     }
 
     private fun findFirstTextView(view: View): TextView? {
@@ -382,6 +388,15 @@ class BrickAdapter(private val sprite: Sprite) :
 
     private fun checkBoxClickListener(item: Brick, itemView: ViewGroup, position: Int) {
         item.checkBox.setOnClickListener { onCheckBoxClick(position) }
+
+        if (item.isPhantom) {
+            item.checkBox.visibility = View.GONE
+            if (item is FormulaBrick) {
+                item.disableSpinners()
+            }
+            return
+        }
+
         when (checkBoxMode) {
             NONE -> handleCheckBoxModeNone(item)
             CONNECTED_ONLY -> handleCheckBoxModeConnectedOnly(item, itemView, position)
@@ -422,6 +437,12 @@ class BrickAdapter(private val sprite: Sprite) :
     override fun onItemClick(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
         if (checkBoxMode == NONE) {
             val item = items[position]
+
+            if (item.isPhantom) {
+                KoveAutocompleteController.getInstance().acceptSuggestions()
+                return
+            }
+
             onItemClickListener?.onBrickClick(item, position)
         }
     }
@@ -434,6 +455,9 @@ class BrickAdapter(private val sprite: Sprite) :
     ): Boolean {
         if (checkBoxMode == NONE) {
             val item = items[position]
+            if (item.isPhantom) {
+                return true
+            }
             onItemClickListener?.onBrickLongClick(item, position)
             return true
         }

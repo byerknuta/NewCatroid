@@ -45,8 +45,6 @@ public class IntervalRepeatBrick extends FormulaBrick implements CompositeBrick 
         return R.layout.brick_interval_repeat;
     }
 
-    // --- Дальше идет стандартная реализация CompositeBrick ---
-
     @Override public boolean hasSecondaryList() { return false; }
     @Override public List<Brick> getNestedBricks() { return loopBricks; }
     @Override public List<Brick> getSecondaryNestedBricks() { return null; }

@@ -30,7 +30,8 @@
       "runtimeFiles": [
         "D:\\Catroid-develop\\catroid\\src\\main\\jniLibs\\arm64-v8a\\libonnxruntime.so",
         "D:\\Catroid-develop\\catroid\\src\\main\\jniLibs\\arm64-v8a\\libpython3.12.so",
-        "D:\\Catroid-develop\\catroid\\src\\main\\jniLibs\\arm64-v8a\\libMNN.so"
+        "D:\\Catroid-develop\\catroid\\src\\main\\jniLibs\\arm64-v8a\\libMNN.so",
+        "D:\\Catroid-develop\\catroid\\src\\main\\jniLibs\\arm64-v8a\\libllm.so"
       ]
     }
   }

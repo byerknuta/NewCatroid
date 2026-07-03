@@ -39,6 +39,7 @@ import org.catrobat.catroid.content.bricks.AddFileToApkBrick
 import org.catrobat.catroid.content.bricks.AddHingeBrick
 import org.catrobat.catroid.content.bricks.AddItemToUserListBrick
 import org.catrobat.catroid.content.bricks.AddRadioBrick
+import org.catrobat.catroid.content.bricks.AddTextToBufferBrick
 import org.catrobat.catroid.content.bricks.AddToBufferBrick
 import org.catrobat.catroid.content.bricks.Apply3dForceBrick
 import org.catrobat.catroid.content.bricks.ApplyAngularImpulseBrick
@@ -153,6 +154,7 @@ import org.catrobat.catroid.content.bricks.DroneSwitchCameraBrick
 import org.catrobat.catroid.content.bricks.DroneTakeOffLandBrick
 import org.catrobat.catroid.content.bricks.DroneTurnLeftBrick
 import org.catrobat.catroid.content.bricks.DroneTurnRightBrick
+import org.catrobat.catroid.content.bricks.EasePropertyBrick
 import org.catrobat.catroid.content.bricks.EditLookBrick
 import org.catrobat.catroid.content.bricks.EnablePbrRenderBrick
 import org.catrobat.catroid.content.bricks.EvalWebBrick
@@ -197,6 +199,7 @@ import org.catrobat.catroid.content.bricks.IfOnEdgeBounceBrick
 import org.catrobat.catroid.content.bricks.IfThenLogicBeginBrick
 import org.catrobat.catroid.content.bricks.InsertItemIntoUserListBrick
 import org.catrobat.catroid.content.bricks.InsertTableBrick
+import org.catrobat.catroid.content.bricks.InstantBrick
 import org.catrobat.catroid.content.bricks.IntervalRepeatBrick
 import org.catrobat.catroid.content.bricks.JumpingSumoAnimationsBrick
 import org.catrobat.catroid.content.bricks.JumpingSumoJumpHighBrick
@@ -365,8 +368,11 @@ import org.catrobat.catroid.content.bricks.SetBrightnessBrick
 import org.catrobat.catroid.content.bricks.SetBufferAutoUpdateBrick
 import org.catrobat.catroid.content.bricks.SetBufferCamera3DBrick
 import org.catrobat.catroid.content.bricks.SetBufferCameraBrick
+import org.catrobat.catroid.content.bricks.SetBufferEffectsBrick
 import org.catrobat.catroid.content.bricks.SetBufferModeBrick
 import org.catrobat.catroid.content.bricks.SetBufferOnlyBrick
+import org.catrobat.catroid.content.bricks.SetBufferShaderBrick
+import org.catrobat.catroid.content.bricks.SetBufferShaderUniformBrick
 import org.catrobat.catroid.content.bricks.SetCCDBrick
 import org.catrobat.catroid.content.bricks.SetCallbackBrick
 import org.catrobat.catroid.content.bricks.SetCameraFocusPointBrick
@@ -397,6 +403,7 @@ import org.catrobat.catroid.content.bricks.SetListeningLanguageBrick
 import org.catrobat.catroid.content.bricks.SetLookBrick
 import org.catrobat.catroid.content.bricks.SetLookByIndexBrick
 import org.catrobat.catroid.content.bricks.SetLookFilesBrick
+import org.catrobat.catroid.content.bricks.SetMainRenderLoopsBrick
 import org.catrobat.catroid.content.bricks.SetMassBrick
 import org.catrobat.catroid.content.bricks.SetMaterialBrick
 import org.catrobat.catroid.content.bricks.SetMaxPointLightsBrick
@@ -466,6 +473,7 @@ import org.catrobat.catroid.content.bricks.ShowVarFontBrick
 import org.catrobat.catroid.content.bricks.SignApkBrick
 import org.catrobat.catroid.content.bricks.SoundFileBrick
 import org.catrobat.catroid.content.bricks.SoundFilesBrick
+import org.catrobat.catroid.content.bricks.SpawnThreadBrick
 import org.catrobat.catroid.content.bricks.SpeakAndWaitBrick
 import org.catrobat.catroid.content.bricks.SpeakBrick
 import org.catrobat.catroid.content.bricks.SplitBrick
@@ -485,6 +493,7 @@ import org.catrobat.catroid.content.bricks.StopScriptBrick
 import org.catrobat.catroid.content.bricks.StopServerBrick
 import org.catrobat.catroid.content.bricks.StopSoundBrick
 import org.catrobat.catroid.content.bricks.StopSoundBrick2
+import org.catrobat.catroid.content.bricks.StopThreadBrick
 import org.catrobat.catroid.content.bricks.StopVMBrick
 import org.catrobat.catroid.content.bricks.StoreCSVIntoUserListBrick
 import org.catrobat.catroid.content.bricks.StringToTableBrick
@@ -527,11 +536,14 @@ import org.catrobat.catroid.content.bricks.VoxelLoadStringBrick
 import org.catrobat.catroid.content.bricks.VoxelSetBlockBrick
 import org.catrobat.catroid.content.bricks.VoxelSetTransparentBrick
 import org.catrobat.catroid.content.bricks.WaitBrick
+import org.catrobat.catroid.content.bricks.WaitThreadBrick
 import org.catrobat.catroid.content.bricks.WaitTillIdleBrick
 import org.catrobat.catroid.content.bricks.WaitUntilBrick
 import org.catrobat.catroid.content.bricks.WebRequestBrick
+import org.catrobat.catroid.content.bricks.WhenAfterUpdateBrick
 import org.catrobat.catroid.content.bricks.WhenBackPressedBrick
 import org.catrobat.catroid.content.bricks.WhenBackgroundChangesBrick
+import org.catrobat.catroid.content.bricks.WhenBeforeUpdateBrick
 import org.catrobat.catroid.content.bricks.WhenBounceOffBrick
 import org.catrobat.catroid.content.bricks.WhenBrick
 import org.catrobat.catroid.content.bricks.WhenClonedBrick
@@ -687,6 +699,8 @@ open class CategoryBricksFactory {
                 if (!isBackgroundSprite) {
                     eventBrickList.add(WhenBounceOffBrick(WhenBounceOffScript(null)))
                 }
+                eventBrickList.add(WhenBeforeUpdateBrick())
+                eventBrickList.add(WhenAfterUpdateBrick())
                 eventBrickList.add(WhenBackgroundChangesBrick())
                 eventBrickList.add(WhenClonedBrick())
                 eventBrickList.add(CloneBrick())
@@ -745,6 +759,8 @@ open class CategoryBricksFactory {
 
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_system), template))
         eventBrickList.add(WhenProjectExitsBrick())
+        eventBrickList.add(WhenBeforeUpdateBrick())
+        eventBrickList.add(WhenAfterUpdateBrick())
         if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
             eventBrickList.add(WhenNfcBrick())
         }
@@ -780,6 +796,10 @@ open class CategoryBricksFactory {
                 controlBrickList.add(ForVariableFromToBrick(Formula(BrickValues.FOR_LOOP_FROM), Formula(BrickValues.FOR_LOOP_TO)))
                 controlBrickList.add(ForItemInUserListBrick())
                 controlBrickList.add(RunAsSpriteBrick(Formula("Sprite")))
+                controlBrickList.add(InstantBrick())
+                controlBrickList.add(SpawnThreadBrick(Formula("thread1")))
+                controlBrickList.add(WaitThreadBrick(Formula("thread1")))
+                controlBrickList.add(StopThreadBrick(Formula("thread1")))
                 controlBrickList.add(SceneTransitionBrick(null))
                 controlBrickList.add(SceneStartBrick(null))
                 controlBrickList.add(SceneIdBrick("1"))
@@ -830,6 +850,7 @@ open class CategoryBricksFactory {
         controlBrickList.add(WaitBrick(BrickValues.WAIT))
         controlBrickList.add(WaitUntilBrick(ifConditionFormula))
         controlBrickList.add(WaitTillIdleBrick())
+        controlBrickList.add(WaitThreadBrick(Formula("thread1")))
         controlBrickList.add(NoteBrick(context.getString(R.string.brick_note_default_value)))
 
         controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_loops), template))
@@ -840,6 +861,8 @@ open class CategoryBricksFactory {
         controlBrickList.add(IntervalRepeatBrick(Formula(3), Formula(1)))
         controlBrickList.add(ForVariableFromToBrick(Formula(BrickValues.FOR_LOOP_FROM), Formula(BrickValues.FOR_LOOP_TO)))
         controlBrickList.add(ForItemInUserListBrick())
+        controlBrickList.add(InstantBrick())
+        controlBrickList.add(SpawnThreadBrick(Formula("thread1")))
 
         controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_conditions), template))
         controlBrickList.add(IfLogicBeginBrick(ifConditionFormula))
@@ -860,6 +883,7 @@ open class CategoryBricksFactory {
 
         controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_stopping), template))
         controlBrickList.add(StopScriptBrick(BrickValues.STOP_THIS_SCRIPT))
+        controlBrickList.add(StopThreadBrick(Formula("thread1")))
         controlBrickList.add(ExitStageBrick())
 
         controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_cloning), template))
@@ -1181,6 +1205,7 @@ open class CategoryBricksFactory {
                 looksBrickList.add(ChangeBrightnessByNBrick(BrickValues.CHANGE_BRIGHTNESS_BY))
                 looksBrickList.add(SetColorBrick(BrickValues.SET_COLOR_TO))
                 looksBrickList.add(ChangeColorByNBrick(BrickValues.CHANGE_COLOR_BY))
+                looksBrickList.add(EasePropertyBrick(0, 0, 100f, 250f, 1f))
                 looksBrickList.add(FadeParticleEffectBrick())
                 looksBrickList.add(ParticleEffectAdditivityBrick())
                 looksBrickList.add(SetParticleColorBrick(BrickValues.PARTICLE_COLOR))
@@ -1189,8 +1214,8 @@ open class CategoryBricksFactory {
                 looksBrickList.add(SetCameraPosition2Brick(100, 300))
                 looksBrickList.add(SetCameraRotation2Brick(90.0))
                 looksBrickList.add(SetCameraZoomBrick(3.0))
-                looksBrickList.add(PinToCameraBrick())
-                looksBrickList.add(UnpinFromCameraBrick())
+                //looksBrickList.add(PinToCameraBrick())
+                //looksBrickList.add(UnpinFromCameraBrick())
                 looksBrickList.add(WhenBackgroundChangesBrick())
                 looksBrickList.add(SetBackgroundBrick())
                 looksBrickList.add(SetBackgroundByIndexBrick(BrickValues.SET_LOOK_BY_INDEX))
@@ -1239,10 +1264,43 @@ open class CategoryBricksFactory {
                 looksBrickList.add(AddToBufferBrick("Map"))
                 looksBrickList.add(RemoveFromBufferBrick(Formula("Map")))
                 looksBrickList.add(SetBufferOnlyBrick(Formula(1)))
+                looksBrickList.add(AddTextToBufferBrick("myText", "Map"))
                 looksBrickList.add(SetBufferCameraBrick("Map", "100", "200", "1", "0"))
                 looksBrickList.add(SetBufferCamera3DBrick(Formula("Map"), Formula(100), Formula(100), Formula(100), Formula(120), Formula(-20), Formula(0), Formula(67)))
                 looksBrickList.add(ApplyBufferLookBrick("Map"))
+                looksBrickList.add(SetBufferShaderBrick("Map", """attribute vec4 a_position;
+attribute vec4 a_color;
+attribute vec2 a_texCoord0;
+
+uniform mat4 u_projTrans;
+
+varying vec4 v_color;
+varying vec2 v_texCoords;
+
+void main() {
+    v_color = a_color;
+    v_texCoords = a_texCoord0;
+    gl_Position = u_projTrans * a_position;
+}""", """#ifdef GL_ES
+precision mediump float;
+#endif
+
+varying vec4 v_color;
+varying vec2 v_texCoords;
+
+uniform sampler2D u_texture;
+
+void main() {
+    vec4 texColor = texture2D(u_texture, v_texCoords);
+    
+    texColor.rgb = 1.0 - texColor.rgb;
+    
+    gl_FragColor = v_color * texColor;
+}"""))
+                looksBrickList.add(SetBufferShaderUniformBrick("Map", "time", 1f, 0f, 0f, 1))
                 looksBrickList.add(SaveBufferBrick(Formula("Map"), Formula("buffer.png")))
+                looksBrickList.add(SetMainRenderLoopsBrick(1f, 1f, 1f))
+                looksBrickList.add(SetBufferEffectsBrick("Map", 1f, 1f))
 
                 looksBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
                 return looksBrickList
@@ -1280,6 +1338,7 @@ open class CategoryBricksFactory {
         looksBrickList.add(ChangeHeightBrick(BrickValues.CHANGE_SIZE_BY))
 
         looksBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_looks_effects), template))
+        looksBrickList.add(EasePropertyBrick(0, 0, 100f, 250f, 1f))
         looksBrickList.add(SetTransparencyBrick(BrickValues.SET_TRANSPARENCY))
         looksBrickList.add(ChangeTransparencyByNBrick(BrickValues.CHANGE_TRANSPARENCY_EFFECT))
         looksBrickList.add(SetBrightnessBrick(BrickValues.SET_BRIGHTNESS_TO))
@@ -1316,8 +1375,8 @@ open class CategoryBricksFactory {
         looksBrickList.add(SetCameraPosition2Brick(100, 300))
         looksBrickList.add(SetCameraRotation2Brick(90.0))
         looksBrickList.add(SetCameraZoomBrick(3.0))
-        looksBrickList.add(PinToCameraBrick())
-        looksBrickList.add(UnpinFromCameraBrick())
+        //looksBrickList.add(PinToCameraBrick())
+        //looksBrickList.add(UnpinFromCameraBrick())
 
         looksBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_looks_camera_device), template))
         if (!ProjectManager.getInstance().currentProject.isCastProject) {
@@ -1355,10 +1414,43 @@ open class CategoryBricksFactory {
         looksBrickList.add(AddToBufferBrick("Map"))
         looksBrickList.add(RemoveFromBufferBrick(Formula("Map")))
         looksBrickList.add(SetBufferOnlyBrick(Formula(1)))
+        looksBrickList.add(AddTextToBufferBrick("myText", "Map"))
         looksBrickList.add(SetBufferCameraBrick("Map", "100", "200", "1", "0"))
         looksBrickList.add(SetBufferCamera3DBrick(Formula("Map"), Formula(100), Formula(100), Formula(100), Formula(120), Formula(-20), Formula(0), Formula(67)))
         looksBrickList.add(ApplyBufferLookBrick("Map"))
+        looksBrickList.add(SetBufferShaderBrick("Map", """attribute vec4 a_position;
+attribute vec4 a_color;
+attribute vec2 a_texCoord0;
+
+uniform mat4 u_projTrans;
+
+varying vec4 v_color;
+varying vec2 v_texCoords;
+
+void main() {
+    v_color = a_color;
+    v_texCoords = a_texCoord0;
+    gl_Position = u_projTrans * a_position;
+}""", """#ifdef GL_ES
+precision mediump float;
+#endif
+
+varying vec4 v_color;
+varying vec2 v_texCoords;
+
+uniform sampler2D u_texture;
+
+void main() {
+    vec4 texColor = texture2D(u_texture, v_texCoords);
+    
+    texColor.rgb = 1.0 - texColor.rgb;
+    
+    gl_FragColor = v_color * texColor;
+}"""))
+        looksBrickList.add(SetBufferShaderUniformBrick("Map", "time", 1f, 0f, 0f, 1))
         looksBrickList.add(SaveBufferBrick(Formula("Map"), Formula("buffer.png")))
+        looksBrickList.add(SetMainRenderLoopsBrick(1f, 1f, 1f))
+        looksBrickList.add(SetBufferEffectsBrick("Map", 1f, 1f))
 
         return looksBrickList
     }
@@ -1397,7 +1489,7 @@ open class CategoryBricksFactory {
                 dataBrickList.add(ShowVarFontBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR, "font.ttf"))
                 dataBrickList.add(ShowText3Brick("myText", "Hello!", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
                 dataBrickList.add(ShowTextFontBrick("myText", "Ababuy!", "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
-                //dataBrickList.add(ShowTextRotationBrick("myText", "Ababuy!", 90f, "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
+                dataBrickList.add(ShowTextRotationBrick("myText", "Ababuy!", 90f, "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
                 dataBrickList.add(HideTextBrick())
                 dataBrickList.add(HideText3Brick("myText"))
                 dataBrickList.add(WriteVariableOnDeviceBrick())
@@ -1490,6 +1582,7 @@ open class CategoryBricksFactory {
         dataBrickList.add(ShowVarFontBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR, "font.ttf"))
         dataBrickList.add(ShowText3Brick("myText", "Hello!", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
         dataBrickList.add(ShowTextFontBrick("myText", "Ababuy!", "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
+        dataBrickList.add(ShowTextRotationBrick("myText", "Ababuy!", 90f, "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
         dataBrickList.add(HideTextBrick())
         dataBrickList.add(HideText3Brick("myText"))
         dataBrickList.add(ShowToastBlock("Hello World!"))

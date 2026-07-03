@@ -25,6 +25,7 @@ package org.catrobat.catroid.ui.settingsfragments;
 import android.app.Activity;
 import androidx.appcompat.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -285,6 +286,88 @@ public class SettingsFragment extends PreferenceFragment {
 
 		setCorrectPreferenceViewForEmbroidery();
 		setCorrectPreferenceViewForPhiro();
+
+        final CheckBoxPreference devModePref = (CheckBoxPreference) findPreference("setting_developer_mode_enabled");
+        final PreferenceScreen koveAiScreen = (PreferenceScreen) findPreference("setting_kove_ai_screen");
+        final CheckBoxPreference aiAutocompletePref = (CheckBoxPreference) findPreference("setting_kove_ai_autocomplete");
+
+        if (devModePref != null && koveAiScreen != null) {
+            if (!devModePref.isChecked()) {
+                getPreferenceScreen().removePreference(koveAiScreen);
+            }
+        }
+
+        if (devModePref != null) {
+            devModePref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    boolean isEnabled = (Boolean) newValue;
+                    if (isEnabled) {
+                        new AlertDialog.Builder(getActivity())
+                                .setTitle(R.string.developer_mode_warning_title)
+                                .setMessage(R.string.developer_mode_warning_message)
+                                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        devModePref.setChecked(true);
+
+                                        PreferenceManager.getDefaultSharedPreferences(getActivity())
+                                                .edit().putBoolean("setting_developer_mode_enabled", true).apply();
+
+                                        if (koveAiScreen != null) {
+                                            getPreferenceScreen().addPreference(koveAiScreen);
+                                        }
+                                    }
+                                })
+                                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        devModePref.setChecked(false);
+                                    }
+                                })
+                                .setCancelable(false)
+                                .show();
+                        return false;
+                    } else {
+                        if (koveAiScreen != null) {
+                            getPreferenceScreen().removePreference(koveAiScreen);
+                        }
+                        if (aiAutocompletePref != null) {
+                            aiAutocompletePref.setChecked(false);
+                            PreferenceManager.getDefaultSharedPreferences(getActivity())
+                                    .edit().putBoolean("setting_kove_ai_autocomplete", false).apply();
+                        }
+                        return true;
+                    }
+                }
+            });
+        }
+
+        if (aiAutocompletePref != null) {
+            aiAutocompletePref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    boolean isEnabled = (Boolean) newValue;
+                    if (isEnabled) {
+                        if (!org.catrobat.catroid.ai.KoveManager.isModelDownloaded(getActivity())) {
+                            org.catrobat.catroid.ai.KoveManager.showDownloadDialog(getActivity(), new org.catrobat.catroid.ai.KoveCallback() {
+                                @Override
+                                public void onResult(boolean success) {
+                                    if (success) {
+                                        aiAutocompletePref.setChecked(true);
+                                    } else {
+                                        aiAutocompletePref.setChecked(false);
+                                    }
+                                }
+                            });
+                            return false;
+                        }
+                        return true;
+                    }
+                    return true;
+                }
+            });
+        }
 	}
 
 	@Override

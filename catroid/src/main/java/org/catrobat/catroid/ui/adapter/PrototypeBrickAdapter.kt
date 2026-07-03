@@ -62,10 +62,8 @@ class PrototypeBrickAdapter(private var brickList: List<Brick>) : BaseAdapter() 
         }
 
         val context = parent?.context ?: return cachedView
-        val prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
-        val useIndentation = prefs.getBoolean("pref_enable_brick_indentation", false)
 
-        if (useIndentation && cachedView != null) {
+        if (cachedView != null) {
             val depth = getBrickDepth(position)
             if (depth > 0) {
                 val existingParent = cachedView.parent

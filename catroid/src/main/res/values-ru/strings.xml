@@ -23,6 +23,53 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="brick_add_text_buffer_title">Добавить текст</string>
+    <string name="brick_add_text_buffer_to">В буфер</string>
+    <string name="brick_buffer_shader_title">Установить шейдер буфера</string>
+    <string name="brick_buf_uniform_title">Установить униформу</string>
+    <string name="brick_buf_uniform_in_buf">В шейдере буфера</string>
+    <string name="brick_render_loops_title">Настройка основных рендеров: 2D, Fast2D, 3D</string>
+    <string name="brick_buffer_fx_title">Настроить эффекты буфера</string>
+    <string name="brick_spawn_thread_title">Запустить поток</string>
+    <string name="brick_wait_thread_title">Ждать поток</string>
+    <string name="brick_stop_thread_title">Остановить поток</string>
+    <string name="brick_ease_title">Плавно изменить</string>
+    <string name="brick_ease_start_label">от</string>
+    <string name="brick_ease_end_label">до</string>
+    <string name="brick_ease_duration_label">сек</string>
+
+    <string-array name="brick_ease_properties">
+        <item>Позиция X</item>
+        <item>Позиция Y</item>
+        <item>Размер</item>
+        <item>Прозрачность</item>
+        <item>Цвет</item>
+        <item>Ширина</item>
+        <item>Высота</item>
+        <item>Яркость</item>
+    </string-array>
+    <string formatted="false" name="brick_when_after_update">После обновления экрана</string>
+    <string formatted="false" name="free_window_base">Включить режим свободных окон</string>
+    <string formatted="false" name="brick_when_before_update">До обновления экрана</string>
+    <string name="brick_instant">Выполнить моментально</string>
+    <string name="pref_developer_mode_title">Режим разработчика</string>
+    <string name="pref_developer_mode_summary">Включить экспериментальные функции только для разработчиков.</string>
+    <string name="developer_mode_warning_title">Внимание</string>
+    <string name="developer_mode_warning_message">Режим разработчика включает экспериментальные функции, которые могут вызвать нестабильность или сбои. Вы хотите продолжить?</string>
+
+    <string name="pref_ai_settings_title">Настройки ИИ</string>
+    <string name="pref_ai_autocomplete_title">Автодополнение с ИИ</string>
+    <string name="pref_ai_autocomplete_summary">Автоматическая генерация скриптов и формул на устройстве с помощью нейросети Kove.</string>
+
+    <string name="ai_download_dialog_title">Скачивание модели Kove</string>
+    <string name="ai_download_dialog_message">Для включения автодополнения необходимо скачать модель нейросети размером около 800 МБ. Хотите скачать её сейчас?</string>
+    <string name="ai_downloading_progress">Скачивание модели Kove... %1$d%%</string>
+    <string name="ai_unzipping">Распаковка файлов модели...</string>
+    <string name="ai_download_complete">Модель Kove успешно скачана! Пожалуйста, перезапустите приложение для применения изменений.</string>
+    <string name="ai_download_failed">Не удалось скачать модель Kove. Проверьте подключение к интернету.</string>
+    <string name="button_download">Скачать</string>
+    <string name="button_restart">Перезапустить</string>
+
     <!-- Physics warning -->
     <string name="physics_warning_title">Обновление совместимости</string>
     <string name="physics_warning_message">Этот проект был создан в более старой версии. Рекомендуется обновить кэш физики прямо сейчас, чтобы избежать зависаний и вылетов. P.S. рекомендуем обновить его в опциях проекта, а не здесь</string>

@@ -55,10 +55,14 @@ import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.content.StartScript
 import org.catrobat.catroid.content.bricks.Brick
 import org.catrobat.catroid.content.bricks.PlaceAtBrick
+import org.catrobat.catroid.content.bricks.PointInDirectionBrick
+import org.catrobat.catroid.content.bricks.SetSizeToBrick
+import org.catrobat.catroid.content.bricks.VisualPlacementBrick
 import org.catrobat.catroid.databinding.ActivityRecyclerBinding
 import org.catrobat.catroid.databinding.DialogNewActorBinding
 import org.catrobat.catroid.databinding.ProgressBarBinding
 import org.catrobat.catroid.editor.EditorActivity
+import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.UserData
 import org.catrobat.catroid.formulaeditor.UserList
 import org.catrobat.catroid.formulaeditor.UserVariable
@@ -353,6 +357,68 @@ class ProjectActivity : BaseCastActivity() {
         Utils.setLastUsedProjectName(applicationContext, currentProject.name)
     }
 
+    private fun updateBrickFromVisualPlacement(extras: Bundle?) {
+        if (extras == null) return
+
+        val xCoordinate = extras.getInt(VisualPlacementActivity.X_COORDINATE_BUNDLE_ARGUMENT)
+        val yCoordinate = extras.getInt(VisualPlacementActivity.Y_COORDINATE_BUNDLE_ARGUMENT)
+        val rotation = extras.getFloat(VisualPlacementActivity.ROTATION_ANGLE_BUNDLE_ARGUMENT)
+        val size = extras.getFloat(VisualPlacementActivity.SIZE_PERCENT_BUNDLE_ARGUMENT)
+        val brickHash = extras.getInt(SpriteActivity.EXTRA_BRICK_HASH, -1)
+
+        // РЕШЕНИЕ: Ищем фрагменты по тегам напрямую, обходя проблемы с фокусом в оконном режиме
+        var fragment: Fragment? = supportFragmentManager.findFragmentByTag(org.catrobat.catroid.ui.fragment.FormulaEditorFragment.FORMULA_EDITOR_FRAGMENT_TAG)
+        if (fragment == null) {
+            fragment = supportFragmentManager.findFragmentByTag(org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment.TAG)
+        }
+
+        var brick: Brick? = null
+        if (fragment is org.catrobat.catroid.ui.fragment.FormulaEditorFragment) {
+            brick = fragment.formulaBrick
+        } else if (fragment is org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment) {
+            brick = fragment.findBrickByHash(brickHash)
+        }
+
+        if (brick is VisualPlacementBrick) {
+            val visualBrick = brick as VisualPlacementBrick
+            val parentScript = visualBrick.script
+
+            visualBrick.setCoordinates(xCoordinate, yCoordinate)
+
+            val currentSprite = projectManager.currentSprite
+            val isNotBackground = currentSprite != projectManager.currentlyEditedScene.backgroundSprite
+
+            if (isNotBackground && parentScript != null) {
+                var hasDirectionBrick = false
+                var hasSizeBrick = false
+
+                for (b in parentScript.brickList) {
+                    if (b is org.catrobat.catroid.content.bricks.PointInDirectionBrick) {
+                        hasDirectionBrick = true
+                    }
+                    if (b is org.catrobat.catroid.content.bricks.SetSizeToBrick) {
+                        hasSizeBrick = true
+                    }
+                }
+
+                var insertionPoint = parentScript.brickList.indexOf(visualBrick) + 1
+
+                if (!hasDirectionBrick) {
+                    parentScript.addBrick(insertionPoint++, PointInDirectionBrick(Formula(rotation + 90)))
+                }
+                if (!hasSizeBrick) {
+                    parentScript.addBrick(insertionPoint, SetSizeToBrick(Formula(size)))
+                }
+            }
+
+            if (fragment is org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment) {
+                fragment.notifyDataSetChanged()
+            } else if (fragment is org.catrobat.catroid.ui.fragment.FormulaEditorFragment) {
+                fragment.updateFragmentAfterVisualPlacement()
+            }
+        }
+    }
+
     @Suppress("ComplexMethod")
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -398,15 +464,19 @@ class ProjectActivity : BaseCastActivity() {
             }
             SpriteActivity.REQUEST_CODE_VISUAL_PLACEMENT -> {
                 val extras = data?.extras ?: return
-                val xCoordinate =
-                    extras.getInt(VisualPlacementActivity.X_COORDINATE_BUNDLE_ARGUMENT)
-                val yCoordinate =
-                    extras.getInt(VisualPlacementActivity.Y_COORDINATE_BUNDLE_ARGUMENT)
-                val placeAtBrick = PlaceAtBrick(xCoordinate, yCoordinate)
-                val currentSprite = projectManager.currentSprite
-                val startScript = StartScript()
-                currentSprite.prependScript(startScript)
-                startScript.addBrick(placeAtBrick)
+                val brickHash = extras.getInt(SpriteActivity.EXTRA_BRICK_HASH, -1)
+
+                if (brickHash != -1) {
+                    updateBrickFromVisualPlacement(extras)
+                } else {
+                    val xCoordinate = extras.getInt(VisualPlacementActivity.X_COORDINATE_BUNDLE_ARGUMENT)
+                    val yCoordinate = extras.getInt(VisualPlacementActivity.Y_COORDINATE_BUNDLE_ARGUMENT)
+                    val placeAtBrick = PlaceAtBrick(xCoordinate, yCoordinate)
+                    val currentSprite = projectManager.currentSprite
+                    val startScript = StartScript()
+                    currentSprite.prependScript(startScript)
+                    startScript.addBrick(placeAtBrick)
+                }
             }
             SPRITE_FROM_LOCAL ->
                 if (data != null && data.hasExtra(ProjectListActivity.IMPORT_LOCAL_INTENT)) {
@@ -636,6 +706,7 @@ class ProjectActivity : BaseCastActivity() {
                     it.notifyDataSetChanged()
                     it.indexAndSort()
                 }
+                org.catrobat.catroid.ui.recyclerview.fragment.DataListFragment.refreshActiveInstance();
             })
 
         val alertDialog = builder.setTitle(R.string.formula_editor_variable_dialog_title)

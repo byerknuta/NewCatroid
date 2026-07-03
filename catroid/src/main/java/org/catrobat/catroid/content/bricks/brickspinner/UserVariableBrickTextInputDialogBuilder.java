@@ -75,6 +75,7 @@ public class UserVariableBrickTextInputDialogBuilder extends TextInputDialog.Bui
 					if (parentFragment != null) {
 						parentFragment.notifyDataSetChanged();
 					}
+                    org.catrobat.catroid.ui.recyclerview.fragment.DataListFragment.refreshActiveInstance();
 				});
 
 		setTitle(R.string.formula_editor_variable_dialog_title);

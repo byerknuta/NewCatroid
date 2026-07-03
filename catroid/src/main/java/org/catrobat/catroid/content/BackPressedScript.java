@@ -17,6 +17,6 @@ public class BackPressedScript extends Script {
 
     @Override
     public EventId createEventId(Sprite sprite) {
-        return new EventId(EventId.BACK_PRESSED); // <-- Связываем с нашим новым ID
+        return new EventId(EventId.BACK_PRESSED);
     }
 }

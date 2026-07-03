@@ -23,6 +23,53 @@
   -->
 <resources  xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="brick_add_text_buffer_title">Draw text</string>
+    <string name="brick_add_text_buffer_to">Into buffer</string>
+    <string name="brick_buffer_shader_title">Set buffer shader on</string>
+    <string name="brick_buf_uniform_title">Set uniform</string>
+    <string name="brick_buf_uniform_in_buf">In buffer shader</string>
+    <string name="brick_render_loops_title">Set main render loops: 2D, Fast2D, 3D</string>
+    <string name="brick_buffer_fx_title">Configure buffer</string>
+    <string name="brick_spawn_thread_title">Start thread</string>
+    <string name="brick_wait_thread_title">Wait for thread</string>
+    <string name="brick_stop_thread_title">Stop thread</string>
+    <string name="brick_ease_title">Smoothly change</string>
+    <string name="brick_ease_start_label">from</string>
+    <string name="brick_ease_end_label">to</string>
+    <string name="brick_ease_duration_label">seconds</string>
+
+    <string-array name="brick_ease_properties">
+        <item>Position X</item>
+        <item>Position Y</item>
+        <item>Size</item>
+        <item>Transparency</item>
+        <item>Color</item>
+        <item>Width</item>
+        <item>Height</item>
+        <item>Brightness</item>
+    </string-array>
+    <string formatted="false" name="brick_when_after_update">After screen update</string>
+    <string formatted="false" name="free_window_base">Enable Free Window Mode</string>
+    <string formatted="false" name="brick_when_before_update">Before screen update</string>
+    <string name="brick_instant">Execute instantly</string>
+    <string name="pref_developer_mode_title">Developer Mode</string>
+    <string name="pref_developer_mode_summary">Enable experimental and developer-only features.</string>
+    <string name="developer_mode_warning_title">Warning</string>
+    <string name="developer_mode_warning_message">Developer mode enables highly experimental features that may cause instability or crashes. Do you want to proceed?</string>
+
+    <string name="pref_ai_settings_title">AI Settings</string>
+    <string name="pref_ai_autocomplete_title">AI Autocomplete</string>
+    <string name="pref_ai_autocomplete_summary">Generate scripts and formulas automatically on-device using Kove neural network.</string>
+
+    <string name="ai_download_dialog_title">Download Kove Model</string>
+    <string name="ai_download_dialog_message">To enable AI Autocomplete, a neural network model of about 800 MB needs to be downloaded. Would you like to download it now?</string>
+    <string name="ai_downloading_progress">Downloading Kove model... %1$d%%</string>
+    <string name="ai_unzipping">Extracting model files...</string>
+    <string name="ai_download_complete">Kove model downloaded successfully! Please restart the application to apply changes.</string>
+    <string name="ai_download_failed">Failed to download Kove model. Please check your internet connection.</string>
+    <string name="button_download">Download</string>
+    <string name="button_restart">Restart</string>
+
     <!-- Physics warning -->
     <string name="physics_warning_title">Compatibility Update</string>
     <string name="physics_warning_message">This project was created in an older version. It is highly recommended to update the physics cache now to prevent crashes and freezes. P.S. recommend to update it in Project Options</string>

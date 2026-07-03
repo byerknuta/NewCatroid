@@ -29,7 +29,7 @@ import androidx.annotation.IntDef;
 
 public class EventId {
 	@Retention(RetentionPolicy.SOURCE)
-	@IntDef({TAP, TAP_BACKGROUND, START, START_AS_CLONE, ANY_NFC, OTHER, PROJECT_EXIT, BACK_PRESSED, MOUSE_BUTTON_CLICKED, MOUSE_WHEEL_SCROLLED})
+	@IntDef({TAP, TAP_BACKGROUND, START, START_AS_CLONE, ANY_NFC, OTHER, PROJECT_EXIT, BACK_PRESSED, MOUSE_BUTTON_CLICKED, MOUSE_WHEEL_SCROLLED, BEFORE_UPDATE, AFTER_UPDATE})
 	public @interface EventType {
 	}
 
@@ -44,6 +44,8 @@ public class EventId {
 	public static final int BACK_PRESSED = 7;
 	public static final int MOUSE_BUTTON_CLICKED = 8;
 	public static final int MOUSE_WHEEL_SCROLLED = 9;
+    public static final int BEFORE_UPDATE = 10;
+    public static final int AFTER_UPDATE = 11;
 
 	@EventType
 	private final int type;

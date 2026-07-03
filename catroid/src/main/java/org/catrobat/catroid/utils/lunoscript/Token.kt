@@ -1,17 +1,14 @@
 package org.catrobat.catroid.utils.lunoscript
 
 enum class TokenType {
-    // Keywords - обновлен список
     VAR, IF, ELSE, FUN, CLASS, STATIC, RETURN, TRUE, FALSE, NULL, WHILE, FOR, IN, SWITCH, CASE, DEFAULT, BREAK, CONTINUE, THIS, SUPER, IMPORT, TRY, CATCH, FINALLY,
 
-    // Identifiers and Literals
     IDENTIFIER,
     NUMBER_LITERAL,
     F_STRING,
     STRING_LITERAL,
     FLOAT_LITERAL,
 
-    // Operators - обновлен список
     ASSIGN,         // =
     PLUS,           // +
     MINUS,          // -
@@ -38,13 +35,13 @@ enum class TokenType {
     RPAREN,         // )
     LBRACE,         // {
     RBRACE,         // }
-    LBRACKET,       // [ (для списков)
+    LBRACKET,       // [
     RBRACKET,       // ]
     COMMA,          // ,
     DOT,            // .
     SEMICOLON,      // ;
-    COLON,          // : (для switch case)
-    ARROW,          // -> (для lambda)
+    COLON,          // :
+    ARROW,          // -> (lambda)
 
 
     COMMENT,

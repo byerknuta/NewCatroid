@@ -56,6 +56,18 @@ public abstract class BrickBaseType implements Brick {
 
 	protected UUID brickId = UUID.randomUUID();
 
+    private transient boolean isPhantom = false;
+
+    @Override
+    public boolean isPhantom() {
+        return isPhantom;
+    }
+
+    @Override
+    public void setPhantom(boolean isPhantom) {
+        this.isPhantom = isPhantom;
+    }
+
 	@Override
 	public boolean isCommentedOut() {
 		return commentedOut;

@@ -71,6 +71,12 @@
         android:summary="@string/free_window_mode_sum">
 
         <CheckBoxPreference
+            android:key="pref_free_window_mode"
+            android:title="@string/free_window_base"
+            android:summary=""
+            android:defaultValue="false" />
+
+        <CheckBoxPreference
             android:key="pref_workspace_project_level"
             android:title="@string/free_window_mode_project"
             android:summary="@string/free_window_mode_project_sum"
@@ -299,6 +305,24 @@
         android:key="setting_enable_crash_reports"
         android:summary="@string/preference_description_crash_reports"
         android:title="@string/preference_title_enable_crash_reports" />
+
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="setting_developer_mode_enabled"
+        android:summary="@string/pref_developer_mode_summary"
+        android:title="@string/pref_developer_mode_title" />
+
+    <PreferenceScreen
+        android:key="setting_kove_ai_screen"
+        android:title="@string/pref_ai_settings_title"
+        android:dependency="setting_developer_mode_enabled">
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="setting_kove_ai_autocomplete"
+            android:title="@string/pref_ai_autocomplete_title"
+            android:summary="@string/pref_ai_autocomplete_summary" />
+    </PreferenceScreen>
 
 
     <PreferenceCategory android:title="@string/recovery">

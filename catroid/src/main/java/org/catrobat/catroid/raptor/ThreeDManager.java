@@ -117,6 +117,8 @@ import com.crashinvaders.vfx.effects.RadialBlurEffect;
 import com.crashinvaders.vfx.effects.VignettingEffect;
 import com.crashinvaders.vfx.effects.WaterDistortionEffect;
 import com.crashinvaders.vfx.effects.ZoomEffect;
+import com.crashinvaders.vfx.effects.util.MixEffect;
+import com.crashinvaders.vfx.framebuffer.VfxFrameBuffer;
 import com.danvexteam.lunoscript_annotations.LunoClass;
 
 import net.mgsx.gltf.scene3d.attributes.PBRColorAttribute;
@@ -260,6 +262,14 @@ public class ThreeDManager implements Disposable {
 
         if (materialFbo != null) materialFbo.dispose();
         materialFbo = new FrameBuffer(Pixmap.Format.RGBA8888, renderWidth / 2, renderHeight / 2, true);
+
+        if (currentConfig != null) {
+            updatePostProcessing(currentConfig);
+        }
+
+        if (realisticMode && sceneManager != null) {
+            sceneManager.updateViewport(renderWidth, renderHeight);
+        }
     }
 
     public enum PhysicsState {
@@ -1738,6 +1748,260 @@ public class ThreeDManager implements Disposable {
         }
     }
 
+    public class BufferPipeline implements Disposable {
+        public com.crashinvaders.vfx.VfxManager vfxManager;
+        public FrameBuffer depthFbo;
+        public FrameBuffer materialFbo;
+
+        public ExposureEffect exposureEffect;
+        public TonemappingEffect tonemappingEffect;
+        public LinearizeEffect linearizeEffect;
+        public SsaoEffect ssaoEffect;
+        public SsrRayTracingEffect rayTracingEffect;
+        public SsgiEffect ssgiEffect;
+        public GodRaysEffect godRaysEffect;
+        public HeightFogEffect heightFogEffect;
+        public VolumetricFogEffect volumetricFogEffect;
+        public DepthOfFieldEffect dofEffect;
+        public OptimizedBloomEffect bloomEffect;
+        public VignettingEffect vignetteEffect;
+        public FxaaEffect fxaaEffect;
+        public MotionBlurEffect motionBlurEffect;
+        public GaussianBlurEffect gaussianBlurEffect;
+        public LevelsEffect levelsEffect;
+
+        public BufferPipeline(int width, int height) {
+            vfxManager = new com.crashinvaders.vfx.VfxManager(Pixmap.Format.RGBA8888);
+            vfxManager.resize(width, height);
+            depthFbo = new FrameBuffer(Pixmap.Format.RGBA8888, width, height, true);
+            depthFbo.getColorBufferTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+            materialFbo = new FrameBuffer(Pixmap.Format.RGBA8888, width / 2, height / 2, true);
+        }
+
+        @Override
+        public void dispose() {
+            if (vfxManager != null) vfxManager.dispose();
+            if (depthFbo != null) depthFbo.dispose();
+            if (materialFbo != null) materialFbo.dispose();
+        }
+    }
+
+    private final Map<FrameBuffer, BufferPipeline> bufferPipelines = new HashMap<>();
+
+    public void setupBufferPipeline(FrameBuffer targetFbo, int width, int height, boolean enable) {
+        Gdx.app.postRunnable(() -> {
+            if (!enable) {
+                BufferPipeline pipeline = bufferPipelines.remove(targetFbo);
+                if (pipeline != null) pipeline.dispose();
+                return;
+            }
+
+            BufferPipeline pipeline = bufferPipelines.get(targetFbo);
+            if (pipeline == null || pipeline.vfxManager.getWidth() != width || pipeline.vfxManager.getHeight() != height) {
+                if (pipeline != null) pipeline.dispose();
+                pipeline = new BufferPipeline(width, height);
+                bufferPipelines.put(targetFbo, pipeline);
+            }
+
+            configurePipelineEffects(pipeline, currentConfig);
+        });
+    }
+
+    public void removeBufferPipeline(FrameBuffer targetFbo) {
+        Gdx.app.postRunnable(() -> {
+            BufferPipeline pipeline = bufferPipelines.remove(targetFbo);
+            if (pipeline != null) pipeline.dispose();
+        });
+    }
+
+    private void configurePipelineEffects(BufferPipeline p, PostProcessingComponent config) {
+        if (p == null || p.vfxManager == null) return;
+        p.vfxManager.removeAllEffects();
+
+        if (config == null || !config.isActive) return;
+
+        boolean toneMap = config.hasEffect(PostProcessingData.ACES.class) || config.hasEffect(PostProcessingData.EyeAdaptation.class);
+        if (toneMap) {
+            if (p.linearizeEffect == null) p.linearizeEffect = new LinearizeEffect();
+            p.vfxManager.addEffect(p.linearizeEffect);
+        }
+
+        if (config.hasEffect(PostProcessingData.EyeAdaptation.class)) {
+            if (p.exposureEffect == null) p.exposureEffect = new ExposureEffect();
+            p.vfxManager.addEffect(p.exposureEffect);
+        }
+
+        for (PostProcessingData data : config.effects) {
+            if (!data.isEnabled || data instanceof PostProcessingData.Upscaler) continue;
+
+            if (data instanceof PostProcessingData.SSAO) {
+                PostProcessingData.SSAO ssaoData = (PostProcessingData.SSAO) data;
+                if (p.ssaoEffect == null) p.ssaoEffect = new SsaoEffect();
+                p.ssaoEffect.setParams(ssaoData.radius, ssaoData.intensity, ssaoData.bias);
+                p.vfxManager.addEffect(p.ssaoEffect);
+            } else if (data instanceof PostProcessingData.RayTracing) {
+                PostProcessingData.RayTracing rt = (PostProcessingData.RayTracing) data;
+                if (p.rayTracingEffect == null) p.rayTracingEffect = new SsrRayTracingEffect();
+                p.rayTracingEffect.setParams(rt.steps, rt.reflectivity, rt.thickness, rt.maxDistance, rt.stride, rt.edgeFade);
+                p.vfxManager.addEffect(p.rayTracingEffect);
+            } else if (data instanceof PostProcessingData.SSGI) {
+                PostProcessingData.SSGI ssgiData = (PostProcessingData.SSGI) data;
+                if (p.ssgiEffect == null) p.ssgiEffect = new SsgiEffect();
+                p.ssgiEffect.setParams(ssgiData.radius, ssgiData.intensity, ssgiData.bias, ssgiData.ssaoStrength, new Color(ssgiData.baseAlbedoR, ssgiData.baseAlbedoG, ssgiData.baseAlbedoB, 1.0f), ssgiData.flipDepth);
+                p.vfxManager.addEffect(p.ssgiEffect);
+            } else if (data instanceof PostProcessingData.GodRays) {
+                PostProcessingData.GodRays grData = (PostProcessingData.GodRays) data;
+                if (p.godRaysEffect == null) p.godRaysEffect = new GodRaysEffect();
+                p.godRaysEffect.exposure = grData.exposure;
+                p.godRaysEffect.decay = grData.decay;
+                p.godRaysEffect.density = grData.density;
+                p.godRaysEffect.weight = grData.weight;
+                p.godRaysEffect.setSunDirection(getSunLightDirection());
+                p.vfxManager.addEffect(p.godRaysEffect);
+            } else if (data instanceof PostProcessingData.HeightFog) {
+                PostProcessingData.HeightFog fogData = (PostProcessingData.HeightFog) data;
+                if (p.heightFogEffect == null) p.heightFogEffect = new HeightFogEffect();
+                p.heightFogEffect.fogDensity = fogData.density;
+                p.heightFogEffect.heightFalloff = fogData.falloff;
+                p.heightFogEffect.fogHeight = fogData.height;
+                p.heightFogEffect.fogColor.set(fogData.color);
+                p.vfxManager.addEffect(p.heightFogEffect);
+            } else if (data instanceof PostProcessingData.VolumetricFog) {
+                PostProcessingData.VolumetricFog vfData = (PostProcessingData.VolumetricFog) data;
+                if (p.volumetricFogEffect == null) p.volumetricFogEffect = new VolumetricFogEffect();
+                if (pbrLight instanceof net.mgsx.gltf.scene3d.lights.DirectionalShadowLight) {
+                    net.mgsx.gltf.scene3d.lights.DirectionalShadowLight sl = (net.mgsx.gltf.scene3d.lights.DirectionalShadowLight) pbrLight;
+                    p.volumetricFogEffect.setShadowMap(sl.getFrameBuffer().getColorBufferTexture(), sl.getCamera().combined);
+                    p.volumetricFogEffect.setLightParams(sl.direction, sl.color);
+                }
+                p.volumetricFogEffect.setParams(vfData.density, vfData.scattering, vfData.steps, vfData.maxDistance);
+                p.vfxManager.addEffect(p.volumetricFogEffect);
+            } else if (data instanceof PostProcessingData.DepthOfField) {
+                PostProcessingData.DepthOfField dofData = (PostProcessingData.DepthOfField) data;
+                if (p.dofEffect == null) p.dofEffect = new DepthOfFieldEffect();
+                p.dofEffect.focusDistance = dofData.focusDistance;
+                p.dofEffect.focusRange = dofData.focusRange;
+                p.dofEffect.blurSize = dofData.blurSize;
+                p.dofEffect.transition = dofData.transition;
+                p.vfxManager.addEffect(p.dofEffect);
+            } else if (data instanceof PostProcessingData.Bloom) {
+                PostProcessingData.Bloom b = (PostProcessingData.Bloom) data;
+                if (p.bloomEffect == null) p.bloomEffect = new OptimizedBloomEffect(b.size);
+                p.bloomEffect.setBlurPasses(b.blurPasses);
+                p.bloomEffect.setBlurAmount(b.blurAmount);
+                p.bloomEffect.setThreshold(b.threshold);
+                p.bloomEffect.setBloomIntensity(b.intensity);
+                p.vfxManager.addEffect(p.bloomEffect);
+            } else if (data instanceof PostProcessingData.Vignette) {
+                PostProcessingData.Vignette v = (PostProcessingData.Vignette) data;
+                if (p.vignetteEffect == null) p.vignetteEffect = new VignettingEffect(false);
+                p.vignetteEffect.setIntensity(v.intensity);
+                p.vignetteEffect.setSaturation(v.saturation);
+                p.vfxManager.addEffect(p.vignetteEffect);
+            } else if (data instanceof PostProcessingData.Levels) {
+                PostProcessingData.Levels l = (PostProcessingData.Levels) data;
+                if (p.levelsEffect == null) p.levelsEffect = new LevelsEffect();
+                p.levelsEffect.setContrast(l.contrast);
+                p.levelsEffect.setSaturation(l.saturation);
+                p.levelsEffect.setGamma(l.gamma);
+                p.vfxManager.addEffect(p.levelsEffect);
+            } else if (data instanceof PostProcessingData.Grain) {
+                PostProcessingData.Grain g = (PostProcessingData.Grain) data;
+                FilmGrainEffect effect = new FilmGrainEffect();
+                effect.setNoiseAmount(g.amount);
+                p.vfxManager.addEffect(effect);
+            } else if (data instanceof PostProcessingData.Chromatic) {
+                PostProcessingData.Chromatic c = (PostProcessingData.Chromatic) data;
+                ChromaticAberrationEffect effect = new ChromaticAberrationEffect((int) c.maxDistortion);
+                effect.setMaxDistortion(c.strength);
+                p.vfxManager.addEffect(effect);
+            } else if (data instanceof PostProcessingData.RadialBlur) {
+                PostProcessingData.RadialBlur r = (PostProcessingData.RadialBlur) data;
+                RadialBlurEffect effect = new OptimizedRadialBlurEffect(r.blurPasses, r.size);
+                effect.setStrength(r.strength);
+                p.vfxManager.addEffect(effect);
+            } else if (data instanceof PostProcessingData.OldTv) {
+                PostProcessingData.OldTv tv = (PostProcessingData.OldTv) data;
+                OldTvEffect effect = new OldTvEffect();
+                effect.setTime(tv.strength);
+                p.vfxManager.addEffect(effect);
+            } else if (data instanceof PostProcessingData.Gaussian) {
+                PostProcessingData.Gaussian g = (PostProcessingData.Gaussian) data;
+                if (p.gaussianBlurEffect == null) p.gaussianBlurEffect = new OptimizedGaussianBlurEffect(g.size);
+                p.gaussianBlurEffect.setPasses(g.passes);
+                p.gaussianBlurEffect.setAmount(g.amount);
+                p.vfxManager.addEffect(p.gaussianBlurEffect);
+            } else if (data instanceof PostProcessingData.Zoom) {
+                PostProcessingData.Zoom z = (PostProcessingData.Zoom) data;
+                ZoomEffect effect = new ZoomEffect();
+                effect.setZoom(z.zoom);
+                effect.setOrigin(z.originX, z.originY);
+                p.vfxManager.addEffect(effect);
+            } else if (data instanceof PostProcessingData.Crt) {
+                CrtEffect effect = new CrtEffect();
+                p.vfxManager.addEffect(effect);
+            } else if (data instanceof PostProcessingData.Fisheye) {
+                FisheyeEffect effect = new FisheyeEffect();
+                p.vfxManager.addEffect(effect);
+            } else if (data instanceof PostProcessingData.Water) {
+                PostProcessingData.Water w2 = (PostProcessingData.Water) data;
+                WaterDistortionEffect effect = new WaterDistortionEffect(w2.amount, w2.speed);
+                p.vfxManager.addEffect(effect);
+            } else if (data instanceof PostProcessingData.MotionBlur) {
+                PostProcessingData.MotionBlur mb = (PostProcessingData.MotionBlur) data;
+                if (p.motionBlurEffect == null) p.motionBlurEffect = new MotionBlurEffect(Pixmap.Format.RGBA8888, MixEffect.Method.MIX, mb.blurOpacity);
+                p.vfxManager.addEffect(p.motionBlurEffect);
+            } else if (data instanceof PostProcessingData.Fxaa) {
+                if (p.fxaaEffect == null) p.fxaaEffect = new FxaaEffect();
+                p.vfxManager.addEffect(p.fxaaEffect);
+            }
+        }
+
+        if (config.hasEffect(PostProcessingData.ACES.class)) {
+            if (p.tonemappingEffect == null) p.tonemappingEffect = new TonemappingEffect();
+            p.vfxManager.addEffect(p.tonemappingEffect);
+        }
+    }
+
+    private void renderDepthAndMaterial(Camera targetCamera, FrameBuffer targetDepthFbo, FrameBuffer targetMaterialFbo) {
+        targetDepthFbo.begin();
+        Gdx.gl.glViewport(0, 0, targetDepthFbo.getWidth(), targetDepthFbo.getHeight());
+        Gdx.gl.glClearColor(1f, 1f, 1f, 1f);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+        depthBatch.begin(targetCamera);
+
+        if (realisticMode && sceneManager != null) {
+            depthBatch.render(sceneManager.getRenderableProviders());
+        }
+        for (Map.Entry<String, ModelInstance> entry : sceneObjects.entrySet()) {
+            if (inactiveRenderObjects.contains(entry.getKey())) continue;
+            ModelInstance inst = entry.getValue();
+            boolean isTransparent = false;
+            for (Material mat : inst.materials) {
+                if (mat.has(BlendingAttribute.Type)) {
+                    BlendingAttribute blend = (BlendingAttribute) mat.get(BlendingAttribute.Type);
+                    if (blend.opacity < 0.1f) { isTransparent = true; break; }
+                }
+            }
+            if (!isTransparent) depthBatch.render(inst);
+        }
+        depthBatch.end();
+        targetDepthFbo.end();
+
+        targetMaterialFbo.begin();
+        Gdx.gl.glViewport(0, 0, targetMaterialFbo.getWidth(), targetMaterialFbo.getHeight());
+        Gdx.gl.glClearColor(0f, 0f, 0f, 0f);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+        materialBatch.begin(targetCamera);
+
+        if (realisticMode && sceneManager != null) {
+            materialBatch.render(sceneManager.getRenderableProviders());
+        }
+        materialBatch.render(sceneObjects.values());
+        materialBatch.end();
+        targetMaterialFbo.end();
+    }
+
     private com.crashinvaders.vfx.effects.BloomEffect cachedBloomEffect;
     private com.crashinvaders.vfx.effects.GaussianBlurEffect cachedGaussianBlurEffect;
     private com.crashinvaders.vfx.effects.MotionBlurEffect cachedMotionBlurEffect;
@@ -1745,283 +2009,217 @@ public class ThreeDManager implements Disposable {
     private com.crashinvaders.vfx.effects.LevelsEffect cachedLevelsEffect;
     public PostProcessingComponent currentConfig = new PostProcessingComponent();
 
+    public void configureVfx(com.crashinvaders.vfx.VfxManager vfx, PostProcessingComponent config) {
+        configureVfx(vfx, config, this.camera);
+    }
+
+    public void configureVfx(com.crashinvaders.vfx.VfxManager vfx, PostProcessingComponent config, Camera effectCamera) {
+        if (vfx == null) return;
+
+        vfx.removeAllEffects();
+
+        if (!config.isActive) {
+            if (customScreenEffect != null) {
+                vfx.addEffect(customScreenEffect);
+            }
+            return;
+        }
+
+        boolean tonemappingOrAdaptationActive =
+                config.hasEffect(PostProcessingData.ACES.class) ||
+                        config.hasEffect(PostProcessingData.EyeAdaptation.class);
+
+        if (tonemappingOrAdaptationActive) {
+            if (linearizeEffect == null) linearizeEffect = new LinearizeEffect();
+            vfx.addEffect(linearizeEffect);
+        }
+
+        if (config.hasEffect(PostProcessingData.EyeAdaptation.class)) {
+            if (exposureEffect == null) exposureEffect = new ExposureEffect();
+            vfx.addEffect(exposureEffect);
+        }
+
+        for (PostProcessingData data : config.effects) {
+            if (!data.isEnabled) continue;
+
+            if (data instanceof PostProcessingData.Upscaler) {
+                continue;
+            }
+            else if (data instanceof PostProcessingData.SSAO) {
+                setDepthRender(true);
+                PostProcessingData.SSAO ssaoData = (PostProcessingData.SSAO) data;
+                if (ssaoEffect == null) ssaoEffect = new SsaoEffect();
+                ssaoEffect.setCamera(effectCamera);
+                ssaoEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+                ssaoEffect.setParams(ssaoData.radius, ssaoData.intensity, ssaoData.bias);
+                vfx.addEffect(ssaoEffect);
+            }
+            else if (data instanceof PostProcessingData.RayTracing) {
+                setDepthRender(true);
+                PostProcessingData.RayTracing rt = (PostProcessingData.RayTracing) data;
+                if (rayTracingEffect == null) rayTracingEffect = new SsrRayTracingEffect();
+                rayTracingEffect.setCamera(effectCamera);
+                rayTracingEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+                rayTracingEffect.setParams(rt.steps, rt.reflectivity, rt.thickness, rt.maxDistance, rt.stride, rt.edgeFade);
+                vfx.addEffect(rayTracingEffect);
+            } else if (data instanceof PostProcessingData.SSGI) {
+                setDepthRender(true);
+                PostProcessingData.SSGI ssgiData = (PostProcessingData.SSGI) data;
+                if (ssgiEffect == null) ssgiEffect = new SsgiEffect();
+                ssgiEffect.setCamera(effectCamera);
+                ssgiEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+                ssgiEffect.setParams(ssgiData.radius, ssgiData.intensity, ssgiData.bias, ssgiData.ssaoStrength, new Color(ssgiData.baseAlbedoR, ssgiData.baseAlbedoG, ssgiData.baseAlbedoB, 1.0f), ssgiData.flipDepth);
+                vfx.addEffect(ssgiEffect);
+            } else if (data instanceof PostProcessingData.GodRays) {
+                setDepthRender(true);
+                PostProcessingData.GodRays grData = (PostProcessingData.GodRays) data;
+                if (godRaysEffect == null) godRaysEffect = new GodRaysEffect();
+                godRaysEffect.setCamera(effectCamera);
+                godRaysEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+                godRaysEffect.setSunDirection(getSunLightDirection());
+                godRaysEffect.exposure = grData.exposure;
+                godRaysEffect.decay = grData.decay;
+                godRaysEffect.density = grData.density;
+                godRaysEffect.weight = grData.weight;
+                vfx.addEffect(godRaysEffect);
+            } else if (data instanceof PostProcessingData.HeightFog) {
+                setDepthRender(true);
+                PostProcessingData.HeightFog fogData = (PostProcessingData.HeightFog) data;
+                if (heightFogEffect == null) heightFogEffect = new HeightFogEffect();
+                heightFogEffect.setCamera(effectCamera);
+                heightFogEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+                heightFogEffect.fogDensity = fogData.density;
+                heightFogEffect.heightFalloff = fogData.falloff;
+                heightFogEffect.fogHeight = fogData.height;
+                heightFogEffect.fogColor.set(fogData.color);
+                vfx.addEffect(heightFogEffect);
+            } else if (data instanceof PostProcessingData.VolumetricFog) {
+                setDepthRender(true);
+                PostProcessingData.VolumetricFog vfData = (PostProcessingData.VolumetricFog) data;
+                if (volumetricFogEffect == null) volumetricFogEffect = new VolumetricFogEffect();
+                volumetricFogEffect.setCamera(effectCamera);
+                volumetricFogEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+                if (pbrLight instanceof net.mgsx.gltf.scene3d.lights.DirectionalShadowLight) {
+                    net.mgsx.gltf.scene3d.lights.DirectionalShadowLight sl = (net.mgsx.gltf.scene3d.lights.DirectionalShadowLight) pbrLight;
+                    volumetricFogEffect.setShadowMap(sl.getFrameBuffer().getColorBufferTexture(), sl.getCamera().combined);
+                    volumetricFogEffect.setLightParams(sl.direction, sl.color);
+                }
+                volumetricFogEffect.setParams(vfData.density, vfData.scattering, vfData.steps, vfData.maxDistance);
+                vfx.addEffect(volumetricFogEffect);
+            } else if (data instanceof PostProcessingData.DepthOfField) {
+                setDepthRender(true);
+                PostProcessingData.DepthOfField dofData = (PostProcessingData.DepthOfField) data;
+                if (dofEffect == null) dofEffect = new DepthOfFieldEffect();
+                dofEffect.setCamera(effectCamera);
+                dofEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+                dofEffect.focusDistance = dofData.focusDistance;
+                dofEffect.focusRange = dofData.focusRange;
+                dofEffect.blurSize = dofData.blurSize;
+                dofEffect.transition = dofData.transition;
+                vfx.addEffect(dofEffect);
+            } else if (data instanceof PostProcessingData.Bloom) {
+                PostProcessingData.Bloom b = (PostProcessingData.Bloom) data;
+                if (cachedBloomEffect == null) cachedBloomEffect = new OptimizedBloomEffect(b.size);
+                cachedBloomEffect.setBlurPasses(b.blurPasses);
+                cachedBloomEffect.setBlurAmount(b.blurAmount);
+                cachedBloomEffect.setThreshold(b.threshold);
+                cachedBloomEffect.setBloomIntensity(b.intensity);
+                vfx.addEffect(cachedBloomEffect);
+            } else if (data instanceof PostProcessingData.Vignette) {
+                PostProcessingData.Vignette v = (PostProcessingData.Vignette) data;
+                if (cachedVignetteEffect == null) cachedVignetteEffect = new VignettingEffect(false);
+                cachedVignetteEffect.setIntensity(v.intensity);
+                cachedVignetteEffect.setSaturation(v.saturation);
+                vfx.addEffect(cachedVignetteEffect);
+            } else if (data instanceof PostProcessingData.Levels) {
+                PostProcessingData.Levels l = (PostProcessingData.Levels) data;
+                if (cachedLevelsEffect == null) cachedLevelsEffect = new LevelsEffect();
+                cachedLevelsEffect.setContrast(l.contrast);
+                cachedLevelsEffect.setSaturation(l.saturation);
+                cachedLevelsEffect.setGamma(l.gamma);
+                vfx.addEffect(cachedLevelsEffect);
+            } else if (data instanceof PostProcessingData.Grain) {
+                PostProcessingData.Grain g = (PostProcessingData.Grain) data;
+                FilmGrainEffect effect = new FilmGrainEffect();
+                effect.setNoiseAmount(g.amount);
+                vfx.addEffect(effect);
+            } else if (data instanceof PostProcessingData.Chromatic) {
+                PostProcessingData.Chromatic c = (PostProcessingData.Chromatic) data;
+                ChromaticAberrationEffect effect = new ChromaticAberrationEffect((int) c.maxDistortion);
+                effect.setMaxDistortion(c.strength);
+                vfx.addEffect(effect);
+            } else if (data instanceof PostProcessingData.Fxaa) {
+                vfx.addEffect(new FxaaEffect());
+            } else if (data instanceof PostProcessingData.RadialBlur) {
+                PostProcessingData.RadialBlur r = (PostProcessingData.RadialBlur) data;
+                RadialBlurEffect effect = new OptimizedRadialBlurEffect(r.blurPasses, r.size);
+                effect.setStrength(r.strength);
+                vfx.addEffect(effect);
+            } else if (data instanceof PostProcessingData.OldTv) {
+                PostProcessingData.OldTv tv = (PostProcessingData.OldTv) data;
+                OldTvEffect effect = new OldTvEffect();
+                effect.setTime(tv.strength);
+                vfx.addEffect(effect);
+            } else if (data instanceof PostProcessingData.Gaussian) {
+                PostProcessingData.Gaussian g = (PostProcessingData.Gaussian) data;
+                if (cachedGaussianBlurEffect == null) cachedGaussianBlurEffect = new OptimizedGaussianBlurEffect(g.size);
+                cachedGaussianBlurEffect.setPasses(g.passes);
+                cachedGaussianBlurEffect.setAmount(g.amount);
+                vfx.addEffect(cachedGaussianBlurEffect);
+            } else if (data instanceof PostProcessingData.Zoom) {
+                PostProcessingData.Zoom z = (PostProcessingData.Zoom) data;
+                ZoomEffect effect = new ZoomEffect();
+                effect.setZoom(z.zoom);
+                effect.setOrigin(z.originX, z.originY);
+                vfx.addEffect(effect);
+            } else if (data instanceof PostProcessingData.Crt) {
+                vfx.addEffect(new CrtEffect());
+            } else if (data instanceof PostProcessingData.Fisheye) {
+                vfx.addEffect(new FisheyeEffect());
+            } else if (data instanceof PostProcessingData.Water) {
+                PostProcessingData.Water w2 = (PostProcessingData.Water) data;
+                WaterDistortionEffect effect = new WaterDistortionEffect(w2.amount, w2.speed);
+                vfx.addEffect(effect);
+            } else if (data instanceof PostProcessingData.MotionBlur) {
+                PostProcessingData.MotionBlur mb = (PostProcessingData.MotionBlur) data;
+                if (cachedMotionBlurEffect == null) cachedMotionBlurEffect = new MotionBlurEffect(Pixmap.Format.RGBA8888, MixEffect.Method.MIX, mb.blurOpacity);
+                vfx.addEffect(cachedMotionBlurEffect);
+            } else if (data instanceof PostProcessingData.LensFlare) {
+                PostProcessingData.LensFlare lf = (PostProcessingData.LensFlare) data;
+                AutoLensFlareEffect effect = new AutoLensFlareEffect();
+                effect.setThreshold(lf.threshold);
+                effect.setIntensity(lf.intensity * 2.0f);
+                effect.setDispersal(lf.dispersal);
+                effect.setSize(lf.size);
+                vfx.addEffect(effect);
+            }
+        }
+
+        if (config.hasEffect(PostProcessingData.ACES.class)) {
+            if (tonemappingEffect == null) tonemappingEffect = new TonemappingEffect();
+            vfx.addEffect(tonemappingEffect);
+        }
+
+        if (customScreenEffect != null) {
+            vfx.addEffect(customScreenEffect);
+        }
+    }
+
     public void updatePostProcessing(PostProcessingComponent config) {
         this.currentConfig = config;
         Gdx.app.postRunnable(() -> {
             if (vfxManager == null) return;
-
             this.postprocessingEnabled = config.isActive;
-
-            if (!config.isActive) {
-                vfxManager.removeAllEffects();
-                userEffects.clear();
-                setDepthRender(false);
-
-                if (customScreenEffect != null) {
-                    vfxManager.addEffect(customScreenEffect);
-                    this.postprocessingEnabled = true;
-                } else {
-                    this.postprocessingEnabled = false;
-                }
-                return;
-            }
 
             int w = Gdx.graphics.getWidth();
             int h = Gdx.graphics.getHeight();
-
             float scale = Math.max(0.01f, Math.min(1.0f, config.qualityScale));
 
             if (vfxManager.getWidth() != (int) (w * scale) || vfxManager.getHeight() != (int) (h * scale)) {
                 vfxManager.resize((int) (w * scale), (int) (h * scale));
             }
 
-            vfxManager.removeAllEffects();
-            userEffects.clear();
-
-            boolean tonemappingOrAdaptationActive =
-                    config.hasEffect(PostProcessingData.ACES.class) ||
-                            config.hasEffect(PostProcessingData.EyeAdaptation.class);
-
-            if (tonemappingOrAdaptationActive) {
-                if (linearizeEffect == null) linearizeEffect = new LinearizeEffect();
-                vfxManager.addEffect(linearizeEffect);
-            }
-
-            if (config.hasEffect(PostProcessingData.EyeAdaptation.class)) {
-                if (exposureEffect == null) exposureEffect = new ExposureEffect();
-                vfxManager.addEffect(exposureEffect);
-            }
-
-            this.currentUpscaler = null;
-
-            for (PostProcessingData data : config.effects) {
-                if (!data.isEnabled) continue;
-
-                if (data instanceof PostProcessingData.Upscaler) {
-                    this.currentUpscaler = (PostProcessingData.Upscaler) data;
-                    continue;
-                }
-                else if (data instanceof PostProcessingData.SSAO) {
-                    setDepthRender(true);
-                    PostProcessingData.SSAO ssaoData = (PostProcessingData.SSAO) data;
-
-                    if (ssaoEffect == null) {
-                        ssaoEffect = new SsaoEffect();
-                    }
-
-                    ssaoEffect.setCamera(camera);
-                    ssaoEffect.setDepthTexture(depthFbo.getColorBufferTexture());
-                    ssaoEffect.setParams(ssaoData.radius, ssaoData.intensity, ssaoData.bias);
-
-                    vfxManager.addEffect(ssaoEffect);
-                }
-                else if (data instanceof PostProcessingData.RayTracing) {
-                    setDepthRender(true);
-                    PostProcessingData.RayTracing rt = (PostProcessingData.RayTracing) data;
-
-                    if (rayTracingEffect == null) rayTracingEffect = new SsrRayTracingEffect();
-
-                    rayTracingEffect.setCamera(camera);
-                    rayTracingEffect.setDepthTexture(depthFbo.getColorBufferTexture());
-
-                    rayTracingEffect.setParams(rt.steps, rt.reflectivity, rt.thickness, rt.maxDistance, rt.stride, rt.edgeFade);
-
-                    vfxManager.addEffect(rayTracingEffect);
-                } else if (data instanceof PostProcessingData.SSGI) {
-                    setDepthRender(true);
-                    PostProcessingData.SSGI ssgiData = (PostProcessingData.SSGI) data;
-
-                    if (ssgiEffect == null) {
-                        ssgiEffect = new SsgiEffect();
-                    }
-
-                    ssgiEffect.setCamera(camera);
-                    ssgiEffect.setDepthTexture(depthFbo.getColorBufferTexture());
-
-                    ssgiEffect.setParams(
-                            ssgiData.radius,
-                            ssgiData.intensity,
-                            ssgiData.bias,
-                            ssgiData.ssaoStrength,
-                            new Color(ssgiData.baseAlbedoR, ssgiData.baseAlbedoG, ssgiData.baseAlbedoB, 1.0f),
-                            ssgiData.flipDepth
-                    );
-
-                    vfxManager.addEffect(ssgiEffect);
-                } else if (data instanceof PostProcessingData.GodRays) {
-                    setDepthRender(true);
-                    PostProcessingData.GodRays grData = (PostProcessingData.GodRays) data;
-                    if (godRaysEffect == null) godRaysEffect = new GodRaysEffect();
-
-                    godRaysEffect.setCamera(camera);
-                    godRaysEffect.setDepthTexture(depthFbo.getColorBufferTexture());
-                    godRaysEffect.setSunDirection(getSunLightDirection());
-
-                    godRaysEffect.exposure = grData.exposure;
-                    godRaysEffect.decay = grData.decay;
-                    godRaysEffect.density = grData.density;
-                    godRaysEffect.weight = grData.weight;
-
-                    vfxManager.addEffect(godRaysEffect);
-                } else if (data instanceof PostProcessingData.HeightFog) {
-                    setDepthRender(true);
-                    PostProcessingData.HeightFog fogData = (PostProcessingData.HeightFog) data;
-                    if (heightFogEffect == null) heightFogEffect = new HeightFogEffect();
-                    heightFogEffect.setCamera(camera);
-                    heightFogEffect.setDepthTexture(depthFbo.getColorBufferTexture());
-                    heightFogEffect.fogDensity = fogData.density;
-                    heightFogEffect.heightFalloff = fogData.falloff;
-                    heightFogEffect.fogHeight = fogData.height;
-                    heightFogEffect.fogColor.set(fogData.color);
-                    vfxManager.addEffect(heightFogEffect);
-                }else if (data instanceof PostProcessingData.VolumetricFog) {
-                    setDepthRender(true);
-                    PostProcessingData.VolumetricFog vfData = (PostProcessingData.VolumetricFog) data;
-
-                    if (volumetricFogEffect == null) volumetricFogEffect = new VolumetricFogEffect();
-
-                    volumetricFogEffect.setCamera(camera);
-                    volumetricFogEffect.setDepthTexture(depthFbo.getColorBufferTexture());
-
-                    if (pbrLight instanceof net.mgsx.gltf.scene3d.lights.DirectionalShadowLight) {
-                        net.mgsx.gltf.scene3d.lights.DirectionalShadowLight sl = (net.mgsx.gltf.scene3d.lights.DirectionalShadowLight) pbrLight;
-                        volumetricFogEffect.setShadowMap(sl.getFrameBuffer().getColorBufferTexture(), sl.getCamera().combined);
-                        volumetricFogEffect.setLightParams(sl.direction, sl.color);
-                    }
-
-                    volumetricFogEffect.setParams(vfData.density, vfData.scattering, vfData.steps, vfData.maxDistance);
-                    vfxManager.addEffect(volumetricFogEffect);
-                } else if (data instanceof PostProcessingData.DepthOfField) {
-                    setDepthRender(true);
-                    PostProcessingData.DepthOfField dofData = (PostProcessingData.DepthOfField) data;
-
-                    if (dofEffect == null) dofEffect = new DepthOfFieldEffect();
-
-                    dofEffect.setCamera(camera);
-                    dofEffect.setDepthTexture(depthFbo.getColorBufferTexture());
-
-                    dofEffect.focusDistance = dofData.focusDistance;
-                    dofEffect.focusRange = dofData.focusRange;
-                    dofEffect.blurSize = dofData.blurSize;
-                    dofEffect.transition = dofData.transition;
-                    vfxManager.addEffect(dofEffect);
-                } else if (data instanceof PostProcessingData.Bloom) {
-                        PostProcessingData.Bloom b = (PostProcessingData.Bloom) data;
-
-                        if (cachedBloomEffect == null) {
-                            cachedBloomEffect = new OptimizedBloomEffect(b.size);
-                        }
-
-                        cachedBloomEffect.setBlurPasses(b.blurPasses);
-                        cachedBloomEffect.setBlurAmount(b.blurAmount);
-                        cachedBloomEffect.setThreshold(b.threshold);
-                        cachedBloomEffect.setBloomIntensity(b.intensity);
-
-                        vfxManager.addEffect(cachedBloomEffect);
-                } else if (data instanceof PostProcessingData.Vignette) {
-                    PostProcessingData.Vignette v = (PostProcessingData.Vignette) data;
-                    if (cachedVignetteEffect == null) {
-                        cachedVignetteEffect = new VignettingEffect(false);
-                    }
-                    cachedVignetteEffect.setIntensity(v.intensity);
-                    cachedVignetteEffect.setSaturation(v.saturation);
-                    vfxManager.addEffect(cachedVignetteEffect);
-                } else if (data instanceof PostProcessingData.Levels) {
-                    PostProcessingData.Levels l = (PostProcessingData.Levels) data;
-                    if (cachedLevelsEffect == null) {
-                        cachedLevelsEffect = new LevelsEffect();
-                    }
-                    cachedLevelsEffect.setContrast(l.contrast);
-                    cachedLevelsEffect.setSaturation(l.saturation);
-                    cachedLevelsEffect.setGamma(l.gamma);
-                    vfxManager.addEffect(cachedLevelsEffect);
-                } else if (data instanceof PostProcessingData.Grain) {
-                    PostProcessingData.Grain g = (PostProcessingData.Grain) data;
-                    FilmGrainEffect effect = new FilmGrainEffect();
-                    effect.setNoiseAmount(g.amount);
-                    vfxManager.addEffect(effect);
-                } else if (data instanceof PostProcessingData.Chromatic) {
-                    PostProcessingData.Chromatic c = (PostProcessingData.Chromatic) data;
-                    ChromaticAberrationEffect effect = new ChromaticAberrationEffect((int) c.maxDistortion);
-                    effect.setMaxDistortion(c.strength);
-                    vfxManager.addEffect(effect);
-                } else if (data instanceof PostProcessingData.Fxaa) {
-                    vfxManager.addEffect(new FxaaEffect());
-                } else if (data instanceof PostProcessingData.RadialBlur) {
-                    PostProcessingData.RadialBlur r = (PostProcessingData.RadialBlur) data;
-
-                    RadialBlurEffect effect = new OptimizedRadialBlurEffect(r.blurPasses, r.size);
-                    effect.setStrength(r.strength);
-                    vfxManager.addEffect(effect);
-                }
-                else if (data instanceof PostProcessingData.OldTv) {
-                    PostProcessingData.OldTv tv = (PostProcessingData.OldTv) data;
-                    OldTvEffect effect = new OldTvEffect();
-                    effect.setTime(tv.strength);
-                    vfxManager.addEffect(effect);
-                }
-                else if (data instanceof PostProcessingData.Gaussian) {
-                    PostProcessingData.Gaussian g = (PostProcessingData.Gaussian) data;
-
-                    if (cachedGaussianBlurEffect == null) {
-                        cachedGaussianBlurEffect = new OptimizedGaussianBlurEffect(g.size);
-                    }
-
-                    cachedGaussianBlurEffect.setPasses(g.passes);
-                    cachedGaussianBlurEffect.setAmount(g.amount);
-
-                    vfxManager.addEffect(cachedGaussianBlurEffect);
-                }
-                else if (data instanceof PostProcessingData.Zoom) {
-                    PostProcessingData.Zoom z = (PostProcessingData.Zoom) data;
-                    ZoomEffect effect = new ZoomEffect();
-                    effect.setZoom(z.zoom);
-                    effect.setOrigin(z.originX, z.originY);
-                    vfxManager.addEffect(effect);
-                }
-                else if (data instanceof PostProcessingData.Crt) {
-                    CrtEffect effect = new CrtEffect();
-                    vfxManager.addEffect(effect);
-                }
-                else if (data instanceof PostProcessingData.Fisheye) {
-                    FisheyeEffect effect = new FisheyeEffect();
-                    vfxManager.addEffect(effect);
-                }
-                else if (data instanceof PostProcessingData.Water) {
-                    PostProcessingData.Water w2 = (PostProcessingData.Water) data;
-                    WaterDistortionEffect effect = new WaterDistortionEffect(w2.amount, w2.speed);
-                    vfxManager.addEffect(effect);
-                }
-                else if (data instanceof PostProcessingData.MotionBlur) {
-                    PostProcessingData.MotionBlur mb = (PostProcessingData.MotionBlur) data;
-
-                    if (cachedMotionBlurEffect == null) {
-                        cachedMotionBlurEffect = new MotionBlurEffect(com.badlogic.gdx.graphics.Pixmap.Format.RGBA8888, MIX, mb.blurOpacity);
-                    }
-
-                    vfxManager.addEffect(cachedMotionBlurEffect);
-                }
-                else if (data instanceof PostProcessingData.LensFlare) {
-                    PostProcessingData.LensFlare lf = (PostProcessingData.LensFlare) data;
-                    AutoLensFlareEffect effect = new AutoLensFlareEffect();
-                    effect.setThreshold(lf.threshold);
-                    effect.setIntensity(lf.intensity * 2.0f);
-                    effect.setDispersal(lf.dispersal);
-                    effect.setSize(lf.size);
-
-
-                    vfxManager.addEffect(effect);
-                }
-            }
-
-            if (config.hasEffect(PostProcessingData.ACES.class)) {
-                if (tonemappingEffect == null) tonemappingEffect = new TonemappingEffect();
-                vfxManager.addEffect(tonemappingEffect);
-            }
-
-            if (customScreenEffect != null) {
-                vfxManager.addEffect(customScreenEffect);
-            }
+            configureVfx(vfxManager, config);
         });
     }
 
@@ -3223,9 +3421,9 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    public void renderColorsOnly() {
+    public void renderColorsOnly(int vpWidth, int vpHeight) {
         camera.update();
-
+        Gdx.gl.glViewport(0, 0, vpWidth, vpHeight);
 
         if (realisticMode) {
             if (skyColor.a != 0) {
@@ -3236,8 +3434,6 @@ public class ThreeDManager implements Disposable {
             sceneManager.renderTransmission();
             sceneManager.renderColors();
         } else {
-            Gdx.gl.glViewport(0, 0, renderWidth, renderHeight);
-
             if (skyColor.a != 0) {
                 Gdx.gl.glClearColor(skyColor.r, skyColor.g, skyColor.b, skyColor.a);
                 Gdx.gl.glClear(com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT | com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT);
@@ -3503,7 +3699,7 @@ public class ThreeDManager implements Disposable {
                     renderShadowsOnly();
 
                     sceneFbo2.begin();
-                    renderColorsOnly();
+                    renderColorsOnly(renderWidth, renderHeight);
                     sceneFbo2.end();
 
                     if (currentConfig.hasEffect(PostProcessingData.EyeAdaptation.class)) {
@@ -5975,45 +6171,95 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    public void renderSceneForCustomCamera(PerspectiveCamera customCamera, FrameBuffer targetFbo) {
+    public void renderSceneForCustomCamera(PerspectiveCamera customCamera, FrameBuffer targetFbo, boolean useVfx) {
         Camera originalCamera = this.camera;
         this.camera = customCamera;
         if (realisticMode && sceneManager != null) {
             sceneManager.setCamera(customCamera);
+            sceneManager.updateViewport(targetFbo.getWidth(), targetFbo.getHeight());
+            sceneManager.update(0f);
         }
         customCamera.update();
 
         try {
+            updateShadowLight();
+
             if (realisticMode && sceneManager != null) {
                 sceneManager.renderShadows();
             }
 
-            targetFbo.begin();
+            BufferPipeline pipeline = useVfx ? bufferPipelines.get(targetFbo) : null;
 
-            Gdx.gl.glClearColor(skyColor.r, skyColor.g, skyColor.b, skyColor.a);
-            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+            if (pipeline != null && pipeline.vfxManager != null && postprocessingEnabled) {
+                renderDepthAndMaterial(customCamera, pipeline.depthFbo, pipeline.materialFbo);
 
-            if (realisticMode && sceneManager != null) {
-                sceneManager.renderMirror();
-                sceneManager.renderTransmission();
-                sceneManager.renderColors();
+                Texture depthTex = pipeline.depthFbo.getColorBufferTexture();
+                Texture matTex = pipeline.materialFbo.getColorBufferTexture();
+
+                if (pipeline.ssaoEffect != null) { pipeline.ssaoEffect.setCamera(customCamera); pipeline.ssaoEffect.setDepthTexture(depthTex); }
+                if (pipeline.rayTracingEffect != null) { pipeline.rayTracingEffect.setCamera(customCamera); pipeline.rayTracingEffect.setDepthTexture(depthTex); pipeline.rayTracingEffect.setMaterialTexture(matTex); }
+                if (pipeline.ssgiEffect != null) { pipeline.ssgiEffect.setCamera(customCamera); pipeline.ssgiEffect.setDepthTexture(depthTex); }
+                if (pipeline.godRaysEffect != null) { pipeline.godRaysEffect.setCamera(customCamera); pipeline.godRaysEffect.setDepthTexture(depthTex); }
+                if (pipeline.heightFogEffect != null) { pipeline.heightFogEffect.setCamera(customCamera); pipeline.heightFogEffect.setDepthTexture(depthTex); }
+                if (pipeline.volumetricFogEffect != null) { pipeline.volumetricFogEffect.setCamera(customCamera); pipeline.volumetricFogEffect.setDepthTexture(depthTex); }
+                if (pipeline.dofEffect != null) { pipeline.dofEffect.setCamera(customCamera); pipeline.dofEffect.setDepthTexture(depthTex); }
+
+                targetFbo.begin();
+                Gdx.gl.glViewport(0, 0, targetFbo.getWidth(), targetFbo.getHeight());
+                Gdx.gl.glClearColor(skyColor.r, skyColor.g, skyColor.b, skyColor.a);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
+                renderColorsOnly(targetFbo.getWidth(), targetFbo.getHeight());
+                targetFbo.end();
+
+                pipeline.vfxManager.cleanUpBuffers();
+                pipeline.vfxManager.useAsInput(targetFbo.getColorBufferTexture());
+
+                pipeline.vfxManager.update(Gdx.graphics.getDeltaTime());
+
+                pipeline.vfxManager.applyEffects();
+
+                targetFbo.begin();
+                Gdx.gl.glViewport(0, 0, targetFbo.getWidth(), targetFbo.getHeight());
+                Gdx.gl.glClearColor(0, 0, 0, 0);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
+                Texture resultTex = pipeline.vfxManager.getResultBuffer().getTexture();
+                blitBatch.begin();
+                blitBatch.draw(resultTex, 0, 0, targetFbo.getWidth(), targetFbo.getHeight(),
+                        0, 0, resultTex.getWidth(), resultTex.getHeight(), false, true);
+                blitBatch.end();
+
+                targetFbo.end();
+
             } else {
-                modelBatch.begin(customCamera);
-                for (Map.Entry<String, ModelInstance> entry : sceneObjects.entrySet()) {
-                    if (!inactiveRenderObjects.contains(entry.getKey())) {
-                        modelBatch.render(entry.getValue(), environment);
+                targetFbo.begin();
+                Gdx.gl.glViewport(0, 0, targetFbo.getWidth(), targetFbo.getHeight());
+                Gdx.gl.glClearColor(skyColor.r, skyColor.g, skyColor.b, skyColor.a);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
+                if (realisticMode && sceneManager != null) {
+                    sceneManager.renderMirror();
+                    sceneManager.renderTransmission();
+                    sceneManager.renderColors();
+                } else {
+                    modelBatch.begin(customCamera);
+                    for (Map.Entry<String, ModelInstance> entry : sceneObjects.entrySet()) {
+                        if (!inactiveRenderObjects.contains(entry.getKey())) {
+                            modelBatch.render(entry.getValue(), environment);
+                        }
                     }
+                    modelBatch.end();
                 }
-                modelBatch.end();
-            }
 
-            if (particleSystemInitialized && !activeParticleEffects.isEmpty()) {
-                particleModelBatch.begin(customCamera);
-                particleModelBatch.render(particleSystem);
-                particleModelBatch.end();
-            }
+                if (particleSystemInitialized && !activeParticleEffects.isEmpty()) {
+                    particleModelBatch.begin(customCamera);
+                    particleModelBatch.render(particleSystem);
+                    particleModelBatch.end();
+                }
 
-            targetFbo.end();
+                targetFbo.end();
+            }
 
         } catch (Exception e) {
             Log.e("ThreeDManager", "Critical error in buffer rendering", e);
@@ -6022,7 +6268,20 @@ public class ThreeDManager implements Disposable {
             this.camera = (PerspectiveCamera) originalCamera;
             if (realisticMode && sceneManager != null) {
                 sceneManager.setCamera(originalCamera);
+
+                sceneManager.updateViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+                sceneManager.update(0f);
             }
+
+            updateShadowLight();
+
+            if (blitCamera != null) {
+                blitCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+                blitCamera.update();
+            }
+
+            Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         }
     }
 

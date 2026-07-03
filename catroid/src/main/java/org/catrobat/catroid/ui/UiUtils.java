@@ -76,14 +76,6 @@ public final class UiUtils {
 		return null;
 	}
 
-	/**
-	 * --- НОВЫЙ МЕТОД ---
-	 * Создает повторяющийся (тайловый) Drawable с серо-белым шахматным узором
-	 * для визуализации прозрачности.
-	 * @param context Контекст для получения ресурсов.
-	 * @param tileSize Размер одного квадратика в шахматке (в пикселях).
-	 * @return Drawable, который можно установить как фон.
-	 */
 	public static BitmapDrawable createCheckerboardDrawable(Context context, int tileSize) {
 		Bitmap bitmap = Bitmap.createBitmap(tileSize * 2, tileSize * 2, Bitmap.Config.ARGB_8888);
 		Paint paint = new Paint();
@@ -91,8 +83,8 @@ public final class UiUtils {
 
 		Canvas canvas = new Canvas(bitmap);
 
-		int color1 = 0xFFFFFFFF; // Белый
-		int color2 = 0xFFDCDCDC; // Светло-серый
+		int color1 = 0xFFFFFFFF;
+		int color2 = 0xFFDCDCDC;
 
 		paint.setColor(color1);
 		canvas.drawRect(0, 0, tileSize, tileSize, paint);

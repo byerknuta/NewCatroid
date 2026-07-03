@@ -481,81 +481,74 @@ public class SpriteActivity extends BaseActivity {
 		}
 	}
 
-	private void updateBrickFromVisualPlacement(Bundle extras) {
-		if (extras == null) {
-			return;
-		}
+    private void updateBrickFromVisualPlacement(Bundle extras) {
+        if (extras == null) {
+            return;
+        }
 
-		// Шаг 1: Получаем все данные из VisualPlacementActivity
-		int xCoordinate = extras.getInt(X_COORDINATE_BUNDLE_ARGUMENT);
-		int yCoordinate = extras.getInt(Y_COORDINATE_BUNDLE_ARGUMENT);
-		float rotation = extras.getFloat(ROTATION_ANGLE_BUNDLE_ARGUMENT);
-		float size = extras.getFloat(SIZE_PERCENT_BUNDLE_ARGUMENT);
-		int brickHash = extras.getInt(EXTRA_BRICK_HASH);
+        int xCoordinate = extras.getInt(X_COORDINATE_BUNDLE_ARGUMENT);
+        int yCoordinate = extras.getInt(Y_COORDINATE_BUNDLE_ARGUMENT);
+        float rotation = extras.getFloat(ROTATION_ANGLE_BUNDLE_ARGUMENT);
+        float size = extras.getFloat(SIZE_PERCENT_BUNDLE_ARGUMENT);
+        int brickHash = extras.getInt(EXTRA_BRICK_HASH);
 
-		// Шаг 2: Находим кирпичик, который вызвал редактирование
-		Fragment fragment = getCurrentFragment();
-		Brick brick = null;
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(FormulaEditorFragment.FORMULA_EDITOR_FRAGMENT_TAG);
+        if (fragment == null) {
+            fragment = getSupportFragmentManager().findFragmentByTag(ScriptFragment.TAG);
+        }
+        if (fragment == null) {
+            fragment = getCurrentFragment();
+        }
 
-		if (fragment instanceof ScriptFragment) {
-			brick = ((ScriptFragment) fragment).findBrickByHash(brickHash);
-		} else if (fragment instanceof FormulaEditorFragment) {
-			brick = ((FormulaEditorFragment) fragment).getFormulaBrick();
-		}
+        Brick brick = null;
+        if (fragment instanceof ScriptFragment) {
+            brick = ((ScriptFragment) fragment).findBrickByHash(brickHash);
+        } else if (fragment instanceof FormulaEditorFragment) {
+            brick = ((FormulaEditorFragment) fragment).getFormulaBrick();
+        }
 
-		// Шаг 3: Убеждаемся, что кирпичик найден и имеет правильный тип
-		if (brick instanceof VisualPlacementBrick) {
-			VisualPlacementBrick visualBrick = (VisualPlacementBrick) brick;
-			Script parentScript = visualBrick.getScript();
+        if (brick instanceof VisualPlacementBrick) {
+            VisualPlacementBrick visualBrick = (VisualPlacementBrick) brick;
+            Script parentScript = visualBrick.getScript();
 
-			// Всегда обновляем координаты в текущем кирпичике
-			visualBrick.setCoordinates(xCoordinate, yCoordinate);
+            visualBrick.setCoordinates(xCoordinate, yCoordinate);
 
-			// Шаг 4: Проверяем, нужно ли добавлять новые кирпичики
-			Sprite currentSprite = ProjectManager.getInstance().getCurrentSprite();
-			boolean isNotBackground = !currentSprite.equals(currentScene.getBackgroundSprite());
+            Sprite currentSprite = ProjectManager.getInstance().getCurrentSprite();
+            boolean isNotBackground = !currentSprite.equals(currentScene.getBackgroundSprite());
 
-			// Добавляем блоки только для объектов (не для фона)
-			if (isNotBackground) {
-				boolean hasDirectionBrick = false;
-				boolean hasSizeBrick = false;
+            if (isNotBackground) {
+                boolean hasDirectionBrick = false;
+                boolean hasSizeBrick = false;
 
-				// Ищем, есть ли уже такие блоки в скрипте
-				for (Brick b : parentScript.getBrickList()) {
-					if (b instanceof PointInDirectionBrick) {
-						hasDirectionBrick = true;
-					}
-					// --- ВНИМАНИЕ: Проверьте точное имя класса для размера! ---
-					if (b instanceof SetSizeToBrick) {
-						hasSizeBrick = true;
-					}
-				}
+                for (Brick b : parentScript.getBrickList()) {
+                    if (b instanceof PointInDirectionBrick) {
+                        hasDirectionBrick = true;
+                    }
+                    if (b instanceof SetSizeToBrick) {
+                        hasSizeBrick = true;
+                    }
+                }
 
-				// Находим, куда вставлять новые блоки.
-				// Script не имеет getBrickIndex, но его brickList - это обычный List!
-				int insertionPoint = parentScript.getBrickList().indexOf(visualBrick) + 1;
+                int insertionPoint = parentScript.getBrickList().indexOf(visualBrick) + 1;
 
-				// Если блока вращения нет, добавляем его
-				if (!hasDirectionBrick) {
-					parentScript.addBrick(insertionPoint++, new PointInDirectionBrick(rotation + 90));
-				}
+                if (!hasDirectionBrick) {
+                    parentScript.addBrick(insertionPoint++, new PointInDirectionBrick(rotation + 90));
+                }
 
-				// Если блока размера нет, добавляем его
-				if (!hasSizeBrick) {
-					parentScript.addBrick(insertionPoint, new SetSizeToBrick(size));
-				}
-			}
+                if (!hasSizeBrick) {
+                    parentScript.addBrick(insertionPoint, new SetSizeToBrick(size));
+                }
+            }
 
-			// Шаг 5: Обновляем интерфейс, чтобы показать изменения
-			if (fragment instanceof ScriptFragment) {
-				((ScriptFragment) fragment).notifyDataSetChanged();
-			} else if (fragment instanceof FormulaEditorFragment) {
-				((FormulaEditorFragment) fragment).updateFragmentAfterVisualPlacement();
-			}
-		}
+            if (fragment instanceof ScriptFragment) {
+                ((ScriptFragment) fragment).notifyDataSetChanged();
+            } else if (fragment instanceof FormulaEditorFragment) {
+                ((FormulaEditorFragment) fragment).updateFragmentAfterVisualPlacement();
+            }
+        }
 
-		setUndoMenuItemVisibility(extras.getBoolean(CHANGED_COORDINATES));
-	}
+        setUndoMenuItemVisibility(extras.getBoolean(CHANGED_COORDINATES));
+    }
 
 	public void registerOnNewSpriteListener(NewItemInterface<Sprite> listener) {
 		onNewSpriteListener = listener;
@@ -1049,6 +1042,7 @@ public class SpriteActivity extends BaseActivity {
 						((DataListFragment) getCurrentFragment()).notifyDataSetChanged();
 						((DataListFragment) getCurrentFragment()).indexAndSort();
 					}
+                    org.catrobat.catroid.ui.recyclerview.fragment.DataListFragment.refreshActiveInstance();
 				});
 
 		final AlertDialog alertDialog = builder.setTitle(R.string.formula_editor_variable_dialog_title)

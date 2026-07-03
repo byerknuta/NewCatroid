@@ -24,19 +24,6 @@ public class AsyncRepeatBrick extends FormulaBrick implements CompositeBrick {
         setFormulaWithBrickField(BrickField.TIMES_TO_REPEAT, times);
     }
 
-    /*@Override
-    public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
-        ScriptSequenceAction loopSequence = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
-        for (Brick brick : loopBricks) {
-            if (!brick.isCommentedOut()) {
-                brick.addActionToSequence(sprite, loopSequence);
-            }
-        }
-        Action action = sprite.getActionFactory().createAsyncRepeatAction(sprite, sequence,
-                getFormulaWithBrickField(BrickField.TIMES_TO_REPEAT), loopSequence);
-        sequence.addAction(action);
-    }*/
-
     @Override
     public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
         ScriptSequenceAction repeatSequence = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());

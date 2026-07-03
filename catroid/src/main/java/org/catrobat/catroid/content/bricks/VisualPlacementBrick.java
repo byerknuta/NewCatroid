@@ -57,20 +57,27 @@ public abstract class VisualPlacementBrick extends FormulaBrick {
 		if (activity == null) {
 			return;
 		}
-		Fragment currentFragment = activity.getSupportFragmentManager().findFragmentById(R.id.fragment_container);
 
-		if (currentFragment instanceof FormulaEditorFragment) {
-			super.showFormulaEditorToEditFormula(view);
-			if (isVisualPlacement(view)) {
-				showDialog(view, currentFragment);
-			}
-		} else if (currentFragment instanceof ScriptFragment) {
-			if (isVisualPlacement(view)) {
-				showDialog(view, currentFragment);
-			} else {
-				super.showFormulaEditorToEditFormula(view);
-			}
-		}
+        Fragment currentFragment = activity.getSupportFragmentManager().findFragmentByTag(FormulaEditorFragment.FORMULA_EDITOR_FRAGMENT_TAG);
+        if (currentFragment == null) {
+            currentFragment = activity.getSupportFragmentManager().findFragmentByTag(ScriptFragment.TAG);
+        }
+        if (currentFragment == null) {
+            currentFragment = activity.getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+        };
+
+        if (currentFragment instanceof FormulaEditorFragment) {
+            super.showFormulaEditorToEditFormula(view);
+            if (isVisualPlacement(view)) {
+                showDialog(view, currentFragment);
+            }
+        } else if (currentFragment instanceof ScriptFragment) {
+            if (isVisualPlacement(view)) {
+                showDialog(view, currentFragment);
+            } else {
+                super.showFormulaEditorToEditFormula(view);
+            }
+        }
 	}
 
 	private void showDialog(View view, Fragment currentFragment) {
@@ -126,13 +133,13 @@ public abstract class VisualPlacementBrick extends FormulaBrick {
 		return intent;
 	}
 
-	private void startVisualPlacementActivity(Intent intent) {
-		AppCompatActivity activity = UiUtils.getActivityFromView(view);
-		if (!(activity instanceof SpriteActivity)) {
-			return;
-		}
-		activity.startActivityForResult(intent, REQUEST_CODE_VISUAL_PLACEMENT);
-	}
+    private void startVisualPlacementActivity(Intent intent) {
+        AppCompatActivity activity = UiUtils.getActivityFromView(view);
+        if (activity == null) {
+            return;
+        }
+        activity.startActivityForResult(intent, REQUEST_CODE_VISUAL_PLACEMENT);
+    }
 
 	public void setCoordinates(int x, int y) {
 		setFormulaWithBrickField(getXBrickField(), new Formula(x));

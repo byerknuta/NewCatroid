@@ -232,4 +232,11 @@ public interface Brick extends Serializable, Cloneable {
 	List<Brick> findBricksInNestedBricks(List<UUID> brickIds);
 
 	boolean addBrickInNestedBrick(UUID parentBrickId, int subStackIndex, List<Brick> bricksToAdd);
+
+    default boolean isPhantom() {
+        return false;
+    }
+
+    default void setPhantom(boolean isPhantom) {
+    }
 }

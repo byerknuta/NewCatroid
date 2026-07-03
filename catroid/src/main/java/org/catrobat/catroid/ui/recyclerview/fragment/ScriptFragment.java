@@ -45,6 +45,7 @@ import android.widget.TextView;
 import org.catrobat.catroid.BuildConfig;
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
+import org.catrobat.catroid.ai.KoveAutocompleteController;
 import org.catrobat.catroid.codeanalysis.AnalysisManager;
 import org.catrobat.catroid.codeanalysis.AnalysisResult;
 import org.catrobat.catroid.codeanalysis.CodeAnalyzer;
@@ -331,6 +332,19 @@ public class ScriptFragment extends ListFragment implements
 
         listView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
 
+        listView.setOnScrollListener(new android.widget.AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(android.widget.AbsListView view, int scrollState) {
+                if (scrollState == SCROLL_STATE_TOUCH_SCROLL) {
+                    KoveAutocompleteController.getInstance().dismissSuggestions();
+                }
+            }
+
+            @Override
+            public void onScroll(android.widget.AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+            }
+        });
+
         if (getActivity() instanceof SpriteActivity) {
             activity = (SpriteActivity) getActivity();
         }
@@ -510,6 +524,9 @@ public class ScriptFragment extends ListFragment implements
     @Override
     public void onPause() {
         super.onPause();
+
+        KoveAutocompleteController.getInstance().cancelActiveJob();
+        KoveAutocompleteController.getInstance().dismissSuggestions();
 
         if (!(getActivity() instanceof org.catrobat.catroid.ui.dialogs.RuntimeConsoleActivity)) {
             Project currentProject = ProjectManager.getInstance().getCurrentProject();
@@ -788,6 +805,9 @@ public class ScriptFragment extends ListFragment implements
 	}
 
 	public void addBrick(Brick brick) {
+        KoveAutocompleteController.getInstance().cancelActiveJob();
+        KoveAutocompleteController.getInstance().dismissSuggestions();
+
 		try {
 			if (!brick.getClass().equals(UserDefinedReceiverBrick.class) && !brick.getClass().equals(UserDefinedBrick.class)) {
 				RecentBrickListManager.getInstance().addBrick(brick.clone());
@@ -829,6 +849,13 @@ public class ScriptFragment extends ListFragment implements
             listView.cancelHighlighting();
             return;
         }
+
+        KoveAutocompleteController.getInstance().onUserActivity(
+                ProjectManager.getInstance().getCurrentSprite(),
+                brick.getScript(),
+                brick.getPositionInScript(),
+                adapter
+        );
 
         List<Integer> options = getContextMenuItems(brick);
         List<String> names = new ArrayList<>();

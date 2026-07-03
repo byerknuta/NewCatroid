@@ -257,6 +257,8 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
         ScreenValueHandler.updateScreenWidthAndHeight(this)
 
         pythonEngine = PythonEngine(applicationContext)
+
+        org.catrobat.catroid.ai.KoveManager.initIfEnabled(applicationContext)
     }
 
     private fun loadFinalContent() {

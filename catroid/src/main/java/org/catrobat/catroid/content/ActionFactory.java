@@ -4623,4 +4623,96 @@ public class ActionFactory extends Actions {
         action.setSpriteName(spriteName);
         return action;
     }
+
+    public Action createInstantAction(Sprite sprite, SequenceAction sequence, Action instantSequence) {
+        InstantAction action = action(InstantAction.class);
+        action.setAction(instantSequence);
+        return action;
+    }
+
+    public Action createEasePropertyAction(Sprite sprite, SequenceAction sequence,
+                                           int propertyIndex, int typeIndex, Formula duration, Formula start, Formula end) {
+        EasePropertyAction action = action(EasePropertyAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setPropertyIndex(propertyIndex);
+        action.setTypeIndex(typeIndex);
+        action.setDurationFormula(duration);
+        action.setStartFormula(start);
+        action.setEndFormula(end);
+        return action;
+    }
+
+    public Action createSpawnThreadAction(Sprite sprite, SequenceAction sequence, Formula id, List<Brick> threadBricks, Script script) {
+        SpawnThreadAction action = action(SpawnThreadAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setThreadIdFormula(id);
+        action.setThreadBricks(threadBricks);
+        action.setScript(script);
+        return action;
+    }
+
+    public Action createWaitThreadAction(Sprite sprite, SequenceAction sequence, Formula id) {
+        WaitThreadAction action = action(WaitThreadAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setThreadIdFormula(id);
+        return action;
+    }
+
+    public Action createStopThreadAction(Sprite sprite, SequenceAction sequence, Formula id) {
+        StopThreadAction action = action(StopThreadAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setThreadIdFormula(id);
+        return action;
+    }
+
+    public Action createAddTextToBufferAction(Sprite sprite, SequenceAction sequence, Formula buffer, Formula text) {
+        AddTextToBufferAction action = action(AddTextToBufferAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setBufferName(buffer);
+        action.setTextName(text);
+        return action;
+    }
+
+    public Action createSetBufferShaderAction(Sprite sprite, SequenceAction sequence, Formula name, Formula vsh, Formula fsh) {
+        SetBufferShaderAction action = action(SetBufferShaderAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setBufferName(name);
+        action.setVertexCode(vsh);
+        action.setFragmentCode(fsh);
+        return action;
+    }
+
+    public Action createSetBufferShaderUniformAction(Sprite sprite, SequenceAction sequence, Formula bufName, Formula uniName, Formula v1, Formula v2, Formula v3, int count) {
+        SetBufferShaderUniformAction action = action(SetBufferShaderUniformAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setBufferName(bufName);
+        action.setUniformName(uniName);
+        action.setVal1(v1);
+        action.setVal2(v2);
+        action.setVal3(v3);
+        action.setParamCount(count);
+        return action;
+    }
+
+    public Action createSetMainRenderLoopsAction(Sprite sprite, SequenceAction sequence, Formula r2d, Formula rf2d, Formula r3d) {
+        SetMainRenderLoopsAction action = action(SetMainRenderLoopsAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setRender2D(r2d);
+        action.setRenderFast2D(rf2d);
+        action.setRender3D(r3d);
+        return action;
+    }
+
+    public Action createSetBufferEffectsAction(Sprite sprite, SequenceAction sequence, Formula name, Formula vfx, Formula mip) {
+        SetBufferEffectsAction action = action(SetBufferEffectsAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setBufferName(name);
+        action.setUseVfx(vfx);
+        action.setUseMipmapping(mip);
+        return action;
+    }
 }

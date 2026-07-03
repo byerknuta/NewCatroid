@@ -274,6 +274,7 @@ class DataListFragment : Fragment(),
 
     override fun onResume() {
         super.onResume()
+        activeInstance = this
         initializeAdapter()
         (activity as AppCompatActivity?)?.supportActionBar?.setTitle(R.string.formula_editor_data)
         adapter?.notifyDataSetChanged()
@@ -286,6 +287,9 @@ class DataListFragment : Fragment(),
 
     override fun onPause() {
         super.onPause()
+        if (activeInstance == this) {
+            activeInstance = null
+        }
         if (isObserverRegistered && adapter != null) {
             try {
                 adapter?.unregisterAdapterDataObserver(observer)
@@ -700,6 +704,15 @@ class DataListFragment : Fragment(),
         const val PARENT_SCRIPT_BRICK_BUNDLE_ARGUMENT: String = "parent_script_brick"
         private const val NONE = 0
         private const val DELETE = 1
+
+        @JvmStatic
+        var activeInstance: DataListFragment? = null
+            private set
+
+        @JvmStatic
+        fun refreshActiveInstance() {
+            activeInstance?.initializeAdapter()
+        }
 
         @JvmStatic
         fun updateUserDataReferences(oldName: String?, newName: String?, item: UserData<*>?) {

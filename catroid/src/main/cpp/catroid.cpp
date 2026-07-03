@@ -2027,3 +2027,159 @@ Java_org_catrobat_catroid_ml_MLBridge_nativeLoadModel(JNIEnv *env, jclass, jstri
 
 
 }
+#if USE_MNN
+#include "MNN/llm.hpp"
+#include <sstream>
+#include <chrono>
+
+static std::unique_ptr<MNN::Transformer::Llm> g_kove_llm = nullptr;
+static bool g_kove_loaded = false;
+#endif
+
+std::string jstring_to_utf8(JNIEnv* env, jstring j_str) {
+    if (!j_str) return "";
+
+    jclass string_class = env->FindClass("java/lang/String");
+    jmethodID get_bytes_method = env->GetMethodID(string_class, "getBytes", "(Ljava/lang/String;)[B");
+    jstring utf8_charset = env->NewStringUTF("UTF-8");
+
+    auto byte_array = (jbyteArray)env->CallObjectMethod(j_str, get_bytes_method, utf8_charset);
+    jsize len = env->GetArrayLength(byte_array);
+    jbyte* bytes = env->GetByteArrayElements(byte_array, nullptr);
+
+    std::string result(reinterpret_cast<char*>(bytes), len);
+
+    env->ReleaseByteArrayElements(byte_array, bytes, JNI_ABORT);
+    env->DeleteLocalRef(utf8_charset);
+    env->DeleteLocalRef(byte_array);
+    env->DeleteLocalRef(string_class);
+
+    return result;
+}
+
+extern "C" {
+
+JNIEXPORT jboolean JNICALL
+Java_org_catrobat_catroid_ai_KoveManager_nativeInitKove(JNIEnv* env, jclass clazz, jstring j_model_path) {
+#if USE_MNN
+    if (g_kove_loaded) {
+        __android_log_print(ANDROID_LOG_INFO, "KOVE_NATIVE", "Kove is already initialized.");
+        return JNI_TRUE;
+    }
+
+    std::string model_path = jstring_to_utf8(env, j_model_path);
+    if (model_path.empty()) {
+        __android_log_print(ANDROID_LOG_ERROR, "KOVE_NATIVE", "Failed to convert model path.");
+        return JNI_FALSE;
+    }
+
+    std::string config_path = model_path + "/config.json";
+    __android_log_print(ANDROID_LOG_INFO, "KOVE_NATIVE", "Kove JNI started with config: %s", config_path.c_str());
+
+    try {
+        g_kove_llm.reset(MNN::Transformer::Llm::createLLM(config_path));
+        if (!g_kove_llm) {
+            __android_log_print(ANDROID_LOG_ERROR, "KOVE_NATIVE", "MNN Llm::createLLM returned nullptr!");
+            return JNI_FALSE;
+        }
+
+        __android_log_print(ANDROID_LOG_INFO, "KOVE_BENCHMARK", "Starting model weights loading...");
+        auto start_load = std::chrono::high_resolution_clock::now();
+
+        g_kove_llm->load();
+
+        auto end_load = std::chrono::high_resolution_clock::now();
+        auto load_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_load - start_load).count();
+        __android_log_print(ANDROID_LOG_INFO, "KOVE_BENCHMARK", "[SUCCESS] Kove weights loaded in %lld ms!", load_duration);
+
+        g_kove_loaded = true;
+
+        __android_log_print(ANDROID_LOG_INFO, "KOVE_BENCHMARK", "Starting startup self-test generation...");
+        std::string test_prompt = u8"<|fim_prefix|>@Sprite(\"Фон\")\nclass Фон:\n    looks = ['вкл', 'выкл']\n    sounds = []\n\n    @WhenScript\n    def start():<|fim_suffix|>\n            next_look()<|fim_middle|>";
+
+        g_kove_llm->reset();
+
+        auto start_gen = std::chrono::high_resolution_clock::now();
+
+        std::stringstream test_response_buffer;
+        g_kove_llm->response(test_prompt, &test_response_buffer);
+
+        auto end_gen = std::chrono::high_resolution_clock::now();
+        auto gen_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_gen - start_gen).count();
+
+        std::string response = test_response_buffer.str();
+        if (response.rfind(test_prompt, 0) == 0) {
+            response = response.substr(test_prompt.length());
+        }
+
+        double speed_chars_sec = (response.length() > 0 && gen_duration > 0)
+                                 ? (static_cast<double>(response.length()) / (gen_duration / 1000.0))
+                                 : 0.0;
+
+        double est_tokens_sec = speed_chars_sec / 4.0;
+
+        __android_log_print(ANDROID_LOG_INFO, "KOVE_BENCHMARK", "Generation complete in %lld ms!", gen_duration);
+        __android_log_print(ANDROID_LOG_INFO, "KOVE_BENCHMARK", "Output length: %zu chars. Estimated speed: %.2f tokens/sec", response.length(), est_tokens_sec);
+        __android_log_print(ANDROID_LOG_INFO, "KOVE_NATIVE", "Kove Startup Test Output:\n%s", response.c_str());
+
+    } catch (const std::exception& e) {
+        __android_log_print(ANDROID_LOG_ERROR, "KOVE_NATIVE", "Exception during Kove JNI init: %s", e.what());
+        g_kove_loaded = false;
+        g_kove_llm.reset();
+    } catch (...) {
+        __android_log_print(ANDROID_LOG_ERROR, "KOVE_NATIVE", "Unknown error during Kove JNI init.");
+        g_kove_loaded = false;
+        g_kove_llm.reset();
+    }
+
+    return g_kove_loaded ? JNI_TRUE : JNI_FALSE;
+#else
+#endif
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_catrobat_catroid_ai_KoveManager_nativeCompleteKove(JNIEnv* env, jclass clazz, jstring j_prompt) {
+#if USE_MNN
+    if (!g_kove_loaded || !g_kove_llm) {
+        __android_log_print(ANDROID_LOG_ERROR, "KOVE_NATIVE", "Kove is not loaded.");
+        return env->NewStringUTF("ERROR: Model not initialized");
+    }
+
+    std::string prompt = jstring_to_utf8(env, j_prompt);
+    if (prompt.empty()) {
+        return env->NewStringUTF("ERROR: Empty or corrupted prompt");
+    }
+
+    try {
+        g_kove_llm->reset();
+
+        auto start_gen = std::chrono::high_resolution_clock::now();
+
+        std::stringstream response_buffer;
+        g_kove_llm->response(prompt, &response_buffer);
+
+        auto end_gen = std::chrono::high_resolution_clock::now();
+        auto gen_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_gen - start_gen).count();
+
+        std::string response = response_buffer.str();
+        if (response.rfind(prompt, 0) == 0) {
+            response = response.substr(prompt.length());
+        }
+
+        double speed_chars_sec = (response.length() > 0 && gen_duration > 0)
+                                 ? (static_cast<double>(response.length()) / (gen_duration / 1000.0))
+                                 : 0.0;
+        double est_tokens_sec = speed_chars_sec / 4.0;
+
+        __android_log_print(ANDROID_LOG_INFO, "KOVE_BENCHMARK", "Inference complete in %lld ms. Speed: %.2f tokens/sec", gen_duration, est_tokens_sec);
+
+        return env->NewStringUTF(response.c_str());
+    } catch (const std::exception& e) {
+        __android_log_print(ANDROID_LOG_ERROR, "KOVE_NATIVE", "Exception during Kove completion: %s", e.what());
+        return env->NewStringUTF("ERROR: Exception during inference");
+    }
+#else
+#endif
+}
+
+} // extern "C"

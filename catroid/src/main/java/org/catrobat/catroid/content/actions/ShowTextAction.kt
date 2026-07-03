@@ -1,38 +1,17 @@
-/*
- * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2023 The Catrobat Team
- * (<http://developer.catrobat.org/credits>)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * An additional term exception under section 7 of the GNU Affero
- * General Public License, version 3, is available at
- * http://developer.catrobat.org/license_additional_term
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 package org.catrobat.catroid.content.actions
 
 import android.util.Log
-import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
+import com.badlogic.gdx.scenes.scene2d.Action
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.InterpretationException
 import org.catrobat.catroid.formulaeditor.UserVariable
 import org.catrobat.catroid.stage.ShowTextActor
 import org.catrobat.catroid.stage.StageActivity
+import org.catrobat.catroid.utils.ShowTextUtils
 import org.catrobat.catroid.utils.ShowTextUtils.AndroidStringProvider
 
-class ShowTextAction : TemporalAction() {
+class ShowTextAction : Action() {
     companion object {
         val TAG: String = ShowTextAction::class.java.simpleName
     }
@@ -43,54 +22,43 @@ class ShowTextAction : TemporalAction() {
 
     private var scope: Scope? = null
     private var androidStringProvider: AndroidStringProvider? = null
-    private var showTextActor: ShowTextActor? = null
 
-    override fun begin() {
+    override fun act(delta: Float): Boolean {
         try {
-            variableToShow?.visible = true
-            val xPosition = xPosition.interpretInteger(scope)
-            val yPosition = yPosition.interpretInteger(scope)
-            if (StageActivity.activeStageActivity.get()?.stageListener == null) {
-                return
-            }
-            val stageActors = StageActivity.activeStageActivity.get()?.stageListener?.stage?.actors
-            val dummyActor = ShowTextActor( false,
-                UserVariable("dummyActor"),
-                0, 0, 0.0f, null, scope?.sprite, androidStringProvider
-            )
+            val variable = variableToShow ?: return true
+            variable.visible = true
 
-            if (stageActors != null) {
-                for (stageActor in stageActors) {
-                    if (stageActor.javaClass != dummyActor.javaClass) {
-                        continue
-                    }
-                    val showTextActor = stageActor as ShowTextActor
-                    if (showTextActor.variableNameToCompare == variableToShow?.name && showTextActor.sprite == scope?.sprite) {
-                        stageActor.remove()
+            val xPos = xPosition.interpretFloat(scope)
+            val yPos = yPosition.interpretFloat(scope)
+
+            val listener = StageActivity.activeStageActivity.get()?.stageListener ?: return true
+            val stageActors = listener.stage?.actors ?: return true
+
+            var targetActor: ShowTextActor? = null
+
+            for (i in 0 until stageActors.size) {
+                val stageActor = stageActors.get(i)
+                if (stageActor is ShowTextActor) {
+                    if (stageActor.variableNameToCompare == variable.name && stageActor.sprite == scope?.sprite) {
+                        targetActor = stageActor
+                        break
                     }
                 }
             }
-            showTextActor = ShowTextActor(
-                false, variableToShow, xPosition, yPosition, 1.0f, null,
-                scope?.sprite, androidStringProvider
-            )
-            StageActivity.activeStageActivity.get()?.stageListener?.addActor(showTextActor)
+
+            if (targetActor == null) {
+                targetActor = ShowTextActor(
+                    false, variable, "", xPos, yPos, 1.0f, null,
+                    scope?.sprite, ShowTextUtils.ALIGNMENT_STYLE_CENTERED, androidStringProvider
+                )
+                listener.addActor(targetActor)
+            } else {
+                targetActor.updateProperties(variable.name, xPos, yPos, 1.0f, null, null)
+            }
         } catch (e: InterpretationException) {
             Log.d(TAG, "InterpretationException: $e")
         }
-    }
-
-    override fun update(percent: Float) {
-        try {
-            val xPosition = xPosition?.interpretInteger(scope)
-            val yPosition = yPosition?.interpretInteger(scope)
-            if (showTextActor != null) {
-                showTextActor?.setPositionX(xPosition ?: 0)
-                showTextActor?.setPositionY(yPosition ?: 0)
-            }
-        } catch (e: InterpretationException) {
-            Log.d(TAG, "InterpretationException $e")
-        }
+        return true
     }
 
     fun setPosition(xPosition: Formula, yPosition: Formula) {

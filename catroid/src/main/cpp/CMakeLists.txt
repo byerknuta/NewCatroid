@@ -29,11 +29,18 @@ if(ANDROID_ABI STREQUAL "arm64-v8a")
             ${CMAKE_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libMNN.so)
     set(MNN_LINK_LIBS MNN)
 
+    add_library(llm SHARED IMPORTED)
+    set_target_properties(llm PROPERTIES IMPORTED_LOCATION
+            ${CMAKE_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libllm.so)
+
+    set(LLM_LINK_LIBS llm)
+
     add_compile_definitions(USE_MNN=1)
 else()
     message(STATUS "Python and MNN Support: DISABLED for ${ANDROID_ABI}")
     set(PYTHON_LINK_LIBS "")
     set(MNN_LINK_LIBS "")
+    set(LLM_LINK_LIBS "")
 endif()
 
 find_library(log-lib log)
@@ -59,6 +66,7 @@ target_link_libraries(
         ${dl-lib}
         unwind
         ${MNN_LINK_LIBS}
+        ${LLM_LINK_LIBS}
 )
 
 target_link_libraries(
