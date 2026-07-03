@@ -35,6 +35,7 @@ import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
@@ -178,7 +179,17 @@ public class SettingsFragment extends PreferenceFragment {
 
 		screen = getPreferenceScreen();
 
-		if (!BuildConfig.FEATURE_EMBROIDERY_ENABLED) {
+        PreferenceCategory additionsCategory = (PreferenceCategory) findPreference("category_additions");
+
+        if (additionsCategory != null) {
+            PreferenceScreen ideScreen = (PreferenceScreen) findPreference("setting_ide_screen");
+
+            if (ideScreen != null) {
+                additionsCategory.removePreference(ideScreen);
+            }
+        }
+
+        if (!BuildConfig.FEATURE_EMBROIDERY_ENABLED) {
 			CheckBoxPreference embroideryPreference =
 					(CheckBoxPreference) findPreference(SETTINGS_SHOW_EMBROIDERY_BRICKS_CHECKBOX_PREFERENCE);
 			embroideryPreference.setEnabled(false);

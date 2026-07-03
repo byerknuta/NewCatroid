@@ -281,7 +281,9 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/additions">
+    <PreferenceCategory
+        android:title="@string/additions"
+        android:key="category_additions" >
 
         <PreferenceScreen
             android:key="setting_plugins_screen"
@@ -293,8 +295,7 @@
             android:key="setting_ide_screen"
             android:title="IDE"
             android:summary="@string/ide_desc"
-            android:icon="@android:drawable/ic_menu_add"
-            app:isPreferenceVisible="false" />
+            android:icon="@android:drawable/ic_menu_add" />
 
     </PreferenceCategory>
 
