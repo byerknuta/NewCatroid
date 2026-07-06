@@ -651,6 +651,16 @@ public class InternFormulaKeyboardAdapter {
 			case R.string.formula_editor_sensor_mouse_scroll: return buildSensor(Sensors.MOUSE_SCROLL);
 			case R.string.formula_editor_function_is_mouse_button_down:
 				return buildSingleParameterFunction(Functions.IS_MOUSE_BUTTON_DOWN, InternTokenType.NUMBER, "0");
+            case R.string.formula_read_file:
+                return buildSingleParameterFunction(Functions.READ_FILE, STRING, "data.txt");
+            case R.string.formula_media_duration:
+                return buildSingleParameterFunction(Functions.MEDIA_DURATION, STRING, "music.mp3");
+            case R.string.formula_image_width:
+                return buildSingleParameterFunction(Functions.IMAGE_WIDTH, STRING, "picture.png");
+            case R.string.formula_image_height:
+                return buildSingleParameterFunction(Functions.IMAGE_HEIGHT, STRING, "picture.png");
+            case R.string.formula_file_last_modified:
+                return buildSingleParameterFunction(Functions.FILE_LAST_MODIFIED, STRING, "data.txt");
             case R.string.formula_notification_reply:
                 return buildSingleParameterFunction(Functions.NOTIFICATION_REPLY, STRING, "my_action_id");
 			case R.string.formula_editor_phiro_sensor_side_right:

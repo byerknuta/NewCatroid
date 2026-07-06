@@ -368,6 +368,11 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.NFC_TAG_ID.name(), R.string.formula_editor_nfc_tag_id);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.NFC_TAG_MESSAGE.name(), R.string.formula_editor_nfc_tag_message);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LOUDNESS.name(), R.string.formula_editor_sensor_loudness);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.READ_FILE.name(), R.string.formula_read_file);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.MEDIA_DURATION.name(), R.string.formula_media_duration);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IMAGE_WIDTH.name(), R.string.formula_image_width);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IMAGE_HEIGHT.name(), R.string.formula_image_height);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_LAST_MODIFIED.name(), R.string.formula_file_last_modified);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.STAGE_WIDTH.name(),
 				R.string.formula_editor_sensor_stage_width);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.STAGE_HEIGHT.name(),

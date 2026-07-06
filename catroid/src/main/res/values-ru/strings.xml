@@ -23,6 +23,26 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="native_views">Интерфейс</string>
+    <string name="tables_and_vars">Память</string>
+    <string name="category_network">Сеть</string>
+
+    <string name="formula_read_file" formatted="false">прочитать_файл</string>
+    <string name="formula_read_file_param" formatted="false">(\'file.txt\')</string>
+
+    <string name="formula_media_duration" formatted="false">длительность_медиа</string>
+    <string name="formula_media_duration_param" formatted="false">(\'audio.mp3\')</string>
+
+    <string name="formula_image_width" formatted="false">ширина_изображения</string>
+    <string name="formula_image_width_param" formatted="false">(\'image.png\')</string>
+
+    <string name="formula_image_height" formatted="false">высота_изображения</string>
+    <string name="formula_image_height_param" formatted="false">(\'image.png\')</string>
+
+    <string name="formula_file_last_modified" formatted="false">файл_изменен</string>
+    <string name="formula_file_last_modified_param" formatted="false">(\'file.txt\')</string>
+
+    <string name="brick_when_window_resized">Когда размеры окна изменены</string>
     <string name="brick_when_app_minimized">Когда приложение свернули</string>
     <string name="brick_when_app_restored">Когда приложение развернули</string>
 
@@ -2086,12 +2106,12 @@
     <string formatted="false" name="set_native_layer">Задать слой нативному View</string>
     <string formatted="false" name="videoplayer_params">(\'myVideoPlayer\')</string>
     <string formatted="false" name="view_params">(\'myView\')</string>
-    <string formatted="false" name="video_time">время videoplayer</string>
-    <string formatted="false" name="is_video_playing">videoplayer запущен</string>
-    <string formatted="false" name="view_height">высота view</string>
-    <string formatted="false" name="view_width">ширина view</string>
-    <string formatted="false" name="view_y">позиция y view</string>
-    <string formatted="false" name="view_x">позиция x view</string>
+    <string formatted="false" name="video_time">время_videoplayer</string>
+    <string formatted="false" name="is_video_playing">videoplayer_запущен</string>
+    <string formatted="false" name="view_height">высота_view</string>
+    <string formatted="false" name="view_width">ширина_view</string>
+    <string formatted="false" name="view_y">позиция_y_view</string>
+    <string formatted="false" name="view_x">позиция_x_view</string>
     <string formatted="false" name="seek_video2">на (секунды)</string>
     <string formatted="false" name="seek_video">Перемотать VideoPlayer</string>
     <string formatted="false" name="play_video">Запустить VideoPlayer</string>

@@ -371,6 +371,7 @@ public final class BrickInfo {
         add(ReadBaseBrick.class, "Читает значение из FireBase ВАЖНО: если айди базы неправильный - может вызывать фатальную ошибку");
         add(DeleteBaseBrick.class, "Удаляет ключ из FireBase ВАЖНО: если айди базы неправильный - может вызывать фатальную ошибку");
         add(UploadFileBrick.class, "Отправляет файл проекта на сервер");
+        add(WhenWindowResizedBrick.class, "Вызывается при изменении размеров окна (или перевороте экрана). Используйте для адаптации интерфейса");
         add(WhenAppMinimizedBrick.class, "Вызывается когда приложение свернули с экрана");
         add(WhenAppRestoredBrick.class, "Вызывается когда приложение вернули на экран");
         add(WhenNotificationActionTriggeredBrick.class, "Вызывается при нажатии на кнопку в уведомлении (ID действия принимает!)");

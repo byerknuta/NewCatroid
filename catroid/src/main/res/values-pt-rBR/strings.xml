@@ -491,12 +491,12 @@
     <string name="set_native_layer" formatted="false">Definir camada para View nativa</string>
     <string name="videoplayer_params" formatted="false">(\'meuVideoPlayer\')</string>
     <string name="view_params" formatted="false">(\'minhaView\')</string>
-    <string name="video_time" formatted="false">tempo do videoplayer</string>
-    <string name="is_video_playing" formatted="false">videoplayer em execução</string>
-    <string name="view_height" formatted="false">altura da view</string>
-    <string name="view_width" formatted="false">largura da view</string>
-    <string name="view_y" formatted="false">posição y da view</string>
-    <string name="view_x" formatted="false">posição x da view</string>
+    <string name="video_time" formatted="false">tempo_do_videoplayer</string>
+    <string name="is_video_playing" formatted="false">videoplayer_em_execução</string>
+    <string name="view_height" formatted="false">altura_da_view</string>
+    <string name="view_width" formatted="false">largura_da_view</string>
+    <string name="view_y" formatted="false">posição_y_da_view</string>
+    <string name="view_x" formatted="false">posição_x_da_view</string>
     <string name="seek_video2" formatted="false">para (segundos)</string>
     <string name="seek_video" formatted="false">Avançar/Retroceder VideoPlayer</string>
     <string name="play_video" formatted="false">Iniciar VideoPlayer</string>

@@ -596,6 +596,7 @@ import org.catrobat.catroid.content.bricks.WhenRaspiPinChangedBrick
 import org.catrobat.catroid.content.bricks.WhenSpriteReleasedBrick
 import org.catrobat.catroid.content.bricks.WhenStartedBrick
 import org.catrobat.catroid.content.bricks.WhenTouchDownBrick
+import org.catrobat.catroid.content.bricks.WhenWindowResizedBrick
 import org.catrobat.catroid.content.bricks.WriteBaseBrick
 import org.catrobat.catroid.content.bricks.WriteEmbroideryToFileBrick
 import org.catrobat.catroid.content.bricks.WriteListOnDeviceBrick
@@ -748,15 +749,16 @@ open class CategoryBricksFactory {
                 if (!isBackgroundSprite) {
                     eventBrickList.add(WhenBounceOffBrick(WhenBounceOffScript(null)))
                 }
-                eventBrickList.add(WhenBeforeUpdateBrick())
-                eventBrickList.add(WhenAfterUpdateBrick())
-                eventBrickList.add(WhenAppMinimizedBrick())
-                eventBrickList.add(WhenAppRestoredBrick())
                 eventBrickList.add(WhenBackgroundChangesBrick())
                 eventBrickList.add(WhenClonedBrick())
                 eventBrickList.add(CloneBrick())
                 eventBrickList.add(CloneAndNameBrick("clone"))
                 eventBrickList.add(DeleteThisCloneBrick())
+                eventBrickList.add(WhenBeforeUpdateBrick())
+                eventBrickList.add(WhenAfterUpdateBrick())
+                eventBrickList.add(WhenAppMinimizedBrick())
+                eventBrickList.add(WhenAppRestoredBrick())
+                eventBrickList.add(WhenWindowResizedBrick())
                 if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
                     eventBrickList.add(WhenNfcBrick())
                 }
@@ -822,6 +824,7 @@ open class CategoryBricksFactory {
         eventBrickList.add(WhenAfterUpdateBrick())
         eventBrickList.add(WhenAppMinimizedBrick())
         eventBrickList.add(WhenAppRestoredBrick())
+        eventBrickList.add(WhenWindowResizedBrick())
         if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
             eventBrickList.add(WhenNfcBrick())
         }

@@ -308,8 +308,11 @@ public class StageListener implements ApplicationListener {
     private final List<ScriptSequenceAction> afterUpdateActions = new ArrayList<>();
     private boolean hasAfterUpdateScripts = false;
 
+    private boolean isFirstResize = true;
+
 	@Override
 	public void create() {
+        isFirstResize = true;
         org.catrobat.catroid.utils.ActionThreadRegistry.clear();
 
 		deltaActionTimeDivisor = 10f;
@@ -1824,6 +1827,12 @@ public class StageListener implements ApplicationListener {
 
         if (threeDManager != null) threeDManager.resize(width, height);
         if (fastTwoDManager != null) fastTwoDManager.resize(width, height);
+
+        if (isFirstResize) {
+            isFirstResize = false;
+        } else {
+            broadcastEventToAllSprites(new EventId(EventId.WINDOW_RESIZED));
+        }
     }
 
 

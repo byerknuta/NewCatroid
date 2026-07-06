@@ -831,6 +831,61 @@ public class FormulaElement implements Serializable {
                 String headerName = String.valueOf(arg1);
                 return org.catrobat.catroid.common.NewCatroidHttpManager.INSTANCE.getResponseHeader(id, headerName);
             }
+            case READ_FILE: {
+                String filename = String.valueOf(arg0);
+                java.io.File file = org.catrobat.catroid.ProjectManager.getInstance().getCurrentProject().getFile(filename);
+                if (file == null || !file.exists()) return "";
+                try {
+                    if (file.length() > 2 * 1024 * 1024) return "File is too large";
+                    return com.badlogic.gdx.Gdx.files.absolute(file.getAbsolutePath()).readString("UTF-8");
+                } catch (Exception e) {
+                    return "";
+                }
+            }
+            case MEDIA_DURATION: {
+                String filename = String.valueOf(arg0);
+                java.io.File file = org.catrobat.catroid.ProjectManager.getInstance().getCurrentProject().getFile(filename);
+                if (file == null || !file.exists()) return 0.0;
+
+                android.media.MediaMetadataRetriever retriever = new android.media.MediaMetadataRetriever();
+                try {
+                    retriever.setDataSource(file.getAbsolutePath());
+                    String timeStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION);
+                    return Double.parseDouble(timeStr) / 1000.0;
+                } catch (Exception e) {
+                    return 0.0;
+                } finally {
+                    try { retriever.release(); } catch (Exception ignore) {}
+                }
+            }
+            case IMAGE_WIDTH: {
+                String filename = String.valueOf(arg0);
+                java.io.File file = org.catrobat.catroid.ProjectManager.getInstance().getCurrentProject().getFile(filename);
+                if (file == null || !file.exists()) return 0.0;
+
+                android.graphics.BitmapFactory.Options options = new android.graphics.BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                android.graphics.BitmapFactory.decodeFile(file.getAbsolutePath(), options);
+
+                return (double) options.outWidth;
+            }
+            case IMAGE_HEIGHT: {
+                String filename = String.valueOf(arg0);
+                java.io.File file = org.catrobat.catroid.ProjectManager.getInstance().getCurrentProject().getFile(filename);
+                if (file == null || !file.exists()) return 0.0;
+
+                android.graphics.BitmapFactory.Options options = new android.graphics.BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                android.graphics.BitmapFactory.decodeFile(file.getAbsolutePath(), options);
+
+                return (double) options.outHeight;
+            }
+            case FILE_LAST_MODIFIED: {
+                String filename = String.valueOf(arg0);
+                java.io.File file = org.catrobat.catroid.ProjectManager.getInstance().getCurrentProject().getFile(filename);
+                if (file == null || !file.exists()) return 0.0;
+                return (double) file.lastModified();
+            }
             case JSON_GET:
                 return interpretFunctionJsonGet(arg0, arg1);
             case JSON_SET:
@@ -1363,49 +1418,55 @@ public class FormulaElement implements Serializable {
     private Object interpretFunctionJsonIsValid(Object arg) {
         String jsonString = String.valueOf(arg);
         try {
-            String trimmed = jsonString.trim();
-            if (trimmed.startsWith("{")) {
-                new JSONObject(jsonString);
-            } else if (trimmed.startsWith("[")) {
-                new JSONArray(jsonString);
-            } else {
-                return Conversions.FALSE;
-            }
-        } catch (JSONException e) {
+            parseJsonRoot(jsonString);
+            return Conversions.TRUE;
+        } catch (Exception e) {
             return Conversions.FALSE;
         }
-        return Conversions.TRUE;
     }
 
     private Object interpretFunctionJsonGet(Object jsonArg, Object pathArg) {
         String jsonString = String.valueOf(jsonArg);
         String path = String.valueOf(pathArg);
         try {
-            JSONObject jsonObject = new JSONObject(jsonString);
-            String[] keys = path.split("\\.");
-            Object current = jsonObject;
-            for (int i = 0; i < keys.length; i++) {
-                if (current instanceof JSONObject) {
-                    JSONObject currentObj = (JSONObject) current;
-                    String key = keys[i];
-                    if (i == keys.length - 1) {
-                        Object result = currentObj.opt(key);
-                        if (result == null || result == JSONObject.NULL) return "";
+            Object current = parseJsonRoot(jsonString);
+            List<String> tokens = parsePathTokens(path);
 
-                        if (result instanceof JSONObject || result instanceof JSONArray) {
-                            return result.toString();
-                        }
-                        return result;
+            for (int i = 0; i < tokens.size(); i++) {
+                String token = tokens.get(i);
+                if (current == null || current == org.json.JSONObject.NULL) {
+                    return "";
+                }
+
+                if (current instanceof org.json.JSONObject) {
+                    org.json.JSONObject obj = (org.json.JSONObject) current;
+                    if (i == tokens.size() - 1) {
+                        return sanitizeResult(obj.opt(token));
                     } else {
-                        current = currentObj.opt(key);
-                        if (current == null) return "";
+                        current = obj.opt(token);
+                    }
+                } else if (current instanceof org.json.JSONArray) {
+                    org.json.JSONArray arr = (org.json.JSONArray) current;
+                    int index;
+                    try {
+                        index = Integer.parseInt(token);
+                    } catch (NumberFormatException e) {
+                        return "";
+                    }
+                    if (index < 0 || index >= arr.length()) {
+                        return "";
+                    }
+                    if (i == tokens.size() - 1) {
+                        return sanitizeResult(arr.opt(index));
+                    } else {
+                        current = arr.opt(index);
                     }
                 } else {
                     return "";
                 }
             }
-            return "";
-        } catch (JSONException e) {
+            return sanitizeResult(current);
+        } catch (Exception e) {
             return "";
         }
     }
@@ -1414,38 +1475,125 @@ public class FormulaElement implements Serializable {
         String jsonString = String.valueOf(jsonArg);
         String path = String.valueOf(pathArg);
         try {
-            JSONObject jsonObject = new JSONObject(jsonString);
-            String[] keys = path.split("\\.");
-            JSONObject current = jsonObject;
-            for (int i = 0; i < keys.length - 1; i++) {
-                String key = keys[i];
-                JSONObject next = current.optJSONObject(key);
-                if (next == null) {
-                    next = new JSONObject();
-                    current.put(key, next);
-                }
-                current = next;
+            Object root = parseJsonRoot(jsonString);
+            List<String> tokens = parsePathTokens(path);
+            if (tokens.isEmpty()) {
+                return jsonString;
             }
 
-            String finalKey = keys[keys.length - 1];
-            try {
-                if (valueArg instanceof String) {
-                    String valStr = (String) valueArg;
-                    if (valStr.contains(".")) {
-                        current.put(finalKey, Double.parseDouble(valStr));
-                    } else {
-                        current.put(finalKey, Integer.parseInt(valStr));
+            Object current = root;
+            for (int i = 0; i < tokens.size() - 1; i++) {
+                String token = tokens.get(i);
+                String nextToken = tokens.get(i + 1);
+                boolean isNextTokenIndex = isStringInteger(nextToken);
+
+                if (current instanceof org.json.JSONObject) {
+                    org.json.JSONObject currentObj = (org.json.JSONObject) current;
+                    Object next = currentObj.opt(token);
+                    if (next == null || next == org.json.JSONObject.NULL) {
+                        next = isNextTokenIndex ? new org.json.JSONArray() : new org.json.JSONObject();
+                        currentObj.put(token, next);
                     }
-                } else {
-                    current.put(finalKey, valueArg);
+                    current = next;
+                } else if (current instanceof org.json.JSONArray) {
+                    org.json.JSONArray arr = (org.json.JSONArray) current;
+                    int index = Integer.parseInt(token);
+                    while (arr.length() <= index) {
+                        arr.put(org.json.JSONObject.NULL);
+                    }
+                    Object next = arr.opt(index);
+                    if (next == null || next == org.json.JSONObject.NULL) {
+                        next = isNextTokenIndex ? new org.json.JSONArray() : new org.json.JSONObject();
+                        arr.put(index, next);
+                    }
+                    current = next;
                 }
-            } catch (NumberFormatException e) {
-                current.put(finalKey, valueArg);
             }
 
-            return jsonObject.toString();
-        } catch (JSONException e) {
+            String lastToken = tokens.get(tokens.size() - 1);
+            Object parsedValue = parseValue(valueArg);
+
+            if (current instanceof org.json.JSONObject) {
+                ((org.json.JSONObject) current).put(lastToken, parsedValue);
+            } else if (current instanceof org.json.JSONArray) {
+                org.json.JSONArray arr = (org.json.JSONArray) current;
+                int index = Integer.parseInt(lastToken);
+                while (arr.length() <= index) {
+                    arr.put(org.json.JSONObject.NULL);
+                }
+                arr.put(index, parsedValue);
+            }
+
+            return root.toString();
+        } catch (Exception e) {
             return jsonString;
+        }
+    }
+
+    private boolean isStringInteger(String s) {
+        try {
+            Integer.parseInt(s);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private Object parseJsonRoot(String jsonString) throws org.json.JSONException {
+        String trimmed = jsonString.trim();
+        if (trimmed.startsWith("[")) {
+            return new org.json.JSONArray(trimmed);
+        } else {
+            return new org.json.JSONObject(trimmed);
+        }
+    }
+
+    private List<String> parsePathTokens(String path) {
+        List<String> tokens = new ArrayList<>();
+        String normalized = path.replace("[", ".").replace("]", "");
+        String[] parts = normalized.split("\\.");
+        for (String part : parts) {
+            if (part != null && !part.trim().isEmpty()) {
+                tokens.add(part.trim());
+            }
+        }
+        return tokens;
+    }
+
+    private Object sanitizeResult(Object result) {
+        if (result == null || result == org.json.JSONObject.NULL) {
+            return "";
+        }
+        if (result instanceof org.json.JSONObject || result instanceof org.json.JSONArray) {
+            return result.toString();
+        }
+        return result;
+    }
+
+    private Object parseValue(Object valueArg) {
+        if (valueArg == null) return org.json.JSONObject.NULL;
+        String valStr = String.valueOf(valueArg);
+
+        if ("true".equalsIgnoreCase(valStr)) return true;
+        if ("false".equalsIgnoreCase(valStr)) return false;
+
+        try {
+            String trimmed = valStr.trim();
+            if (trimmed.startsWith("{")) {
+                return new org.json.JSONObject(trimmed);
+            } else if (trimmed.startsWith("[")) {
+                return new org.json.JSONArray(trimmed);
+            }
+        } catch (Exception ignored) {}
+
+        try {
+            if (valStr.contains(".")) {
+                return Double.parseDouble(valStr);
+            } else {
+                return Integer.parseInt(valStr);
+            }
+        } catch (NumberFormatException e) {
+            return valueArg;
         }
     }
 

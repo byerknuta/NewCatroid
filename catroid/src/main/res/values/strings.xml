@@ -23,6 +23,26 @@
   -->
 <resources  xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="native_views">UI / Interface</string>
+    <string name="tables_and_vars">Data / Memory</string>
+    <string name="category_network">Network</string>
+
+    <string name="formula_read_file" formatted="false">read_file</string>
+    <string name="formula_read_file_param" formatted="false">(\'file.txt\')</string>
+
+    <string name="formula_media_duration" formatted="false">media_duration</string>
+    <string name="formula_media_duration_param" formatted="false">(\'audio.mp3\')</string>
+
+    <string name="formula_image_width" formatted="false">image_width</string>
+    <string name="formula_image_width_param" formatted="false">(\'image.png\')</string>
+
+    <string name="formula_image_height" formatted="false">image_height</string>
+    <string name="formula_image_height_param" formatted="false">(\'image.png\')</string>
+
+    <string name="formula_file_last_modified" formatted="false">file_last_modified</string>
+    <string name="formula_file_last_modified_param" formatted="false">(\'file.txt\')</string>
+
+    <string name="brick_when_window_resized">When window resized</string>
     <string name="brick_when_app_minimized">When app minimized</string>
     <string name="brick_when_app_restored">When app restored</string>
 
@@ -2145,12 +2165,12 @@
     <string formatted="false" name="set_native_layer">Set Native Views layer</string>
     <string formatted="false" name="videoplayer_params">(\'myVideoPlayer\')</string>
     <string formatted="false" name="view_params">(\'myView\')</string>
-    <string formatted="false" name="video_time">videoplayer time</string>
-    <string formatted="false" name="is_video_playing">is videoplayer playing</string>
-    <string formatted="false" name="view_height">view height</string>
-    <string formatted="false" name="view_width">view width</string>
-    <string formatted="false" name="view_y">position y view</string>
-    <string formatted="false" name="view_x">position x view</string>
+    <string formatted="false" name="video_time">videoplayer_time</string>
+    <string formatted="false" name="is_video_playing">is_videoplayer_playing</string>
+    <string formatted="false" name="view_height">view_height</string>
+    <string formatted="false" name="view_width">view_width</string>
+    <string formatted="false" name="view_y">position_y_view</string>
+    <string formatted="false" name="view_x">position_x_view</string>
     <string formatted="false" name="seek_video2">to (seconds)</string>
     <string formatted="false" name="seek_video">Seek VideoPlayer</string>
     <string formatted="false" name="play_video">Start VideoPlayer</string>

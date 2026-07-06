@@ -67,6 +67,7 @@ import org.catrobat.catroid.content.WhenNotificationClickedScript;
 import org.catrobat.catroid.content.WhenScript;
 import org.catrobat.catroid.content.WhenSpriteReleasedScript;
 import org.catrobat.catroid.content.WhenTouchDownScript;
+import org.catrobat.catroid.content.WhenWindowResizedScript;
 import org.catrobat.catroid.content.XmlHeader;
 import org.catrobat.catroid.content.actions.AskGPTAction;
 import org.catrobat.catroid.content.actions.ShowTextFontAction;
@@ -816,6 +817,7 @@ public final class XstreamSerializer {
         xstream.alias("brick", NotificationCancelBrick.class);
         xstream.alias("script", WhenAppMinimizedScript.class);
         xstream.alias("script", WhenAppRestoredScript.class);
+        xstream.alias("script", WhenWindowResizedScript.class);
 
 
         xstream.alias("brick", org.catrobat.catroid.content.bricks.UnknownBrick.class);

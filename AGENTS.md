@@ -427,7 +427,7 @@ public enum Functions {
 ```
 
 
-4. добавляем в InternFormulaAdapter (там огромный switch case)
+4. добавляем в InternFormulaKeyboardAdapter (там огромный switch case)
 ```java
    case R.id.formula_editor_keyboard_4:
    return buildNumber("4");
@@ -640,7 +640,7 @@ public enum Functions {
    ```
 
 
-6. в CategoryListFragments (я добавил специально новые списки для нашего Fast2D)
+6. в CategoryListFragment (я добавил специально новые списки для нашего Fast2D)
 ```java
    private static final List<Integer> LIST_FUNCTIONS = asList(R.string.formula_editor_function_number_of_items,
    R.string.formula_editor_function_list_item, R.string.formula_editor_function_contains,

@@ -152,30 +152,18 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_if_then_else_parameter);
 	private static final List<Integer> STRING_FUNCTIONS = asList(R.string.formula_editor_function_length,
 			R.string.formula_editor_function_letter,
-			R.string.formula_editor_function_subtext, R.string.formula_editor_function_upper, R.string.formula_editor_function_lower, R.string.formula_editor_function_reverse, R.string.formula_editor_function_var, R.string.formula_editor_function_var_name, R.string.formula_editor_function_var_value, R.string.formula_editor_function_join,
+			R.string.formula_editor_function_subtext, R.string.formula_editor_function_upper, R.string.formula_editor_function_lower, R.string.formula_editor_function_reverse, R.string.formula_editor_function_join,
 			R.string.formula_editor_function_join3, R.string.formula_editor_function_replace, R.string.formula_editor_function_contains_str, R.string.formula_editor_function_repeat, R.string.formula_editor_function_random_str, R.string.formula_editor_function_distance, R.string.formula_editor_function_joinnumber, R.string.formula_editor_function_regex,
 			R.string.formula_editor_function_regex_assistant,
 			R.string.formula_editor_function_flatten, R.string.formula_editor_function_connect,
-			R.string.formula_editor_function_table_x, R.string.formula_editor_function_table_y, R.string.formula_editor_function_table_element,
-			R.string.formula_editor_function_table_join, R.string.formula_editor_function_floatarray,
 			R.string.formula_editor_function_lua,
-			R.string.view_x, R.string.view_y, R.string.view_width, R.string.view_height, R.string.is_video_playing, //R.string.video_time,
-			R.string.formula_editor_function_file, R.string.formula_editor_function_files_path, R.string.formula_editor_function_all_files, R.string.formula_editor_function_file_size, R.string.formula_editor_function_json_get, R.string.formula_editor_function_json_set, R.string.formula_editor_function_json_is_valid,
-			R.string.formula_ray_did_hit2,
-			R.string.formula_ray_hit_sprite_name,
-			R.string.formula_ray_hit_x2,
-			R.string.formula_ray_hit_y2,
-			R.string.formula_ray_hit_distance,
-            R.string.formula_notification_reply);
+			R.string.formula_editor_function_json_get, R.string.formula_editor_function_json_set, R.string.formula_editor_function_json_is_valid);
 	private static final List<Integer> STRING_PARAMS = asList(R.string.formula_editor_function_length_parameter,
 			R.string.formula_editor_function_letter_parameter,
 			R.string.formula_editor_function_subtext_parameter,
 			R.string.formula_editor_function_upper_parameter,
 			R.string.formula_editor_function_lower_parameter,
 			R.string.formula_editor_function_reverse_parametr,
-			R.string.formula_editor_function_var_parameter,
-			R.string.formula_editor_function_var_name_parameter,
-			R.string.formula_editor_function_var_value_parameter,
 			R.string.formula_editor_function_join_parameter,
 			R.string.formula_editor_function_join3_parameter,
 			R.string.formula_editor_function_replace_parameter,
@@ -188,25 +176,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_no_parameter,
 			R.string.formula_editor_function_flatten_parameter,
 			R.string.formula_editor_function_connect_parameter,
-			R.string.formula_editor_function_table_x_parameter,
-			R.string.formula_editor_function_table_y_parameter,
-			R.string.formula_editor_function_table_element_parameter,
-			R.string.formula_editor_function_table_join_parameter,
-			R.string.formula_editor_function_floatarray_parameter,
 			R.string.formula_editor_function_lua_parameter,
-			R.string.view_params,
-			R.string.view_params,
-			R.string.view_params,
-			R.string.view_params,
-			R.string.videoplayer_params,
-			//R.string.videoplayer_params,
-			R.string.formula_editor_function_file_parameter, R.string.formula_no_param, R.string.formula_no_param, R.string.formula_editor_function_file_parameter, R.string.formula_editor_function_json_get_parameter, R.string.formula_editor_function_json_set_parameter, R.string.formula_editor_function_json_is_valid_parameter,
-			R.string.formula_ray_did_hit_parameter,
-			R.string.formula_ray_hit_sprite_name_parameter,
-			R.string.formula_ray_hit_x_parameter,
-			R.string.formula_ray_hit_y_parameter,
-			R.string.formula_ray_hit_distance_parameter,
-            R.string.formula_notification_reply_param);
+            R.string.formula_editor_function_json_get_parameter, R.string.formula_editor_function_json_set_parameter, R.string.formula_editor_function_json_is_valid_parameter);
 	private static final List<Integer> LIST_FUNCTIONS = asList(R.string.formula_editor_function_number_of_items,
 			R.string.formula_editor_function_list_item, R.string.formula_editor_function_contains,
 			R.string.formula_editor_function_index_of_item, R.string.formula_editor_function_flatten, R.string.formula_editor_function_connect, R.string.formula_editor_function_find);
@@ -607,6 +578,88 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_sensor_gamepad_down_pressed,
 			R.string.formula_editor_sensor_gamepad_left_pressed,
 			R.string.formula_editor_sensor_gamepad_right_pressed);
+
+    private static final List<Integer> FILE_FUNCTIONS = asList(
+            R.string.formula_editor_function_file,
+            R.string.formula_editor_function_all_files,
+            R.string.formula_editor_function_files_path,
+            R.string.formula_editor_function_file_size,
+            R.string.formula_read_file,
+            R.string.formula_media_duration,
+            R.string.formula_image_width,
+            R.string.formula_image_height,
+            R.string.formula_file_last_modified
+    );
+
+    private static final List<Integer> FILE_PARAMS = asList(
+            R.string.formula_editor_function_file_parameter,
+            R.string.formula_no_param,
+            R.string.formula_no_param,
+            R.string.formula_editor_function_file_parameter,
+            R.string.formula_read_file_param,
+            R.string.formula_media_duration_param,
+            R.string.formula_image_width_param,
+            R.string.formula_image_height_param,
+            R.string.formula_file_last_modified_param
+    );
+
+    private static final List<Integer> TABLE_AND_VARS_FUNCTIONS = asList(
+            R.string.formula_editor_function_var,
+            R.string.formula_editor_function_var_name,
+            R.string.formula_editor_function_var_value,
+            R.string.formula_editor_function_table_x,
+            R.string.formula_editor_function_table_y,
+            R.string.formula_editor_function_table_element,
+            R.string.formula_editor_function_table_join,
+            R.string.formula_editor_function_floatarray
+    );
+
+    private static final List<Integer> TABLE_AND_VARS_PARAMS = asList(
+            R.string.formula_editor_function_var_parameter,
+            R.string.formula_editor_function_var_name_parameter,
+            R.string.formula_editor_function_var_value_parameter,
+            R.string.formula_editor_function_table_x_parameter,
+            R.string.formula_editor_function_table_y_parameter,
+            R.string.formula_editor_function_table_element_parameter,
+            R.string.formula_editor_function_table_join_parameter,
+            R.string.formula_editor_function_floatarray_parameter
+    );
+
+    private static final List<Integer> VIEW_FUNCTIONS = asList(
+            R.string.view_x,
+            R.string.view_y,
+            R.string.view_width,
+            R.string.view_height,
+            R.string.is_video_playing,
+            //R.string.video_time,
+            R.string.formula_notification_reply
+    );
+
+    private static final List<Integer> VIEW_PARAMS = asList(
+            R.string.view_params,
+            R.string.view_params,
+            R.string.view_params,
+            R.string.view_params,
+            R.string.videoplayer_params,
+            //R.string.videoplayer_params,
+            R.string.formula_notification_reply_param
+    );
+
+    private static final List<Integer> TWOD_FUNCTIONS = asList(
+            R.string.formula_ray_did_hit2,
+            R.string.formula_ray_hit_sprite_name,
+            R.string.formula_ray_hit_x2,
+            R.string.formula_ray_hit_y2,
+            R.string.formula_ray_hit_distance
+    );
+
+    private static final List<Integer> TWOD_PARAMS = asList(
+            R.string.formula_ray_did_hit_parameter,
+            R.string.formula_ray_hit_sprite_name_parameter,
+            R.string.formula_ray_hit_x_parameter,
+            R.string.formula_ray_hit_y_parameter,
+            R.string.formula_ray_hit_distance_parameter
+    );
 
 	private static final List<Integer> SENSORS_SPEECH_RECOGNITION = Collections.singletonList(R.string.formula_editor_listening_language_sensor);
 
@@ -1093,6 +1146,14 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 				getString(R.string.formula_editor_functions_strings)));
 		result.addAll(addHeader(toCategoryListItems(LIST_FUNCTIONS, LIST_PARAMS),
 				getString(R.string.formula_editor_functions_lists)));
+        result.addAll(addHeader(toCategoryListItems(TABLE_AND_VARS_FUNCTIONS, TABLE_AND_VARS_PARAMS),
+                getString(R.string.tables_and_vars)));
+        result.addAll(addHeader(toCategoryListItems(VIEW_FUNCTIONS, VIEW_PARAMS),
+                getString(R.string.native_views)));
+        result.addAll(addHeader(toCategoryListItems(FILE_FUNCTIONS, FILE_PARAMS),
+                getString(R.string.category_file)));
+        result.addAll(addHeader(toCategoryListItems(TWOD_FUNCTIONS, TWOD_PARAMS),
+                "2D"));
         result.addAll(addHeader(toCategoryListItems(F2D_FUNCTIONS, F2D_PARAMS),
                 "Fast 2D"));
 		result.addAll(addHeader(toCategoryListItems(THREED_FUNCTIONS, THREED_PARAMS),
@@ -1100,7 +1161,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
         result.addAll(addHeader(toCategoryListItems(PT_FUNCTIONS, PT_PARAMS),
                 "PockeTensor"));
         result.addAll(addHeader(toCategoryListItems(HTTP_FUNCTIONS, HTTP_PARAMS),
-                "HTTP"));
+                getString(R.string.category_network)));
 
 		List<CustomFormula> customFormulas = CustomFormulaManager.INSTANCE.getFormulas();
 		if (!customFormulas.isEmpty()) {
@@ -1293,6 +1354,130 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 				: Collections.emptyList();
 	}
 
+    private int getLevenshteinDistance(String s1, String s2) {
+        int len1 = s1.length();
+        int len2 = s2.length();
+        int[] dp0 = new int[len2 + 1];
+        int[] dp1 = new int[len2 + 1];
+        for (int j = 0; j <= len2; j++) dp0[j] = j;
+        for (int i = 1; i <= len1; i++) {
+            dp1[0] = i;
+            for (int j = 1; j <= len2; j++) {
+                int cost = (s1.charAt(i - 1) == s2.charAt(j - 1)) ? 0 : 1;
+                dp1[j] = Math.min(Math.min(dp1[j - 1] + 1, dp0[j] + 1), dp0[j - 1] + cost);
+            }
+            System.arraycopy(dp1, 0, dp0, 0, dp0.length);
+        }
+        return dp0[len2];
+    }
+
+    // Класс для сортировки результатов по релевантности
+    private static class SearchResult implements Comparable<SearchResult> {
+        CategoryListItem item;
+        int score;
+
+        SearchResult(CategoryListItem item, int score) {
+            this.item = item;
+            this.score = score;
+        }
+
+        @Override
+        public int compareTo(SearchResult other) {
+            return Integer.compare(this.score, other.score);
+        }
+    }
+
+    private int calculateRelevanceScore(String text, String query) {
+        if (text == null || query == null) {
+            return Integer.MAX_VALUE;
+        }
+
+        String nText = text.toLowerCase(Locale.getDefault()).replace('_', ' ').replace('-', ' ').trim();
+        String nQuery = query.toLowerCase(Locale.getDefault()).replace('_', ' ').replace('-', ' ').trim();
+
+        if (nQuery.isEmpty()) {
+            return Integer.MAX_VALUE;
+        }
+
+        if (nText.equals(nQuery)) {
+            return 0;
+        }
+
+        if (nText.startsWith(nQuery)) {
+            return 1;
+        }
+
+        if (nText.contains(nQuery)) {
+            return 2;
+        }
+
+        String[] queryWords = nQuery.split("\\s+");
+        String[] textWords = nText.split("\\s+");
+
+        int matchedWords = 0;
+        int totalLevenshtein = 0;
+        boolean allWordsMatchPrefix = true;
+        boolean allWordsMatchStem = true;
+
+        for (String qWord : queryWords) {
+            boolean wordMatched = false;
+            boolean prefixMatched = false;
+            boolean stemMatched = false;
+
+            String stem = qWord;
+            if (qWord.length() > 4) {
+                stem = qWord.substring(0, 4);
+            }
+
+            for (String tWord : textWords) {
+                if (tWord.equals(qWord) || tWord.startsWith(qWord)) {
+                    wordMatched = true;
+                    prefixMatched = true;
+                    break;
+                }
+
+                if (tWord.contains(stem)) {
+                    wordMatched = true;
+                    stemMatched = true;
+                    break;
+                }
+
+                if (qWord.length() >= 3) {
+                    int maxDistance = qWord.length() >= 5 ? 2 : 1;
+                    if (Math.abs(tWord.length() - qWord.length()) <= maxDistance) {
+                        int distance = getLevenshteinDistance(qWord, tWord);
+                        if (distance <= maxDistance) {
+                            wordMatched = true;
+                            totalLevenshtein += distance;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (wordMatched) {
+                matchedWords++;
+                if (!prefixMatched) allWordsMatchPrefix = false;
+                if (!stemMatched && !prefixMatched) allWordsMatchStem = false;
+            } else {
+                allWordsMatchPrefix = false;
+                allWordsMatchStem = false;
+            }
+        }
+
+        if (matchedWords == queryWords.length) {
+            if (allWordsMatchPrefix) {
+                return 3;
+            }
+            if (allWordsMatchStem) {
+                return 4;
+            }
+            return 5 + totalLevenshtein;
+        }
+
+        return Integer.MAX_VALUE;
+    }
+
     private void filterList(String query) {
         if (query == null || query.trim().isEmpty()) {
             adapter = new CategoryListRVAdapter(new ArrayList<>(allItems), false);
@@ -1301,20 +1486,28 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             return;
         }
 
-        String lowerQuery = query.toLowerCase(Locale.getDefault());
-        List<CategoryListItem> matchedItems = new ArrayList<>();
-
+        List<SearchResult> searchResults = new ArrayList<>();
         List<CategoryListItem> globalItems = getAllPossibleItems();
-        for (CategoryListItem item : globalItems) {
-            String itemText = item.text != null ? item.text.toLowerCase(Locale.getDefault()) : "";
 
-            if (itemText.contains(lowerQuery)) {
-                CategoryListItem clonedItem = new CategoryListItem(item.nameResId, item.text, item.type);
-                clonedItem.isCustomFunction = item.isCustomFunction;
-                clonedItem.customFunctionName = item.customFunctionName;
-                clonedItem.header = null;
-                matchedItems.add(clonedItem);
+        for (CategoryListItem item : globalItems) {
+            String itemText = item.text != null ? item.text : "";
+            int score = calculateRelevanceScore(itemText, query);
+
+            if (score != Integer.MAX_VALUE) {
+                searchResults.add(new SearchResult(item, score));
             }
+        }
+
+        Collections.sort(searchResults);
+
+        List<CategoryListItem> matchedItems = new ArrayList<>();
+        for (SearchResult result : searchResults) {
+            CategoryListItem item = result.item;
+            CategoryListItem clonedItem = new CategoryListItem(item.nameResId, item.text, item.type);
+            clonedItem.isCustomFunction = item.isCustomFunction;
+            clonedItem.customFunctionName = item.customFunctionName;
+            clonedItem.header = null;
+            matchedItems.add(clonedItem);
         }
 
         java.util.Map<String, List<CategoryListItem>> grouped = new java.util.LinkedHashMap<>();
@@ -1360,6 +1553,11 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
         if (F2D_FUNCTIONS.contains(id)) return "Fast 2D";
         if (THREED_FUNCTIONS.contains(id)) return "3D";
         if (PT_FUNCTIONS.contains(id)) return "PockeTensor";
+        if (TWOD_FUNCTIONS.contains(id)) return "2D";
+        if (FILE_FUNCTIONS.contains(id)) return getString(R.string.category_file);
+        if (VIEW_FUNCTIONS.contains(id)) return getString(R.string.native_views);
+        if (TABLE_AND_VARS_FUNCTIONS.contains(id)) return getString(R.string.tables_and_vars);
+        if (HTTP_FUNCTIONS.contains(id)) return getString(R.string.category_network);
         if (LOGIC_BOOL.contains(id)) return getString(R.string.formula_editor_logic_boolean);
         if (LOGIC_COMPARISION.contains(id)) return getString(R.string.formula_editor_logic_comparison);
 
