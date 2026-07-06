@@ -49,6 +49,8 @@ import static org.catrobat.catroid.ui.SpriteActivity.EXTRA_Y_TRANSFORM;
 import static org.catrobat.catroid.ui.SpriteActivity.REQUEST_CODE_VISUAL_PLACEMENT;
 import static org.catrobat.catroid.ui.SpriteActivity.EXTRA_ROTATION;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 public abstract class VisualPlacementBrick extends FormulaBrick {
 
 	@Override

@@ -716,7 +716,9 @@ public class ScriptFragment extends ListFragment implements
 	}
 
 	public void notifyDataSetChanged() {
-		adapter.notifyDataSetChanged();
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
 	}
 
 	public boolean isCurrentlyMoving() {

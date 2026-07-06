@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_http_create_layout"
+        style="@style/BrickContainer.Internet.Big">
+
+        <include layout="@layout/icon_brick_category_data" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_http_create_title" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_http_create_id"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_http_create_id_field"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_http_create_method"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_http_create_method_field"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_http_create_url"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_http_create_url_field"
+            style="@style/BrickEditText" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

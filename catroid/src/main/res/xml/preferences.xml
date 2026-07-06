@@ -264,7 +264,7 @@
         android:key="pref_1_april_enabled"
         android:title="1 APRIL"
         android:summary=":]"
-        android:defaultValue="true" />
+        android:defaultValue="false" />
 
     <CheckBoxPreference
         android:key="pref_code_analysis_enabled"

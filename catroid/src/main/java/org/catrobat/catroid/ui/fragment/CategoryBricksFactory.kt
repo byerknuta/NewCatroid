@@ -28,10 +28,14 @@ import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.R
 import org.catrobat.catroid.common.BrickValues
 import org.catrobat.catroid.content.BroadcastScript
+import org.catrobat.catroid.content.BroadcastWithParamsReceiverScript
 import org.catrobat.catroid.content.RaspiInterruptScript
 import org.catrobat.catroid.content.WhenBounceOffScript
 import org.catrobat.catroid.content.WhenConditionScript
 import org.catrobat.catroid.content.WhenGamepadButtonScript
+import org.catrobat.catroid.content.WhenNotificationActionTriggeredScript
+import org.catrobat.catroid.content.WhenNotificationClickedScript
+import org.catrobat.catroid.content.actions.NativeViewBindSpriteAction
 import org.catrobat.catroid.content.actions.SetAnimationSpeedAction
 import org.catrobat.catroid.content.actions.hideStatusBarAction
 import org.catrobat.catroid.content.bricks.AddEditBrick
@@ -69,6 +73,9 @@ import org.catrobat.catroid.content.bricks.Brick
 import org.catrobat.catroid.content.bricks.BroadcastBrick
 import org.catrobat.catroid.content.bricks.BroadcastReceiverBrick
 import org.catrobat.catroid.content.bricks.BroadcastWaitBrick
+import org.catrobat.catroid.content.bricks.BroadcastWithParamsBrick
+import org.catrobat.catroid.content.bricks.BroadcastWithParamsReceiverBrick
+import org.catrobat.catroid.content.bricks.BufferMaskBrick
 import org.catrobat.catroid.content.bricks.CameraBrick
 import org.catrobat.catroid.content.bricks.CameraLookAtBrick
 import org.catrobat.catroid.content.bricks.CameraSettingsBrick
@@ -103,6 +110,7 @@ import org.catrobat.catroid.content.bricks.CopyProjectFileBrick
 import org.catrobat.catroid.content.bricks.CopyTextBrick
 import org.catrobat.catroid.content.bricks.Create3dObjectBrick
 import org.catrobat.catroid.content.bricks.CreateBufferBrick
+import org.catrobat.catroid.content.bricks.CreateButtonBrick
 import org.catrobat.catroid.content.bricks.CreateCubeBrick
 import org.catrobat.catroid.content.bricks.CreateDialogBrick
 import org.catrobat.catroid.content.bricks.CreateDiskBrick
@@ -110,14 +118,19 @@ import org.catrobat.catroid.content.bricks.CreateDistanceJointBrick
 import org.catrobat.catroid.content.bricks.CreateFloatBrick
 import org.catrobat.catroid.content.bricks.CreateGLViewBrick
 import org.catrobat.catroid.content.bricks.CreateGearJointBrick
+import org.catrobat.catroid.content.bricks.CreateImageViewBrick
 import org.catrobat.catroid.content.bricks.CreateParticlesBrick
 import org.catrobat.catroid.content.bricks.CreatePointJointBrick
 import org.catrobat.catroid.content.bricks.CreatePrismaticJointBrick
 import org.catrobat.catroid.content.bricks.CreatePulleyJointBrick
 import org.catrobat.catroid.content.bricks.CreateRevoluteJointBrick
+import org.catrobat.catroid.content.bricks.CreateScrollViewBrick
+import org.catrobat.catroid.content.bricks.CreateSliderBrick
 import org.catrobat.catroid.content.bricks.CreateSphereBrick
+import org.catrobat.catroid.content.bricks.CreateSwitchBrick
 import org.catrobat.catroid.content.bricks.CreateTableBrick
 import org.catrobat.catroid.content.bricks.CreateTextFieldBrick
+import org.catrobat.catroid.content.bricks.CreateTextLabelBrick
 import org.catrobat.catroid.content.bricks.CreateVarBrick
 import org.catrobat.catroid.content.bricks.CreateVideoBrick
 import org.catrobat.catroid.content.bricks.CreateWebFileBrick
@@ -141,6 +154,7 @@ import org.catrobat.catroid.content.bricks.DeleteVarsBrick
 import org.catrobat.catroid.content.bricks.DeleteWebBrick
 import org.catrobat.catroid.content.bricks.DestroyJointBrick
 import org.catrobat.catroid.content.bricks.DetachFromCameraBrick
+import org.catrobat.catroid.content.bricks.DisableBackgroundModeBrick
 import org.catrobat.catroid.content.bricks.DroneEmergencyBrick
 import org.catrobat.catroid.content.bricks.DroneFlipBrick
 import org.catrobat.catroid.content.bricks.DroneMoveBackwardBrick
@@ -156,6 +170,7 @@ import org.catrobat.catroid.content.bricks.DroneTurnLeftBrick
 import org.catrobat.catroid.content.bricks.DroneTurnRightBrick
 import org.catrobat.catroid.content.bricks.EasePropertyBrick
 import org.catrobat.catroid.content.bricks.EditLookBrick
+import org.catrobat.catroid.content.bricks.EnableBackgroundModeBrick
 import org.catrobat.catroid.content.bricks.EnablePbrRenderBrick
 import org.catrobat.catroid.content.bricks.EvalWebBrick
 import org.catrobat.catroid.content.bricks.ExitStageBrick
@@ -194,6 +209,12 @@ import org.catrobat.catroid.content.bricks.HideBrick
 import org.catrobat.catroid.content.bricks.HideStatusBarBrick
 import org.catrobat.catroid.content.bricks.HideText3Brick
 import org.catrobat.catroid.content.bricks.HideTextBrick
+import org.catrobat.catroid.content.bricks.HttpAttachFileBrick
+import org.catrobat.catroid.content.bricks.HttpBodyBrick
+import org.catrobat.catroid.content.bricks.HttpConfigBrick
+import org.catrobat.catroid.content.bricks.HttpCreateBrick
+import org.catrobat.catroid.content.bricks.HttpSaveFileBrick
+import org.catrobat.catroid.content.bricks.HttpSendBrick
 import org.catrobat.catroid.content.bricks.IfLogicBeginBrick
 import org.catrobat.catroid.content.bricks.IfOnEdgeBounceBrick
 import org.catrobat.catroid.content.bricks.IfThenLogicBeginBrick
@@ -246,9 +267,18 @@ import org.catrobat.catroid.content.bricks.MoveDownloadsBrick
 import org.catrobat.catroid.content.bricks.MoveFilesBrick
 import org.catrobat.catroid.content.bricks.MoveNStepsBrick
 import org.catrobat.catroid.content.bricks.NativeLayerBrick
+import org.catrobat.catroid.content.bricks.NativeViewAnimateBrick
+import org.catrobat.catroid.content.bricks.NativeViewBindSpriteBrick
+import org.catrobat.catroid.content.bricks.NativeViewConfigBrick
+import org.catrobat.catroid.content.bricks.NativeViewControlBrick
+import org.catrobat.catroid.content.bricks.NativeViewListenerBrick
 import org.catrobat.catroid.content.bricks.NextLookBrick
 import org.catrobat.catroid.content.bricks.NormalizeImgBrick
 import org.catrobat.catroid.content.bricks.NoteBrick
+import org.catrobat.catroid.content.bricks.NotificationAddButtonBrick
+import org.catrobat.catroid.content.bricks.NotificationCancelBrick
+import org.catrobat.catroid.content.bricks.NotificationCreateBrick
+import org.catrobat.catroid.content.bricks.NotificationShowBrick
 import org.catrobat.catroid.content.bricks.ObjectLookAtBrick
 import org.catrobat.catroid.content.bricks.OpenFileBrick
 import org.catrobat.catroid.content.bricks.OpenFilesBrick
@@ -407,6 +437,7 @@ import org.catrobat.catroid.content.bricks.SetMainRenderLoopsBrick
 import org.catrobat.catroid.content.bricks.SetMassBrick
 import org.catrobat.catroid.content.bricks.SetMaterialBrick
 import org.catrobat.catroid.content.bricks.SetMaxPointLightsBrick
+import org.catrobat.catroid.content.bricks.SetNativeParentBrick
 import org.catrobat.catroid.content.bricks.SetNegativeBrick
 import org.catrobat.catroid.content.bricks.SetNeutralBrick
 import org.catrobat.catroid.content.bricks.SetNfcTagBrick
@@ -463,6 +494,7 @@ import org.catrobat.catroid.content.bricks.SewUpBrick
 import org.catrobat.catroid.content.bricks.ShaderBrick
 import org.catrobat.catroid.content.bricks.ShowBrick
 import org.catrobat.catroid.content.bricks.ShowDialogBrick
+import org.catrobat.catroid.content.bricks.ShowNotificationBrick
 import org.catrobat.catroid.content.bricks.ShowText3Brick
 import org.catrobat.catroid.content.bricks.ShowTextBrick
 import org.catrobat.catroid.content.bricks.ShowTextColorSizeAlignmentBrick
@@ -521,6 +553,7 @@ import org.catrobat.catroid.content.bricks.UnloadNNBrick
 import org.catrobat.catroid.content.bricks.UnlockMouseBrick
 import org.catrobat.catroid.content.bricks.UnpinFromCameraBrick
 import org.catrobat.catroid.content.bricks.UnzipBrick
+import org.catrobat.catroid.content.bricks.UnzipProjectFilesBrick
 import org.catrobat.catroid.content.bricks.UpdateManifestBrick
 import org.catrobat.catroid.content.bricks.UploadFileBrick
 import org.catrobat.catroid.content.bricks.UserDefinedBrick
@@ -541,6 +574,8 @@ import org.catrobat.catroid.content.bricks.WaitTillIdleBrick
 import org.catrobat.catroid.content.bricks.WaitUntilBrick
 import org.catrobat.catroid.content.bricks.WebRequestBrick
 import org.catrobat.catroid.content.bricks.WhenAfterUpdateBrick
+import org.catrobat.catroid.content.bricks.WhenAppMinimizedBrick
+import org.catrobat.catroid.content.bricks.WhenAppRestoredBrick
 import org.catrobat.catroid.content.bricks.WhenBackPressedBrick
 import org.catrobat.catroid.content.bricks.WhenBackgroundChangesBrick
 import org.catrobat.catroid.content.bricks.WhenBeforeUpdateBrick
@@ -548,12 +583,17 @@ import org.catrobat.catroid.content.bricks.WhenBounceOffBrick
 import org.catrobat.catroid.content.bricks.WhenBrick
 import org.catrobat.catroid.content.bricks.WhenClonedBrick
 import org.catrobat.catroid.content.bricks.WhenConditionBrick
+import org.catrobat.catroid.content.bricks.WhenFingerMovedOnScreenBrick
+import org.catrobat.catroid.content.bricks.WhenFingerMovedOverSpriteBrick
 import org.catrobat.catroid.content.bricks.WhenGamepadButtonBrick
 import org.catrobat.catroid.content.bricks.WhenMouseButtonClickedBrick
 import org.catrobat.catroid.content.bricks.WhenMouseWheelScrolledBrick
 import org.catrobat.catroid.content.bricks.WhenNfcBrick
+import org.catrobat.catroid.content.bricks.WhenNotificationActionTriggeredBrick
+import org.catrobat.catroid.content.bricks.WhenNotificationClickedBrick
 import org.catrobat.catroid.content.bricks.WhenProjectExitsBrick
 import org.catrobat.catroid.content.bricks.WhenRaspiPinChangedBrick
+import org.catrobat.catroid.content.bricks.WhenSpriteReleasedBrick
 import org.catrobat.catroid.content.bricks.WhenStartedBrick
 import org.catrobat.catroid.content.bricks.WhenTouchDownBrick
 import org.catrobat.catroid.content.bricks.WriteBaseBrick
@@ -564,6 +604,7 @@ import org.catrobat.catroid.content.bricks.WriteVariableOnDeviceBrick
 import org.catrobat.catroid.content.bricks.WriteVariableToFileBrick
 import org.catrobat.catroid.content.bricks.ZigZagStitchBrick
 import org.catrobat.catroid.content.bricks.ZipBrick
+import org.catrobat.catroid.content.bricks.ZipProjectFilesBrick
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.FormulaElement
 import org.catrobat.catroid.formulaeditor.Operators
@@ -684,6 +725,9 @@ open class CategoryBricksFactory {
                 eventBrickList.add(WhenStartedBrick())
                 eventBrickList.add(WhenBrick())
                 eventBrickList.add(WhenTouchDownBrick())
+                eventBrickList.add(WhenSpriteReleasedBrick())
+                eventBrickList.add(WhenFingerMovedOverSpriteBrick())
+                eventBrickList.add(WhenFingerMovedOnScreenBrick())
                 val broadcastMessages =
                     ProjectManager.getInstance().currentProject?.broadcastMessageContainer?.broadcastMessages
                 var broadcastMessage: String? = context.getString(R.string.brick_broadcast_default_value)
@@ -693,6 +737,11 @@ open class CategoryBricksFactory {
                 eventBrickList.add(BroadcastReceiverBrick(BroadcastScript(broadcastMessage)))
                 eventBrickList.add(BroadcastBrick(broadcastMessage))
                 eventBrickList.add(BroadcastWaitBrick(broadcastMessage))
+                eventBrickList.add(BroadcastWithParamsReceiverBrick(broadcastMessage, null))
+                eventBrickList.add(BroadcastWithParamsBrick(broadcastMessage, "any data..."))
+                eventBrickList.add(WhenNotificationClickedBrick(WhenNotificationClickedScript(Formula(123456))))
+                eventBrickList.add(WhenNotificationActionTriggeredBrick(
+                    WhenNotificationActionTriggeredScript(Formula("123"))))
                 eventBrickList.add(WhenProjectExitsBrick())
                 eventBrickList.add(WhenBackPressedBrick())
                 eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
@@ -701,6 +750,8 @@ open class CategoryBricksFactory {
                 }
                 eventBrickList.add(WhenBeforeUpdateBrick())
                 eventBrickList.add(WhenAfterUpdateBrick())
+                eventBrickList.add(WhenAppMinimizedBrick())
+                eventBrickList.add(WhenAppRestoredBrick())
                 eventBrickList.add(WhenBackgroundChangesBrick())
                 eventBrickList.add(WhenClonedBrick())
                 eventBrickList.add(CloneBrick())
@@ -731,6 +782,9 @@ open class CategoryBricksFactory {
         eventBrickList.add(WhenStartedBrick())
         eventBrickList.add(WhenBrick())
         eventBrickList.add(WhenTouchDownBrick())
+        eventBrickList.add(WhenSpriteReleasedBrick())
+        eventBrickList.add(WhenFingerMovedOverSpriteBrick())
+        eventBrickList.add(WhenFingerMovedOnScreenBrick())
         eventBrickList.add(WhenBackPressedBrick())
 
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_messages), template))
@@ -743,6 +797,11 @@ open class CategoryBricksFactory {
         eventBrickList.add(BroadcastReceiverBrick(BroadcastScript(broadcastMessage)))
         eventBrickList.add(BroadcastBrick(broadcastMessage))
         eventBrickList.add(BroadcastWaitBrick(broadcastMessage))
+        eventBrickList.add(BroadcastWithParamsReceiverBrick(broadcastMessage, null))
+        eventBrickList.add(BroadcastWithParamsBrick(broadcastMessage, "any data..."))
+        eventBrickList.add(WhenNotificationClickedBrick(WhenNotificationClickedScript(Formula(123456))))
+        eventBrickList.add(WhenNotificationActionTriggeredBrick(
+            WhenNotificationActionTriggeredScript(Formula("123"))))
 
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_conditions), template))
         eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
@@ -761,6 +820,8 @@ open class CategoryBricksFactory {
         eventBrickList.add(WhenProjectExitsBrick())
         eventBrickList.add(WhenBeforeUpdateBrick())
         eventBrickList.add(WhenAfterUpdateBrick())
+        eventBrickList.add(WhenAppMinimizedBrick())
+        eventBrickList.add(WhenAppRestoredBrick())
         if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
             eventBrickList.add(WhenNfcBrick())
         }
@@ -1268,6 +1329,7 @@ open class CategoryBricksFactory {
                 looksBrickList.add(SetBufferCameraBrick("Map", "100", "200", "1", "0"))
                 looksBrickList.add(SetBufferCamera3DBrick(Formula("Map"), Formula(100), Formula(100), Formula(100), Formula(120), Formula(-20), Formula(0), Formula(67)))
                 looksBrickList.add(ApplyBufferLookBrick("Map"))
+                looksBrickList.add(BufferMaskBrick("Map", 1))
                 looksBrickList.add(SetBufferShaderBrick("Map", """attribute vec4 a_position;
 attribute vec4 a_color;
 attribute vec2 a_texCoord0;
@@ -1418,6 +1480,7 @@ void main() {
         looksBrickList.add(SetBufferCameraBrick("Map", "100", "200", "1", "0"))
         looksBrickList.add(SetBufferCamera3DBrick(Formula("Map"), Formula(100), Formula(100), Formula(100), Formula(120), Formula(-20), Formula(0), Formula(67)))
         looksBrickList.add(ApplyBufferLookBrick("Map"))
+        looksBrickList.add(BufferMaskBrick("Map", 1))
         looksBrickList.add(SetBufferShaderBrick("Map", """attribute vec4 a_position;
 attribute vec4 a_color;
 attribute vec2 a_texCoord0;
@@ -1502,8 +1565,10 @@ void main() {
                 //dataBrickList.add(SaveLookBrick("my_actor.png"))
                 dataBrickList.add(FileUrlBrick("http://e95814zx.beget.tech/map.jpg", "fileFromUrl.jpg"))
                 dataBrickList.add(FilesUrlBrick("http://e95814zx.beget.tech/map.jpg", "fileFromUrl.jpg"))
-                dataBrickList.add(ZipBrick("myZip.zip", "my_actor.png,fileFromUrl.jpg"))
+                dataBrickList.add(ZipProjectFilesBrick("file1.txt, file2.png", "archive.zip"))
+                dataBrickList.add(UnzipProjectFilesBrick("archive.zip"))
                 dataBrickList.add(GetZipFileNamesBrick("myZip.zip"))
+                dataBrickList.add(ZipBrick("myZip.zip", "my_actor.png,fileFromUrl.jpg"))
                 dataBrickList.add(UnzipBrick("myZip.zip"))
                 dataBrickList.add(AddItemToUserListBrick(BrickValues.ADD_ITEM_TO_USERLIST))
                 dataBrickList.add(DeleteItemOfUserListBrick(BrickValues.DELETE_ITEM_OF_USERLIST))
@@ -1606,8 +1671,10 @@ void main() {
         dataBrickList.add(DeleteFilesBrick("variable.txt"))
         dataBrickList.add(WriteListOnDeviceBrick())
         dataBrickList.add(ReadListFromDeviceBrick())
-        dataBrickList.add(ZipBrick("myZip.zip", "my_actor.png,fileFromUrl.jpg"))
+        dataBrickList.add(ZipProjectFilesBrick("file1.txt, file2.png", "archive.zip"))
+        dataBrickList.add(UnzipProjectFilesBrick("archive.zip"))
         dataBrickList.add(GetZipFileNamesBrick("myZip.zip"))
+        dataBrickList.add(ZipBrick("myZip.zip", "my_actor.png,fileFromUrl.jpg"))
         dataBrickList.add(UnzipBrick("myZip.zip"))
 
         dataBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_data_web), template))
@@ -1651,6 +1718,13 @@ void main() {
                 val deviceBrickList: MutableList<Brick> = ArrayList()
                 deviceBrickList.add(ShowToastBlock("Hello World"))
                 deviceBrickList.add(CopyTextBrick("Котлета"))
+                deviceBrickList.add(ShowNotificationBrick("123456", "NewCatroid", "Привееет", "Это уведомление (точнее, его текст)", "icon.png"))
+                deviceBrickList.add(NotificationCreateBrick("123456", "NewCatroid", "Привееет опять", "Это уже сложное уведомление", "icon.png"))
+                deviceBrickList.add(NotificationAddButtonBrick("123456", "123", "CLICK ME", "none.png", "Enter any text..."))
+                deviceBrickList.add(NotificationShowBrick("123456", 60.0))
+                deviceBrickList.add(NotificationCancelBrick("123456"))
+                deviceBrickList.add(EnableBackgroundModeBrick("Приложение работает в фоне", "без уведомления в Android 14+ нельзя к сожалению("))
+                deviceBrickList.add(DisableBackgroundModeBrick())
                 deviceBrickList.add(ListenMicroBrick("100"))
                 deviceBrickList.add(RunJSBrick("1 + 2"))
                 deviceBrickList.add(RunLuaBrick("return 'Привет из Lua!'"))
@@ -1699,6 +1773,83 @@ print("Bot has stopped.")""", "myVar"))
                 deviceBrickList.add(AttachSOBrick("glView", "mylib.so"))
                 deviceBrickList.add(CreateGLViewBrick("glView", 100, 200, 500, 300))
                 deviceBrickList.add(SetViewPositionBrick("myVideoPlayer", 100, 200))
+                deviceBrickList.add(SetNativeParentBrick("myTextView", "myScrollView"))
+                deviceBrickList.add(
+                    CreateScrollViewBrick(
+                        "myScrollView",
+                        1,
+                        "#22000000",
+                        true,
+                        16,
+                        1,
+                        100,
+                        200,
+                        500,
+                        600
+                    )
+                )
+                deviceBrickList.add(
+                    CreateTextLabelBrick(
+                        "myTextView",
+                        "<b>Привет</b> Это HTML текст.",
+                        "#FFFFFF",
+                        18.0,
+                        "#44000000",
+                        "fonts/myfont.ttf",
+                        8,
+                        1.2,
+                        1,
+                        1,
+                        0,
+                        150,
+                        250,
+                        400,
+                        150
+                    )
+                )
+                deviceBrickList.add(
+                    CreateButtonBrick(
+                        "myButton",
+                        "Нажми меня!",
+                        "#FFFFFF",
+                        18.0,
+                        "#00C853",
+                        12,
+                        100,
+                        300,
+                        350,
+                        100
+                    )
+                );
+                deviceBrickList.add(
+                    CreateSwitchBrick(
+                        "mySwitch",
+                        "Включить",
+                        1,
+                        100,
+                        450,
+                        400,
+                        80
+                    )
+                )
+                deviceBrickList.add(
+                    CreateImageViewBrick(
+                        "myImage",
+                        "https://image.pollinations.ai/prompt/cat",
+                        16,
+                        1,
+                        100,
+                        100,
+                        300,
+                        300
+                    )
+                )
+                deviceBrickList.add(CreateSliderBrick("mySlider", 0.0, 1.0, 0.5, 100, 420, 500, 60))
+                deviceBrickList.add(NativeViewConfigBrick("myWebView", 1, 0.5f))
+                deviceBrickList.add(NativeViewControlBrick("myWebView", 5, "https://google.com"))
+                deviceBrickList.add(NativeViewListenerBrick("myWebView", 0, null))
+                deviceBrickList.add(NativeViewAnimateBrick("myButton", 0, 1.0, 500, 29))
+                deviceBrickList.add(NativeViewBindSpriteBrick("myWebView", "Sprite1", 1, 50, 100))
                 deviceBrickList.add(DeleteWebBrick("myWebView"))
                 deviceBrickList.add(BindVmOutputBrick())
                 deviceBrickList.add(RunVm2Brick("-kernel \"%PROJECT_FILES%/bzImage\" -initrd \"%PROJECT_FILES%/core.gz\" -append \"console=ttyS0 quiet\""))
@@ -1842,6 +1993,83 @@ bot.polling()""", "myVar"))
         deviceBrickList.add(AttachSOBrick("glView", "mylib.so"))
         deviceBrickList.add(CreateGLViewBrick("glView", 100, 200, 500, 300))
         deviceBrickList.add(SetViewPositionBrick("myVideoPlayer", 100, 200))
+        deviceBrickList.add(SetNativeParentBrick("myTextView", "myScrollView"))
+        deviceBrickList.add(
+            CreateScrollViewBrick(
+                "myScrollView",
+                1,
+                "#22000000",
+                true,
+                16,
+                1,
+                100,
+                200,
+                500,
+                600
+            )
+        )
+        deviceBrickList.add(
+            CreateTextLabelBrick(
+                "myTextView",
+                "<b>Привет</b> Это HTML текст.",
+                "#FFFFFF",
+                18.0,
+                "#44000000",
+                "fonts/myfont.ttf",
+                8,
+                1.2,
+                1,
+                1,
+                0,
+                150,
+                250,
+                400,
+                150
+            )
+        )
+        deviceBrickList.add(
+            CreateButtonBrick(
+                "myButton",
+                "Нажми меня!",
+                "#FFFFFF",
+                18.0,
+                "#00C853",
+                12,
+                100,
+                300,
+                350,
+                100
+            )
+        )
+        deviceBrickList.add(
+            CreateSwitchBrick(
+                "mySwitch",
+                "Включить",
+                1,
+                100,
+                450,
+                400,
+                80
+            )
+        )
+        deviceBrickList.add(
+            CreateImageViewBrick(
+                "myImage",
+                "https://image.pollinations.ai/prompt/cat",
+                16,
+                1,
+                100,
+                100,
+                300,
+                300
+            )
+        )
+        deviceBrickList.add(CreateSliderBrick("mySlider", 0.0, 1.0, 0.5, 100, 420, 500, 60))
+        deviceBrickList.add(NativeViewConfigBrick("myWebView", 1, 0.5f))
+        deviceBrickList.add(NativeViewControlBrick("myWebView", 5, "https://google.com"))
+        deviceBrickList.add(NativeViewListenerBrick("myWebView", 0, null))
+        deviceBrickList.add(NativeViewAnimateBrick("myButton", 0, 1.0, 500, 29))
+        deviceBrickList.add(NativeViewBindSpriteBrick("myWebView", "Sprite1", 1, 50, 100))
         deviceBrickList.add(DeleteWebBrick("myWebView"))
 
         deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_storage), template))
@@ -1874,6 +2102,13 @@ bot.polling()""", "myVar"))
         deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_speech), template))
         deviceBrickList.add(ShowToastBlock("Hello World"))
         deviceBrickList.add(CopyTextBrick("Котлета"))
+        deviceBrickList.add(ShowNotificationBrick("123456", "NewCatroid", "Привееет", "Это уведомление (точнее, его текст)", "icon.png"))
+        deviceBrickList.add(NotificationCreateBrick("123456", "NewCatroid", "Привееет опять", "Это уже сложное уведомление", "icon.png"))
+        deviceBrickList.add(NotificationAddButtonBrick("123456", "123", "CLICK ME", "none.png", "Enter any text..."))
+        deviceBrickList.add(NotificationShowBrick("123456", 60.0))
+        deviceBrickList.add(NotificationCancelBrick("123456"))
+        deviceBrickList.add(EnableBackgroundModeBrick("Приложение работает в фоне", "без уведомления в Android 14+ нельзя к сожалению("))
+        deviceBrickList.add(DisableBackgroundModeBrick())
         deviceBrickList.add(ListenMicroBrick("100"))
         deviceBrickList.add(AskBrick(context.getString(R.string.brick_ask_default_question)))
         if (SettingsFragment.isAISpeechSynthetizationSharedPreferenceEnabled(context)) {
@@ -2210,8 +2445,10 @@ void main() {
         fileBrickList.add(DeleteFilesBrick("variable.txt"))
         fileBrickList.add(FileUrlBrick("http://e95814zx.beget.tech/map.jpg", "fileFromUrl.jpg"))
         fileBrickList.add(FilesUrlBrick("http://e95814zx.beget.tech/map.jpg", "fileFromUrl.jpg"))
-        fileBrickList.add(ZipBrick("myZip.zip", "my_actor.png,fileFromUrl.jpg"))
+        fileBrickList.add(ZipProjectFilesBrick("file1.txt, file2.png", "archive.zip"))
+        fileBrickList.add(UnzipProjectFilesBrick("archive.zip"))
         fileBrickList.add(GetZipFileNamesBrick("myZip.zip"))
+        fileBrickList.add(ZipBrick("myZip.zip", "my_actor.png,fileFromUrl.jpg"))
         fileBrickList.add(UnzipBrick("myZip.zip"))
         fileBrickList.add(OpenFileBrick("fileFromUrl.txt"))
         fileBrickList.add(MoveFilesBrick("variable.txt"))
@@ -2586,6 +2823,18 @@ void main() {
         internetBrickList.add(PostWebRequestBrick("https://api.calfire.com/v2/texts?limit=50&offset=200",
             "Content-Type:application/json",
             "{\nusername=password\n}"))
+        internetBrickList.add(HttpCreateBrick("my_request", "GET", "https://api.example.com/data"));
+        internetBrickList.add(HttpConfigBrick("my_request", 0, "User-Agent", "NewCatroidClient"));
+        internetBrickList.add(
+            HttpBodyBrick(
+                "my_request",
+                "{\"text\": \"hello\"}",
+                "application/json"
+            )
+        );
+        internetBrickList.add(HttpAttachFileBrick("my_request", "image.png", "file", "image/png"));
+        internetBrickList.add(HttpSendBrick("my_request"));
+        internetBrickList.add(HttpSaveFileBrick("my_request", "downloaded_image.png"));
         //internetBrickList.add(SetDnsBrick("dns.comss.one"))
         return internetBrickList
     }

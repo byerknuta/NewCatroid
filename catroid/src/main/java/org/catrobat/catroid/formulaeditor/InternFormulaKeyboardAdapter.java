@@ -103,7 +103,16 @@ public class InternFormulaKeyboardAdapter {
 				return buildNumber("8");
 			case R.id.formula_editor_keyboard_9:
 				return buildNumber("9");
+            case R.string.formula_http_response_text:
+                return buildSingleParameterFunction(Functions.HTTP_RESPONSE_TEXT, STRING, "my_request");
 
+            case R.string.formula_http_response_code:
+                return buildSingleParameterFunction(Functions.HTTP_RESPONSE_CODE, STRING, "my_request");
+
+            case R.string.formula_http_response_header:
+                return buildDoubleParameterFunction(Functions.HTTP_RESPONSE_HEADER,
+                        STRING, "my_request",
+                        STRING, "Content-Type");
 			case R.string.formula_editor_function_sin:
 				return buildSingleParameterFunction(Functions.SIN, NUMBER, "90");
 			case R.string.formula_editor_function_cos:
@@ -641,8 +650,9 @@ public class InternFormulaKeyboardAdapter {
 			case R.string.formula_editor_sensor_mouse_delta_y: return buildSensor(Sensors.MOUSE_DELTA_Y);
 			case R.string.formula_editor_sensor_mouse_scroll: return buildSensor(Sensors.MOUSE_SCROLL);
 			case R.string.formula_editor_function_is_mouse_button_down:
-				// По умолчанию проверяем левую кнопку (код 0)
 				return buildSingleParameterFunction(Functions.IS_MOUSE_BUTTON_DOWN, InternTokenType.NUMBER, "0");
+            case R.string.formula_notification_reply:
+                return buildSingleParameterFunction(Functions.NOTIFICATION_REPLY, STRING, "my_action_id");
 			case R.string.formula_editor_phiro_sensor_side_right:
 				return buildSensor(Sensors.PHIRO_SIDE_RIGHT);
 			case R.string.formula_editor_phiro_sensor_bottom_left:

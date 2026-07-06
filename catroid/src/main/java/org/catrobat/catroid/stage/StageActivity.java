@@ -101,9 +101,11 @@ import org.catrobat.catroid.content.SafeKeyboardHeightProvider;
 import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.content.Script;
 import org.catrobat.catroid.content.Sprite;
+import org.catrobat.catroid.content.WhenNotificationClickedScript;
 import org.catrobat.catroid.content.actions.RunJSAction;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.content.bricks.Brick;
+import org.catrobat.catroid.content.bricks.WhenNotificationClickedBrick;
 import org.catrobat.catroid.content.eventids.EventId;
 import org.catrobat.catroid.devices.raspberrypi.RaspberryPiService;
 import org.catrobat.catroid.exceptions.ProjectException;
@@ -223,8 +225,14 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	public Map<String, VncClient> vncClients = new HashMap<>();
 	public volatile boolean frameReadyToRender = false;
 
+    private static final int FILE_CHOOSER_REQUEST_CODE = 1001;
+    private android.webkit.ValueCallback<Uri[]> webViewFilePathCallback;
 
-	public interface WebViewCallback {
+    public static String pendingNotificationId = null;
+
+    public static boolean isAppPaused = false;
+
+    public interface WebViewCallback {
 
 		void onJavaScriptMessage(String message);
 	}
@@ -318,28 +326,27 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		activeStageActivity = new WeakReference<>(this);
 		MyActivityManager.Companion.setStage_activity(this);
 
-
-		configuration = new AndroidApplicationConfiguration();
-		configuration.r = 8;
-		configuration.g = 8;
-		configuration.b = 8;
-		configuration.a = 8;
-
-		gameView = initializeForView(getApplicationListener(), configuration);
-
-		injectSafeKeyboardProvider();
-
         boolean isFreeStageEnabled = this instanceof StageWorkspaceActivity;
+
+        configuration = new AndroidApplicationConfiguration();
+        configuration.r = 8;
+        configuration.g = 8;
+        configuration.b = 8;
+        configuration.a = 8;
+
+        gameView = initializeForView(getApplicationListener(), configuration);
+
+        injectSafeKeyboardProvider();
 
         if (gameView instanceof android.view.SurfaceView) {
             android.view.SurfaceView glView = (android.view.SurfaceView) gameView;
 
             if (isFreeStageEnabled) {
                 glView.getHolder().setFormat(PixelFormat.OPAQUE);
-                glView.setZOrderMediaOverlay(true);
             } else {
                 glView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
             }
+            glView.setZOrderMediaOverlay(true);
         }
 
 
@@ -412,8 +419,65 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 		checkAndRequestPermissions();
 
-
+        handleNotificationIntent(getIntent());
 	}
+
+    private void handleNotificationIntent(android.content.Intent intent) {
+        if (intent == null) return;
+
+        if (intent.hasExtra("NOTIFICATION_CLICKED_ID")) {
+            String clickedId = intent.getStringExtra("NOTIFICATION_CLICKED_ID");
+            intent.removeExtra("NOTIFICATION_CLICKED_ID");
+
+            if (StageActivity.getActiveStageListener() != null) {
+                com.badlogic.gdx.Gdx.app.postRunnable(() -> {
+                    StageActivity.getActiveStageListener().onNotificationClicked(clickedId);
+                });
+            } else {
+                pendingNotificationId = clickedId;
+            }
+        }
+
+        if (intent.hasExtra("NOTIFICATION_ACTION_ID")) {
+            String actionId = intent.getStringExtra("NOTIFICATION_ACTION_ID");
+            String draftId = intent.getStringExtra("NOTIF_DRAFT_ID");
+            int notifId = intent.getIntExtra("NOTIF_ID", -1);
+            boolean autoClose = intent.getBooleanExtra("AUTO_CLOSE", false);
+
+            intent.removeExtra("NOTIFICATION_ACTION_ID");
+
+            android.os.Bundle remoteInput = androidx.core.app.RemoteInput.getResultsFromIntent(intent);
+            if (remoteInput != null) {
+                CharSequence replyText = remoteInput.getCharSequence("KEY_REPLY");
+                if (replyText != null) {
+                    org.catrobat.catroid.utils.NewCatroidNotificationManager.INSTANCE
+                            .getSavedReplies().put(actionId, replyText.toString());
+                }
+            }
+
+            android.app.NotificationManager nm = (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            if (autoClose) {
+                if (notifId != -1) {
+                    nm.cancel(notifId);
+                }
+            } else {
+                org.catrobat.catroid.utils.NewCatroidNotificationManager.NotificationState state =
+                        org.catrobat.catroid.utils.NewCatroidNotificationManager.INSTANCE.getActiveDrafts().get(draftId);
+                if (state != null) {
+                    org.catrobat.catroid.utils.NewCatroidNotificationManager.INSTANCE.buildAndShow(this, state);
+                }
+            }
+
+            if (StageActivity.getActiveStageListener() != null) {
+                com.badlogic.gdx.Gdx.app.postRunnable(() -> {
+                    StageActivity.getActiveStageListener().onNotificationActionTriggered(actionId);
+                    StageActivity.getActiveStageListener().onNotificationClicked(actionId);
+                });
+            } else {
+                pendingNotificationId = actionId;
+            }
+        }
+    }
 
 	private float currentVmMouseX = 0f;
 	private float currentVmMouseY = 0f;
@@ -762,16 +826,43 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
 
+
 	public void createWebViewWithUrl(String viewId, String url, int x, int y, int width, int height) {
 
 		WebView webView = new WebView(this);
 		webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setDomStorageEnabled(true);
 		webView.addJavascriptInterface(new WebAppInterface(viewId), "Android");
 
 		webView.setBackgroundColor(Color.TRANSPARENT);
 		webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 		webView.setWebViewClient(new WebViewClient());
+        webView.setWebChromeClient(new android.webkit.WebChromeClient() {
+            @Override
+            public void onPermissionRequest(final android.webkit.PermissionRequest request) {
+                runOnUiThread(() -> request.grant(request.getResources()));
+            }
+
+            @Override
+            public boolean onShowFileChooser(WebView webView, android.webkit.ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                if (webViewFilePathCallback != null) {
+                    webViewFilePathCallback.onReceiveValue(null);
+                }
+                webViewFilePathCallback = filePathCallback;
+
+                Intent intent = fileChooserParams.createIntent();
+                try {
+                    startActivityForResult(intent, FILE_CHOOSER_REQUEST_CODE);
+                } catch (android.content.ActivityNotFoundException e) {
+                    webViewFilePathCallback = null;
+                    return false;
+                }
+                return true;
+            }
+        });
 		webView.loadUrl(url);
+
+        webView.setVisibility(org.catrobat.catroid.common.NativeViewBindingManager.getDefaultVisibility());
 
 
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height);
@@ -934,24 +1025,38 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 		WebView webView = new WebView(this);
 		webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setDomStorageEnabled(true);
 		webView.addJavascriptInterface(new WebAppInterface(viewId), "Android");
 		webView.getSettings().setDomStorageEnabled(true);
 		webView.setBackgroundColor(Color.TRANSPARENT);
 		webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        webView.setWebChromeClient(new android.webkit.WebChromeClient() {
+            @Override
+            public void onPermissionRequest(final android.webkit.PermissionRequest request) {
+                runOnUiThread(() -> request.grant(request.getResources()));
+            }
 
+            @Override
+            public boolean onShowFileChooser(WebView webView, android.webkit.ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                if (webViewFilePathCallback != null) {
+                    webViewFilePathCallback.onReceiveValue(null);
+                }
+                webViewFilePathCallback = filePathCallback;
 
-
-
-
-
-
-
+                Intent intent = fileChooserParams.createIntent();
+                try {
+                    startActivityForResult(intent, FILE_CHOOSER_REQUEST_CODE);
+                } catch (android.content.ActivityNotFoundException e) {
+                    webViewFilePathCallback = null;
+                    return false;
+                }
+                return true;
+            }
+        });
 
 		webView.loadDataWithBaseURL("https://", htmlContent, "text/html", "UTF-8", null);
 
-
-
-
+        webView.setVisibility(org.catrobat.catroid.common.NativeViewBindingManager.getDefaultVisibility());
 
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height);
 		params.gravity = Gravity.TOP | Gravity.START;
@@ -979,15 +1084,9 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		final EditText editText = new EditText(this);
 		editText.setText(initialText);
 
-
 		if (styleOptions != null) {
-
-
-
-
 			GradientDrawable backgroundShape = new GradientDrawable();
 			backgroundShape.setShape(GradientDrawable.RECTANGLE);
-
 
 			if (styleOptions.containsKey(STYLE_CORNER_RADIUS)) {
 				try {
@@ -1109,6 +1208,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			}
 		});
 
+        editText.setVisibility(org.catrobat.catroid.common.NativeViewBindingManager.getDefaultVisibility());
 
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height);
 		params.gravity = Gravity.TOP | Gravity.START;
@@ -1321,12 +1421,10 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 
 		if (isTransparent) {
-
 			videoView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
-
-
 		}
 
+        videoView.setZOrderOnTop(activeNativeLayer == foregroundLayout);
 
 		if (showControls) {
 			MediaController mediaController = new MediaController(this);
@@ -1346,6 +1444,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			}
 		});
 
+        videoView.setVisibility(org.catrobat.catroid.common.NativeViewBindingManager.getDefaultVisibility());
 
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height);
 		params.gravity = Gravity.TOP | Gravity.START;
@@ -1464,6 +1563,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	@Override
 	public void onPause() {
+        isAppPaused = true;
 		StageLifeCycleController.stagePause(this);
 		super.onPause();
 
@@ -1504,6 +1604,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	@Override
 	public void onResume() {
+        isAppPaused = false;
 		StageLifeCycleController.stageResume(this);
 		super.onResume();
 		activeStageActivity = new WeakReference<>(this);
@@ -1584,6 +1685,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	protected void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
 		NfcHandler.processIntent(intent);
+        setIntent(intent);
 
 		if (nfcTagMessage != null) {
 			Tag currentTag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
@@ -1592,6 +1694,8 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 				setNfcTagMessage(null);
 			}
 		}
+
+        handleNotificationIntent(intent);
 	}
 
 
@@ -2013,21 +2117,26 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 	}
 
-	public static void handleAiButton() {
-		View view = View.inflate(CatroidApplication.getAppContext(), R.layout.dialog_ai_assist, null);
+    public static void handleAiButton() {
+        StageActivity stageActivity = activeStageActivity.get();
+        if (stageActivity == null || stageActivity.isFinishing()) {
+            return;
+        }
 
-		TextInputDialog.Builder builder = new TextInputDialog.Builder(CatroidApplication.getAppContext());
-		builder.setPositiveButton("Ok", (TextInputDialog.OnClickListener) (dialog, textInput) -> {
-			Log.d("ab", textInput);
-		});
+        View view = View.inflate(stageActivity, R.layout.dialog_ai_assist, null);
 
-		final AlertDialog alertDialog = builder.setTitle(R.string.ai_assist)
-				.setView(view)
-				.setNegativeButton("Cancel", null)
-				.create();
+        TextInputDialog.Builder builder = new TextInputDialog.Builder(stageActivity);
+        builder.setPositiveButton("Ok", (TextInputDialog.OnClickListener) (dialog, textInput) -> {
+            Log.d("ab", textInput);
+        });
 
-		alertDialog.show();
-	}
+        final AlertDialog alertDialog = builder.setTitle(R.string.ai_assist)
+                .setView(view)
+                .setNegativeButton("Cancel", null)
+                .create();
+
+        alertDialog.show();
+    }
 
 	private static void startStageActivity(Activity activity) {
         boolean isFreeStageEnabled = PreferenceManager.getDefaultSharedPreferences(activity)
@@ -2062,7 +2171,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
     public void updateStageSize(int width, int height) {
         if (gameView instanceof android.view.SurfaceView) {
             android.view.SurfaceView glView = (android.view.SurfaceView) gameView;
-            //glView.getHolder().setFixedSize(width, height);
         }
     }
 }

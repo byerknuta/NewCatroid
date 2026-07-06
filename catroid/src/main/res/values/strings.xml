@@ -23,6 +23,355 @@
   -->
 <resources  xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="brick_when_app_minimized">When app minimized</string>
+    <string name="brick_when_app_restored">When app restored</string>
+
+    <string name="brick_notification_cancel_title">Cancel notification</string>
+    <string name="brick_notification_cancel_id">Notification ID</string>
+
+    <string name="brick_notif_btn_title">Notification: Action Button</string>
+    <string name="brick_notif_btn_id">Notification ID</string>
+    <string name="brick_notif_btn_action">Action ID</string>
+    <string name="brick_notif_btn_text">Button Text</string>
+    <string name="brick_notif_btn_icon">Icon (project file)</string>
+    <string name="brick_notif_btn_hint">Input Hint</string>
+    <string name="brick_notif_btn_behavior">Behavior</string>
+    <string name="brick_notif_btn_has_input">Add Input Field</string>
+    <string name="brick_notif_btn_auto_close">Close notification on click</string>
+
+    <string-array name="brick_notification_behaviors">
+        <item>Silently in background</item>
+        <item>Launch game</item>
+    </string-array>
+
+    <string name="brick_when_notification_action_triggered">Notification action clicked</string>
+    <string name="brick_when_notification_action_id">Action ID</string>
+
+    <string name="formula_notification_reply" formatted="false">notification_reply</string>
+    <string name="formula_notification_reply_param" formatted="false">(\'action_id\')</string>
+
+    <string name="brick_system_enable_background_title">Run scripts in background</string>
+    <string name="brick_system_enable_background_header">Notification Title</string>
+    <string name="brick_system_enable_background_text">Notification Text</string>
+
+    <string name="brick_system_disable_background">Stop background script execution</string>
+
+    <string name="brick_notification_show_title">Show / Schedule Notification</string>
+    <string name="brick_notification_show_delay">Delay (in seconds):</string>
+
+    <string name="brick_notification_create_title">Create complex notification</string>
+    <string name="brick_notification_id">Notification ID</string>
+    <string name="brick_notification_channel">Channel Name</string>
+    <string name="brick_notification_header">Header Title</string>
+    <string name="brick_notification_text">Body Text</string>
+    <string name="brick_notification_large_icon">Icon (project file)</string>
+    <string name="brick_notification_importance">Priority</string>
+    <string name="brick_notification_ongoing">Cannot be swiped (Ongoing)</string>
+
+    <string name="brick_when_notification_clicked">Notification clicked with ID</string>
+
+    <string name="brick_broadcast_with_params">Broadcast with parameters</string>
+    <string name="brick_broadcast_with_params_signal">Signal</string>
+    <string name="brick_broadcast_with_params_data">Parameters</string>
+
+    <string name="brick_broadcast_with_params_receive">When received signal</string>
+    <string name="brick_broadcast_with_params_save">save params to variable:</string>
+
+    <string name="brick_when_sprite_released">When sprite released</string>
+    <string name="brick_when_finger_moved_over_sprite">When finger moved over sprite</string>
+    <string name="brick_when_finger_moved_on_screen">When finger moved on screen</string>
+    <string name="brick_show_notification_title">Send notification</string>
+    <string name="brick_show_notification_id">Notification ID</string>
+    <string name="brick_show_notification_channel">Channel Name</string>
+    <string name="brick_show_notification_header">Header Title</string>
+    <string name="brick_show_notification_text">Body Text</string>
+    <string name="brick_show_notification_large_icon">Icon (project file)</string>
+    <string name="brick_show_notification_importance">Priority</string>
+    <string name="brick_show_notification_ongoing">Cannot be swiped (Ongoing)</string>
+    <string-array name="brick_notification_priorities">
+        <item>Low (no sound)</item>
+        <item>Default (with sound)</item>
+        <item>High (heads-up pop-up)</item>
+    </string-array>
+
+    <string formatted="false" name="brick_native_view_bind_title">Bind View to Sprite</string>
+    <string formatted="false" name="brick_native_view_bind_id">View ID</string>
+    <string formatted="false" name="brick_native_view_bind_sprite">Sprite Name</string>
+    <string formatted="false" name="brick_native_view_bind_offset">Offset X</string>
+    <string formatted="false" name="brick_native_view_bind_align">Alignment Mode</string>
+
+    <string-array name="align_anchor_array">
+        <item>Top-Left Corners</item>
+        <item>Center of Sprite</item>
+    </string-array>
+
+    <string formatted="false" name="brick_native_view_animate_title">Animate View</string>
+    <string formatted="false" name="brick_native_view_animate_id">View ID</string>
+    <string formatted="false" name="brick_native_view_animate_prop">Property</string>
+    <string formatted="false" name="brick_native_view_animate_val">Target Value</string>
+    <string formatted="false" name="brick_native_view_animate_duration">Duration (ms)</string>
+    <string formatted="false" name="brick_native_view_animate_easing">Easing</string>
+
+    <string-array name="native_view_animate_properties_array">
+        <item>Alpha/Transparency (0.0 - 1.0)</item>
+        <item>Rotation Angle (0 - 360)</item>
+        <item>Scale X</item>
+        <item>Scale Y</item>
+        <item>Translate X (px)</item>
+        <item>Translate Y (px)</item>
+    </string-array>
+
+    <string formatted="false" name="brick_create_image_view_title">Create Image View</string>
+    <string formatted="false" name="brick_create_image_view_id">Image ID</string>
+    <string formatted="false" name="brick_create_image_view_src">File or URL</string>
+    <string formatted="false" name="brick_create_image_view_radius">Corner Radius (px)</string>
+    <string formatted="false" name="brick_create_image_view_scale">Scale Mode</string>
+
+    <string formatted="false" name="brick_create_slider_title">Create Slider</string>
+    <string formatted="false" name="brick_create_slider_id">Slider ID</string>
+    <string formatted="false" name="brick_create_slider_min">Min Value</string>
+    <string formatted="false" name="brick_create_slider_max">Max Value</string>
+    <string formatted="false" name="brick_create_slider_val">Current Value</string>
+
+    <string-array name="scale_modes_array">
+        <item>Fit Center (Keep Ratio)</item>
+        <item>Center Crop (Fill &amp; Clip)</item>
+        <item>Fit XY (Stretch)</item>
+        <item>Center (Original Size)</item>
+    </string-array>
+
+    <string formatted="false" name="brick_create_button_title">Create Button</string>
+    <string formatted="false" name="brick_create_button_id">Button ID</string>
+    <string formatted="false" name="brick_create_button_text">Text</string>
+    <string formatted="false" name="brick_create_button_color">Text Color (HEX)</string>
+    <string formatted="false" name="brick_create_button_size">Font Size</string>
+    <string formatted="false" name="brick_create_button_bg">Background Color (HEX)</string>
+    <string formatted="false" name="brick_create_button_radius">Corner Radius (px)</string>
+
+    <string formatted="false" name="brick_create_switch_title">Create Switch Slider</string>
+    <string formatted="false" name="brick_create_switch_id">Switch ID</string>
+    <string formatted="false" name="brick_create_switch_text">Label Text</string>
+    <string formatted="false" name="brick_create_switch_state">Default State (true/false)</string>
+
+    <string formatted="false" name="brick_native_view_listener_title">Listen to View Event</string>
+    <string formatted="false" name="brick_native_view_listener_id">View ID</string>
+    <string formatted="false" name="brick_native_view_listener_evt">Event</string>
+    <string formatted="false" name="brick_native_view_listener_var">Save to variable</string>
+
+    <string-array name="native_view_events_array">
+        <item>WebView: JS message (postMessage)</item>
+        <item>WebView: Page Started (URL)</item>
+        <item>WebView: Page Finished (URL)</item>
+        <item>WebView: Loading Error (Text)</item>
+        <item>WebView: Progress Changed (0–100)</item>
+        <item>WebView: Document Title Received</item>
+        <item>Text/Input: Text Changed (Realtime)</item>
+        <item>Text/Input: Focus Gained (true)</item>
+        <item>Text/Input: Focus Lost (ложь)</item>
+        <item>Input: Press Enter / Done</item>
+        <item>Video: Playback Completed (true)</item>
+        <item>Video: Video Prepared (true)</item>
+        <item>Video: Playback Error (Text)</item>
+        <item>Scroll: Scroll Y changed (px)</item>
+        <item>Scroll: Scroll X changed (px)</item>
+        <item>Scroll: Bottom Reached (true)</item>
+        <item>All Views: Clicked (true)</item>
+        <item>Slider: Progress Changed</item>
+        <item>Switch: State Changed (true/false)</item>
+    </string-array>
+
+    <string formatted="false" name="brick_native_view_control_title">Run View Command</string>
+    <string formatted="false" name="brick_native_view_control_id">View ID</string>
+    <string formatted="false" name="brick_native_view_control_cmd">Command</string>
+    <string formatted="false" name="brick_native_view_control_param">Parameter value</string>
+
+    <string-array name="native_view_commands_array">
+        <item>WebView: Go Back</item>
+        <item>WebView: Go Forward</item>
+        <item>WebView: Reload</item>
+        <item>WebView: Stop Loading</item>
+        <item>WebView: Clear Cache &amp; Cookies</item>
+        <item>WebView: Load URL (Link)</item>
+        <item>WebView: Load HTML Code</item>
+        <item>Video: Start/Play</item>
+        <item>Video: Pause</item>
+        <item>Video: Stop</item>
+        <item>Video: Seek to (seconds)</item>
+        <item>Text/Input: Set Text</item>
+        <item>Text/Input: Append Text</item>
+        <item>Text/Input: Clear Text</item>
+        <item>Input: Select All</item>
+        <item>Input: Cursor Position (index)</item>
+        <item>Scroll: Scroll to coordinates (X,Y)</item>
+        <item>Scroll: Scroll by offset (DX,DY)</item>
+        <item>Scroll: Scroll to Top</item>
+        <item>Scroll: Scroll to Bottom</item>
+        <item>All: Request Focus &amp; Keyboard</item>
+        <item>All: Clear Focus &amp; Hide Keyboard</item>
+    </string-array>
+    <string formatted="false" name="brick_native_view_config_title">Configure View</string>
+    <string formatted="false" name="brick_native_view_config_id">View ID</string>
+    <string formatted="false" name="brick_native_view_config_prop">Property</string>
+    <string formatted="false" name="brick_native_view_config_val">Value</string>
+
+    <string-array name="native_view_properties_array">
+        <item>Visibility (true/false)</item>
+        <item>Alpha/Transparency (0.0 - 1.0)</item>
+        <item>Touch Enabled (true/false)</item>
+        <item>Layer</item>
+        <item>Rotation Angle (0 - 360)</item>
+        <item>Scale X</item>
+        <item>Scale Y</item>
+        <item>WebView: Cookies (true/false)</item>
+        <item>WebView: Zoom Controls (true/false)</item>
+        <item>WebView: DOM Storage (true/false)</item>
+        <item>WebView: User-Agent</item>
+        <item>WebView: Background Color (HEX)</item>
+        <item>Video: Volume (0.0 - 1.0)</item>
+        <item>Video: Loop (true/false)</item>
+        <item>Text: Color (HEX)</item>
+        <item>Text: Font Size (SP)</item>
+        <item>Text: Background Color (HEX)</item>
+        <item>All: Corner Radius (px)</item>
+        <item>Elevation/Shadow Depth (px)</item>
+        <item>Text: Alignment (0=Left, 1=Center, 2=Right)</item>
+        <item>Text: Font Path (in project)</item>
+        <item>Text: Line Spacing (multiplier)</item>
+        <item>Input: Max Length (chars)</item>
+        <item>Input: Hint/Placeholder Text</item>
+        <item>Input: Hint Color (HEX)</item>
+        <item>Switch: Label Text</item>
+        <item>Switch: Toggle State (true/false)</item>
+        <item>Button: Force All Caps (true/false)</item>
+        <item>ImageView: Scale Mode (0=Fit, 1=Crop, 2=Stretch, 3=None)</item>
+        <item>ImageView: Change Image (Path/URL)</item>
+        <item>Slider: Min Value</item>
+        <item>Slider: Max Value</item>
+        <item>Slider: Current Value</item>
+        <item>Scroll: Show Scroll Bars (true/false)</item>
+        <item>Scroll: OverScroll Mode (0=Always, 1=IfScrolls, 2=Never)</item>
+        <item>Scroll: Inner Padding (px)</item>
+        <item>All: Border/Stroke (Width,Color_HEX)</item>
+        <item>All: Padding (px)</item>
+        <item>All: Blur Effect (px) [Android 12+]</item>
+        <item>All: Rotation Pivot (X,Y)</item>
+        <item>Video: Layer (Foreground / Background)</item>
+        <item>All Views: Default Creation Visibility (true/false)</item>
+    </string-array>
+
+    <string formatted="false" name="brick_create_scroll_view_title">Device: Create Scroll Container</string>
+    <string formatted="false" name="brick_create_scroll_view_id">Container ID</string>
+    <string formatted="false" name="brick_create_scroll_view_mode">Scroll Mode</string>
+    <string formatted="false" name="brick_create_scroll_view_bg">Background Color (HEX)</string>
+    <string formatted="false" name="brick_create_scroll_view_bars">Show Scroll Bars</string>
+    <string formatted="false" name="brick_create_scroll_view_padding">Inner Padding (px)</string>
+    <string formatted="false" name="brick_create_scroll_view_overscroll">OverScroll Mode</string>
+
+    <string formatted="false" name="brick_create_text_label_title">Create Text Label</string>
+    <string formatted="false" name="brick_create_text_label_id">Label ID</string>
+    <string formatted="false" name="brick_create_text_label_text">Text / HTML</string>
+    <string formatted="false" name="brick_create_text_label_color">Text Color (HEX)</string>
+    <string formatted="false" name="brick_create_text_label_size">Font Size</string>
+    <string formatted="false" name="brick_create_text_label_bg">Background Color (HEX)</string>
+    <string formatted="false" name="brick_create_text_label_font">Font project file</string>
+    <string formatted="false" name="brick_create_text_label_radius">Corner Radius (px)</string>
+    <string formatted="false" name="brick_create_text_label_spacing">Line Spacing (multiplier)</string>
+    <string formatted="false" name="brick_create_text_label_format">Format</string>
+    <string formatted="false" name="brick_create_text_label_align">Alignment</string>
+    <string formatted="false" name="brick_create_text_label_scroll">Scroll Mode</string>
+
+    <string formatted="false" name="brick_set_native_parent_title">Set View Parent</string>
+    <string formatted="false" name="brick_set_native_parent_id">View ID</string>
+    <string formatted="false" name="brick_set_native_parent_target">Parent ID</string>
+
+    <string-array name="scroll_modes_array">
+        <item>None</item>
+        <item>Vertical</item>
+        <item>Horizontal</item>
+        <item>Both (Vertical + Horizontal)</item>
+    </string-array>
+
+    <string-array name="text_formats_array">
+        <item>Plain Text</item>
+        <item>HTML</item>
+    </string-array>
+
+    <string-array name="overscroll_modes_array">
+        <item>Always Allow</item>
+        <item>Only if Content Scrolls</item>
+        <item>Never Allow</item>
+    </string-array>
+
+    <string-array name="align_modes_array">
+        <item>Left</item>
+        <item>Center</item>
+        <item>Right</item>
+    </string-array>
+
+    <string name="brick_buffer_mask_title">Mask with buffer</string>
+    <string name="brick_buffer_mask_mode">Mode</string>
+    <string-array name="brick_buffer_mask_modes">
+        <item>Stretch</item>
+        <item>Screen</item>
+    </string-array>
+    <string name="formula_http_response_text" formatted="false">http_response_text</string>
+    <string name="formula_http_response_text_param" formatted="false">(\'id\')</string>
+
+    <string name="formula_http_response_code" formatted="false">http_response_code</string>
+    <string name="formula_http_response_code_param" formatted="false">(\'id\')</string>
+
+    <string name="formula_http_response_header" formatted="false">http_response_header</string>
+    <string name="formula_http_response_header_param" formatted="false">(\'id\', \'header_name\')</string>
+
+    <string formatted="false" name="brick_http_send_title">HTTP: Send request and wait</string>
+    <string formatted="false" name="brick_http_send_id">Request ID:</string>
+
+    <string formatted="false" name="brick_http_save_file_title">HTTP: Save response to file</string>
+    <string formatted="false" name="brick_http_save_file_id">Request ID</string>
+    <string formatted="false" name="brick_http_save_file_dest">Save as file name</string>
+
+    <string formatted="false" name="brick_http_body_title">HTTP: Set request body</string>
+    <string formatted="false" name="brick_http_body_id">Request ID</string>
+    <string formatted="false" name="brick_http_body_text">Body (text)</string>
+    <string formatted="false" name="brick_http_body_content_type">Content-Type</string>
+
+    <string formatted="false" name="brick_http_attach_file_title">HTTP: Attach project file</string>
+    <string formatted="false" name="brick_http_attach_file_id">Request ID</string>
+    <string formatted="false" name="brick_http_attach_file_name">File name</string>
+    <string formatted="false" name="brick_http_attach_file_parameter">Parameter name</string>
+    <string formatted="false" name="brick_http_attach_file_mime">MIME Type</string>
+
+    <string formatted="false" name="brick_http_create_title">HTTP: Create request</string>
+    <string formatted="false" name="brick_http_create_id">Request ID</string>
+    <string formatted="false" name="brick_http_create_method">Method (GET/POST/PUT…)</string>
+    <string formatted="false" name="brick_http_create_url">URL</string>
+
+    <string formatted="false" name="brick_http_config_title">HTTP: Configure request</string>
+    <string formatted="false" name="brick_http_config_id">Request ID</string>
+    <string formatted="false" name="brick_http_config_type">Parameter type</string>
+    <string formatted="false" name="brick_http_config_key">Key (Name)</string>
+    <string formatted="false" name="brick_http_config_value">Value</string>
+
+    <string-array name="brick_http_config_types">
+        <item>Header</item>
+        <item>Query Parameter</item>
+        <item>Connect Timeout (ms)</item>
+        <item>Read Timeout (ms)</item>
+        <item>Write Timeout (ms)</item>
+        <item>Follow Redirects (true/false)</item>
+        <item>Trust All Certs (true/false)</item>
+        <item>Use Cookies (true/false)</item>
+        <item>Proxy Host</item>
+        <item>Proxy Port</item>
+    </string-array>
+
+    <string formatted="false" name="brick_zip_project_files_title">Compress project files to ZIP</string>
+    <string formatted="false" name="brick_zip_project_files_list">Files (comma separated)</string>
+    <string formatted="false" name="brick_zip_project_files_archive_name">Archive name</string>
+
+    <string formatted="false" name="brick_unzip_project_files_title">Extract ZIP to project</string>
+    <string formatted="false" name="brick_unzip_project_files_archive_name">Archive name</string>
+
     <string name="brick_add_text_buffer_title">Draw text</string>
     <string name="brick_add_text_buffer_to">Into buffer</string>
     <string name="brick_buffer_shader_title">Set buffer shader on</string>

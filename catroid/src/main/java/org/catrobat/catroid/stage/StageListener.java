@@ -23,6 +23,7 @@
 package org.catrobat.catroid.stage;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.os.SystemClock;
 import android.provider.Settings;
@@ -101,8 +102,12 @@ import org.catrobat.catroid.content.Script;
 import org.catrobat.catroid.content.SoundBackup;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.VmMonitorActor;
+import org.catrobat.catroid.content.WhenNotificationActionTriggeredScript;
+import org.catrobat.catroid.content.WhenNotificationClickedScript;
 import org.catrobat.catroid.content.XmlHeader;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
+import org.catrobat.catroid.content.bricks.WhenNotificationActionTriggeredBrick;
+import org.catrobat.catroid.content.bricks.WhenNotificationClickedBrick;
 import org.catrobat.catroid.content.eventids.EventId;
 import org.catrobat.catroid.content.eventids.GamepadEventId;
 import org.catrobat.catroid.content.eventids.MouseButtonEventId;
@@ -129,6 +134,7 @@ import org.catrobat.catroid.ui.dialogs.StageDialog;
 import org.catrobat.catroid.ui.recyclerview.controller.SpriteController;
 import org.catrobat.catroid.utils.GlobalShaderManager;
 import org.catrobat.catroid.utils.ModelPathProcessor;
+import org.catrobat.catroid.utils.NewCatroidNotificationManager;
 import org.catrobat.catroid.utils.PerformanceTracker;
 import org.catrobat.catroid.utils.Resolution;
 import org.catrobat.catroid.utils.TouchUtil;
@@ -449,7 +455,54 @@ public class StageListener implements ApplicationListener {
 
         cacheBeforeUpdateScripts();
         cacheAfterUpdateScripts();
+
+        if (StageActivity.pendingNotificationId != null) {
+            final String idToTrigger = StageActivity.pendingNotificationId;
+            StageActivity.pendingNotificationId = null;
+
+            onNotificationActionTriggered(idToTrigger);
+            onNotificationClicked(idToTrigger);
+        }
 	}
+
+    public boolean isFinished() {
+        return finished;
+    }
+
+    public boolean isBackgroundModeEnabled = false;
+
+    public void backgroundTick(float delta) {
+        processPendingNotificationActions();
+
+        if (paused && isBackgroundModeEnabled && !finished) {
+            try {
+                if (physicsWorld != null) {
+                    physicsWorld.step(delta);
+                }
+                if (stage != null) stage.act(delta);
+                if (uiStage != null) uiStage.act(delta);
+
+                if (threeDManager != null) threeDManager.update(delta);
+
+                if (hasBeforeUpdateScripts) executeBeforeUpdateScripts(delta);
+                if (hasAfterUpdateScripts) executeAfterUpdateScripts(delta);
+            } catch (Exception e) {
+                Log.e("BACKGROUND_TICK", "Error during background logic tick", e);
+            }
+        }
+    }
+
+    private void processPendingNotificationActions() {
+        java.util.concurrent.ConcurrentLinkedQueue<String> pending = NewCatroidNotificationManager.INSTANCE.getPendingActions();
+
+        while (!pending.isEmpty()) {
+            String actionId = pending.poll();
+            if (actionId != null) {
+                onNotificationActionTriggered(actionId);
+                onNotificationClicked(actionId);
+            }
+        }
+    }
 
 	public void setCameraPosition(float x, float y) {
 		if (camera != null) {
@@ -693,10 +746,19 @@ public class StageListener implements ApplicationListener {
 				TouchUtil.touchUp(pointer);
 			}
 
-			@Override
-			public void touchDragged(InputEvent event, float x, float y, int pointer) {
-				TouchUtil.updatePosition(event.getStageX(), event.getStageY(), pointer);
-			}
+            @Override
+            public void touchDragged(InputEvent event, float x, float y, int pointer) {
+                TouchUtil.updatePosition(event.getStageX(), event.getStageY(), pointer);
+
+                if (sprites != null) {
+                    EventWrapper e = new EventWrapper(new EventId(EventId.FINGER_MOVED_ON_SCREEN), false);
+                    for (Sprite sprite : sprites) {
+                        if (sprite != null && sprite.look != null) {
+                            sprite.look.fire(e);
+                        }
+                    }
+                }
+            }
 		};
 
 		InputListener uiPassThroughListener = new InputListener() {
@@ -772,6 +834,30 @@ public class StageListener implements ApplicationListener {
 		stage.addActor(embroideryActor);
 		embroideryActor.setZIndex(Z_LAYER_EMBROIDERY_ACTOR);
 	}
+
+    public void onNotificationClicked(String clickedId) {
+        if (sprites == null || clickedId == null) return;
+
+        for (Sprite sprite : sprites) {
+            for (Script script : sprite.getScriptList()) {
+                if (script instanceof WhenNotificationClickedScript && !script.isCommentedOut()) {
+                    WhenNotificationClickedBrick brick = (WhenNotificationClickedBrick) script.getScriptBrick();
+                    try {
+                        org.catrobat.catroid.content.Scope tempScope = new org.catrobat.catroid.content.Scope(project, sprite, null);
+                        String expectedId = brick.getNotificationIdFormula().interpretString(tempScope);
+
+                        if (clickedId.equals(expectedId)) {
+                            ScriptSequenceAction sequence = sprite.createSequenceAction(script);
+                            sequence.restart();
+                            sprite.look.addAction(sequence);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
 
 	public void cloneSpriteAndAddToStage(Sprite cloneMe) {
 		Sprite copy = new SpriteController().copyForCloneBrick(cloneMe);
@@ -1292,6 +1378,10 @@ public class StageListener implements ApplicationListener {
 
 	@Override
 	public void resume() {
+        if (firstFrameDrawn) {
+            broadcastEventToAllSprites(new EventId(EventId.APP_RESTORED));
+        }
+
 		if (!paused) {
 			setSchedulerStateForAllLooks(ThreadScheduler.RUNNING);
 			SoundManager.getInstance().resume();
@@ -1304,13 +1394,23 @@ public class StageListener implements ApplicationListener {
 
 	@Override
 	public void pause() {
-		if (finished) {
-			return;
-		}
-		if (!paused) {
-			setSchedulerStateForAllLooks(ThreadScheduler.SUSPENDED);
-			SoundManager.getInstance().pause();
-		}
+        if (finished) {
+            return;
+        }
+
+        StageActivity activity = StageActivity.activeStageActivity.get();
+        boolean isFinishing = (activity != null && activity.isFinishing());
+
+        if (!finished && !isFinishing) {
+            broadcastEventToAllSprites(new EventId(EventId.APP_MINIMIZED));
+        }
+
+        if (!paused) {
+            if (!isBackgroundModeEnabled) {
+                setSchedulerStateForAllLooks(ThreadScheduler.SUSPENDED);
+            }
+            SoundManager.getInstance().pause();
+        }
 	}
 
 	private Texture vmTexture;
@@ -1361,11 +1461,15 @@ public class StageListener implements ApplicationListener {
 
 	@Override
 	public void render() {
+        processPendingNotificationActions();
+
         long framePhysicsTime = 0;
         long frameLogicTime = 0;
         long endLogic = 0;
 		try {
 			Look.tickGlobalFrame();
+
+            org.catrobat.catroid.common.NativeViewBindingManager.updateBindings(camera, viewPort);
 
 			float color = 0f;
 
@@ -1763,6 +1867,30 @@ public class StageListener implements ApplicationListener {
 		}
 	}
 
+    public void onNotificationActionTriggered(String clickedActionId) {
+        if (sprites == null || clickedActionId == null) return;
+
+        for (Sprite sprite : sprites) {
+            for (Script script : sprite.getScriptList()) {
+                if (script instanceof WhenNotificationActionTriggeredScript && !script.isCommentedOut()) {
+                    WhenNotificationActionTriggeredBrick brick = (WhenNotificationActionTriggeredBrick) script.getScriptBrick();
+                    try {
+                        org.catrobat.catroid.content.Scope tempScope = new org.catrobat.catroid.content.Scope(project, sprite, null);
+                        String expectedActionId = brick.getActionIdFormula().interpretString(tempScope);
+
+                        if (clickedActionId.equals(expectedActionId)) {
+                            ScriptSequenceAction sequence = sprite.createSequenceAction(script);
+                            sequence.restart();
+                            sprite.look.addAction(sequence);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
 	public void resetCamera() {
 		if (camera != null) {
 			camera.position.set(0, 0, 0);
@@ -1778,6 +1906,15 @@ public class StageListener implements ApplicationListener {
 
 	@Override
 	public void dispose() {
+        if (isBackgroundModeEnabled) {
+            isBackgroundModeEnabled = false;
+            Context context = CatroidApplication.getAppContext();
+            if (context != null) {
+                Intent intent = new Intent(context, org.catrobat.catroid.common.NewCatroidBackgroundService.class);
+                context.stopService(intent);
+            }
+        }
+
 		executeExitScriptsSynchronously();
 
 		if (stage != null) {
@@ -1849,6 +1986,8 @@ public class StageListener implements ApplicationListener {
             e.printStackTrace();
         }
 
+        org.catrobat.catroid.content.Look.disposeMaskShader();
+        org.catrobat.catroid.common.NativeViewBindingManager.clearAll();
 		disposeStageButKeepActors();
 		font.dispose();
 		axes.dispose();

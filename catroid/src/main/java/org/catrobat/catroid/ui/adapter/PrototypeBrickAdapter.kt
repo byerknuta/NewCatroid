@@ -13,6 +13,24 @@ class PrototypeBrickAdapter(private var brickList: List<Brick>) : BaseAdapter() 
     private val viewCache = HashMap<Int, View>()
     private val itemsToAnimate = HashMap<Brick, Long>()
 
+    var isScrolling: Boolean = false
+        set(value) {
+            if (field != value) {
+                field = value
+                if (value) {
+                    itemsToAnimate.clear()
+                }
+            }
+        }
+
+    init {
+        var newItemsCount = 0
+        for (brick in brickList) {
+            itemsToAnimate[brick] = minOf(newItemsCount * 30L, 250L)
+            newItemsCount++
+        }
+    }
+
     override fun getCount(): Int = brickList.size
 
     override fun getItem(position: Int): Brick = brickList[position]
@@ -36,7 +54,7 @@ class PrototypeBrickAdapter(private var brickList: List<Brick>) : BaseAdapter() 
         }
 
         if (cachedView != null) {
-            if (itemsToAnimate.containsKey(brick)) {
+            if (!isScrolling && itemsToAnimate.containsKey(brick)) {
                 val delay = itemsToAnimate.remove(brick) ?: 0L
 
                 cachedView.alpha = 0f
@@ -48,7 +66,7 @@ class PrototypeBrickAdapter(private var brickList: List<Brick>) : BaseAdapter() 
                     .scaleX(1f)
                     .scaleY(1f)
                     .setStartDelay(delay)
-                    .setDuration(250)
+                    .setDuration(200)
                     .setInterpolator(DecelerateInterpolator())
                     .start()
             } else {
@@ -58,6 +76,7 @@ class PrototypeBrickAdapter(private var brickList: List<Brick>) : BaseAdapter() 
                 cachedView.scaleY = 1f
                 cachedView.translationX = 0f
                 cachedView.translationY = 0f
+                itemsToAnimate.remove(brick)
             }
         }
 
@@ -100,14 +119,17 @@ class PrototypeBrickAdapter(private var brickList: List<Brick>) : BaseAdapter() 
         return cachedView
     }
 
-    fun replaceList(newList: List<Brick>) {
+    fun replaceList(newList: List<Brick>, visibleBricksBefore: Set<Brick> = emptySet()) {
         itemsToAnimate.clear()
         var newItemsCount = 0
 
-        for (brick in newList) {
-            if (!brickList.contains(brick)) {
-                itemsToAnimate[brick] = newItemsCount * 40L
-                newItemsCount++
+        if (!isScrolling) {
+            for (brick in newList) {
+                if (!visibleBricksBefore.contains(brick)) {
+                    val delay = minOf(newItemsCount * 30L, 250L)
+                    itemsToAnimate[brick] = delay
+                    newItemsCount++
+                }
             }
         }
 
@@ -133,5 +155,4 @@ class PrototypeBrickAdapter(private var brickList: List<Brick>) : BaseAdapter() 
         }
         return 0
     }
-
 }

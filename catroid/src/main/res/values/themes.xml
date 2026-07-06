@@ -48,8 +48,11 @@
 
 
     <style name="Theme.NewCatroid.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
-        <item name="android:windowBackground">@drawable/dialog_background</item>
+        <item name="android:colorBackground">@color/surface_card</item>
+        <item name="android:textColor">@color/solid_white</item>
         <item name="android:textColorPrimary">@color/solid_white</item>
+        <item name="android:textColorSecondary">@color/spinner_icon_and_inactive_elements</item>
+        <item name="android:windowBackground">@drawable/dialog_background</item>
         <item name="colorAccent">@color/accent</item>
 
         <item name="colorSurface">@color/surface_card</item>
@@ -68,9 +71,12 @@
         <item name="buttonBarNegativeButtonStyle">@style/Widget.NewCatroid.DialogButton</item>
         <item name="android:textColorHint">@color/spinner_icon_and_inactive_elements</item>
         <item name="android:editTextColor">@color/solid_white</item>
+
+        <item name="textColorAlertDialogListItem">@color/solid_white</item>
+        <item name="android:textColorAlertDialogListItem">@color/solid_white</item>
     </style>
 
-    <style name="Widget.NewCatroid.DialogButton" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+    <style name="Widget.NewCatroid.DialogButton" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
         <item name="android:textColor">@color/accent</item>
     </style>
 
@@ -103,6 +109,19 @@
     <style name="ShapeAppearance.NewCatroid.FAB" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">20dp</item>
+    </style>
+
+    <style name="Theme.NewCatroid.Stage" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">@color/app_background</item>
+
+        <item name="colorPrimary">@color/toolbar_background</item>
+        <item name="colorAccent">@color/accent</item>
+        <item name="android:textColor">@color/solid_white</item>
+
+        <item name="editTextStyle">@style/BrickEditText</item>
+        <item name="colorControlActivated">@color/accent</item>
     </style>
 
 </resources>

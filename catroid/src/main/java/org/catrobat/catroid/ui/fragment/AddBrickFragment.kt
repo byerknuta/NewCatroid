@@ -33,6 +33,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AbsListView
 import android.widget.AdapterView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -110,6 +111,15 @@ class AddBrickFragment : ListFragment() {
         listView.onItemClickListener = AdapterView.OnItemClickListener { parent: AdapterView<*>?, view: View?, position: Int, id: Long ->
             adapter?.getItem(position)?.let { brick ->
                 if (brick is org.catrobat.catroid.content.bricks.SubCategoryHeaderBrick) {
+
+                    val transition = android.transition.TransitionSet().apply {
+                        ordering = android.transition.TransitionSet.ORDERING_TOGETHER
+                        addTransition(android.transition.ChangeBounds())
+                        duration = 250
+                        interpolator = androidx.interpolator.view.animation.FastOutSlowInInterpolator()
+                    }
+                    android.transition.TransitionManager.beginDelayedTransition(listView, transition)
+
                     brick.isExpanded = !brick.isExpanded
                     view?.let { clickedView ->
                         val arrowView = clickedView.findViewById<android.widget.TextView>(R.id.brick_header_arrow)
@@ -131,9 +141,36 @@ class AddBrickFragment : ListFragment() {
             }
             true
         }
+
+        listView.setOnScrollListener(object : AbsListView.OnScrollListener {
+            override fun onScrollStateChanged(view: AbsListView?, scrollState: Int) {
+                val isScrollingNow = scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING ||
+                        scrollState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL
+                adapter?.isScrolling = isScrollingNow
+            }
+
+            override fun onScroll(
+                view: AbsListView?,
+                firstVisibleItem: Int,
+                visibleItemCount: Int,
+                totalItemCount: Int
+            ) {}
+        })
     }
 
     private fun toggleHeaderState(position: Int, brick: org.catrobat.catroid.content.bricks.SubCategoryHeaderBrick) {
+
+        val transition = android.transition.TransitionSet().apply {
+            ordering = android.transition.TransitionSet.ORDERING_TOGETHER
+            addTransition(android.transition.ChangeBounds())
+            addTransition(android.transition.Fade(android.transition.Fade.OUT).apply {
+                duration = 150
+            })
+            duration = 250
+            interpolator = androidx.interpolator.view.animation.FastOutSlowInInterpolator()
+        }
+        android.transition.TransitionManager.beginDelayedTransition(listView, transition)
+
         brick.isExpanded = !brick.isExpanded
 
         val childIndex = position - listView.firstVisiblePosition
@@ -170,31 +207,25 @@ class AddBrickFragment : ListFragment() {
             }
         }
 
-        val isExpanding = visibleList.size > previousVisibleListSize
         previousVisibleListSize = visibleList.size
 
+        val visibleBricksBefore = mutableSetOf<Brick>()
         if (view != null) {
             try {
-                val list = view?.findViewById<android.widget.ListView>(android.R.id.list)
-                if (list != null) {
-                    val transition = if (isExpanding) {
-                        android.transition.TransitionSet().apply {
-                            ordering = android.transition.TransitionSet.ORDERING_TOGETHER
-                            addTransition(android.transition.ChangeBounds())
-                            val headerFade = android.transition.Fade().apply {
-                                addTarget(org.catrobat.catroid.content.bricks.SubCategoryHeaderView::class.java)
+                val list = listView
+                val first = list.firstVisiblePosition
+                val last = list.lastVisiblePosition
+                val count = list.count
+                if (first >= 0 && last >= 0) {
+                    val start = maxOf(0, first)
+                    val end = minOf(count - 1, last)
+                    if (start <= end) {
+                        for (i in start..end) {
+                            adapter?.getItem(i)?.let {
+                                visibleBricksBefore.add(it)
                             }
-                            addTransition(headerFade)
-                            duration = 250
-                            interpolator = androidx.interpolator.view.animation.FastOutSlowInInterpolator()
-                        }
-                    } else {
-                        android.transition.AutoTransition().apply {
-                            duration = 250
-                            interpolator = androidx.interpolator.view.animation.FastOutSlowInInterpolator()
                         }
                     }
-                    android.transition.TransitionManager.beginDelayedTransition(list, transition)
                 }
             } catch (_: Exception) {
             }
@@ -204,7 +235,7 @@ class AddBrickFragment : ListFragment() {
             adapter = PrototypeBrickAdapter(visibleList)
             listAdapter = adapter
         } else {
-            adapter?.replaceList(visibleList)
+            adapter?.replaceList(visibleList, visibleBricksBefore)
         }
     }
 
@@ -424,6 +455,7 @@ class AddBrickFragment : ListFragment() {
         return sb.toString()
     }
 }
+
 fun addBrickToScript(brick: Brick, activity: android.app.Activity, addBrickListener: AddBrickFragment.OnAddBrickListener?, parentFragmentManager: FragmentManager, tag: String) {
     if (ProjectManager.getInstance().currentProject.isCastProject && CastManager.unsupportedBricks.contains(brick.javaClass)) {
         ToastUtil.showError(activity, R.string.error_unsupported_bricks_chromecast)

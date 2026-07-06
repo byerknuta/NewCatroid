@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+    <CheckBox android:id="@+id/brick_checkbox" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone" />
+    <org.catrobat.catroid.ui.BrickLayout android:id="@+id/brick_layout" style="@style/BrickContainer.Device.Big">
+        <include layout="@layout/icon_brick_category_device" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_notif_btn_title" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_notif_btn_id" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_notif_btn_id" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_notif_btn_action" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_notif_btn_action" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_notif_btn_text" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_notif_btn_text" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_notif_btn_icon" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_notif_btn_icon" style="@style/BrickEditText" />
+
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" app:layout_newLine="true" android:gravity="center_vertical">
+            <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_notif_btn_behavior" />
+            <Spinner android:id="@+id/brick_notif_btn_spinner_behavior" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <CheckBox android:id="@+id/brick_notif_btn_checkbox_input" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/brick_notif_btn_has_input" android:textColor="#FFFFFF" android:buttonTint="#FFFFFF" app:layout_newLine="true" />
+
+        <LinearLayout android:id="@+id/brick_notif_btn_hint_layout" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" app:layout_newLine="true" android:visibility="gone">
+            <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_notif_btn_hint" />
+            <TextView android:id="@+id/brick_notif_btn_hint" style="@style/BrickEditText" />
+        </LinearLayout>
+
+        <CheckBox android:id="@+id/brick_notif_btn_checkbox_close" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/brick_notif_btn_auto_close" android:textColor="#FFFFFF" android:buttonTint="#FFFFFF" app:layout_newLine="true" />
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

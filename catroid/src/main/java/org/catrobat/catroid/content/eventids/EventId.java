@@ -28,8 +28,10 @@ import java.lang.annotation.RetentionPolicy;
 import androidx.annotation.IntDef;
 
 public class EventId {
-	@Retention(RetentionPolicy.SOURCE)
-	@IntDef({TAP, TAP_BACKGROUND, START, START_AS_CLONE, ANY_NFC, OTHER, PROJECT_EXIT, BACK_PRESSED, MOUSE_BUTTON_CLICKED, MOUSE_WHEEL_SCROLLED, BEFORE_UPDATE, AFTER_UPDATE})
+
+    @Retention(RetentionPolicy.SOURCE)
+	@IntDef({TAP, TAP_BACKGROUND, START, START_AS_CLONE, ANY_NFC, OTHER, PROJECT_EXIT, BACK_PRESSED, MOUSE_BUTTON_CLICKED, MOUSE_WHEEL_SCROLLED, BEFORE_UPDATE, AFTER_UPDATE,
+            SPRITE_RELEASED, FINGER_MOVED_OVER_SPRITE, FINGER_MOVED_ON_SCREEN, NOTIFICATION_CLICKED, APP_MINIMIZED, APP_RESTORED})
 	public @interface EventType {
 	}
 
@@ -46,6 +48,12 @@ public class EventId {
 	public static final int MOUSE_WHEEL_SCROLLED = 9;
     public static final int BEFORE_UPDATE = 10;
     public static final int AFTER_UPDATE = 11;
+    public static final int SPRITE_RELEASED = 12;
+    public static final int FINGER_MOVED_OVER_SPRITE = 13;
+    public static final int FINGER_MOVED_ON_SCREEN = 14;
+    public static final int NOTIFICATION_CLICKED = 15;
+    public static final int APP_MINIMIZED = 16;
+    public static final int APP_RESTORED = 17;
 
 	@EventType
 	private final int type;

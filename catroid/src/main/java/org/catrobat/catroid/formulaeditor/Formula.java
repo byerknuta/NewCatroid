@@ -87,7 +87,11 @@ public class Formula implements Serializable {
 		}
 	}
 
-	public FormulaElement getFormulaTree() {
+    public Formula(boolean value) {
+        this((value) ? 1 : 0);
+    }
+
+    public FormulaElement getFormulaTree() {
 		return formulaTree;
 	}
 
@@ -118,10 +122,17 @@ public class Formula implements Serializable {
         } catch (Exception ignored) {}
     }
 
-	public void updateCollisionFormulas(String oldName, String newName, Context context) {
-		internFormula.updateCollisionFormula(oldName, newName, context);
-		formulaTree.updateElementByName(oldName, newName, ElementType.COLLISION_FORMULA);
-	}
+    public void updateCollisionFormulas(String oldName, String newName, Context context) {
+        if (internFormula == null && formulaTree != null) {
+            internFormula = new InternFormula(formulaTree.getInternTokenList());
+        }
+        if (internFormula != null) {
+            internFormula.updateCollisionFormula(oldName, newName, context);
+        }
+        if (formulaTree != null) {
+            formulaTree.updateElementByName(oldName, newName, ElementType.COLLISION_FORMULA);
+        }
+    }
 
 	public void flattenAllLists() {
 		formulaTree.insertFlattenForAllUserLists(formulaTree, null);
@@ -229,19 +240,35 @@ public class Formula implements Serializable {
 	public void setRoot(FormulaElement formula) {
 		formulaTree = formula;
 		internFormula = new InternFormula(formula.getInternTokenList());
+        cachedNumberValue = null;
+        cachedStringValue = null;
 	}
 
 	public FormulaElement getRoot() {
 		return formulaTree;
 	}
 
-	public String getTrimmedFormulaString(Context context) {
-		return internFormula.trimExternFormulaString(context);
-	}
+    public String getTrimmedFormulaString(Context context) {
+        if (internFormula == null) {
+            if (formulaTree != null) {
+                internFormula = new InternFormula(formulaTree.getInternTokenList());
+            } else {
+                init(ElementType.NUMBER, "0");
+            }
+        }
+        return internFormula.trimExternFormulaString(context);
+    }
 
-	public InternFormulaState getInternFormulaState() {
-		return internFormula.getInternFormulaState();
-	}
+    public InternFormulaState getInternFormulaState() {
+        if (internFormula == null) {
+            if (formulaTree != null) {
+                internFormula = new InternFormula(formulaTree.getInternTokenList());
+            } else {
+                init(ElementType.NUMBER, "0");
+            }
+        }
+        return internFormula.getInternFormulaState();
+    }
 
 	public boolean containsElement(FormulaElement.ElementType elementType) {
 		return formulaTree.containsElement(elementType);

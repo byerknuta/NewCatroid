@@ -23,6 +23,356 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="brick_when_app_minimized">Когда приложение свернули</string>
+    <string name="brick_when_app_restored">Когда приложение развернули</string>
+
+    <string name="brick_notification_cancel_title">Удалить уведомление</string>
+    <string name="brick_notification_cancel_id">ID уведомления</string>
+
+    <string name="brick_when_notification_action_triggered">Нажата кнопка уведомления</string>
+    <string name="brick_when_notification_action_id">Action ID</string>
+
+    <string name="formula_notification_reply" formatted="false">ввод_из_уведомления</string>
+    <string name="formula_notification_reply_param" formatted="false">(\'action_id\')</string>
+
+    <string name="brick_notif_btn_title">Кнопка для уведомления</string>
+    <string name="brick_notif_btn_id">ID уведомления</string>
+    <string name="brick_notif_btn_action">ID действия</string>
+    <string name="brick_notif_btn_text">Текст</string>
+    <string name="brick_notif_btn_icon">Иконка (файл)</string>
+    <string name="brick_notif_btn_hint">Подсказка ввода</string>
+    <string name="brick_notif_btn_behavior">Поведение</string>
+    <string name="brick_notif_btn_has_input">Добавить поле ввода</string>
+    <string name="brick_notif_btn_auto_close">Закрыть уведомление при клике</string>
+
+    <string-array name="brick_notification_behaviors">
+        <item>Бесшумно в фоне</item>
+        <item>Развернуть игру</item>
+    </string-array>
+
+    <string name="brick_system_enable_background_title">Разрешить работу в фоне</string>
+    <string name="brick_system_enable_background_header">Заголовок уведомления</string>
+    <string name="brick_system_enable_background_text">Текст уведомления</string>
+
+    <string name="brick_system_disable_background">Остановить работу в фоне</string>
+
+    <string name="brick_notification_show_title">Показать / Запланировать уведомление</string>
+    <string name="brick_notification_show_delay">Задержка (в секундах)</string>
+
+    <string name="brick_notification_create_title">Создать сложное уведомление</string>
+    <string name="brick_notification_id">ID уведомления</string>
+    <string name="brick_notification_channel">Канал</string>
+    <string name="brick_notification_header">Заголовок</string>
+    <string name="brick_notification_text">Текст</string>
+    <string name="brick_notification_large_icon">Иконка (файл проекта)</string>
+    <string name="brick_notification_importance">Важность</string>
+    <string name="brick_notification_ongoing">Закрепленное (Нельзя смахнуть)</string>
+
+    <string name="brick_when_notification_clicked">Нажато уведомление c ID</string>
+
+    <string name="brick_broadcast_with_params">Вещать всем с параметрами</string>
+    <string name="brick_broadcast_with_params_signal">Сигнал</string>
+    <string name="brick_broadcast_with_params_data">Параметры</string>
+
+    <string name="brick_broadcast_with_params_receive">Когда получен сигнал</string>
+    <string name="brick_broadcast_with_params_save">сохранить параметры в</string>
+
+    <string name="brick_when_sprite_released">Когда спрайт отпущен</string>
+    <string name="brick_when_finger_moved_over_sprite">Когда палец перемещается по спрайту</string>
+    <string name="brick_when_finger_moved_on_screen">Когда палец перемещается по экрану</string>
+    <string name="brick_show_notification_title">Отправить уведомление</string>
+    <string name="brick_show_notification_id">ID уведомления</string>
+    <string name="brick_show_notification_channel">Имя канала</string>
+    <string name="brick_show_notification_header">Заголовок</string>
+    <string name="brick_show_notification_text">Текст</string>
+    <string name="brick_show_notification_large_icon">Иконка (файл проекта)</string>
+    <string name="brick_show_notification_importance">Важность</string>
+    <string name="brick_show_notification_ongoing">Закрепить (нельзя смахнуть)</string>
+    <string-array name="brick_notification_priorities">
+        <item>Низкая (без звука)</item>
+        <item>Средняя (со звуком)</item>
+        <item>Высокая (всплывающее)</item>
+    </string-array>
+
+    <string formatted="false" name="brick_native_view_bind_title">Привязать View к спрайту</string>
+    <string formatted="false" name="brick_native_view_bind_id">ID окна</string>
+    <string formatted="false" name="brick_native_view_bind_sprite">Имя спрайта</string>
+    <string formatted="false" name="brick_native_view_bind_offset">Смещение X</string>
+    <string formatted="false" name="brick_native_view_bind_align">Режим привязки</string>
+
+    <string-array name="align_anchor_array">
+        <item>Левые верхние углы</item>
+        <item>Центры объектов</item>
+    </string-array>
+
+    <string formatted="false" name="brick_native_view_animate_title">Анимировать окно</string>
+    <string formatted="false" name="brick_native_view_animate_id">ID окна</string>
+    <string formatted="false" name="brick_native_view_animate_prop">Свойство</string>
+    <string formatted="false" name="brick_native_view_animate_val">Целевое значение</string>
+    <string formatted="false" name="brick_native_view_animate_duration">Длительность (мс)</string>
+    <string formatted="false" name="brick_native_view_animate_easing">Сглаживание (Easing)</string>
+
+    <string-array name="native_view_animate_properties_array">
+        <item>Прозрачность (Alpha)</item>
+        <item>Угол поворота (Rotation)</item>
+        <item>Масштаб X</item>
+        <item>Масштаб Y</item>
+        <item>Смещение X (px)</item>
+        <item>Смещение Y (px)</item>
+    </string-array>
+
+    <string formatted="false" name="brick_create_image_view_title">Создать картинку</string>
+    <string formatted="false" name="brick_create_image_view_id">ID картинки</string>
+    <string formatted="false" name="brick_create_image_view_src">Файл или URL ссылки</string>
+    <string formatted="false" name="brick_create_image_view_radius">Скругление углов (px)</string>
+    <string formatted="false" name="brick_create_image_view_scale">Масштабирование</string>
+
+    <string formatted="false" name="brick_create_slider_title">Создать ползунок</string>
+    <string formatted="false" name="brick_create_slider_id">ID ползунка</string>
+    <string formatted="false" name="brick_create_slider_min">Минимум</string>
+    <string formatted="false" name="brick_create_slider_max">Максимум</string>
+    <string formatted="false" name="brick_create_slider_val">Текущее значение</string>
+
+    <string-array name="scale_modes_array">
+        <item>По центру (С сохранением пропорций)</item>
+        <item>Обрезать края (Заполнить область)</item>
+        <item>Растянуть на всю область (Fit XY)</item>
+        <item>Без масштаба (Оригинальный размер)</item>
+    </string-array>
+
+    <string formatted="false" name="brick_create_button_title">Создать кнопку</string>
+    <string formatted="false" name="brick_create_button_id">ID кнопки</string>
+    <string formatted="false" name="brick_create_button_text">Текст кнопки</string>
+    <string formatted="false" name="brick_create_button_color">Цвет текста (HEX)</string>
+    <string formatted="false" name="brick_create_button_size">Размер шрифта</string>
+    <string formatted="false" name="brick_create_button_bg">Цвет кнопки (HEX)</string>
+    <string formatted="false" name="brick_create_button_radius">Скругление углов (px)</string>
+
+    <string formatted="false" name="brick_create_switch_title">Создать переключатель</string>
+    <string formatted="false" name="brick_create_switch_id">ID переключателя</string>
+    <string formatted="false" name="brick_create_switch_text">Текст подписи</string>
+    <string formatted="false" name="brick_create_switch_state">Состояние по умолчанию (истина/ложь)</string>
+
+    <string formatted="false" name="brick_native_view_listener_title">Следить за событием окна</string>
+    <string formatted="false" name="brick_native_view_listener_id">ID окна</string>
+    <string formatted="false" name="brick_native_view_listener_evt">Событие</string>
+    <string formatted="false" name="brick_native_view_listener_var">Сохранять в переменную</string>
+
+    <string-array name="native_view_events_array">
+        <item>WebView: JS сообщение (postMessage)</item>
+        <item>WebView: Страница начала загружаться (URL)</item>
+        <item>WebView: Страница загружена (URL)</item>
+        <item>WebView: Ошибка загрузки (Текст)</item>
+        <item>WebView: Прогресс загрузки (0–100)</item>
+        <item>WebView: Получен заголовок страницы</item>
+        <item>Текст/Ввод: Текст изменился (Ввод)</item>
+        <item>Текст/Ввод: Получен фокус (истина)</item>
+        <item>Текст/Ввод: Потерян фокус (ложь)</item>
+        <item>Поле ввода: Нажата кнопка Готово / Enter</item>
+        <item>Видео: Воспроизведение завершено (истина)</item>
+        <item>Видео: Видео готово к показу (истина)</item>
+        <item>Видео: Ошибка воспроизведения (Текст)</item>
+        <item>Скролл: Смещение Y изменилось (px)</item>
+        <item>Скролл: Смещение X изменилось (px)</item>
+        <item>Скролл: Прокручено до самого низа (истина)</item>
+        <item>Все окна: Клик по окну (истина)</item>
+        <item>Ползунок: Значение изменилось</item>
+        <item>Переключатель: Состояние изменилось (истина/ложь)</item>
+    </string-array>
+
+    <string formatted="false" name="brick_native_view_control_title">Выполнить команду окна</string>
+    <string formatted="false" name="brick_native_view_control_id">ID окна</string>
+    <string formatted="false" name="brick_native_view_control_cmd">Команда</string>
+    <string formatted="false" name="brick_native_view_control_param">Параметр (опционально)</string>
+
+    <string-array name="native_view_commands_array">
+        <item>WebView: Назад (Go Back)</item>
+        <item>WebView: Вперед (Go Forward)</item>
+        <item>WebView: Обновить страницу</item>
+        <item>WebView: Остановить загрузку</item>
+        <item>WebView: Сбросить кэш и Cookies</item>
+        <item>WebView: Перейти по ссылке (URL)</item>
+        <item>WebView: Загрузить HTML код</item>
+        <item>Видео: Запуск (Play)</item>
+        <item>Видео: Пауза (Pause)</item>
+        <item>Видео: Остановить (Stop)</item>
+        <item>Видео: Перемотать (в секунды)</item>
+        <item>Текст/Ввод: Установить текст</item>
+        <item>Текст/Ввод: Добавить текст в конец</item>
+        <item>Текст/Ввод: Очистить поле</item>
+        <item>Поле ввода: Выделить всё</item>
+        <item>Поле ввода: Поставить курсор (индекс)</item>
+        <item>Скролл: Прокрутить к координатам (X,Y)</item>
+        <item>Скролл: Прокрутить на шаг (DX,DY)</item>
+        <item>Скролл: Прокрутить в самый верх</item>
+        <item>Скролл: Прокрутить в самый низ</item>
+        <item>Все окна: Сфокусировать и открыть клаву</item>
+        <item>Все окна: Убрать фокус и спрятать клаву</item>
+    </string-array>
+
+    <string formatted="false" name="brick_native_view_config_title">Настроить окно</string>
+    <string formatted="false" name="brick_native_view_config_id">ID окна</string>
+    <string formatted="false" name="brick_native_view_config_prop">Свойство</string>
+    <string formatted="false" name="brick_native_view_config_val">Значение</string>
+
+    <string-array name="native_view_properties_array">
+        <item>Видимость (истина/ложь)</item>
+        <item>Прозрачность (0.0 - 1.0)</item>
+        <item>Клик насквозь (истина/ложь)</item>
+        <item>Слой</item>
+        <item>Угол поворота (0 - 360)</item>
+        <item>Масштаб X</item>
+        <item>Масштаб Y</item>
+        <item>WebView: Куки (истина/ложь)</item>
+        <item>WebView: Кнопки масштабирования (истина/ложь)</item>
+        <item>WebView: DOM Хранилище (истина/ложь)</item>
+        <item>WebView: User-Agent</item>
+        <item>WebView: Цвет фона (HEX)</item>
+        <item>Видео: Громкость (0.0 - 1.0)</item>
+        <item>Видео: Зациклить (true/false)</item>
+        <item>Текст: Цвет текста (HEX)</item>
+        <item>Текст: Размер шрифта</item>
+        <item>Текст: Цвет фона (HEX)</item>
+        <item>Все: Скругление углов (px)</item>
+        <item>Тень/Парение (px)</item>
+        <item>Текст: Выравнивание (0=Лево, 1=Центр, 2=Право)</item>
+        <item>Текст: Путь к шрифту (в проекте)</item>
+        <item>Текст: Межстрочный интервал</item>
+        <item>Поле ввода: Макс. длина (символов)</item>
+        <item>Поле ввода: Текст-подсказка (Hint)</item>
+        <item>Поле ввода: Цвет подсказки (HEX)</item>
+        <item>Переключатель: Текст подписи</item>
+        <item>Переключатель: Состояние (истина/ложь)</item>
+        <item>Кнопка: Все заглавные (true/false)</item>
+        <item>Картинка: Режим масштаба (0=По центру, 1=Обрезать, 2=Растянуть, 3=Без масштаба)</item>
+        <item>Картинка: Сменить изображение (Файл/URL)</item>
+        <item>Ползунок: Минимальное значение</item>
+        <item>Ползунок: Максимальное значение</item>
+        <item>Ползунок: Текущее значение</item>
+        <item>Скролл: Полосы прокрутки (истина/ложь)</item>
+        <item>Скролл: Эффект краев (0=Всегда, 1=Если скроллится, 2=Никогда)</item>
+        <item>Скролл: Внутренний отступ (px)</item>
+        <item>Все: Граница/Обводка (Толщина,Цвет_HEX)</item>
+        <item>Все: Внутренний отступ (px)</item>
+        <item>Все: Размытие/Блюр (px) [Android 12+]</item>
+        <item>Все: Точка привязки поворота (X,Y)</item>
+        <item>Видео: Слой (Foreground / Background)</item>
+        <item>Все окна: Видимость при создании по умолчанию (истина/ложь)</item>
+    </string-array>
+
+    <string formatted="false" name="brick_create_scroll_view_title">Создать скролл-контейнер</string>
+    <string formatted="false" name="brick_create_scroll_view_id">ID контейнера</string>
+    <string formatted="false" name="brick_create_scroll_view_mode">Режим прокрутки</string>
+    <string formatted="false" name="brick_create_scroll_view_bg">Цвет фона (HEX)</string>
+    <string formatted="false" name="brick_create_scroll_view_bars">Полосы прокрутки</string>
+    <string formatted="false" name="brick_create_scroll_view_padding">Внутренний отступ (px)</string>
+    <string formatted="false" name="brick_create_scroll_view_overscroll">Эффект растяжения краев</string>
+
+    <string formatted="false" name="brick_create_text_label_title">Создать текст</string>
+    <string formatted="false" name="brick_create_text_label_id">ID текста</string>
+    <string formatted="false" name="brick_create_text_label_text">Текст / HTML</string>
+    <string formatted="false" name="brick_create_text_label_color">Цвет текста (HEX)</string>
+    <string formatted="false" name="brick_create_text_label_size">Размер шрифта</string>
+    <string formatted="false" name="brick_create_text_label_bg">Цвет фона (HEX)</string>
+    <string formatted="false" name="brick_create_text_label_font">Шрифт (проект)</string>
+    <string formatted="false" name="brick_create_text_label_radius">Радиус скругления (px)</string>
+    <string formatted="false" name="brick_create_text_label_spacing">Межстрочный интервал</string>
+    <string formatted="false" name="brick_create_text_label_format">Формат</string>
+    <string formatted="false" name="brick_create_text_label_align">Выравнивание</string>
+    <string formatted="false" name="brick_create_text_label_scroll">Прокрутка текста</string>
+
+    <string formatted="false" name="brick_set_native_parent_title">Задать родителя нативного окна</string>
+    <string formatted="false" name="brick_set_native_parent_id">ID окна</string>
+    <string formatted="false" name="brick_set_native_parent_target">ID контейнера-родителя</string>
+
+    <string-array name="scroll_modes_array">
+        <item>Нет (Отключена)</item>
+        <item>Вертикальная</item>
+        <item>Горизонтальная</item>
+        <item>Обе (Верт. + Гориз.)</item>
+    </string-array>
+
+    <string-array name="text_formats_array">
+        <item>Обычный текст</item>
+        <item>HTML разметка</item>
+    </string-array>
+
+    <string-array name="overscroll_modes_array">
+        <item>Всегда растягивать</item>
+        <item>Только если есть прокрутка</item>
+        <item>Никогда (Жесткие края)</item>
+    </string-array>
+
+    <string-array name="align_modes_array">
+        <item>По левому краю</item>
+        <item>По центру</item>
+        <item>По правому краю</item>
+    </string-array>
+
+    <string name="brick_buffer_mask_title">Задать маску-буфер</string>
+    <string name="brick_buffer_mask_mode">Режим</string>
+    <string-array name="brick_buffer_mask_modes">
+        <item>Растянуть</item>
+        <item>По экрану</item>
+    </string-array>
+    <string name="formula_http_response_text" formatted="false">http_текст_ответа</string>
+    <string name="formula_http_response_text_param" formatted="false">(\'id\')</string>
+
+    <string name="formula_http_response_code" formatted="false">http_код_ответа</string>
+    <string name="formula_http_response_code_param" formatted="false">(\'id\')</string>
+
+    <string name="formula_http_response_header" formatted="false">http_заголовок_ответа</string>
+    <string name="formula_http_response_header_param" formatted="false">(\'id\', \'header_name\')</string>
+
+    <string formatted="false" name="brick_http_send_title">HTTP: Отправить запрос и ждать</string>
+    <string formatted="false" name="brick_http_send_id">ID запроса</string>
+
+    <string formatted="false" name="brick_http_save_file_title">HTTP: Сохранить ответ в файл</string>
+    <string formatted="false" name="brick_http_save_file_id">ID запроса</string>
+    <string formatted="false" name="brick_http_save_file_dest">Имя файла в проекте</string>
+
+    <string formatted="false" name="brick_http_body_title">HTTP: Установить тело запроса</string>
+    <string formatted="false" name="brick_http_body_id">ID запроса</string>
+    <string formatted="false" name="brick_http_body_text">Тело (текст)</string>
+    <string formatted="false" name="brick_http_body_content_type">Content-Type</string>
+
+    <string formatted="false" name="brick_http_attach_file_title">HTTP: Прикрепить файл проекта</string>
+    <string formatted="false" name="brick_http_attach_file_id">ID запроса</string>
+    <string formatted="false" name="brick_http_attach_file_name">Имя файла</string>
+    <string formatted="false" name="brick_http_attach_file_parameter">Имя параметра</string>
+    <string formatted="false" name="brick_http_attach_file_mime">MIME тип</string>
+
+    <string formatted="false" name="brick_http_create_title">HTTP: Создать запрос</string>
+    <string formatted="false" name="brick_http_create_id">ID запроса</string>
+    <string formatted="false" name="brick_http_create_method">Метод (GET/POST/PUT…)</string>
+    <string formatted="false" name="brick_http_create_url">URL адрес</string>
+
+    <string formatted="false" name="brick_http_config_title">HTTP: Настроить запрос</string>
+    <string formatted="false" name="brick_http_config_id">ID запроса</string>
+    <string formatted="false" name="brick_http_config_type">Тип параметра</string>
+    <string formatted="false" name="brick_http_config_key">Ключ (Имя)</string>
+    <string formatted="false" name="brick_http_config_value">Значение</string>
+
+    <string-array name="brick_http_config_types">
+        <item>Заголовок (Header)</item>
+        <item>Параметр URL (Query)</item>
+        <item>Таймаут соединения (мс)</item>
+        <item>Таймаут чтения (мс)</item>
+        <item>Таймаут записи (мс)</item>
+        <item>Следовать редиректам (истина/ложь)</item>
+        <item>Игнорировать SSL (истина/ложь)</item>
+        <item>Использовать куки (истина/ложь)</item>
+        <item>Хост прокси (Proxy Host)</item>
+        <item>Порт прокси (Proxy Port)</item>
+    </string-array>
+
+    <string formatted="false" name="brick_zip_project_files_title">Запаковать файлы проекта в ZIP</string>
+    <string formatted="false" name="brick_zip_project_files_list">Файлы (через запятую)</string>
+    <string formatted="false" name="brick_zip_project_files_archive_name">Имя архива</string>
+
+    <string formatted="false" name="brick_unzip_project_files_title">Распаковать ZIP в проект</string>
+    <string formatted="false" name="brick_unzip_project_files_archive_name">Имя архива</string>
+
     <string name="brick_add_text_buffer_title">Добавить текст</string>
     <string name="brick_add_text_buffer_to">В буфер</string>
     <string name="brick_buffer_shader_title">Установить шейдер буфера</string>

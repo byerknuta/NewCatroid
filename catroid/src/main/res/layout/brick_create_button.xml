@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+
+    <CheckBox android:id="@+id/brick_checkbox" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout android:id="@+id/brick_layout" style="@style/BrickContainer.Device.Big">
+        <include layout="@layout/icon_brick_category_device" />
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_create_button_title" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_create_button_id" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_id_field" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_create_button_text" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_text_field" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_create_button_color" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_color_field" style="@style/BrickEditText" />
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_create_button_size" />
+        <TextView android:id="@+id/brick_size_field" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_create_button_bg" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_bg_field" style="@style/BrickEditText" />
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_create_button_radius" />
+        <TextView android:id="@+id/brick_radius_field" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="X: " app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_x_field" style="@style/BrickEditText" />
+        <TextView style="@style/BrickText.SingleLine" android:text=" Y: " />
+        <TextView android:id="@+id/brick_y_field" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="W: " app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_w_field" style="@style/BrickEditText" />
+        <TextView style="@style/BrickText.SingleLine" android:text=" H: " />
+        <TextView android:id="@+id/brick_h_field" style="@style/BrickEditText" />
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

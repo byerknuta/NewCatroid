@@ -1,11 +1,11 @@
 package org.catrobat.catroid.content.actions
 
-import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
+import com.badlogic.gdx.scenes.scene2d.Action
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.stage.StageActivity
 
-class CreateWebUrlAction : TemporalAction() {
+class CreateWebUrlAction : Action() {
     var scope: Scope? = null
     var url: Formula? = null
     var name: Formula? = null
@@ -14,27 +14,54 @@ class CreateWebUrlAction : TemporalAction() {
     var width: Formula? = null
     var height: Formula? = null
 
-    override fun update(percent: Float) {
-        var urlv = url?.interpretObject(scope)?.toString() ?: ""
-        var namev = name?.interpretObject(scope)?.toString() ?: ""
-        var posXv = posX?.interpretObject(scope)?.toString()?.toDoubleOrNull()?.toInt() ?: 0
-        var posYv = posY?.interpretObject(scope)?.toString()?.toDoubleOrNull()?.toInt() ?: 0
+    private var started = false
+    @Volatile private var finished = false
 
-        var widthv = width?.interpretObject(scope)?.toString()?.toDoubleOrNull()?.toInt() ?: 0
-        var heightv = height?.interpretObject(scope)?.toString()?.toDoubleOrNull()?.toInt() ?: 0
+    override fun act(delta: Float): Boolean {
+        if (!started) {
+            started = true
+            runAsyncCreate()
+        }
+        return finished
+    }
 
-        val activity: StageActivity? = StageActivity.activeStageActivity.get();
-        if (activity == null) return
+    private fun runAsyncCreate() {
+        val activity = StageActivity.activeStageActivity?.get()
+        if (activity == null) {
+            finished = true
+            return
+        }
+
+        val urlv = url?.interpretString(scope) ?: ""
+        val namev = name?.interpretString(scope) ?: ""
+        val posXv = posX?.interpretInteger(scope) ?: 0
+        val posYv = posY?.interpretInteger(scope) ?: 0
+        val widthv = width?.interpretInteger(scope) ?: 0
+        val heightv = height?.interpretInteger(scope) ?: 0
+
+        if (namev.isEmpty()) {
+            finished = true
+            return
+        }
 
         activity.runOnUiThread {
-            activity.createWebViewWithUrl(
-                namev,
-                urlv,
-                posXv,
-                posYv,
-                widthv,
-                heightv
-            )
+            try {
+                activity.createWebViewWithUrl(namev, urlv, posXv, posYv, widthv, heightv)
+            } finally {
+                finished = true
+            }
         }
+    }
+
+    override fun restart() {
+        super.restart()
+        started = false
+        finished = false
+    }
+
+    override fun reset() {
+        super.reset()
+        started = false
+        finished = false
     }
 }

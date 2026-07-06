@@ -25,7 +25,8 @@ class RunAsSpriteAction(
         }
 
         for (targetSprite in targetSprites) {
-            val targetSequence = targetSprite.createSequenceAction(script)
+            val dummyScript = org.catrobat.catroid.content.StartScript()
+            val targetSequence = targetSprite.createSequenceAction(dummyScript)
 
             for (brick in nestedBricks) {
                 if (!brick.isCommentedOut) {

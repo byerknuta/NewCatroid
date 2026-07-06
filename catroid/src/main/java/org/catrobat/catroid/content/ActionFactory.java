@@ -4715,4 +4715,384 @@ public class ActionFactory extends Actions {
         action.setUseMipmapping(mip);
         return action;
     }
+
+    public Action createZipProjectFilesAction(Sprite sprite, SequenceAction sequence,
+                                              Formula filesToZip, Formula zipFileName) {
+        ZipProjectFilesAction action = action(ZipProjectFilesAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setFilesToZip(filesToZip);
+        action.setZipFileName(zipFileName);
+        return action;
+    }
+
+    public Action createUnzipProjectFilesAction(Sprite sprite, SequenceAction sequence,
+                                                Formula zipFileName) {
+        UnzipProjectFilesAction action = action(UnzipProjectFilesAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setZipFileName(zipFileName);
+        return action;
+    }
+
+    public Action createHttpCreateAction(Sprite sprite, SequenceAction sequence,
+                                         Formula requestId, Formula method, Formula url) {
+        HttpCreateAction action = action(HttpCreateAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setRequestId(requestId);
+        action.setMethod(method);
+        action.setUrl(url);
+        return action;
+    }
+
+    public Action createHttpConfigAction(Sprite sprite, SequenceAction sequence,
+                                         Formula requestId, int configTypeSelection, Formula key, Formula value) {
+        HttpConfigAction action = action(HttpConfigAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setRequestId(requestId);
+        action.setConfigTypeSelection(configTypeSelection);
+        action.setKey(key);
+        action.setValue(value);
+        return action;
+    }
+
+    public Action createHttpBodyAction(Sprite sprite, SequenceAction sequence,
+                                       Formula requestId, Formula bodyText, Formula contentType) {
+        HttpBodyAction action = action(HttpBodyAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setRequestId(requestId);
+        action.setBodyText(bodyText);
+        action.setContentType(contentType);
+        return action;
+    }
+
+    public Action createHttpAttachFileAction(Sprite sprite, SequenceAction sequence,
+                                             Formula requestId, Formula fileName, Formula parameterName, Formula mimeType) {
+        HttpAttachFileAction action = action(HttpAttachFileAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setRequestId(requestId);
+        action.setFileName(fileName);
+        action.setParameterName(parameterName);
+        action.setMimeType(mimeType);
+        return action;
+    }
+
+    public Action createHttpSendAction(Sprite sprite, SequenceAction sequence,
+                                       Formula requestId) {
+        HttpSendAction action = action(HttpSendAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setRequestId(requestId);
+        return action;
+    }
+
+    public Action createHttpSaveFileAction(Sprite sprite, SequenceAction sequence,
+                                           Formula requestId, Formula destinationFileName) {
+        HttpSaveFileAction action = action(HttpSaveFileAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setRequestId(requestId);
+        action.setDestinationFileName(destinationFileName);
+        return action;
+    }
+
+    public Action createBufferMaskAction(Sprite sprite, SequenceAction sequence,
+                                         Formula bufferName, int modeSelection) {
+        BufferMaskAction action = action(BufferMaskAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setBufferName(bufferName);
+        action.setModeSelection(modeSelection);
+        return action;
+    }
+
+    public Action createSetNativeParentAction(Sprite sprite, ScriptSequenceAction sequence,
+                                              Formula viewId, Formula parentId) {
+        SetNativeParentAction action = action(SetNativeParentAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setViewId(viewId);
+        action.setParentId(parentId);
+        return action;
+    }
+
+    public Action createCreateScrollViewAction(Sprite sprite, ScriptSequenceAction sequence,
+                                               int scrollMode, int overScrollMode, Formula viewId, Formula bgColor, Formula showBars, Formula padding,
+                                               Formula x, Formula y, Formula width, Formula height) {
+        CreateScrollViewAction action = action(CreateScrollViewAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setScrollMode(scrollMode);
+        action.setOverScrollMode(overScrollMode);
+        action.setViewId(viewId);
+        action.setBgColor(bgColor);
+        action.setShowBars(showBars);
+        action.setPadding(padding);
+        action.setX(x);
+        action.setY(y);
+        action.setWidth(width);
+        action.setHeight(height);
+        return action;
+    }
+
+    public Action createCreateTextLabelAction(Sprite sprite, ScriptSequenceAction sequence,
+                                              int formatMode, int alignMode, int scrollMode, Formula viewId, Formula text, Formula colorHex,
+                                              Formula fontSize, Formula bgColor, Formula fontPath, Formula cornerRadius, Formula lineSpacing,
+                                              Formula x, Formula y, Formula width, Formula height) {
+        CreateTextLabelAction action = action(CreateTextLabelAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setFormatMode(formatMode);
+        action.setAlignMode(alignMode);
+        action.setScrollMode(scrollMode);
+        action.setViewId(viewId);
+        action.setText(text);
+        action.setColorHex(colorHex);
+        action.setFontSize(fontSize);
+        action.setBgColor(bgColor);
+        action.setFontPath(fontPath);
+        action.setCornerRadius(cornerRadius);
+        action.setLineSpacing(lineSpacing);
+        action.setX(x);
+        action.setY(y);
+        action.setWidth(width);
+        action.setHeight(height);
+        return action;
+    }
+
+    public Action createNativeViewConfigAction(Sprite sprite, ScriptSequenceAction sequence,
+                                               int propertySelection, Formula viewId, Formula value) {
+        NativeViewConfigAction action = action(NativeViewConfigAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setPropertySelection(propertySelection);
+        action.setViewId(viewId);
+        action.setValue(value);
+        return action;
+    }
+
+    public Action createNativeViewControlAction(Sprite sprite, ScriptSequenceAction sequence,
+                                                int commandSelection, Formula viewId, Formula parameter) {
+        NativeViewControlAction action = action(NativeViewControlAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setCommandSelection(commandSelection);
+        action.setViewId(viewId);
+        action.setParameter(parameter);
+        return action;
+    }
+
+    public Action createNativeViewListenerAction(Sprite sprite, ScriptSequenceAction sequence,
+                                                 int eventSelection, Formula viewId, UserVariable userVariable) {
+        NativeViewListenerAction action = action(NativeViewListenerAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setEventSelection(eventSelection);
+        action.setViewId(viewId);
+        action.setUserVariable(userVariable);
+        return action;
+    }
+
+    public Action createCreateButtonAction(Sprite sprite, ScriptSequenceAction sequence,
+                                           Formula viewId, Formula text, Formula colorHex, Formula fontSize, Formula bgColor, Formula cornerRadius,
+                                           Formula x, Formula y, Formula width, Formula height) {
+        CreateButtonAction action = action(CreateButtonAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setViewId(viewId);
+        action.setText(text);
+        action.setColorHex(colorHex);
+        action.setFontSize(fontSize);
+        action.setBgColor(bgColor);
+        action.setCornerRadius(cornerRadius);
+        action.setX(x);
+        action.setY(y);
+        action.setWidth(width);
+        action.setHeight(height);
+        return action;
+    }
+
+    public Action createCreateSwitchAction(Sprite sprite, ScriptSequenceAction sequence,
+                                           Formula viewId, Formula text, Formula defaultState,
+                                           Formula x, Formula y, Formula width, Formula height) {
+        CreateSwitchAction action = action(CreateSwitchAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setViewId(viewId);
+        action.setText(text);
+        action.setDefaultState(defaultState);
+        action.setX(x);
+        action.setY(y);
+        action.setWidth(width);
+        action.setHeight(height);
+        return action;
+    }
+
+    public Action createCreateImageViewAction(Sprite sprite, ScriptSequenceAction sequence,
+                                              int scaleSelection, Formula viewId, Formula source, Formula cornerRadius,
+                                              Formula x, Formula y, Formula width, Formula height) {
+        CreateImageViewAction action = action(CreateImageViewAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setScaleSelection(scaleSelection);
+        action.setViewId(viewId);
+        action.setSource(source);
+        action.setCornerRadius(cornerRadius);
+        action.setX(x);
+        action.setY(y);
+        action.setWidth(width);
+        action.setHeight(height);
+        return action;
+    }
+
+    public Action createCreateSliderAction(Sprite sprite, ScriptSequenceAction sequence,
+                                           Formula viewId, Formula minValue, Formula maxValue, Formula currentValue,
+                                           Formula x, Formula y, Formula width, Formula height) {
+        CreateSliderAction action = action(CreateSliderAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setViewId(viewId);
+        action.setMinValue(minValue);
+        action.setMaxValue(maxValue);
+        action.setCurrentValue(currentValue);
+        action.setX(x);
+        action.setY(y);
+        action.setWidth(width);
+        action.setHeight(height);
+        return action;
+    }
+
+    public Action createNativeViewAnimateAction(Sprite sprite, ScriptSequenceAction sequence,
+                                                int propertySelection, int easingSelection, Formula viewId, Formula value, Formula durationMs) {
+        NativeViewAnimateAction action = action(NativeViewAnimateAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setPropertySelection(propertySelection);
+        action.setEasingSelection(easingSelection);
+        action.setViewId(viewId);
+        action.setValue(value);
+        action.setDurationMs(durationMs);
+        return action;
+    }
+
+    public Action createNativeViewBindSpriteAction(Sprite sprite, ScriptSequenceAction sequence,
+                                                   int alignMode, Formula viewId, Formula spriteName, Formula offsetX, Formula offsetY) {
+        NativeViewBindSpriteAction action = action(NativeViewBindSpriteAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setAlignMode(alignMode);
+        action.setViewId(viewId);
+        action.setSpriteName(spriteName);
+        action.setOffsetX(offsetX);
+        action.setOffsetY(offsetY);
+        return action;
+    }
+
+    public Action createShowNotificationAction(Sprite sprite, SequenceAction sequence,
+                                               Formula notificationId, Formula channelName, Formula title, Formula text,
+                                               int importanceSelection, Formula largeIconFile, boolean isOngoing) {
+        ShowNotificationAction action = action(ShowNotificationAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setNotificationId(notificationId);
+        action.setChannelName(channelName);
+        action.setTitle(title);
+        action.setText(text);
+        action.setImportanceSelection(importanceSelection);
+        action.setLargeIconFile(largeIconFile);
+        action.setOngoing(isOngoing);
+        return action;
+    }
+
+    public Action createBroadcastWithParamsAction(Sprite sprite, SequenceAction sequence,
+                                                  Formula signalName, Formula params) {
+        BroadcastWithParamsAction action = action(BroadcastWithParamsAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setSignalName(signalName);
+        action.setParams(params);
+        return action;
+    }
+
+    public Action createSaveBroadcastParamsAction(Sprite sprite, SequenceAction sequence,
+                                                  String signalName, UserVariable userVariable) {
+        SaveBroadcastParamsAction action = action(SaveBroadcastParamsAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setSignalName(signalName);
+        action.setUserVariable(userVariable);
+        return action;
+    }
+
+    public Action createNotificationCreateAction(Sprite sprite, SequenceAction sequence,
+                                                 Formula notifId, Formula channelName, Formula title, Formula text,
+                                                 Formula largeIconFile, int importanceSelection, boolean isOngoing) {
+        NotificationCreateAction action = action(NotificationCreateAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setNotifId(notifId);
+        action.setChannelName(channelName);
+        action.setTitle(title);
+        action.setText(text);
+        action.setLargeIconFile(largeIconFile);
+        action.setImportanceSelection(importanceSelection);
+        action.setOngoing(isOngoing);
+        return action;
+    }
+
+    public Action createNotificationShowAction(Sprite sprite, SequenceAction sequence,
+                                               Formula notifId, Formula delaySeconds) {
+        NotificationShowAction action = action(NotificationShowAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setNotifId(notifId);
+        action.setDelaySeconds(delaySeconds);
+        return action;
+    }
+
+    public Action createEnableBackgroundModeAction(Sprite sprite, SequenceAction sequence,
+                                                   Formula title, Formula text) {
+        EnableBackgroundModeAction action = action(EnableBackgroundModeAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setTitle(title);
+        action.setText(text);
+        return action;
+    }
+
+    public Action createDisableBackgroundModeAction(Sprite sprite, SequenceAction sequence) {
+        DisableBackgroundModeAction action = action(DisableBackgroundModeAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
+
+    public Action createNotificationAddButtonAction(Sprite sprite, SequenceAction sequence,
+                                                    Formula notifId, Formula actionId, Formula text, Formula iconFile, Formula hint,
+                                                    int behavior, boolean hasInput, boolean autoClose) {
+        NotificationAddButtonAction action = action(NotificationAddButtonAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setNotifId(notifId);
+        action.setActionId(actionId);
+        action.setText(text);
+        action.setIconFile(iconFile);
+        action.setHint(hint);
+        action.setBehavior(behavior);
+        action.setHasInput(hasInput);
+        action.setAutoClose(autoClose);
+        return action;
+    }
+
+    public Action createNotificationCancelAction(Sprite sprite, SequenceAction sequence, Formula notifId) {
+        NotificationCancelAction action = action(NotificationCancelAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setNotifId(notifId);
+        return action;
+    }
 }

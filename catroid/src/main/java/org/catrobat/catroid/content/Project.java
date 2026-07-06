@@ -443,13 +443,7 @@ public class Project implements Serializable {
 	}
 
 	public File getFile(String fileName) {
-		File file = new File(getFilesDir(), fileName);
-		/*if(file.exists()) {
-			return file;
-		} else {
-			return null;
-		}*/
-		return file;
+        return new File(getFilesDir(), fileName);
 	}
 
 	public File getLib(String fileName) {

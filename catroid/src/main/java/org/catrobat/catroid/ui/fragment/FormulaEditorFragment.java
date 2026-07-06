@@ -972,41 +972,45 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 			case SET_FORMULA_ON_RETURN_FROM_VISUAL_PLACEMENT:
 			case SET_FORMULA_ON_RETURN_FROM_COLOR_PICKER:
 			case SET_FORMULA_ON_SWITCH_EDIT_TEXT:
-				Formula newFormula = formulaBrick.getFormulaWithBrickField(formulaField);
-				if (currentFormula == newFormula && formulaEditorEditText.hasChanges()) {
-					formulaEditorEditText.quickSelect();
-					break;
-				}
-				if (formulaEditorEditText.hasChanges()) {
-					confirmSwitchEditTextTimeStamp[0] = confirmSwitchEditTextTimeStamp[1];
-					confirmSwitchEditTextTimeStamp[1] = System.currentTimeMillis();
-					confirmSwitchEditTextCounter++;
-					if (!saveFormulaIfPossible()) {
-						return;
-					}
-				}
-                if (currentMenu != null) {
-                    MenuItem undo = currentMenu.findItem(R.id.menu_undo);
-                    if (undo != null) {
-                        undo.setIcon(R.drawable.icon_undo_disabled);
-                        undo.setEnabled(false);
+                try {
+                    Formula newFormula = formulaBrick.getFormulaWithBrickField(formulaField);
+                    if (currentFormula == newFormula && formulaEditorEditText.hasChanges()) {
+                        formulaEditorEditText.quickSelect();
+                        break;
+                    }
+                    if (formulaEditorEditText.hasChanges()) {
+                        confirmSwitchEditTextTimeStamp[0] = confirmSwitchEditTextTimeStamp[1];
+                        confirmSwitchEditTextTimeStamp[1] = System.currentTimeMillis();
+                        confirmSwitchEditTextCounter++;
+                        if (!saveFormulaIfPossible()) {
+                            return;
+                        }
+                    }
+                    if (currentMenu != null) {
+                        MenuItem undo = currentMenu.findItem(R.id.menu_undo);
+                        if (undo != null) {
+                            undo.setIcon(R.drawable.icon_undo_disabled);
+                            undo.setEnabled(false);
+                        }
+
+                        MenuItem redo = currentMenu.findItem(R.id.menu_redo);
+                        if (redo != null) {
+                            redo.setIcon(R.drawable.icon_redo_disabled);
+                            redo.setEnabled(false);
+                        }
                     }
 
-                    MenuItem redo = currentMenu.findItem(R.id.menu_redo);
-                    if (redo != null) {
-                        redo.setIcon(R.drawable.icon_redo_disabled);
-                        redo.setEnabled(false);
-                    }
+                    formulaEditorEditText.endEdit();
+                    currentFormulaField = formulaField;
+                    currentFormula = newFormula;
+                    formulaEditorEditText.enterNewFormula(new UndoState(currentFormula.getInternFormulaState(),
+                            currentFormulaField));
+                    refreshFormulaPreviewString(formulaEditorEditText.getStringFromInternFormula());
+                    //formulaEditorEditText.getInternFormula().setCursorAndSelection(0, false);
+                    break;
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-
-				formulaEditorEditText.endEdit();
-				currentFormulaField = formulaField;
-				currentFormula = newFormula;
-				formulaEditorEditText.enterNewFormula(new UndoState(currentFormula.getInternFormulaState(),
-						currentFormulaField));
-				refreshFormulaPreviewString(formulaEditorEditText.getStringFromInternFormula());
-                //formulaEditorEditText.getInternFormula().setCursorAndSelection(0, false);
-				break;
 			default:
 				break;
 		}

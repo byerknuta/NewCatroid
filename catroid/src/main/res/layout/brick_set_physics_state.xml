@@ -53,7 +53,6 @@
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
-        <!-- Этот блок будет виден только для динамического тела -->
         <LinearLayout
             android:id="@+id/brick_set_physics_state_mass_layout"
             android:layout_width="wrap_content"

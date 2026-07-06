@@ -277,6 +277,7 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.MOUTH_RIGHT_CORNER_Y.name(), R.string.formula_editor_sensor_mouth_right_corner_y);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_SHOULDER_X.name(), R.string.formula_editor_sensor_left_shoulder_x);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_SHOULDER_Y.name(), R.string.formula_editor_sensor_left_shoulder_y);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.NOTIFICATION_REPLY.name(), R.string.formula_notification_reply);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_SHOULDER_X.name(), R.string.formula_editor_sensor_right_shoulder_x);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_SHOULDER_Y.name(), R.string.formula_editor_sensor_right_shoulder_y);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_ELBOW_X.name(), R.string.formula_editor_sensor_left_elbow_x);
@@ -404,6 +405,9 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_X.name(), R.string.formula_editor_object_x);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.VOXEL_GET_ID.name(), R.string.formula_voxel_get_id);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.VOXEL_GET_DATA.name(), R.string.formula_voxel_get_data);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.HTTP_RESPONSE_TEXT.name(), R.string.formula_http_response_text);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.HTTP_RESPONSE_CODE.name(), R.string.formula_http_response_code);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.HTTP_RESPONSE_HEADER.name(), R.string.formula_http_response_header);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_Y.name(), R.string.formula_editor_object_y);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_TRANSPARENCY.name(), R.string.formula_editor_object_transparency);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_BRIGHTNESS.name(), R.string.formula_editor_object_brightness);

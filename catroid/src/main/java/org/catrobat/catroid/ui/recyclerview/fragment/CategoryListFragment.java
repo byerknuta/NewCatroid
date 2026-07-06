@@ -165,7 +165,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_ray_hit_sprite_name,
 			R.string.formula_ray_hit_x2,
 			R.string.formula_ray_hit_y2,
-			R.string.formula_ray_hit_distance);
+			R.string.formula_ray_hit_distance,
+            R.string.formula_notification_reply);
 	private static final List<Integer> STRING_PARAMS = asList(R.string.formula_editor_function_length_parameter,
 			R.string.formula_editor_function_letter_parameter,
 			R.string.formula_editor_function_subtext_parameter,
@@ -204,7 +205,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_ray_hit_sprite_name_parameter,
 			R.string.formula_ray_hit_x_parameter,
 			R.string.formula_ray_hit_y_parameter,
-			R.string.formula_ray_hit_distance_parameter);
+			R.string.formula_ray_hit_distance_parameter,
+            R.string.formula_notification_reply_param);
 	private static final List<Integer> LIST_FUNCTIONS = asList(R.string.formula_editor_function_number_of_items,
 			R.string.formula_editor_function_list_item, R.string.formula_editor_function_contains,
 			R.string.formula_editor_function_index_of_item, R.string.formula_editor_function_flatten, R.string.formula_editor_function_connect, R.string.formula_editor_function_find);
@@ -272,6 +274,16 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_ray_param, R.string.formula_ray_param, R.string.formula_ray_param, R.string.formula_voxel_get_id_param,
             R.string.formula_voxel_get_data_param
 	);
+    private static final List<Integer> HTTP_FUNCTIONS = asList(
+            R.string.formula_http_response_text,
+            R.string.formula_http_response_code,
+            R.string.formula_http_response_header
+    );
+    private static final List<Integer> HTTP_PARAMS = asList(
+            R.string.formula_http_response_text_param,
+            R.string.formula_http_response_code_param,
+            R.string.formula_http_response_header_param
+    );
 	private static final List<Integer> LOGIC_BOOL = asList(R.string.formula_editor_logic_and,
 			R.string.formula_editor_logic_or, R.string.formula_editor_logic_not,
 			R.string.formula_editor_function_true, R.string.formula_editor_function_false);
@@ -1087,6 +1099,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 				"3D"));
         result.addAll(addHeader(toCategoryListItems(PT_FUNCTIONS, PT_PARAMS),
                 "PockeTensor"));
+        result.addAll(addHeader(toCategoryListItems(HTTP_FUNCTIONS, HTTP_PARAMS),
+                "HTTP"));
 
 		List<CustomFormula> customFormulas = CustomFormulaManager.INSTANCE.getFormulas();
 		if (!customFormulas.isEmpty()) {

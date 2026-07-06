@@ -6,113 +6,110 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
-import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
+import com.badlogic.gdx.scenes.scene2d.Action
 import org.catrobat.catroid.CatroidApplication
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.UserVariable
+import org.catrobat.catroid.io.StorageOperations
 import org.catrobat.catroid.stage.StageActivity
-import org.catrobat.catroid.utils.ErrorLog
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 
-class ChooseFileAction : TemporalAction() {
+class ChooseFileAction : Action() {
     var scope: Scope? = null
-    var fileType: Int = 4 // По умолчанию - все файлы
+    var fileType: Int = 4
     var variable: UserVariable? = null
 
+    private var started = false
+    @Volatile private var finished = false
+
     companion object {
-        private const val REQUEST_CODE_PICK_FILE = 2013
         private val TAG = ChooseFileAction::class.java.simpleName
 
         private val MIME_TYPES = arrayOf(
-            "image/*",   // 0 - Изображения
-            "video/*",   // 1 - Видео
-            "audio/*",   // 2 - Аудио
-            "application/*", // 3 - Документы (разные форматы)
-            "*/*"        // 4 - Любые файлы
+            "image/*",   // 0 - Image
+            "video/*",   // 1 - Video
+            "audio/*",   // 2 - Audio
+            "application/*", // 3 - Document
+            "*/*"        // 4 - Any
         )
 
         private var TARGET_DIRECTORY = File(CatroidApplication.getAppContext().filesDir, "chosen_files")
     }
 
-    override fun update(percent: Float) {
-        scope?.project?.let { proj ->
-            TARGET_DIRECTORY = proj.filesDir
-            val activity = StageActivity.activeStageActivity.get() ?: CatroidApplication.getAppContext() as? Activity
-            activity?.let {
-                val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-                    type = MIME_TYPES[fileType]
-                    addCategory(Intent.CATEGORY_OPENABLE)
+    override fun act(delta: Float): Boolean {
+        if (!started) {
+            started = true
+            runAsyncChoose()
+        }
+        return finished
+    }
+
+    private fun runAsyncChoose() {
+        val proj = scope?.project
+        if (proj == null) {
+            finished = true
+            return
+        }
+
+        TARGET_DIRECTORY = proj.filesDir
+
+        val activity = StageActivity.activeStageActivity.get()
+        if (activity == null) {
+            finished = true
+            return
+        }
+
+        activity.runOnUiThread {
+            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                type = MIME_TYPES[fileType]
+                addCategory(Intent.CATEGORY_OPENABLE)
+            }
+
+            activity.queueIntent(object : StageActivity.IntentListener {
+                override fun getTargetIntent(): Intent {
+                    return Intent.createChooser(intent, "Choose a file")
                 }
 
-
-                activity.startActivityForResult(
-                    Intent.createChooser(intent, "Choose a file"),
-                    REQUEST_CODE_PICK_FILE
-                )
-                StageActivity.addIntentListener(object : StageActivity.IntentListener {
-                    override fun onIntentResult(
-                        requestCode: Int,
-                        resultCode: Int,
-                        data: Intent?
-                    ): Boolean {
-                        if (requestCode == REQUEST_CODE_PICK_FILE && resultCode == Activity.RESULT_OK) {
-                            data?.data?.let { uri ->
-                                handleFileSelection(activity, uri)
-                            }
-                            return true
-                        }
-                        return false
+                override fun onIntentResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+                    if (resultCode == Activity.RESULT_OK && data != null && data.data != null) {
+                        val uri = data.data
+                        addSpriteObjectFromUri(uri)
                     }
-
-                    override fun getTargetIntent(): Intent {
-                        return Intent()
-                    }
-                })
-            }
+                    finished = true
+                    return true
+                }
+            })
         }
     }
 
-    private fun handleFileSelection(context: Context, uri: Uri) {
-        val fileName = getFileName(context, uri)
-        val destinationFile = File(TARGET_DIRECTORY, fileName)
-
-        if (!TARGET_DIRECTORY.exists()) {
-            TARGET_DIRECTORY.mkdirs()
-        }
+    private fun addSpriteObjectFromUri(uri: Uri?, extension: String = "png") {
+        val contentResolver = CatroidApplication.getAppContext().contentResolver
+        val resolvedFileName = StorageOperations.resolveFileName(contentResolver, uri)
+        val destFileName = resolvedFileName ?: ("file_" + System.currentTimeMillis() + extension)
 
         try {
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                copyFile(inputStream, destinationFile)
-                variable?.value = fileName
+            val file = StorageOperations.copyUriToDir(contentResolver, uri, scope?.project?.getFilesDir(), destFileName)
+            if (file != null && file.exists()) {
+                variable?.value = file.name
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Ошибка при копировании файла: ${e.message}")
+            e.printStackTrace()
         }
     }
 
-    private fun getFileName(context: Context, uri: Uri): String {
-        var fileName = ""
-        if (uri.scheme == "content") {
-            context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                if (cursor.moveToFirst()) {
-                    val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                    if (nameIndex > -1) {
-                        fileName = cursor.getString(nameIndex)
-                    }
-                }
-            }
-        }
-        if (fileName.isBlank()) {
-            fileName = uri.lastPathSegment ?: "chosen_file_${System.currentTimeMillis()}"
-        }
-        return fileName
+    override fun restart() {
+        super.restart()
+        started = false
+        finished = false
     }
 
-    private fun copyFile(inputStream: InputStream, destFile: File) {
-        FileOutputStream(destFile).use { outputStream ->
-            inputStream.copyTo(outputStream)
-        }
+    override fun reset() {
+        super.reset()
+        started = false
+        finished = false
+        scope = null
+        variable = null
     }
 }

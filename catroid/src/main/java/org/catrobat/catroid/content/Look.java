@@ -30,6 +30,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.ParticleEmitter;
@@ -137,6 +138,10 @@ public class Look extends Image {
     private final transient float[] hitboxVertices = new float[8];
     private final transient Polygon hitboxPolygon = new Polygon(hitboxVertices);
 
+    public String maskBufferName = null;
+    public int maskMode = 0; // 0: Stretch, 1: Screen
+    private static ShaderProgram maskShader = null;
+
 	public Look(final Sprite sprite) {
 		this.sprite = sprite;
 		globalFrameTicker++;
@@ -184,9 +189,101 @@ public class Look extends Image {
 
 				return false;
 			}
+
+            @Override
+            public void touchDragged(InputEvent event, float x, float y, int pointer) {
+                if (getTouchable() == Touchable.disabled || !isLookVisible()) {
+                    return;
+                }
+
+                float stageX = event.getStageX();
+                float stageY = event.getStageY();
+
+                Polygon[] collisionPolygons = getCurrentCollisionPolygon();
+                for (Polygon poly : collisionPolygons) {
+                    if (poly.contains(stageX, stageY)) {
+                        EventWrapper e = new EventWrapper(new EventId(EventId.FINGER_MOVED_OVER_SPRITE), false);
+                        sprite.look.fire(e);
+                        return;
+                    }
+                }
+            }
+
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                if (getTouchable() == Touchable.disabled || !isLookVisible()) {
+                    return;
+                }
+
+                float stageX = event.getStageX();
+                float stageY = event.getStageY();
+
+                Polygon[] collisionPolygons = getCurrentCollisionPolygon();
+                for (Polygon poly : collisionPolygons) {
+                    if (poly.contains(stageX, stageY)) {
+                        EventWrapper e = new EventWrapper(new EventId(EventId.SPRITE_RELEASED), false);
+                        sprite.look.fire(e);
+                        return;
+                    }
+                }
+            }
 		});
 		this.addListener(new EventWrapperListener(this));
 	}
+
+    private void initMaskShader() {
+        if (maskShader == null) {
+            String vertexShader = "attribute vec4 a_position;\n"
+                    + "attribute vec4 a_color;\n"
+                    + "attribute vec2 a_texCoord0;\n"
+                    + "uniform mat4 u_projTrans;\n"
+                    + "varying vec4 v_color;\n"
+                    + "varying vec2 v_texCoords;\n"
+                    + "varying vec4 v_screenPos;\n"
+                    + "void main() {\n"
+                    + "    v_color = a_color;\n"
+                    + "    v_texCoords = a_texCoord0;\n"
+                    + "    vec4 pos = u_projTrans * a_position;\n"
+                    + "    v_screenPos = pos;\n"
+                    + "    gl_Position = pos;\n"
+                    + "}";
+
+            String fragmentShader = "#ifdef GL_ES\n"
+                    + "    precision mediump float;\n"
+                    + "#endif\n"
+                    + "varying vec4 v_color;\n"
+                    + "varying vec2 v_texCoords;\n"
+                    + "varying vec4 v_screenPos;\n"
+                    + "uniform sampler2D u_texture;\n"
+                    + "uniform sampler2D u_mask;\n"
+                    + "uniform int u_mode;\n"
+                    + "void main() {\n"
+                    + "    vec4 spriteColor = texture2D(u_texture, v_texCoords);\n"
+                    + "    vec2 maskCoords;\n"
+                    + "    if (u_mode == 0) {\n"
+                    + "        maskCoords = v_texCoords;\n"
+                    + "    } else {\n"
+                    + "        vec2 clipCoords = (v_screenPos.xy / v_screenPos.w) * 0.5 + 0.5;\n"
+                    + "        clipCoords.y = 1.0 - clipCoords.y;\n"
+                    + "        maskCoords = clipCoords;\n"
+                    + "    }\n"
+                    + "    vec4 maskColor = texture2D(u_mask, maskCoords);\n"
+                    + "    gl_FragColor = v_color * vec4(spriteColor.rgb, spriteColor.a * maskColor.a);\n"
+                    + "}";
+
+            maskShader = new ShaderProgram(vertexShader, fragmentShader);
+            if (!maskShader.isCompiled()) {
+                Log.e("Look", "Error compiling Mask Shader: " + maskShader.getLog());
+            }
+        }
+    }
+
+    public static void disposeMaskShader() {
+        if (maskShader != null) {
+            maskShader.dispose();
+            maskShader = null;
+        }
+    }
 
 	public void setRenderingContext(OrthographicCamera gameCamera, Viewport gameViewport, Stage uiStage) {
 		this.gameCamera = gameCamera;
@@ -396,66 +493,48 @@ public class Look extends Image {
 		particleEffect.update(Gdx.graphics.getDeltaTime());
 	}
 
-	@Override
-	public synchronized void draw(Batch batch, float parentAlpha) {
-		boolean shouldLog = false;
-
-		if (shouldLog) {
-			Log.d("ShaderDebug", "    [Draw] >>> Drawing Look for: " + sprite.getName());
-		}
-
+    @Override
+    public synchronized void draw(Batch batch, float parentAlpha) {
         if (drawOnlyInBuffer && !org.catrobat.catroid.content.RenderTextureManager.INSTANCE.isRenderingToBuffer()) {
             return;
         }
 
-		if (particleEffect != null) {
-			if (shouldLog) Log.d("ShaderDebug", "    [Draw] Drawing particle effect.");
-			particleEffect.draw(batch);
-			batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-		}
+        if (particleEffect != null) {
+            particleEffect.draw(batch);
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        }
 
-		if (!isLookVisible() || getDrawable() == null) {
-			if (shouldLog) {
-				Log.w("ShaderDebug", "    [Draw] Look is NOT drawn. isLookVisible: " + isLookVisible() + ", getDrawable() is null: " + (getDrawable() == null));
-			}
-			return;
-		}
+        if (!isLookVisible() || getDrawable() == null) {
+            return;
+        }
 
-		if (shouldLog) {
-			Log.d("ShaderDebug", "    [Draw] Look is visible and has drawable. Alpha: " + this.alpha);
-			Log.d("ShaderDebug", "    [Draw] Batch blend func (SRC): " + batch.getBlendSrcFunc() + ", (DST): " + batch.getBlendDstFunc());
-			Log.d("ShaderDebug", "    [Draw] Position (X,Y): " + getX() + "," + getY() + " | Size (W,H): " + getWidth() + "," + getHeight());
-		}
+        super.setVisible(alpha != 0.0f);
 
-		super.setVisible(alpha != 0.0f);
-		batch.setShader(shader);
-		super.setVisible(alpha != 0.0f);
+        if (maskBufferName != null) {
+            initMaskShader();
+            TextureRegion maskRegion = org.catrobat.catroid.content.RenderTextureManager.INSTANCE.getTextureRegion(maskBufferName);
+            if (maskRegion != null && maskShader != null && maskShader.isCompiled()) {
+                Texture maskTexture = maskRegion.getTexture();
 
-		if (isLookVisible() && this.getDrawable() != null) {
-			super.draw(batch, this.alpha);
-		}
-		batch.setShader(null);
+                maskTexture.bind(1);
 
+                Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
 
-		if (shouldLog) {
-			Log.d("ShaderDebug", "    [Draw] <<< super.draw() called.");
-		}
+                batch.setShader(maskShader);
 
-		Drawable drawable = getDrawable();
-		if (drawable != null) {
-			if (shouldLog) {
-				Log.d("ShaderDebug", "    [Draw] Drawable class: " + drawable.getClass().getSimpleName());
-			}
-			if (drawable instanceof TextureRegionDrawable) {
-				TextureRegion region = ((TextureRegionDrawable) drawable).getRegion();
-				if (shouldLog) {
-					Log.d("ShaderDebug", "    [Draw] TextureRegion: " + region);
-					Log.d("ShaderDebug", "    [Draw] Texture is null: " + (region.getTexture() == null));
-				}
-			}
-		}
+                maskShader.setUniformi("u_mask", 1);
+                maskShader.setUniformi("u_mode", maskMode);
+            }
+        } else if (shader != null) {
+            batch.setShader(shader);
+        }
 
-	}
+        if (isLookVisible() && this.getDrawable() != null) {
+            super.draw(batch, this.alpha);
+        }
+
+        batch.setShader(null);
+    }
 
 	public static void tickGlobalFrame() {
 		globalFrameTicker++;

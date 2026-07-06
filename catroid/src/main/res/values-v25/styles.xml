@@ -849,7 +849,6 @@
         parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
         <item name="buttonBarNegativeButtonStyle">@style/ColorPickerButtonStyle</item>
         <item name="buttonBarPositiveButtonStyle">@style/ColorPickerButtonStyle</item>
-        <item name="android:background">@color/solid_white</item>
     </style>
 
     <style name="ColorPickerButtonStyle" tools:ignore="UnusedResources"

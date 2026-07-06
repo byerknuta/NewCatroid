@@ -77,7 +77,7 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
     }
 
     override fun dispatchTouchEvent(ev: android.view.MotionEvent): Boolean {
-        val isAprilFoolsEnabled = PreferenceManager.getDefaultSharedPreferences(CatroidApplication.getAppContext()).getBoolean("pref_1_april_enabled", true);
+        val isAprilFoolsEnabled = PreferenceManager.getDefaultSharedPreferences(CatroidApplication.getAppContext()).getBoolean("pref_1_april_enabled", false);
 
         if (LimboMinigameManager.isPlaying || SansMinigameManager.isPlaying || OtherPranksManager.isPrankRunning) {
             return super.dispatchTouchEvent(ev)

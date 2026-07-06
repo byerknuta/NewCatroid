@@ -49,7 +49,9 @@ import org.catrobat.catroid.common.FlavoredConstants.LIBRARY_BACKGROUNDS_URL_LAN
 import org.catrobat.catroid.common.FlavoredConstants.LIBRARY_BACKGROUNDS_URL_PORTRAIT
 import org.catrobat.catroid.common.FlavoredConstants.LIBRARY_LOOKS_URL
 import org.catrobat.catroid.common.FlavoredConstants.LIBRARY_SOUNDS_URL
+import org.catrobat.catroid.common.LookData
 import org.catrobat.catroid.common.SharedPreferenceKeys
+import org.catrobat.catroid.common.SoundInfo
 import org.catrobat.catroid.content.MyActivityManager
 import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.content.StartScript
@@ -107,6 +109,7 @@ import org.catrobat.catroid.utils.setVisibleOrGone
 import org.catrobat.catroid.visualplacement.VisualPlacementActivity
 import org.koin.android.ext.android.inject
 import java.io.File
+import java.io.IOException
 
 @LunoClass
 class ProjectActivity : BaseCastActivity() {
@@ -419,6 +422,114 @@ class ProjectActivity : BaseCastActivity() {
         }
     }
 
+    private fun addBackgroundFromUri(uri: Uri?, imageExtension: String = DEFAULT_IMAGE_EXTENSION) {
+        if (uri == null) return
+        val currentSprite = projectManager.currentSprite ?: return
+        val currentScene = projectManager.currentlyEditedScene ?: return
+        val resolvedFileName = StorageOperations.resolveFileName(contentResolver, uri)
+        val lookDataName: String
+        val lookFileName: String
+
+        val useSpriteName = resolvedFileName == null ||
+                StorageOperations.getSanitizedFileName(resolvedFileName) == TMP_IMAGE_FILE_NAME
+
+        if (useSpriteName) {
+            lookDataName = currentSprite.name
+            lookFileName = lookDataName + imageExtension
+        } else {
+            lookDataName = StorageOperations.getSanitizedFileName(resolvedFileName)
+            lookFileName = resolvedFileName
+        }
+
+        val finalLookDataName = UniqueNameProvider().getUniqueNameInNameables(lookDataName, currentSprite.lookList)
+
+        try {
+            val imageDirectory = File(currentScene.directory, Constants.IMAGE_DIRECTORY_NAME)
+            val file = StorageOperations.copyUriToDir(contentResolver, uri, imageDirectory, lookFileName)
+            Utils.removeExifData(imageDirectory, lookFileName)
+            val look = LookData(finalLookDataName, file)
+            currentSprite.lookList.add(look)
+            look.collisionInformation?.calculate()
+
+            val lookFragment = supportFragmentManager.findFragmentByTag(org.catrobat.catroid.ui.recyclerview.fragment.LookListFragment.TAG)
+                    as? org.catrobat.catroid.ui.recyclerview.fragment.LookListFragment
+            lookFragment?.notifyDataSetChanged()
+        } catch (e: IOException) {
+            Log.e("ProjectActivity", Log.getStackTraceString(e))
+        }
+    }
+
+    private fun addLookFromUri(uri: Uri?, imageExtension: String = DEFAULT_IMAGE_EXTENSION) {
+        if (uri == null) return
+        val currentSprite = projectManager.currentSprite ?: return
+        val currentScene = projectManager.currentlyEditedScene ?: return
+        val resolvedFileName = StorageOperations.resolveFileName(contentResolver, uri)
+        val lookDataName: String
+        val lookFileName: String
+
+        val useSpriteName = resolvedFileName == null ||
+                StorageOperations.getSanitizedFileName(resolvedFileName) == TMP_IMAGE_FILE_NAME
+
+        if (useSpriteName) {
+            lookDataName = currentSprite.name
+            lookFileName = lookDataName + imageExtension
+        } else {
+            lookDataName = StorageOperations.getSanitizedFileName(resolvedFileName)
+            lookFileName = resolvedFileName
+        }
+
+        val finalLookDataName = UniqueNameProvider().getUniqueNameInNameables(lookDataName, currentSprite.lookList)
+
+        try {
+            val imageDirectory = File(currentScene.directory, Constants.IMAGE_DIRECTORY_NAME)
+            val file = StorageOperations.copyUriToDir(contentResolver, uri, imageDirectory, lookFileName)
+            Utils.removeExifData(imageDirectory, lookFileName)
+            val look = LookData(finalLookDataName, file)
+            currentSprite.lookList.add(look)
+            look.collisionInformation?.calculate()
+
+            val lookFragment = supportFragmentManager.findFragmentByTag(org.catrobat.catroid.ui.recyclerview.fragment.LookListFragment.TAG)
+                    as? org.catrobat.catroid.ui.recyclerview.fragment.LookListFragment
+            lookFragment?.notifyDataSetChanged()
+        } catch (e: java.io.IOException) {
+            Log.e("ProjectActivity", Log.getStackTraceString(e))
+        }
+    }
+
+    private fun addSoundFromUri(uri: Uri?) {
+        if (uri == null) return
+        val currentSprite = projectManager.currentSprite ?: return
+        val currentScene = projectManager.currentlyEditedScene ?: return
+        val resolvedFileName = StorageOperations.resolveFileName(contentResolver, uri)
+        val soundInfoName: String
+        val soundFileName: String
+
+        val useSpriteName = resolvedFileName == null
+
+        if (useSpriteName) {
+            soundInfoName = currentSprite.name
+            soundFileName = soundInfoName + Constants.DEFAULT_SOUND_EXTENSION
+        } else {
+            soundInfoName = StorageOperations.getSanitizedFileName(resolvedFileName)
+            soundFileName = resolvedFileName
+        }
+
+        val finalSoundInfoName = UniqueNameProvider().getUniqueNameInNameables(soundInfoName, currentSprite.soundList)
+
+        try {
+            val soundDirectory = File(currentScene.directory, Constants.SOUND_DIRECTORY_NAME)
+            val file = StorageOperations.copyUriToDir(contentResolver, uri, soundDirectory, soundFileName)
+            val sound = SoundInfo(finalSoundInfoName, file)
+            currentSprite.soundList.add(sound)
+
+            val soundFragment = supportFragmentManager.findFragmentByTag(org.catrobat.catroid.ui.recyclerview.fragment.SoundListFragment.TAG)
+                    as? org.catrobat.catroid.ui.recyclerview.fragment.SoundListFragment
+            soundFragment?.notifyDataSetChanged()
+        } catch (e: java.io.IOException) {
+            Log.e("ProjectActivity", Log.getStackTraceString(e))
+        }
+    }
+
     @Suppress("ComplexMethod")
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -462,6 +573,50 @@ class ProjectActivity : BaseCastActivity() {
                 uri = ImportFromCameraLauncher(this).getCacheCameraUri()
                 addSpriteFromUri(uri, Constants.JPEG_IMAGE_EXTENSION)
             }
+
+            SpriteActivity.BACKGROUND_POCKET_PAINT -> {
+                uri = ImportFromPocketPaintLauncher(this).getPocketPaintCacheUri()
+                addBackgroundFromUri(uri)
+            }
+            SpriteActivity.BACKGROUND_LIBRARY -> {
+                uri = Uri.fromFile(File(data!!.getStringExtra(WebViewActivity.MEDIA_FILE_PATH)))
+                addBackgroundFromUri(uri)
+            }
+            SpriteActivity.BACKGROUND_FILE -> {
+                uri = data?.data
+                addBackgroundFromUri(uri, Constants.JPEG_IMAGE_EXTENSION)
+            }
+            SpriteActivity.BACKGROUND_CAMERA -> {
+                uri = ImportFromCameraLauncher(this).getCacheCameraUri()
+                addBackgroundFromUri(uri, Constants.JPEG_IMAGE_EXTENSION)
+            }
+
+            LOOK_POCKET_PAINT -> {
+                uri = ImportFromPocketPaintLauncher(this).getPocketPaintCacheUri()
+                addLookFromUri(uri)
+            }
+            LOOK_LIBRARY -> {
+                uri = Uri.fromFile(File(data!!.getStringExtra(WebViewActivity.MEDIA_FILE_PATH)))
+                addLookFromUri(uri)
+            }
+            LOOK_FILE -> {
+                uri = data?.data
+                addLookFromUri(uri, Constants.JPEG_IMAGE_EXTENSION)
+            }
+            LOOK_CAMERA -> {
+                uri = ImportFromCameraLauncher(this).getCacheCameraUri()
+                addLookFromUri(uri, Constants.JPEG_IMAGE_EXTENSION)
+            }
+
+            SOUND_RECORD, SOUND_FILE -> {
+                uri = data?.data
+                addSoundFromUri(uri)
+            }
+            SOUND_LIBRARY -> {
+                uri = Uri.fromFile(File(data!!.getStringExtra(WebViewActivity.MEDIA_FILE_PATH)))
+                addSoundFromUri(uri)
+            }
+
             SpriteActivity.REQUEST_CODE_VISUAL_PLACEMENT -> {
                 val extras = data?.extras ?: return
                 val brickHash = extras.getInt(SpriteActivity.EXTRA_BRICK_HASH, -1)

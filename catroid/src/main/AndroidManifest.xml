@@ -190,7 +190,7 @@
             android:name=".stage.StageActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/stage"
-            android:theme="@android:style/Theme.Light.NoTitleBar.Fullscreen" />
+            android:theme="@style/Theme.NewCatroid.Stage" />
 
         <activity
             android:name=".stage.StageWorkspaceActivity"
@@ -370,6 +370,13 @@
             </intent-filter>
         </activity>
 
+        <receiver android:name="org.catrobat.catroid.utils.NotificationPublisherReceiver" android:exported="false" />
+
+        <receiver
+            android:name="org.catrobat.catroid.utils.NotificationActionReceiver"
+            android:exported="true">
+        </receiver>
+
         <service
             android:name="org.catrobat.catroid.ide.BuildMonitorService"
             android:exported="false"
@@ -380,6 +387,7 @@
             android:foregroundServiceType="dataSync" />
         <service android:name=".transfers.MediaDownloadService" />
         <service android:name=".utils.notifications.StatusBarNotificationManager$NotificationActionService" />
+        <service android:name="org.catrobat.catroid.common.NewCatroidBackgroundService" android:exported="false" android:foregroundServiceType="dataSync" />
 
         <service
             android:name=".cast.CastService"

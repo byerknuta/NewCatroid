@@ -35,6 +35,7 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.core.text.HtmlCompat
 import com.badlogic.gdx.scenes.scene2d.Action
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.catrobat.catroid.BuildConfig
 import org.catrobat.catroid.R
 import org.catrobat.catroid.TrustedDomainManager
@@ -99,9 +100,7 @@ class BrickDialogManager(val stageActivity: StageActivity) :
     ): Dialog {
         val editText = EditText(stageActivity)
         editText.setText(baseText)
-        val askDialog = AlertDialog.Builder(
-            ContextThemeWrapper(stageActivity, R.style.Theme_NewCatroid_Dialog)
-        )
+        val askDialog = MaterialAlertDialogBuilder(stageActivity, R.style.Theme_NewCatroid_Dialog)
             .setView(editText)
             .setMessage(msg)
             .setTitle(question)
@@ -123,9 +122,7 @@ class BrickDialogManager(val stageActivity: StageActivity) :
 
     private fun createAskDialog(askAction: AskAction, question: String): Dialog {//, message:
         val editText = EditText(stageActivity)
-        val askDialog = AlertDialog.Builder(
-            ContextThemeWrapper(stageActivity, R.style.Theme_NewCatroid_Dialog)
-        )
+        val askDialog = MaterialAlertDialogBuilder(stageActivity, R.style.Theme_NewCatroid_Dialog)
             .setView(editText)
             .setMessage(stageActivity.getString(R.string.brick_ask_dialog_hint))
             .setTitle(question)
@@ -154,7 +151,7 @@ class BrickDialogManager(val stageActivity: StageActivity) :
             movementMethod = LinkMovementMethod.getInstance()
         }
 
-        return AlertDialog.Builder(
+        return MaterialAlertDialogBuilder(
             ContextThemeWrapper(stageActivity, R.style.Theme_NewCatroid_Dialog)
         )
             .setTitle(stageActivity.getString(R.string.web_request_warning_title))
@@ -193,7 +190,7 @@ class BrickDialogManager(val stageActivity: StageActivity) :
             movementMethod = LinkMovementMethod.getInstance()
         }
 
-        return AlertDialog.Builder(
+        return MaterialAlertDialogBuilder(
             ContextThemeWrapper(stageActivity, R.style.Theme_NewCatroid_Dialog)
         )
             .setTitle(stageActivity.getString(R.string.web_request_trust_domain_warning_title))
