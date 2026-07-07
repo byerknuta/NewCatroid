@@ -6,7 +6,12 @@ import android.graphics.Outline
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
+import android.text.Editable
 import android.text.InputFilter
+import android.text.Spanned
+import android.text.TextWatcher
+import android.text.style.BackgroundColorSpan
+import android.text.style.ForegroundColorSpan
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -29,6 +34,61 @@ import org.catrobat.catroid.stage.StageActivity
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.concurrent.thread
+
+private class SyntaxConfig {
+    val foregroundWords = mutableMapOf<String, Int>()
+    val backgroundWords = mutableMapOf<String, Int>()
+    var textWatcher: TextWatcher? = null
+}
+
+private fun applySyntaxHighlighting(editable: Editable, config: SyntaxConfig) {
+    val oldForeSpans = editable.getSpans(0, editable.length, ForegroundColorSpan::class.java)
+    for (span in oldForeSpans) {
+        editable.removeSpan(span)
+    }
+    val oldBackSpans = editable.getSpans(0, editable.length, BackgroundColorSpan::class.java)
+    for (span in oldBackSpans) {
+        editable.removeSpan(span)
+    }
+
+    for ((word, color) in config.foregroundWords) {
+        var index = editable.indexOf(word)
+        while (index >= 0) {
+            val beforeChar = if (index > 0) editable[index - 1] else ' '
+            val afterChar = if (index + word.length < editable.length) editable[index + word.length] else ' '
+            val isWord = !beforeChar.isLetterOrDigit() && !afterChar.isLetterOrDigit()
+
+            if (isWord) {
+                editable.setSpan(
+                    ForegroundColorSpan(color),
+                    index,
+                    index + word.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+            index = editable.indexOf(word, index + word.length)
+        }
+    }
+
+    for ((word, color) in config.backgroundWords) {
+        var index = editable.indexOf(word)
+        while (index >= 0) {
+            val beforeChar = if (index > 0) editable[index - 1] else ' '
+            val afterChar = if (index + word.length < editable.length) editable[index + word.length] else ' '
+            val isWord = !beforeChar.isLetterOrDigit() && !afterChar.isLetterOrDigit()
+
+            if (isWord) {
+                editable.setSpan(
+                    BackgroundColorSpan(color),
+                    index,
+                    index + word.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+            index = editable.indexOf(word, index + word.length)
+        }
+    }
+}
 
 class NativeViewConfigAction : TemporalAction() {
     var scope: Scope? = null
@@ -487,6 +547,187 @@ class NativeViewConfigAction : TemporalAction() {
                     41 -> {
                         val isVisible = valStr.lowercase() == "true" || valStr.lowercase() == "истина" || valStr == "1" || valBool
                         org.catrobat.catroid.common.NativeViewBindingManager.defaultVisibility = if (isVisible) View.VISIBLE else View.GONE
+                    }
+                    42 -> {
+                        if (view is WebView) {
+                            val scale = valStr.toFloatOrNull() ?: 100f
+                            view.setInitialScale(scale.toInt())
+                        }
+                    }
+                    43 -> {
+                        if (view is TextView) {
+                            val parts = valStr.split(",").map { it.trim() }
+                            val start = parts.getOrNull(0)?.toIntOrNull() ?: 0
+                            val end = parts.getOrNull(1)?.toIntOrNull() ?: 0
+                            val colorHex = parts.getOrNull(2) ?: "#FFFFFF"
+
+                            val spannable = android.text.SpannableString(view.text)
+                            val clampedStart = 0.coerceAtLeast(view.text.length.coerceAtMost(start))
+                            val clampedEnd = 0.coerceAtLeast(view.text.length.coerceAtMost(end))
+
+                            if (clampedStart < clampedEnd) {
+                                try {
+                                    val color = Color.parseColor(colorHex)
+                                    spannable.setSpan(
+                                        ForegroundColorSpan(color),
+                                        clampedStart,
+                                        clampedEnd,
+                                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                                    )
+
+                                    if (view is EditText) {
+                                        val selectionStart = view.selectionStart
+                                        val selectionEnd = view.selectionEnd
+                                        view.setText(spannable, TextView.BufferType.SPANNABLE)
+                                        val length = view.text.length
+                                        view.setSelection(selectionStart.coerceAtMost(length), selectionEnd.coerceAtMost(length))
+                                    } else {
+                                        view.text = spannable
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+                    }
+                    44 -> {
+                        if (view is TextView) {
+                            val parts = valStr.split(",").map { it.trim() }
+                            val wordToHighlight = parts.getOrNull(0) ?: ""
+                            val colorHex = parts.getOrNull(1) ?: "#FFFFFF"
+
+                            if (wordToHighlight.isNotEmpty()) {
+                                val color = try { Color.parseColor(colorHex) } catch (e: Exception) { Color.YELLOW }
+
+                                val config = (view.tag as? SyntaxConfig) ?: SyntaxConfig().also { view.tag = it }
+
+                                config.foregroundWords[wordToHighlight] = color
+
+                                if (config.textWatcher == null) {
+                                    var isUpdating = false
+                                    val watcher = object : TextWatcher {
+                                        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                                        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                                        override fun afterTextChanged(s: Editable?) {
+                                            if (isUpdating || s == null) return
+                                            isUpdating = true
+                                            if (view is EditText) {
+                                                val selectionStart = view.selectionStart
+                                                val selectionEnd = view.selectionEnd
+                                                applySyntaxHighlighting(s, config)
+                                                val length = view.text.length
+                                                view.setSelection(selectionStart.coerceAtMost(length), selectionEnd.coerceAtMost(length))
+                                            } else {
+                                                applySyntaxHighlighting(s, config)
+                                            }
+                                            isUpdating = false
+                                        }
+                                    }
+                                    config.textWatcher = watcher
+                                    view.addTextChangedListener(watcher)
+                                }
+
+                                if (view is EditText) {
+                                    view.text?.let { applySyntaxHighlighting(it, config) }
+                                } else {
+                                    val editable = Editable.Factory.getInstance().newEditable(view.text)
+                                    applySyntaxHighlighting(editable, config)
+                                    view.text = editable
+                                }
+                            }
+                        }
+                    }
+                    45 -> {
+                        if (view is TextView) {
+                            val parts = valStr.split(",").map { it.trim() }
+                            val start = parts.getOrNull(0)?.toIntOrNull() ?: 0
+                            val end = parts.getOrNull(1)?.toIntOrNull() ?: 0
+                            val colorHex = parts.getOrNull(2) ?: "#FFFF00"
+
+                            val spannable = android.text.SpannableString(view.text)
+                            val clampedStart = 0.coerceAtLeast(view.text.length.coerceAtMost(start))
+                            val clampedEnd = 0.coerceAtLeast(view.text.length.coerceAtMost(end))
+
+                            if (clampedStart < clampedEnd) {
+                                try {
+                                    val color = Color.parseColor(colorHex)
+                                    spannable.setSpan(
+                                        BackgroundColorSpan(color),
+                                        clampedStart,
+                                        clampedEnd,
+                                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                                    )
+
+                                    if (view is EditText) {
+                                        val selectionStart = view.selectionStart
+                                        val selectionEnd = view.selectionEnd
+                                        view.setText(spannable, TextView.BufferType.SPANNABLE)
+                                        val length = view.text.length
+                                        view.setSelection(selectionStart.coerceAtMost(length), selectionEnd.coerceAtMost(length))
+                                    } else {
+                                        view.text = spannable
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+                    }
+                    46 -> {
+                        if (view is TextView) {
+                            val parts = valStr.split(",").map { it.trim() }
+                            val wordToHighlight = parts.getOrNull(0) ?: ""
+                            val colorHex = parts.getOrNull(1) ?: "#FFFF00"
+
+                            if (wordToHighlight.isNotEmpty()) {
+                                val color = try { Color.parseColor(colorHex) } catch (e: Exception) { Color.YELLOW }
+
+                                val config = (view.tag as? SyntaxConfig) ?: SyntaxConfig().also { view.tag = it }
+
+                                config.backgroundWords[wordToHighlight] = color
+
+                                if (config.textWatcher == null) {
+                                    var isUpdating = false
+                                    val watcher = object : TextWatcher {
+                                        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                                        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                                        override fun afterTextChanged(s: Editable?) {
+                                            if (isUpdating || s == null) return
+                                            isUpdating = true
+                                            if (view is EditText) {
+                                                val selectionStart = view.selectionStart
+                                                val selectionEnd = view.selectionEnd
+                                                applySyntaxHighlighting(s, config)
+                                                val length = view.text.length
+                                                view.setSelection(selectionStart.coerceAtMost(length), selectionEnd.coerceAtMost(length))
+                                            } else {
+                                                applySyntaxHighlighting(s, config)
+                                            }
+                                            isUpdating = false
+                                        }
+                                    }
+                                    config.textWatcher = watcher
+                                    view.addTextChangedListener(watcher)
+                                }
+
+                                if (view is EditText) {
+                                    view.text?.let { applySyntaxHighlighting(it, config) }
+                                } else {
+                                    val editable = Editable.Factory.getInstance().newEditable(view.text)
+                                    applySyntaxHighlighting(editable, config)
+                                    view.text = editable
+                                }
+                            }
+                        }
+                    }
+                    47 -> {
+                        org.catrobat.catroid.utils.OverlayViewManager.setViewAsOverlay(idStr, valBool)
+                    }
+                    48 -> {
+                        org.catrobat.catroid.utils.OverlayViewManager.setViewDraggable(idStr, valBool)
+                    }
+                    49 -> {
+                        org.catrobat.catroid.utils.OverlayViewManager.setDragHandle(idStr, valStr)
                     }
                 }
             } catch (e: Exception) {

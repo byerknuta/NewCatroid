@@ -1,25 +1,3 @@
-/*
- * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2022 The Catrobat Team
- * (<http://developer.catrobat.org/credits>)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * An additional term exception under section 7 of the GNU Affero
- * General Public License, version 3, is available at
- * http://developer.catrobat.org/license_additional_term
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 package org.catrobat.catroid.ui.fragment
 
 import android.app.Activity
@@ -41,7 +19,6 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.transition.Visibility
 import com.danvexteam.lunoscript_annotations.LunoClass
 import com.google.android.material.snackbar.Snackbar
 import org.catrobat.catroid.BuildConfig
@@ -70,12 +47,10 @@ class ProjectLibsFragment : Fragment() {
     private val binding get() = _binding!!
     private var project: Project? = null
     private var sceneName: String? = null
-    private var projectInZip: File? = null
-    private var buildFilename: String? = null
-    private var zipTempDir: File? = null
     private lateinit var recyclerView: RecyclerView
     private lateinit var filesAdapter: FilesAdapter
-    private var filesList = mutableListOf<String>()
+
+    private var filesList = mutableListOf<File>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -108,48 +83,38 @@ class ProjectLibsFragment : Fragment() {
 
     private fun setupAdd() {
         binding.projectFilesAdd.setOnClickListener {
-            //handleText()
             handleAdd()
         }
     }
 
     private fun setupRecyclerView() {
         filesAdapter = FilesAdapter(project, filesList,
-            { fileName -> deleteFile(fileName) },
-            { fileName -> copyFile(fileName) },
-            { fileName -> openFile(fileName) }
+            { file -> deleteFile(file) },
+            { file -> copyFile(file) },
+            { file -> openFile(file) }
         )
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = filesAdapter
     }
 
-    private fun openFile(fileName: String) {
-        project?.let {
-            val fileDirectory = File(it.directory, "files")
-            val file = File(fileDirectory, fileName)
+    private fun openFile(file: File) {
+        if (!file.exists()) {
+            Toast.makeText(requireContext(), "Файл не найден", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-            if (!file.exists()) {
-                Toast.makeText(requireContext(), "Файл не найден", Toast.LENGTH_SHORT).show()
-                return
-            }
+        val authority = "${BuildConfig.APPLICATION_ID}.provider"
+        val uri = FileProvider.getUriForFile(requireContext(), authority, file)
 
+        val intent = Intent(Intent.ACTION_VIEW)
+        val mimeType = context?.contentResolver?.getType(uri) ?: "*/*"
+        intent.setDataAndType(uri, mimeType)
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
-
-            val authority = "${BuildConfig.APPLICATION_ID}.provider"
-            val uri = FileProvider.getUriForFile(requireContext(), authority, file)
-
-            val intent = Intent(Intent.ACTION_VIEW)
-
-            val mimeType = context?.contentResolver?.getType(uri) ?: "*/*"
-            intent.setDataAndType(uri, mimeType)
-
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-
-            try {
-                startActivity(intent)
-            } catch (e: ActivityNotFoundException) {
-                Toast.makeText(requireContext(), "Не найдено приложений для открытия этого файла", Toast.LENGTH_LONG).show()
-            }
+        try {
+            startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(requireContext(), "Не найдено приложений для открытия", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -159,56 +124,41 @@ class ProjectLibsFragment : Fragment() {
         clipboard.setPrimaryClip(clip)
     }
 
-    private fun copyFile(fileName: String) {
-        copyToClipboard(fileName)
-        Toast.makeText(requireContext(), "Скопировано в буфер обмена", Toast.LENGTH_SHORT).show()
+    private fun copyFile(file: File) {
+        copyToClipboard(file.name)
+        Toast.makeText(requireContext(), "Имя скопировано", Toast.LENGTH_SHORT).show()
     }
 
-    private fun deleteFile(fileName: String) {
-        project?.let {
-            val dir = File(it.directory, "libs")
-            val file = File(dir.absolutePath, fileName)
-            if (file.exists() && file.delete()) {
-
-                updateFilesList(dir)
-                Toast.makeText(requireContext(), "Библиотека удалена", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(requireContext(), "Ошибка при удалении библиотеки", Toast.LENGTH_SHORT)
-                    .show()
-            }
+    private fun deleteFile(file: File) {
+        if (file.exists() && file.delete()) {
+            updateFilesList(File(project!!.directory, "libs"))
+            Toast.makeText(requireContext(), "Библиотека удалена", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(requireContext(), "Ошибка при удалении библиотеки", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun updateFilesList(directory: File) {
-        val newFiles = directory.listFiles()?.map { it.name } ?: emptyList()
+        val newFiles = directory.listFiles() ?: emptyArray()
         val oldFiles = filesList.toList()
 
-        Log.d("ProjectFile", "Number of files: ${directory.listFiles()?.size}")
-
-        newFiles.forEach { fileName ->
-            if (!oldFiles.contains(fileName)) {
-                filesList.add(fileName)
+        newFiles.forEach { file ->
+            if (!oldFiles.contains(file)) {
+                filesList.add(file)
                 filesAdapter.notifyItemInserted(filesList.size - 1)
             }
         }
 
-
-        oldFiles.forEach { fileName ->
-            if (!newFiles.contains(fileName)) {
-                val position = filesList.indexOf(fileName)
+        oldFiles.forEach { file ->
+            if (!newFiles.contains(file)) {
+                val position = filesList.indexOf(file)
                 if (position != -1) {
                     filesList.removeAt(position)
                     filesAdapter.notifyItemRemoved(position)
                 }
             }
         }
-
-        Log.d("ProjectFile", "Files: $filesList")
-
-
-        // filesAdapter.notifyDataSetChanged()
     }
-
 
     override fun onPause() {
         saveProject()
@@ -221,20 +171,16 @@ class ProjectLibsFragment : Fragment() {
     }
 
     private fun handleAdd() {
-
         val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
             type = "*/*"
             addCategory(Intent.CATEGORY_OPENABLE)
         }
-
-
         val chooser = Intent.createChooser(intent, "Выберите файл .newlib")
         startActivityForResult(chooser, ADD_FILE_REQUEST)
     }
 
     override fun onResume() {
         super.onResume()
-
         projectManager.currentProject = project
         project?.let {
             LibraryManager.syncAndLoadLibraries(it)
@@ -242,125 +188,17 @@ class ProjectLibsFragment : Fragment() {
         hideBottomBar(requireActivity())
     }
 
-    private fun handleText() {
-        showToast(getRandomError())
-    }
-
-    private fun onSaveProjectComplete() {
-        val currentProject = projectManager.currentProject
-
-        if (Utils.isDefaultProject(currentProject, activity)) {
-            binding.root.apply {
-                Snackbar.make(binding.root, R.string.error_upload_default_project, Snackbar.LENGTH_LONG).show()
-            }
-            return
-        }
-
-        val intent = Intent(requireContext(), ProjectUploadActivity::class.java)
-        intent.putExtra(PROJECT_DIR, currentProject.directory)
-
-        startActivity(intent)
-    }
-
-    fun showToast(toast: String) {
-        if (StageActivity.messageHandler != null) {
-            val params = ArrayList<Any>(listOf(toast))
-            StageActivity.messageHandler.obtainMessage(StageActivity.SHOW_TOAST, params).sendToTarget()
-        } else {
-
-            Log.e("ShowToast", "messageHandler is null!")
-        }
-    }
-
-    fun getRandomMessage(): String {
-        val messages = listOf(
-            "Готово!",
-            "Сделано!",
-            "Успех!",
-            "Завершено!",
-            "Готово к использованию!",
-            "Задача выполнена!",
-            "Отличная работа!",
-            "Все готово!",
-            "Яйцо или курица..?",
-            "Готово! Проверяй!",
-            "Поехали!",
-            "Вроде сделано..",
-            "Проверяй, начальник э!",
-            "Готово. Удачи с проектом!",
-            "Работа завершена, как кофе на утро!",
-            "Готово! Как будто я маг, а не программист!",
-            "Все сделано! Как раз вовремя перед обедом.",
-            "Все завершено! Можно идти за пирожками!",
-            "Задача выполнена! Теперь можно отдохнуть и посмотреть котиков.",
-            "Готово! Даже не успел заметить, как это произошло.",
-            "Сделано! Осталось только отпраздновать с танцами.",
-            "Готово! Минутка успокоения перед новыми приключениями.",
-            "Отличная работа! Ты как супергерой, только без плаща.",
-            "Готово! Наконец-то смогу отвлечься на онлайн-шопинг.",
-            "Как сказать: «Сделай это» и получить: «Сделано!»? Вот так!",
-            "Все готово! Теперь можем заниматься более важными делами.",
-            "Задача выполнена! Как хорошая книга – не отпускает до последней страницы.",
-            "Готово! Можно отдыхать, как будто мы все это сделали за пятюню.",
-            "Сделано! Готовы к новым подвигам?"
-        )
-
-
-        val randomIndex = Random.nextInt(messages.size)
-
-        return messages[randomIndex]
-    }
-
-    fun getRandomError(): String {
-        val errorMessages = listOf(
-            "Произошла ошибка! Кажется, я не тот алгоритм заказывал.",
-            "Упс! Что-то пошло не так. Как будто кошка пробежала по клавиатуре.",
-            "Произошла ошибка! Может, система решила немного отдохнуть?",
-            "Ой! Похоже, произошла ошибка. Возможно, это программистская шутка?",
-            "Произошла ошибка! Да кто придумал обновлять программу перед дедлайном?",
-            "Упс! Ошибка. Наверное, мой код тоже решил поспать.",
-            "Произошла ошибка! Как бы я ни старался, выводы не совпали.",
-            "Ой-ой! Ошибка! Это как раз то, что нам нужно было избежать.",
-            "Произошла ошибка! По всей видимости, сервер тоже устал.",
-            "Упс! Ошибка. Это как забыть о важной встрече.",
-            "Произошла ошибка! Может, стоит заказывать пиццу вместо кода?",
-            "Ой! Ошибка. Обычно говорят, что все дороги ведут к Риму, но не сегодня.",
-            "Произошла ошибка! Это не то, что я хотел об этом напомнить.",
-            "Упс! Ошибка! Возможно, машина решила, что у нее выходной.",
-            "Произошла ошибка! Я попытался угостить код печеньками и вот что вышло!",
-            "Ой-ой! Ошибка. Наверное, в коде слишком много любопытных переменных.",
-            "Произошла ошибка! Извините, не я такой - жизнь такая!",
-            "Упс! Произошла ошибка. Код сам по себе иногда делает капризы.",
-            "Ой! Произошла ошибка! Как будто интернет пошел на пикник без меня.",
-            "Произошла ошибка! И тут, конечно, глюк всегда оказывается виноват.",
-            "Упс! Ошибка. Вы знаете, прощать - это тоже искусство."
-        )
-
-        val randomIndex = Random.nextInt(errorMessages.size)
-
-        return errorMessages[randomIndex]
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         data ?: return
-        /*if (requestCode == REQUEST_EXPORT_PROJECT && resultCode == Activity.RESULT_OK) {
-            val projectDestination = data.data ?: return
-            startAsyncProjectExport(projectDestination)
-        }*/
         if (requestCode == ADD_FILE_REQUEST && resultCode == Activity.RESULT_OK) {
-            data?.data?.let { uri ->
-
+            data.data?.let { uri ->
                 val directory: File? = project?.directory
                 val filesDir = File(directory, "libs")
-
-
 
                 if (!filesDir.exists()) {
                     filesDir.mkdirs()
                 }
-
-
                 copyFileToDir(uri, filesDir)
             }
         }
@@ -371,16 +209,13 @@ class ProjectLibsFragment : Fragment() {
         val outputFileName = getFileName(uri)
         val outputFile = File(dir, outputFileName)
 
-
         inputStream.use { input ->
             outputFile.outputStream().use { output ->
                 input?.copyTo(output)
             }
         }
-
         updateFilesList(dir)
     }
-
 
     private fun getFileName(uri: Uri): String {
         var fileName = ""
@@ -398,11 +233,8 @@ class ProjectLibsFragment : Fragment() {
         return fileName.ifEmpty { "неизвестный_файл" }
     }
 
-
     companion object {
         val TAG: String = ProjectLibsFragment::class.java.simpleName
-
         private const val ADD_FILE_REQUEST = 15
-        //private const val PERMISSIONS_REQUEST_EXPORT_TO_EXTERNAL_STORAGE = 802
     }
 }

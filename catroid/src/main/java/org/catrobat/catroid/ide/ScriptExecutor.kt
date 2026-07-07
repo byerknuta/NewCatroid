@@ -375,7 +375,7 @@ object ScriptExecutor {
     }
 
 
-    private fun processLibrary(context: Context, originLib: File, outputDir: File, nativeDir: File, targetApi: Int = 33): File {
+    fun processLibrary(context: Context, originLib: File, outputDir: File, nativeDir: File, targetApi: Int = 33): File {
         try {
             ZipFile(originLib).use { zip ->
                 val entries = zip.entries()

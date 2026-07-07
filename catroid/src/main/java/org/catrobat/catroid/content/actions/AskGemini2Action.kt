@@ -74,7 +74,7 @@ class AskGemini2Action() : TemporalAction() {
             .writeTimeout(0, TimeUnit.SECONDS)
             .hostnameVerifier { hostname, session -> true }
             .build()
-        val model_str = model?.interpretString(scope) ?: "models/gemini-1.5-flash-latest"
+        val model_str = model?.interpretString(scope) ?: "models/gemini-3.1-flash-lite"
         val askVal = ask?.interpretObject(scope) ?: ""
         val askReq = askVal.toString().replace("\"", "\\\"")
         val apiKey = GeminiManager.api_key

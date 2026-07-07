@@ -904,19 +904,19 @@ public class FormulaElement implements Serializable {
                 return TableManager.Companion.getTableXSize(String.valueOf(arg0));
             case VIEW_X: {
                 StageActivity activity = StageActivity.activeStageActivity != null ? StageActivity.activeStageActivity.get() : null;
-                return activity == null ? 0 : activity.getViewX(String.valueOf(arg0));
+                return (double) (activity == null ? 0 : activity.getViewX(String.valueOf(arg0)));
             }
             case VIEW_Y: {
                 StageActivity activity = StageActivity.activeStageActivity != null ? StageActivity.activeStageActivity.get() : null;
-                return activity == null ? 0 : activity.getViewY(String.valueOf(arg0));
+                return (double) (activity == null ? 0 : activity.getViewY(String.valueOf(arg0)));
             }
             case VIEW_WIDTH: {
                 StageActivity activity = StageActivity.activeStageActivity != null ? StageActivity.activeStageActivity.get() : null;
-                return activity == null ? 0 : activity.getViewWidth(String.valueOf(arg0));
+                return (double) (activity == null ? 0 : activity.getViewWidth(String.valueOf(arg0)));
             }
             case VIEW_HEIGHT: {
                 StageActivity activity = StageActivity.activeStageActivity != null ? StageActivity.activeStageActivity.get() : null;
-                return activity == null ? 0 : activity.getViewHeight(String.valueOf(arg0));
+                return (double) (activity == null ? 0 : activity.getViewHeight(String.valueOf(arg0)));
             }
             case RAY_DID_HIT: {
                 ThreeDManager manager = getThreeDManager();
@@ -961,6 +961,22 @@ public class FormulaElement implements Serializable {
             case GET_RAY_HIT_OBJECT: {
                 ThreeDManager manager = getThreeDManager();
                 return manager != null ? manager.getRaycastHitObjectId(String.valueOf(arg0)) : "";
+            }
+            case CAMERA_X: {
+                StageListener listener = StageActivity.getActiveStageListener();
+                return listener != null ? (double) listener.getCameraPositionX() : 0.0;
+            }
+            case CAMERA_Y: {
+                StageListener listener = StageActivity.getActiveStageListener();
+                return listener != null ? (double) listener.getCameraPositionY() : 0.0;
+            }
+            case CAMERA_ROTATION: {
+                StageListener listener = StageActivity.getActiveStageListener();
+                return listener != null ? (double) listener.getCameraRotation() : 0.0;
+            }
+            case CAMERA_ZOOM: {
+                StageListener listener = StageActivity.getActiveStageListener();
+                return listener != null ? (double) listener.getCameraZoom() : 1.0;
             }
             case VOXEL_GET_ID: {
                 String worldId = String.valueOf(arg0);

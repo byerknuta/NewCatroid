@@ -18,7 +18,7 @@ public final class BrickInfo {
 
     static {
         add(SetGeminiKeyBrick.class, "Задает персональный API ключ Gemini. Получить его можно в Google AI Studio.");
-        add(AskGeminiBrick.class, "Задает вопрос к Gemini. ВАЖНО: не ждет ответа, код выполняется дальше.");
+        add(AskGeminiBrick.class, "Задает вопрос к Gemini (gemini-flash-lite-latest). ВАЖНО: не ждет ответа, код выполняется дальше.");
         add(AskGemini2Brick.class, "Задает вопрос к определенной модели Gemini. ВАЖНО: не ждет ответа, код выполняется дальше.");
         add(AskGPTBrick.class, "Задает вопрос к ChatGPT (через Pollinations.Ai).");
         add(CreateFloatBrick.class, "Создает FloatArray в памяти устройства.");
@@ -173,8 +173,8 @@ public final class BrickInfo {
         add(SetCameraPosition2Brick.class, "Задает позицию камере");
         add(SetCameraRotation2Brick.class, "задает вращение камеры");
         add(SetCameraZoomBrick.class, "Задает приближение камере");
-        add(PinToCameraBrick.class, "Фиксирует спрайт на сцене (полезно для UI)");
-        add(UnpinFromCameraBrick.class, "Открепляет спрайт от камеры");
+        add(PinToCameraBrick.class, "Прикрепляет спрайт к камере (при вращении и перемещении он остается там же, где и был). Полезно для интерфейсов игр");
+        add(UnpinFromCameraBrick.class, "Открепляет спрайт от камеры (не возвращает его на начальную позицию! С этим вы сами справляйтесь ;)  )");
         add(SetBackgroundBrick.class, "Задает образ фону");
         add(SetBackgroundByIndexBrick.class, "Задает образ фону по номером");
         add(SetBackgroundAndWaitBrick.class, "Задает образ фону и ждет окончания всех событий, слушающих это");
@@ -397,6 +397,17 @@ public final class BrickInfo {
         add(SetBufferShaderUniformBrick.class, "Передает кастомные Uniform-переменные (числа или векторы) в шейдер выбранного буфера.");
         add(SetMainRenderLoopsBrick.class, "Позволяет отключать стандартные рендер-циклы (2D, Fast2D, 3D) на дисплей смартфона для экономии ресурсов видеокарты.");
         add(SetBufferEffectsBrick.class, "Позволяет включать 3D VFX эффекты постобработки (Bloom, SSAO, SSR) или мипмаппинг (сглаживание под углами) внутри буфера.");
+        add(ConfigureLightBrick.class, "Динамически настраивает параметры (интенсивность, радиус, цвет, направление) источника света по его ID.");
+        add(ConfigureMaterialBrick.class, "Динамически настраивает точечные свойства PBR-материала (цвет, шероховатость, металличность, масштаб текстуры) объекта.");
+        add(ConfigureParticlesBrick.class, "Динамически перенастраивает параметры системы частиц (скорость эмиссии, размер, угол конуса, лимит частиц) по ее ID в реальном времени.");
+        add(SetTextBufferOnlyBrick.class, "Скрыть текст или переменную с основного экрана, оставив его видимым только внутри указанного буфера.");
+        add(StartBufferRecordingBrick.class, "Начать запись указанного графического буфера в MP4 видеофайл с выбором FPS и битрейта.");
+        add(StopBufferRecordingBrick.class, "Остановить запись видео из буфера и ожидать завершения сохранения видеофайла в проект.");
+        add(JavaCompileBrick.class, "Компилирует выбранные файлы .java проекта (или все .java файлы, если поле пустое) в запускаемый .dex файл. Поддерживает автоимпорт внутренних классов NewCatroid и LibGDX. Ошибки компиляции записывает в выбранную переменную.");
+        add(JavaLoadAndRunBrick.class, "Загружает один или несколько .dex/.jar файлов (через запятую для поддержки MultiDEX) и выполняет метод выбранного класса. Передает в Java-код Context, Activity или ViewGroup для отрисовки нативного UI.");
+        add(JavaDownloadDepBrick.class, "Скачивает библиотеку Maven/Gradle со всеми её зависимостями или без в папку 'libs' проекта. Возвращает список имен скачанных JAR-файлов через запятую.");
+        add(OpenAppBrick.class, "Открыть установленное приложение по его имени пакета (напр. com.google.android.youtube).");
+        add(Export3dObjectToGlbBrick.class, "Экспортирует любой 3D объект со сцены вместе со всеми текстурами и материалами в бинарный файл формата .glb и сохраняет его в файлы проекта.");
     }
 
     private static <T extends Brick> void add(Class<T> brickClass, String description) {

@@ -266,7 +266,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_touched, R.string.formula_editor_sensor_stage_width,
 			R.string.formula_editor_sensor_stage_height, R.string.formula_editor_sensor_micro, R.string.formula_editor_sensor_micro_freq,
             R.string.formula_editor_sensor_ip, R.string.formula_editor_sensor_port, R.string.formula_editor_sensor_battary,
-			R.string.formula_editor_sensor_internet, R.string.formula_editor_sensor_architecture, R.string.formula_editor_sensor_fps);
+			R.string.formula_editor_sensor_internet, R.string.formula_editor_sensor_architecture, R.string.formula_editor_sensor_fps,
+            R.string.formula_clipboard_text, R.string.formula_keyboard_height);
 	private static final List<Integer> OBJECT_COLOR_COLLISION =
 			asList(R.string.formula_editor_function_collides_with_color, R.string.formula_editor_function_color_touches_color);
 	private static final List<Integer> OBJECT_COLOR_PARAMS =
@@ -650,7 +651,11 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_ray_hit_sprite_name,
             R.string.formula_ray_hit_x2,
             R.string.formula_ray_hit_y2,
-            R.string.formula_ray_hit_distance
+            R.string.formula_ray_hit_distance,
+            R.string.formula_camera_x,
+            R.string.formula_camera_y,
+            R.string.formula_camera_rotation,
+            R.string.formula_camera_zoom
     );
 
     private static final List<Integer> TWOD_PARAMS = asList(
@@ -658,7 +663,11 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_ray_hit_sprite_name_parameter,
             R.string.formula_ray_hit_x_parameter,
             R.string.formula_ray_hit_y_parameter,
-            R.string.formula_ray_hit_distance_parameter
+            R.string.formula_ray_hit_distance_parameter,
+            R.string.formula_no_param,
+            R.string.formula_no_param,
+            R.string.formula_no_param,
+            R.string.formula_no_param
     );
 
 	private static final List<Integer> SENSORS_SPEECH_RECOGNITION = Collections.singletonList(R.string.formula_editor_listening_language_sensor);

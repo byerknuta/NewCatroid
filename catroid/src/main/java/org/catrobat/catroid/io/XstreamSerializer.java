@@ -818,6 +818,17 @@ public final class XstreamSerializer {
         xstream.alias("script", WhenAppMinimizedScript.class);
         xstream.alias("script", WhenAppRestoredScript.class);
         xstream.alias("script", WhenWindowResizedScript.class);
+        xstream.alias("brick", ConfigureLightBrick.class);
+        xstream.alias("brick", ConfigureMaterialBrick.class);
+        xstream.alias("brick", ConfigureParticlesBrick.class);
+        xstream.alias("brick", SetTextBufferOnlyBrick.class);
+        xstream.alias("brick", StartBufferRecordingBrick.class);
+        xstream.alias("brick", StopBufferRecordingBrick.class);
+        xstream.alias("brick", JavaCompileBrick.class);
+        xstream.alias("brick", JavaLoadAndRunBrick.class);
+        xstream.alias("brick", OpenAppBrick.class);
+        xstream.alias("brick", JavaDownloadDepBrick.class);
+        xstream.alias("brick", Export3dObjectToGlbBrick.class);
 
 
         xstream.alias("brick", org.catrobat.catroid.content.bricks.UnknownBrick.class);

@@ -48,6 +48,8 @@ public class ShowTextActor extends Actor {
     private boolean needsTextureUpdate = true;
     private float drawX, drawY;
 
+    private boolean drawOnlyInBuffer = false;
+
     public ShowTextActor(Boolean isText, UserVariable userVariable, String rawText, float xPosition, float yPosition, float relativeSize,
                          String color, Sprite sprite, int alignment, AndroidStringProvider androidStringProvider) {
         this.isText = isText;
@@ -120,8 +122,21 @@ public class ShowTextActor extends Actor {
         return null;
     }
 
+    public boolean isDrawOnlyInBuffer() {
+        return drawOnlyInBuffer;
+    }
+
+    public void setDrawOnlyInBuffer(boolean drawOnlyInBuffer) {
+        this.drawOnlyInBuffer = drawOnlyInBuffer;
+        this.needsTextureUpdate = true;
+    }
+
     @Override
     public void draw(Batch batch, float parentAlpha) {
+        if (drawOnlyInBuffer && !org.catrobat.catroid.content.RenderTextureManager.INSTANCE.isRenderingToBuffer()) {
+            return;
+        }
+
         String currentText = getCurrentTextValue();
         if (currentText == null || currentText.isEmpty()) return;
 

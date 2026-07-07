@@ -590,9 +590,14 @@ public class ScriptFragment extends ListFragment implements
         KoveAutocompleteController.getInstance().cancelActiveJob();
         KoveAutocompleteController.getInstance().dismissSuggestions();
 
-        if (!(getActivity() instanceof org.catrobat.catroid.ui.dialogs.RuntimeConsoleActivity)) {
-            Project currentProject = ProjectManager.getInstance().getCurrentProject();
-            new ProjectSaver(currentProject, getContext()).saveProjectAsync();
+        try {
+            if (!(getActivity() instanceof org.catrobat.catroid.ui.dialogs.RuntimeConsoleActivity)) {
+                Project currentProject = ProjectManager.getInstance().getCurrentProject();
+                new ProjectSaver(currentProject, getContext()).saveProjectAsync();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "'onPause' Critical Error");
+            e.printStackTrace();
         }
 
         savedListViewState = listView.onSaveInstanceState();

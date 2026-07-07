@@ -33,20 +33,37 @@ class NativeViewAnimateAction : TemporalAction() {
             try {
                 val easingType = EasingFunctions.EasingType.values()[easingSelection]
 
-                val animator = view.animate()
-                    .setDuration(timeMs)
-                    .setInterpolator(CustomEasingInterpolator(easingType))
+                if (propertySelection in 6..7) {
+                    val startVal = if (propertySelection == 6) stage.getViewX(idStr) else stage.getViewY(idStr)
 
-                when (propertySelection) {
-                    0 -> animator.alpha(targetVal)
-                    1 -> animator.rotation(targetVal)
-                    2 -> animator.scaleX(targetVal)
-                    3 -> animator.scaleY(targetVal)
-                    4 -> animator.translationX(targetVal)
-                    5 -> animator.translationY(targetVal)
+                    val valueAnimator = android.animation.ValueAnimator.ofFloat(startVal, targetVal).apply {
+                        duration = timeMs
+                        interpolator = CustomEasingInterpolator(easingType)
+                        addUpdateListener { animation ->
+                            val animatedValue = animation.animatedValue as Float
+                            if (propertySelection == 6) {
+                                stage.setViewPosition(idStr, animatedValue.toInt(), stage.getViewY(idStr).toInt())
+                            } else {
+                                stage.setViewPosition(idStr, stage.getViewX(idStr).toInt(), animatedValue.toInt())
+                            }
+                        }
+                    }
+                    valueAnimator.start()
+                } else {
+                    val animator = view.animate()
+                        .setDuration(timeMs)
+                        .setInterpolator(CustomEasingInterpolator(easingType))
+
+                    when (propertySelection) {
+                        0 -> animator.alpha(targetVal)
+                        1 -> animator.rotation(targetVal)
+                        2 -> animator.scaleX(targetVal)
+                        3 -> animator.scaleY(targetVal)
+                        4 -> animator.translationX(targetVal)
+                        5 -> animator.translationY(targetVal)
+                    }
+                    animator.start()
                 }
-
-                animator.start()
             } catch (e: Exception) {
                 e.printStackTrace()
             }

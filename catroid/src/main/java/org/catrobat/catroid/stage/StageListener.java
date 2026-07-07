@@ -310,6 +310,16 @@ public class StageListener implements ApplicationListener {
 
     private boolean isFirstResize = true;
 
+    public static class PinnedState {
+        public float rx;
+        public float ry;
+        public float originalRotation;
+        public float originalScaleX;
+        public float originalScaleY;
+    }
+
+    private final java.util.Map<Sprite, PinnedState> pinnedSprites = new java.util.HashMap<>();
+
 	@Override
 	public void create() {
         isFirstResize = true;
@@ -527,41 +537,68 @@ public class StageListener implements ApplicationListener {
 		}
 	}
 
-	public void pinSpriteToCamera(Sprite sprite) {
-		if (sprite == null || uiStage == null || stage == null) return;
+    public void pinSpriteToCamera(Sprite sprite) {
+        if (sprite == null || camera == null) return;
 
-		Look look = sprite.look;
-		if (look == null || look.getParent() == uiStage.getRoot()) {
-			return;
-		}
+        float worldX = sprite.look.getX();
+        float worldY = sprite.look.getY();
 
-
-		Vector3 screenCoords = new Vector3(look.getX(), look.getY(), 0);
-		camera.project(screenCoords);
+        float dx = worldX - camera.position.x;
+        float dy = worldY - camera.position.y;
 
 
-		look.remove();
-		uiStage.addActor(look);
-		look.setPosition(screenCoords.x, screenCoords.y);
-	}
+        float cos = com.badlogic.gdx.math.MathUtils.cosDeg(-cameraRotation);
+        float sin = com.badlogic.gdx.math.MathUtils.sinDeg(-cameraRotation);
+        float unrotatedX = dx * cos - dy * sin;
+        float unrotatedY = dx * sin + dy * cos;
 
-	public void unpinSpriteFromCamera(Sprite sprite) {
-		if (sprite == null || uiStage == null || stage == null) return;
+        float baseRx = unrotatedX / camera.zoom;
+        float baseRy = unrotatedY / camera.zoom;
 
-		Look look = sprite.look;
-		if (look == null || look.getParent() == stage.getRoot()) {
-			return;
-		}
+        PinnedState state = new PinnedState();
+        state.rx = baseRx;
+        state.ry = baseRy;
+        state.originalRotation = sprite.look.getRotation() - cameraRotation;
+        state.originalScaleX = sprite.look.getScaleX() / camera.zoom;
+        state.originalScaleY = sprite.look.getScaleY() / camera.zoom;
 
+        pinnedSprites.put(sprite, state);
+    }
 
-		Vector3 worldCoords = new Vector3(look.getX(), look.getY(), 0);
-		camera.unproject(worldCoords);
+    public void unpinSpriteFromCamera(Sprite sprite) {
+        if (sprite == null) return;
+        pinnedSprites.remove(sprite);
+    }
 
+    private void updatePinnedSprites() {
+        if (pinnedSprites.isEmpty() || camera == null) return;
 
-		look.remove();
-		stage.addActor(look);
-		look.setPosition(worldCoords.x, worldCoords.y);
-	}
+        float cos = com.badlogic.gdx.math.MathUtils.cosDeg(cameraRotation);
+        float sin = com.badlogic.gdx.math.MathUtils.sinDeg(cameraRotation);
+
+        for (java.util.Map.Entry<Sprite, PinnedState> entry : pinnedSprites.entrySet()) {
+            Sprite sprite = entry.getKey();
+            PinnedState state = entry.getValue();
+
+            float sx = state.rx * camera.zoom;
+            float sy = state.ry * camera.zoom;
+
+            float worldOffsetX = sx * cos - sy * sin;
+            float worldOffsetY = sx * sin + sy * cos;
+
+            sprite.look.setPosition(
+                    camera.position.x + worldOffsetX,
+                    camera.position.y + worldOffsetY
+            );
+
+            sprite.look.setScale(
+                    state.originalScaleX * camera.zoom,
+                    state.originalScaleY * camera.zoom
+            );
+
+            sprite.look.setRotation(state.originalRotation + cameraRotation);
+        }
+    }
 
 	private boolean vmGeometryDirty = false;
 
@@ -1279,6 +1316,7 @@ public class StageListener implements ApplicationListener {
 		}
 		stageBackupMap.clear();
 		embroideryPatternManager.clear();
+        pinnedSprites.clear();
 
 		CameraManager cameraManager = StageActivity.getActiveCameraManager();
 		if (cameraManager != null) {
@@ -1613,6 +1651,8 @@ public class StageListener implements ApplicationListener {
                             threeDManager.update(Gdx.graphics.getDeltaTime());
                         }
                     }
+                    updatePinnedSprites();
+
                     if (hasBeforeUpdateScripts && !paused) {
                         executeBeforeUpdateScripts(Gdx.graphics.getDeltaTime());
                     }
@@ -1833,6 +1873,22 @@ public class StageListener implements ApplicationListener {
         } else {
             broadcastEventToAllSprites(new EventId(EventId.WINDOW_RESIZED));
         }
+    }
+
+    public float getCameraPositionX() {
+        return camera != null ? camera.position.x : 0f;
+    }
+
+    public float getCameraPositionY() {
+        return camera != null ? camera.position.y : 0f;
+    }
+
+    public float getCameraZoom() {
+        return camera != null ? camera.zoom : 1.0f;
+    }
+
+    public float getCameraRotation() {
+        return cameraRotation;
     }
 
 

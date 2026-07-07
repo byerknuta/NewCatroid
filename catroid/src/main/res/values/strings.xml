@@ -21,7 +21,90 @@
   ~ You should have received a copy of the GNU Affero General Public License
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
-<resources  xmlns:tools="http://schemas.android.com/tools">
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <string formatted="false" name="brick_export_3d_glb_title">Export object to GLB</string>
+    <string formatted="false" name="brick_export_3d_glb_id">Object ID</string>
+    <string formatted="false" name="brick_export_3d_glb_file">Output file name (.glb)</string>
+
+    <string formatted="false" name="brick_java_download_title">Java: Download Maven library</string>
+    <string formatted="false" name="brick_java_download_id">Library ID (group:artifact:version)</string>
+    <string formatted="false" name="brick_java_download_repos">Custom repositories (comma sep)</string>
+    <string formatted="false" name="brick_java_download_log">Save list of JARs to variable</string>
+    <string formatted="false" name="brick_java_download_recursive">Download recursively</string>
+
+    <string formatted="false" name="brick_open_app_title">Open app with package</string>
+    <string formatted="false" name="brick_open_app_pkg">Package name</string>
+
+    <string formatted="false" name="brick_java_compile_title">Java: Compile files to DEX</string>
+    <string formatted="false" name="brick_java_compile_src">Java files (sep by comma)</string>
+    <string formatted="false" name="brick_java_compile_dest">Output DEX file name</string>
+    <string formatted="false" name="brick_java_compile_log">Save errors to variable</string>
+
+    <string formatted="false" name="brick_java_load_title">Java: Load and Run DEX</string>
+    <string formatted="false" name="brick_java_load_path">DEX/JAR files (sep by comma)</string>
+    <string formatted="false" name="brick_java_load_class">Class (e.g. game.Main)</string>
+    <string formatted="false" name="brick_java_load_method">Method name</string>
+    <string formatted="false" name="brick_java_load_arg">Argument (optional)</string>
+
+    <string name="formula_keyboard_height" formatted="false">keyboard_height</string>
+    <string name="formula_clipboard_text" formatted="false">clipboard_text</string>
+
+    <string formatted="false" name="brick_start_buffer_recording_title">Start recording buffer to video</string>
+    <string formatted="false" name="brick_start_buffer_recording_buf">Buffer name</string>
+    <string formatted="false" name="brick_start_buffer_recording_file">Save as file name</string>
+    <string formatted="false" name="brick_start_buffer_recording_fps">FPS</string>
+    <string formatted="false" name="brick_start_buffer_recording_bitrate">Bitrate (quality)</string>
+
+    <string formatted="false" name="brick_stop_buffer_recording_title">Stop recording buffer and wait</string>
+    <string formatted="false" name="brick_set_text_buffer_only_title">Draw text only in buffer</string>
+    <string formatted="false" name="brick_set_text_buffer_only_name_label">Text/Variable name</string>
+    <string formatted="false" name="brick_set_text_buffer_only_state_label">State (1/0)</string>
+    <string name="brick_http_configure_particles_title" formatted="false">Configure Particles</string>
+    <string name="brick_http_configure_particles_id" formatted="false">Particles ID</string>
+    <string name="brick_http_configure_particles_property" formatted="false">Setting</string>
+    <string name="brick_http_configure_particles_value" formatted="false">Value</string>
+
+    <string-array name="brick_http_configure_particles_types">
+        <item>Emission Rate</item>
+        <item>Particle Size</item>
+        <item>Cone Angle (Degrees)</item>
+        <item>Max Particles Count</item>
+    </string-array>
+
+    <string name="brick_http_configure_material_title" formatted="false">Configure Material</string>
+    <string name="brick_http_configure_material_id" formatted="false">Object ID</string>
+    <string name="brick_http_configure_material_property" formatted="false">Property</string>
+    <string name="brick_http_configure_material_value" formatted="false">Value</string>
+
+    <string-array name="brick_http_configure_material_types">
+        <item>Base Color (R, G, B, A)</item>
+        <item>Metallic (0.0 to 1.0)</item>
+        <item>Roughness (0.0 to 1.0)</item>
+        <item>UV Tiling (U, V)</item>
+        <item>Emissive Color (R, G, B)</item>
+        <item>Emissive Intensity</item>
+    </string-array>
+
+    <string name="brick_http_configure_light_title" formatted="false">Configure Light</string>
+    <string name="brick_http_configure_light_id" formatted="false">ID</string>
+    <string name="brick_http_configure_light_property" formatted="false">Parameter</string>
+    <string name="brick_http_configure_light_value" formatted="false">Value</string>
+
+    <string-array name="brick_http_configure_light_types">
+        <item>Intensity (Brightness)</item>
+        <item>Range (Radius)</item>
+        <item>Color (R, G, B)</item>
+        <item>Position (X, Y, Z)</item>
+        <item>Direction (X, Y, Z)</item>
+        <item>Cone Angle</item>
+        <item>Softness (0.0 to 1.0)</item>
+    </string-array>
+
+    <string name="formula_camera_x" formatted="false">camera_x</string>
+    <string name="formula_camera_y" formatted="false">camera_y</string>
+    <string name="formula_camera_rotation" formatted="false">camera_rotation</string>
+    <string name="formula_camera_zoom" formatted="false">camera_zoom</string>
 
     <string name="native_views">UI / Interface</string>
     <string name="tables_and_vars">Data / Memory</string>
@@ -139,6 +222,8 @@
         <item>Scale Y</item>
         <item>Translate X (px)</item>
         <item>Translate Y (px)</item>
+        <item>Position X (px)</item>
+        <item>Position Y (px)</item>
     </string-array>
 
     <string formatted="false" name="brick_create_image_view_title">Create Image View</string>
@@ -198,6 +283,7 @@
         <item>All Views: Clicked (true)</item>
         <item>Slider: Progress Changed</item>
         <item>Switch: State Changed (true/false)</item>
+        <item>TextField: cursor position (index)</item>
     </string-array>
 
     <string formatted="false" name="brick_native_view_control_title">Run View Command</string>
@@ -277,6 +363,14 @@
         <item>All: Rotation Pivot (X,Y)</item>
         <item>Video: Layer (Foreground / Background)</item>
         <item>All Views: Default Creation Visibility (true/false)</item>
+        <item>WebView: Page Size (%)</item>
+        <item>Text: Highlight symbols (Start,End,HEX_Color)</item>
+        <item>Text: Auto-highlight word (Key,HEX_Color)</item>
+        <item>Text: Background highlight (Start,End,HEX_Color)</item>
+        <item>Text: Auto-highlight word background (Key,HEX_Color)</item>
+        <item>Overlay mode (true/false)</item>
+        <item>Draggable mode (true/false)</item>
+        <item>Overlay: Set drag handle for parent (Parent ID)</item>
     </string-array>
 
     <string formatted="false" name="brick_create_scroll_view_title">Device: Create Scroll Container</string>

@@ -5095,4 +5095,120 @@ public class ActionFactory extends Actions {
         action.setNotifId(notifId);
         return action;
     }
+
+    public Action createConfigureLightAction(Sprite sprite, SequenceAction sequence,
+                                             Formula lightId, int configTypeSelection, Formula value) {
+        ConfigureLightAction action = action(ConfigureLightAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setLightId(lightId);
+        action.setConfigTypeSelection(configTypeSelection);
+        action.setValue(value);
+        return action;
+    }
+
+    public Action createConfigureMaterialAction(Sprite sprite, SequenceAction sequence,
+                                                Formula objectId, int configTypeSelection, Formula value) {
+        ConfigureMaterialAction action = action(ConfigureMaterialAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectId(objectId);
+        action.setConfigTypeSelection(configTypeSelection);
+        action.setValue(value);
+        return action;
+    }
+
+    public Action createConfigureParticlesAction(Sprite sprite, SequenceAction sequence,
+                                                 Formula particleId, int configTypeSelection, Formula value) {
+        ConfigureParticlesAction action = action(ConfigureParticlesAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setParticleId(particleId);
+        action.setConfigTypeSelection(configTypeSelection);
+        action.setValue(value);
+        return action;
+    }
+
+    public Action createSetTextBufferOnlyAction(Sprite sprite, SequenceAction sequence,
+                                                Formula textName, Formula stateFormula) {
+        SetTextBufferOnlyAction action = action(SetTextBufferOnlyAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setTextName(textName);
+        action.setStateFormula(stateFormula);
+        return action;
+    }
+
+    public Action createStartBufferRecordingAction(Sprite sprite, SequenceAction sequence,
+                                                   Formula bufferName, Formula fileName, Formula fpsFormula, Formula bitrateFormula) {
+        StartBufferRecordingAction action = action(StartBufferRecordingAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setBufferName(bufferName);
+        action.setFileName(fileName);
+        action.setFpsFormula(fpsFormula);
+        action.setBitrateFormula(bitrateFormula);
+        return action;
+    }
+
+    public Action createStopBufferRecordingAction(Sprite sprite, SequenceAction sequence) {
+        StopBufferRecordingAction action = action(StopBufferRecordingAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
+
+    public Action createCompileJavaToDexAction(Sprite sprite, SequenceAction sequence,
+                                               Formula srcFolder, Formula destDexFile, UserVariable errorVariable) {
+        CompileJavaToDexAction action = action(CompileJavaToDexAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setSrcFolder(srcFolder);
+        action.setDestDexFile(destDexFile);
+        action.setErrorVariable(errorVariable);
+        return action;
+    }
+
+    public Action createLoadAndRunDexAction(Sprite sprite, SequenceAction sequence,
+                                            Formula dexPath, Formula className, Formula methodName, Formula methodArg) {
+        LoadAndRunDexAction action = action(LoadAndRunDexAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setDexPath(dexPath);
+        action.setClassName(className);
+        action.setMethodName(methodName);
+        action.setMethodArg(methodArg);
+        return action;
+    }
+
+    public Action createOpenAppAction(Sprite sprite, SequenceAction sequence,
+                                      Formula packageName) {
+        OpenAppAction action = action(OpenAppAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setPackageName(packageName);
+        return action;
+    }
+
+    public Action createDownloadDependencyAction(Sprite sprite, SequenceAction sequence,
+                                                 Formula libraryId, Formula repositories, UserVariable resultVariable, boolean recursive) {
+        DownloadDependencyAction action = action(DownloadDependencyAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setLibraryId(libraryId);
+        action.setRepositories(repositories);
+        action.setResultVariable(resultVariable);
+        action.setRecursive(recursive);
+        return action;
+    }
+
+    public Action createExport3dObjectToGlbAction(Sprite sprite, SequenceAction sequence,
+                                                  Formula objectId, Formula destFileName) {
+        Export3dObjectToGlbAction action = action(Export3dObjectToGlbAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectId(objectId);
+        action.setDestFileName(destFileName);
+        return action;
+    }
 }

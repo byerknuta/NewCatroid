@@ -50,6 +50,7 @@ import org.catrobat.catroid.utils.ScreenValueHandler;
 import org.catrobat.catroid.utils.Utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -434,26 +435,65 @@ public class Project implements Serializable {
 		return this.xmlHeader;
 	}
 
-	public File getFilesDir() {
-		return new File(this.directory, "files");
-	}
+    public File getFilesDir() {
+        File dir = new File(this.directory, "files");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        return dir;
+    }
 
-	public File getLibsDir() {
-		return new File(this.directory, "libs");
-	}
+    public File getLibsDir() {
+        File dir = new File(this.directory, "libs");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        return dir;
+    }
 
-	public File getFile(String fileName) {
-        return new File(getFilesDir(), fileName);
-	}
+    public File getFile(String fileName) {
+        String cleanName = fileName.replace('\\', '/');
 
-	public File getLib(String fileName) {
-		File file = new File(getLibsDir(), fileName);
-		if(file.exists()) {
-			return file;
-		} else {
-			return null;
-		}
-	}
+        File file = new File(getFilesDir(), cleanName);
+
+        try {
+            String canonicalProjectDir = getFilesDir().getCanonicalPath();
+            String canonicalFileDir = file.getCanonicalPath();
+            if (!canonicalFileDir.startsWith(canonicalProjectDir)) {
+                throw new SecurityException("No, this is ploho, ninada (getFile)");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        File parentDir = file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+
+        return file;
+    }
+
+    public File getLib(String fileName) {
+        String cleanName = fileName.replace('\\', '/');
+        File file = new File(getLibsDir(), cleanName);
+
+        try {
+            String canonicalLibsDir = getLibsDir().getCanonicalPath();
+            String canonicalFileDir = file.getCanonicalPath();
+            if (!canonicalFileDir.startsWith(canonicalLibsDir)) {
+                throw new SecurityException("No, this is ploho, ninada (getLib)");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (file.exists()) {
+            return file;
+        } else {
+            return null;
+        }
+    }
 
 	public String checkExtension(String filename, String extension) {
 		if (filename.contains(".")) {

@@ -192,6 +192,33 @@ class NativeViewListenerAction : TemporalAction() {
                             }
                         }
                     }
+                    19 -> {
+                        if (view is EditText) {
+                            val updateCursor = {
+                                variable.value = view.selectionStart.toDouble()
+                            }
+
+                            updateCursor()
+
+                            view.setOnTouchListener { _, _ ->
+                                view.post(updateCursor)
+                                false
+                            }
+
+                            view.setOnKeyListener { _, _, _ ->
+                                view.post(updateCursor)
+                                false
+                            }
+
+                            view.addTextChangedListener(object : TextWatcher {
+                                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                                    view.post(updateCursor)
+                                }
+                                override fun afterTextChanged(s: Editable?) {}
+                            })
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

@@ -1,25 +1,3 @@
-/*
- * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2022 The Catrobat Team
- * (<http://developer.catrobat.org/credits>)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * An additional term exception under section 7 of the GNU Affero
- * General Public License, version 3, is available at
- * http://developer.catrobat.org/license_additional_term
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 package org.catrobat.catroid.ui.fragment
 
 import android.app.Activity
@@ -36,6 +14,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
@@ -72,7 +51,10 @@ class ProjectFilesFragment : Fragment() {
     private var sceneName: String? = null
     private lateinit var recyclerView: RecyclerView
     private lateinit var filesAdapter: FilesAdapter
-    private var filesList = mutableListOf<String>()
+
+    private var filesList = mutableListOf<File>()
+    private lateinit var currentDirectory: File
+    private lateinit var rootDirectory: File
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -92,14 +74,33 @@ class ProjectFilesFragment : Fragment() {
         project = projectManager.currentProject
         sceneName = projectManager.currentlyEditedScene.name
 
-        setupAdd()
-        setupRecyclerView()
-
         project?.let { proj ->
-            updateFilesList(File(proj.directory, "files").absoluteFile)
+            rootDirectory = File(proj.directory, "files").absoluteFile
+            currentDirectory = rootDirectory
         }
 
+        setupAdd()
+        setupRecyclerView()
+        setupBackPressed()
+
+        updateFilesList(currentDirectory)
+
         hideBottomBar(requireActivity())
+    }
+
+    private fun setupBackPressed() {
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (currentDirectory != rootDirectory) {
+                    currentDirectory = currentDirectory.parentFile ?: rootDirectory
+                    updateFilesList(currentDirectory)
+                } else {
+                    isEnabled = false
+                    requireActivity().onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
     }
 
     private fun setupAdd() {
@@ -113,9 +114,9 @@ class ProjectFilesFragment : Fragment() {
 
     private fun setupRecyclerView() {
         filesAdapter = FilesAdapter(project, filesList,
-            { fileName -> deleteFile(fileName) },
-            { fileName -> copyFile(fileName) },
-            { fileName -> openFile(fileName) }
+            { file -> deleteFile(file) },
+            { file -> copyFile(file) },
+            { file -> openFile(file) }
         )
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = filesAdapter
@@ -123,7 +124,6 @@ class ProjectFilesFragment : Fragment() {
 
     private fun handleCmd() {
         project?.filesDir?.absolutePath?.let { projectPath ->
-
             val dialog = CommandPromptDialogFragment.newInstance(projectPath)
             dialog.show(parentFragmentManager, CommandPromptDialogFragment.TAG)
         } ?: run {
@@ -137,91 +137,84 @@ class ProjectFilesFragment : Fragment() {
         clipboard.setPrimaryClip(clip)
     }
 
-    private fun openFile(fileName: String) {
-        project?.let {
-            val fileDirectory = File(it.directory, "files")
-            val file = File(fileDirectory, fileName)
+    private fun openFile(file: File) {
+        if (file.name == "..") {
+            currentDirectory = currentDirectory.parentFile ?: rootDirectory
+            updateFilesList(currentDirectory)
+            return
+        }
 
-            if (!file.exists()) {
-                Toast.makeText(requireContext(), "Файл не найден", Toast.LENGTH_SHORT).show()
-                return
-            }
+        if (file.isDirectory) {
+            currentDirectory = file
+            updateFilesList(currentDirectory)
+            return
+        }
 
+        if (!file.exists()) {
+            Toast.makeText(requireContext(), "Файл не найден", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-            val extension = file.extension.lowercase()
-            val editableExtensions = listOf("txt", "py", "json", "xml", "lua", "md", "csv", "log", "rscene")
+        val extension = file.extension.lowercase()
+        val editableExtensions = listOf("txt", "py", "json", "xml", "lua", "md", "csv", "log", "rscene", "java", "kt")
 
-            if (extension in editableExtensions) {
+        if (extension in editableExtensions) {
+            val intent = Intent(requireContext(), SimpleTextEditorActivity::class.java)
+            intent.putExtra("FILE_PATH", file.absolutePath)
+            startActivity(intent)
+        } else {
+            try {
+                val authority = "${BuildConfig.APPLICATION_ID}.fileProvider"
+                val uri = FileProvider.getUriForFile(requireContext(), authority, file)
 
-                val intent = Intent(requireContext(), SimpleTextEditorActivity::class.java)
-                intent.putExtra("FILE_PATH", file.absolutePath)
+                val intent = Intent(Intent.ACTION_VIEW)
+                val mimeType = context?.contentResolver?.getType(uri) ?: "*/*"
+                intent.setDataAndType(uri, mimeType)
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 startActivity(intent)
-            } else {
-
-                try {
-                    val authority = "${BuildConfig.APPLICATION_ID}.fileProvider"
-                    val uri = FileProvider.getUriForFile(requireContext(), authority, file)
-
-                    val intent = Intent(Intent.ACTION_VIEW)
-                    val mimeType = context?.contentResolver?.getType(uri) ?: "*/*"
-                    intent.setDataAndType(uri, mimeType)
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    startActivity(intent)
-                } catch (e: ActivityNotFoundException) {
-                    Toast.makeText(requireContext(), "Нечем открыть этот файл", Toast.LENGTH_SHORT).show()
-                } catch (e: Exception) {
-                    Toast.makeText(requireContext(), "Ошибка открытия: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
-                }
+            } catch (e: ActivityNotFoundException) {
+                Toast.makeText(requireContext(), "Нечем открыть этот файл", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Ошибка открытия: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun copyFile(fileName: String) {
-        copyToClipboard(fileName)
-        Toast.makeText(requireContext(), "Скопировано в буфер обмена", Toast.LENGTH_SHORT).show()
+    private fun copyFile(file: File) {
+        copyToClipboard(file.name)
+        Toast.makeText(requireContext(), "Имя файла скопировано в буфер", Toast.LENGTH_SHORT).show()
     }
 
-    private fun deleteFile(fileName: String) {
-        project?.let {
-            val dir = File(it.directory, "files")
-            val file = File(dir.absolutePath, fileName)
-            if (file.exists() && file.delete()) {
+    private fun deleteFile(file: File) {
+        val success = if (file.isDirectory) {
+            file.deleteRecursively()
+        } else {
+            file.delete()
+        }
 
-                updateFilesList(dir)
-                Toast.makeText(requireContext(), "Файл удален", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(requireContext(), "Ошибка при удалении файла", Toast.LENGTH_SHORT)
-                    .show()
-            }
+        if (success) {
+            updateFilesList(currentDirectory)
+            Toast.makeText(requireContext(), "Удалено", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(requireContext(), "Ошибка при удалении", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun updateFilesList(directory: File) {
-        val newFiles = directory.listFiles()?.map { it.name } ?: emptyList()
-        val oldFiles = filesList.toList()
+        filesList.clear()
 
-        Log.d("ProjectFile", "Number of files: ${directory.listFiles()?.size}")
-
-        newFiles.forEach { fileName ->
-            if (!oldFiles.contains(fileName)) {
-                filesList.add(fileName)
-                filesAdapter.notifyItemInserted(filesList.size - 1)
-            }
+        if (directory != rootDirectory) {
+            val parentFile = File(directory.parentFile, "..")
+            filesList.add(parentFile)
         }
 
-        oldFiles.forEach { fileName ->
-            if (!newFiles.contains(fileName)) {
-                val position = filesList.indexOf(fileName)
-                if (position != -1) {
-                    filesList.removeAt(position)
-                    filesAdapter.notifyItemRemoved(position)
-                }
-            }
-        }
+        val sortedFiles = directory.listFiles()
+            ?.sortedWith(compareBy({ !it.isDirectory }, { it.name.lowercase() }))
+            ?: emptyList()
 
-        Log.d("ProjectFile", "Files: $filesList")
+        filesList.addAll(sortedFiles)
+        filesAdapter.notifyDataSetChanged()
     }
-
 
     override fun onPause() {
         saveProject()
@@ -245,16 +238,9 @@ class ProjectFilesFragment : Fragment() {
     }
 
     private fun saveFileToProject(uri: Uri) {
-        val proj = project ?: return
         val fileName = getFileName(uri)
 
-        val filesDir = File(proj.directory, "files")
-
-        if (!filesDir.exists()) {
-            filesDir.mkdirs()
-        }
-
-        val destinationFile = File(filesDir, fileName)
+        val destinationFile = File(currentDirectory, fileName)
 
         try {
             val inputStream = requireContext().contentResolver.openInputStream(uri)
@@ -269,11 +255,8 @@ class ProjectFilesFragment : Fragment() {
                 }
             }
 
-            updateFilesList(filesDir)
-
+            updateFilesList(currentDirectory)
             Toast.makeText(requireContext(), getRandomMessage(), Toast.LENGTH_SHORT).show()
-            Log.d("ProjectFile", "File saved: ${destinationFile.absolutePath}")
-
         } catch (e: Exception) {
             Log.e("ProjectFile", "Error saving file", e)
             Toast.makeText(requireContext(), "Ошибка при сохранении: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
@@ -281,20 +264,16 @@ class ProjectFilesFragment : Fragment() {
     }
 
     private fun handleAdd() {
-
         val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
             type = "*/*"
             addCategory(Intent.CATEGORY_OPENABLE)
         }
-
-
         val chooser = Intent.createChooser(intent, "Выберите файл")
         startActivityForResult(chooser, ADD_FILE_REQUEST)
     }
 
     override fun onResume() {
         super.onResume()
-
         projectManager.currentProject = project
         hideBottomBar(requireActivity())
     }
@@ -315,7 +294,6 @@ class ProjectFilesFragment : Fragment() {
 
         val intent = Intent(requireContext(), ProjectUploadActivity::class.java)
         intent.putExtra(PROJECT_DIR, currentProject.directory)
-
         startActivity(intent)
     }
 
@@ -324,80 +302,23 @@ class ProjectFilesFragment : Fragment() {
             val params = ArrayList<Any>(listOf(toast))
             StageActivity.messageHandler.obtainMessage(StageActivity.SHOW_TOAST, params).sendToTarget()
         } else {
-
             Log.e("ShowToast", "messageHandler is null!")
         }
     }
 
     fun getRandomMessage(): String {
         val messages = listOf(
-            "Готово!",
-            "Сделано!",
-            "Успех!",
-            "Завершено!",
-            "Готово к использованию!",
-            "Задача выполнена!",
-            "Отличная работа!",
-            "Все готово!",
-            "Яйцо или курица..?",
-            "Готово! Проверяй!",
-            "Поехали!",
-            "Вроде сделано..",
-            "Проверяй, начальник э!",
-            "Готово. Удачи с проектом!",
-            "Работа завершена, как кофе на утро!",
-            "Готово! Как будто я маг, а не программист!",
-            "Все сделано! Как раз вовремя перед обедом.",
-            "Все завершено! Можно идти за пирожками!",
-            "Задача выполнена! Теперь можно отдохнуть и посмотреть котиков.",
-            "Готово! Даже не успел заметить, как это произошло.",
-            "Сделано! Осталось только отпраздновать с танцами.",
-            "Готово! Минутка успокоения перед новыми приключениями.",
-            "Отличная работа! Ты как супергерой, только без плаща.",
-            "Готово! Наконец-то смогу отвлечься на онлайн-шопинг.",
-            "Как сказать: «Сделай это» и получить: «Сделано!»? Вот так!",
-            "Все готово! Теперь можем заниматься более важными делами.",
-            "Задача выполнена! Как хорошая книга – не отпускает до последней страницы.",
-            "Готово! Можно отдыхать, как будто мы все это сделали за пятюню.",
-            "Сделано! Готовы к новым подвигам?"
+            "Готово!", "Сделано!", "Успех!", "Завершено!", "Отличная работа!", "Все готово!"
         )
-
-
-        val randomIndex = Random.nextInt(messages.size)
-
-        return messages[randomIndex]
+        return messages[Random.nextInt(messages.size)]
     }
 
     fun getRandomError(): String {
         val errorMessages = listOf(
-            "Произошла ошибка! Кажется, я не тот алгоритм заказывал.",
-            "Упс! Что-то пошло не так. Как будто кошка пробежала по клавиатуре.",
-            "Произошла ошибка! Может, система решила немного отдохнуть?",
-            "Ой! Похоже, произошла ошибка. Возможно, это программистская шутка?",
-            "Произошла ошибка! Да кто придумал обновлять программу перед дедлайном?",
-            "Упс! Ошибка. Наверное, мой код тоже решил поспать.",
-            "Произошла ошибка! Как бы я ни старался, выводы не совпали.",
-            "Ой-ой! Ошибка! Это как раз то, что нам нужно было избежать.",
-            "Произошла ошибка! По всей видимости, сервер тоже устал.",
-            "Упс! Ошибка. Это как забыть о важной встрече.",
-            "Произошла ошибка! Может, стоит заказывать пиццу вместо кода?",
-            "Ой! Ошибка. Обычно говорят, что все дороги ведут к Риму, но не сегодня.",
-            "Произошла ошибка! Это не то, что я хотел об этом напомнить.",
-            "Упс! Ошибка! Возможно, машина решила, что у нее выходной.",
-            "Произошла ошибка! Я попытался угостить код печеньками и вот что вышло!",
-            "Ой-ой! Ошибка. Наверное, в коде слишком много любопытных переменных.",
-            "Произошла ошибка! Извините, не я такой - жизнь такая!",
-            "Упс! Произошла ошибка. Код сам по себе иногда делает капризы.",
-            "Ой! Произошла ошибка! Как будто интернет пошел на пикник без меня.",
-            "Произошла ошибка! И тут, конечно, глюк всегда оказывается виноват.",
-            "Упс! Ошибка. Вы знаете, прощать - это тоже искусство."
+            "Произошла ошибка!", "Упс! Что-то пошло не так."
         )
-
-        val randomIndex = Random.nextInt(errorMessages.size)
-
-        return errorMessages[randomIndex]
+        return errorMessages[Random.nextInt(errorMessages.size)]
     }
-
 
     private fun getFileName(uri: Uri): String {
         var fileName = ""
@@ -415,11 +336,8 @@ class ProjectFilesFragment : Fragment() {
         return fileName.ifEmpty { "неизвестный_файл" }
     }
 
-
     companion object {
         val TAG: String = ProjectFilesFragment::class.java.simpleName
-
         private const val ADD_FILE_REQUEST = 15
-        //private const val PERMISSIONS_REQUEST_EXPORT_TO_EXTERNAL_STORAGE = 802
     }
 }

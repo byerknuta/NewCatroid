@@ -433,7 +433,7 @@ public class ThreeDManager implements Disposable {
 
     private ParticleSystem particleSystem;
 
-    private final Map<String, ParticleEffect> activeParticleEffects = new HashMap<>();
+    public final Map<String, ParticleEffect> activeParticleEffects = new HashMap<>();
     private Texture defaultParticleTexture;
 
     private final List<ParticleEffect> effectsNormal = new ArrayList<>();

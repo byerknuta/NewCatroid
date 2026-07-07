@@ -104,6 +104,9 @@ import org.catrobat.catroid.content.bricks.CloneAndNameBrick
 import org.catrobat.catroid.content.bricks.CloneBrick
 import org.catrobat.catroid.content.bricks.CloneObjectBrick
 import org.catrobat.catroid.content.bricks.ComeToFrontBrick
+import org.catrobat.catroid.content.bricks.ConfigureLightBrick
+import org.catrobat.catroid.content.bricks.ConfigureMaterialBrick
+import org.catrobat.catroid.content.bricks.ConfigureParticlesBrick
 import org.catrobat.catroid.content.bricks.ConnectServerBrick
 import org.catrobat.catroid.content.bricks.CopyLookBrick
 import org.catrobat.catroid.content.bricks.CopyProjectFileBrick
@@ -174,6 +177,7 @@ import org.catrobat.catroid.content.bricks.EnableBackgroundModeBrick
 import org.catrobat.catroid.content.bricks.EnablePbrRenderBrick
 import org.catrobat.catroid.content.bricks.EvalWebBrick
 import org.catrobat.catroid.content.bricks.ExitStageBrick
+import org.catrobat.catroid.content.bricks.Export3dObjectToGlbBrick
 import org.catrobat.catroid.content.bricks.ExportProjectFileBrick
 import org.catrobat.catroid.content.bricks.ExtractFileBrick
 import org.catrobat.catroid.content.bricks.FadeParticleEffectBrick
@@ -222,6 +226,9 @@ import org.catrobat.catroid.content.bricks.InsertItemIntoUserListBrick
 import org.catrobat.catroid.content.bricks.InsertTableBrick
 import org.catrobat.catroid.content.bricks.InstantBrick
 import org.catrobat.catroid.content.bricks.IntervalRepeatBrick
+import org.catrobat.catroid.content.bricks.JavaCompileBrick
+import org.catrobat.catroid.content.bricks.JavaDownloadDepBrick
+import org.catrobat.catroid.content.bricks.JavaLoadAndRunBrick
 import org.catrobat.catroid.content.bricks.JumpingSumoAnimationsBrick
 import org.catrobat.catroid.content.bricks.JumpingSumoJumpHighBrick
 import org.catrobat.catroid.content.bricks.JumpingSumoJumpLongBrick
@@ -280,6 +287,7 @@ import org.catrobat.catroid.content.bricks.NotificationCancelBrick
 import org.catrobat.catroid.content.bricks.NotificationCreateBrick
 import org.catrobat.catroid.content.bricks.NotificationShowBrick
 import org.catrobat.catroid.content.bricks.ObjectLookAtBrick
+import org.catrobat.catroid.content.bricks.OpenAppBrick
 import org.catrobat.catroid.content.bricks.OpenFileBrick
 import org.catrobat.catroid.content.bricks.OpenFilesBrick
 import org.catrobat.catroid.content.bricks.OpenUrlBrick
@@ -477,6 +485,7 @@ import org.catrobat.catroid.content.bricks.SetSpawnInvisibleBrick
 import org.catrobat.catroid.content.bricks.SetSpotLightBrick
 import org.catrobat.catroid.content.bricks.SetStopSoundsBrick
 import org.catrobat.catroid.content.bricks.SetTempoBrick
+import org.catrobat.catroid.content.bricks.SetTextBufferOnlyBrick
 import org.catrobat.catroid.content.bricks.SetTextureTilingBrick
 import org.catrobat.catroid.content.bricks.SetThirdPersonCameraBrick
 import org.catrobat.catroid.content.bricks.SetThreadColorBrick
@@ -511,6 +520,7 @@ import org.catrobat.catroid.content.bricks.SpeakBrick
 import org.catrobat.catroid.content.bricks.SplitBrick
 import org.catrobat.catroid.content.bricks.SquareBrick
 import org.catrobat.catroid.content.bricks.StampBrick
+import org.catrobat.catroid.content.bricks.StartBufferRecordingBrick
 import org.catrobat.catroid.content.bricks.StartListeningBrick
 import org.catrobat.catroid.content.bricks.StartPlotBrick
 import org.catrobat.catroid.content.bricks.StartRecordingBrick
@@ -518,6 +528,7 @@ import org.catrobat.catroid.content.bricks.StartServerBrick
 import org.catrobat.catroid.content.bricks.StitchBrick
 import org.catrobat.catroid.content.bricks.StopAllSoundsBrick
 import org.catrobat.catroid.content.bricks.StopAnimationBrick
+import org.catrobat.catroid.content.bricks.StopBufferRecordingBrick
 import org.catrobat.catroid.content.bricks.StopPlotBrick
 import org.catrobat.catroid.content.bricks.StopRecordingBrick
 import org.catrobat.catroid.content.bricks.StopRunningStitchBrick
@@ -899,6 +910,7 @@ open class CategoryBricksFactory {
                 controlBrickList.add(TapForBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_DURATION))
                 controlBrickList.add(TouchAndSlideBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_X_GOAL, BrickValues.TOUCH_Y_GOAL, BrickValues.TOUCH_DURATION))
                 controlBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
+                controlBrickList.add(OpenAppBrick(Formula("com.android.settings")))
                 return controlBrickList
             }
         }
@@ -976,6 +988,7 @@ open class CategoryBricksFactory {
         controlBrickList.add(TapForBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_DURATION))
         controlBrickList.add(TouchAndSlideBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_X_GOAL, BrickValues.TOUCH_Y_GOAL, BrickValues.TOUCH_DURATION))
         controlBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
+        controlBrickList.add(OpenAppBrick(Formula("com.android.settings")))
 
         return controlBrickList
     }
@@ -1278,8 +1291,8 @@ open class CategoryBricksFactory {
                 looksBrickList.add(SetCameraPosition2Brick(100, 300))
                 looksBrickList.add(SetCameraRotation2Brick(90.0))
                 looksBrickList.add(SetCameraZoomBrick(3.0))
-                //looksBrickList.add(PinToCameraBrick())
-                //looksBrickList.add(UnpinFromCameraBrick())
+                looksBrickList.add(PinToCameraBrick())
+                looksBrickList.add(UnpinFromCameraBrick())
                 looksBrickList.add(WhenBackgroundChangesBrick())
                 looksBrickList.add(SetBackgroundBrick())
                 looksBrickList.add(SetBackgroundByIndexBrick(BrickValues.SET_LOOK_BY_INDEX))
@@ -1329,6 +1342,7 @@ open class CategoryBricksFactory {
                 looksBrickList.add(RemoveFromBufferBrick(Formula("Map")))
                 looksBrickList.add(SetBufferOnlyBrick(Formula(1)))
                 looksBrickList.add(AddTextToBufferBrick("myText", "Map"))
+                looksBrickList.add(SetTextBufferOnlyBrick("myText", 1))
                 looksBrickList.add(SetBufferCameraBrick("Map", "100", "200", "1", "0"))
                 looksBrickList.add(SetBufferCamera3DBrick(Formula("Map"), Formula(100), Formula(100), Formula(100), Formula(120), Formula(-20), Formula(0), Formula(67)))
                 looksBrickList.add(ApplyBufferLookBrick("Map"))
@@ -1364,10 +1378,13 @@ void main() {
 }"""))
                 looksBrickList.add(SetBufferShaderUniformBrick("Map", "time", 1f, 0f, 0f, 1))
                 looksBrickList.add(SaveBufferBrick(Formula("Map"), Formula("buffer.png")))
+                looksBrickList.add(StartBufferRecordingBrick("myBuffer", "output.mp4", 30, 2000000))
+                looksBrickList.add(StopBufferRecordingBrick())
                 looksBrickList.add(SetMainRenderLoopsBrick(1f, 1f, 1f))
                 looksBrickList.add(SetBufferEffectsBrick("Map", 1f, 1f))
 
                 looksBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
+                looksBrickList.add(OpenAppBrick(Formula("com.android.settings")))
                 return looksBrickList
             }
         }
@@ -1440,8 +1457,8 @@ void main() {
         looksBrickList.add(SetCameraPosition2Brick(100, 300))
         looksBrickList.add(SetCameraRotation2Brick(90.0))
         looksBrickList.add(SetCameraZoomBrick(3.0))
-        //looksBrickList.add(PinToCameraBrick())
-        //looksBrickList.add(UnpinFromCameraBrick())
+        looksBrickList.add(PinToCameraBrick())
+        looksBrickList.add(UnpinFromCameraBrick())
 
         looksBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_looks_camera_device), template))
         if (!ProjectManager.getInstance().currentProject.isCastProject) {
@@ -1468,6 +1485,7 @@ void main() {
         looksBrickList.add(SquareBrick("square", "#ff0000", 0f, 0f, 100f, 100f, 1f, 0f, 0f))
         looksBrickList.add(DelSquareBrick("square"))
         looksBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
+        looksBrickList.add(OpenAppBrick(Formula("com.android.settings")))
         if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
             looksBrickList.add(PhiroRGBLightBrick(PhiroRGBLightBrick.Eye.BOTH, BrickValues.PHIRO_VALUE_RED, BrickValues.PHIRO_VALUE_GREEN, BrickValues.PHIRO_VALUE_BLUE))
         }
@@ -1480,6 +1498,7 @@ void main() {
         looksBrickList.add(RemoveFromBufferBrick(Formula("Map")))
         looksBrickList.add(SetBufferOnlyBrick(Formula(1)))
         looksBrickList.add(AddTextToBufferBrick("myText", "Map"))
+        looksBrickList.add(SetTextBufferOnlyBrick("myText", 1))
         looksBrickList.add(SetBufferCameraBrick("Map", "100", "200", "1", "0"))
         looksBrickList.add(SetBufferCamera3DBrick(Formula("Map"), Formula(100), Formula(100), Formula(100), Formula(120), Formula(-20), Formula(0), Formula(67)))
         looksBrickList.add(ApplyBufferLookBrick("Map"))
@@ -1515,6 +1534,8 @@ void main() {
 }"""))
         looksBrickList.add(SetBufferShaderUniformBrick("Map", "time", 1f, 0f, 0f, 1))
         looksBrickList.add(SaveBufferBrick(Formula("Map"), Formula("buffer.png")))
+        looksBrickList.add(StartBufferRecordingBrick("myBuffer", "output.mp4", 30, 2000000))
+        looksBrickList.add(StopBufferRecordingBrick())
         looksBrickList.add(SetMainRenderLoopsBrick(1f, 1f, 1f))
         looksBrickList.add(SetBufferEffectsBrick("Map", 1f, 1f))
 
@@ -1732,6 +1753,29 @@ void main() {
                 deviceBrickList.add(RunJSBrick("1 + 2"))
                 deviceBrickList.add(RunLuaBrick("return 'Привет из Lua!'"))
                 deviceBrickList.add(LunoScriptBrick("MakeToast(\"Hey from Luno! :)\");"))
+                deviceBrickList.add(
+                    JavaCompileBrick(
+                        Formula("Main.java"),
+                        Formula("classes.dex"),
+                        null
+                    )
+                )
+                deviceBrickList.add(
+                    JavaLoadAndRunBrick(
+                        Formula("classes.dex, libs.jar"),
+                        Formula("game.Main"),
+                        Formula("onStart"),
+                        Formula("Hello from NewCatroid!")
+                    )
+                )
+                deviceBrickList.add(
+                    JavaDownloadDepBrick(
+                        Formula("org.jsoup:jsoup:1.13.1"),
+                        Formula(""),
+                        null,
+                        true
+                    )
+                )
                 deviceBrickList.add(ClearPythonEnvironmentBrick())
                 deviceBrickList.add(LoadNativeModuleBrick("libz.so"))
                 deviceBrickList.add(LoadPythonLibraryBrick("telebot.whl"))
@@ -1911,6 +1955,7 @@ void main() {
                     else -> deviceBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST))
                 }
                 deviceBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
+                deviceBrickList.add(OpenAppBrick(Formula("com.android.settings")))
                 deviceBrickList.add(VibrationBrick(BrickValues.VIBRATE_SECONDS))
 
                 if (SettingsFragment.isAISpeechSynthetizationSharedPreferenceEnabled(context)) {
@@ -1956,6 +2001,29 @@ void main() {
         deviceBrickList.add(RunJSBrick("1 + 2"))
         deviceBrickList.add(RunLuaBrick("return 'Привет из Lua!'"))
         deviceBrickList.add(LunoScriptBrick("MakeToast(\"Hey from Luno! :)\");"))
+        deviceBrickList.add(
+            JavaCompileBrick(
+                Formula("Main.java"),
+                Formula("classes.dex"),
+                null
+            )
+        )
+        deviceBrickList.add(
+            JavaLoadAndRunBrick(
+                Formula("classes.dex, libs.jar"),
+                Formula("game.Main"),
+                Formula("onStart"),
+                Formula("Hello from NewCatroid!")
+            )
+        )
+        deviceBrickList.add(
+            JavaDownloadDepBrick(
+                Formula("org.jsoup:jsoup:1.13.1"),
+                Formula(""),
+                null,
+                true
+            )
+        )
         deviceBrickList.add(RunPythonScriptBrick("""import telebot
 API_TOKEN = 'YOUR_API_TOKEN' #Telegram Bot API
 bot = telebot.TeleBot(API_TOKEN)
@@ -2129,6 +2197,7 @@ bot.polling()""", "myVar"))
         deviceBrickList.add(TouchAndSlideBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_X_GOAL, BrickValues.TOUCH_Y_GOAL, BrickValues.TOUCH_DURATION))
         deviceBrickList.add(WebRequestBrick(context.getString(R.string.brick_web_request_default_value)))
         deviceBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
+        deviceBrickList.add(OpenAppBrick(Formula("com.android.settings")))
         when {
             !isBackgroundSprite -> deviceBrickList.add(LookRequestBrick(BrickValues.LOOK_REQUEST))
             ProjectManager.getInstance().currentProject.xmlHeader.islandscapeMode() -> deviceBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST_LANDSCAPE))
@@ -2303,7 +2372,7 @@ void main() {
                 //neuralBrickList.add(SetDnsBrick("dns.comss.one"))
                 neuralBrickList.add(SetGeminiKeyBrick("api_key"))
                 neuralBrickList.add(AskGeminiBrick("Hello!"))
-                neuralBrickList.add(AskGemini2Brick("Hello! How are you?", "models/gemini-2.5-flash"))
+                neuralBrickList.add(AskGemini2Brick("Hello! How are you?", "models/gemini-flash-lite-latest"))
                 neuralBrickList.add(AskGPTBrick("Привет!", "Отвечай на все словом \"апельсин\""))
                 neuralBrickList.add(CreateFloatBrick("FloatArray"))
                 neuralBrickList.add(PutFloatBrick("FloatArray", 1, 0))
@@ -2350,7 +2419,7 @@ void main() {
         neuralBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_neural_llm), template))
         neuralBrickList.add(SetGeminiKeyBrick("api_key"))
         neuralBrickList.add(AskGeminiBrick("Hello!"))
-        neuralBrickList.add(AskGemini2Brick("Hello! How are you?", "models/gemini-2.5-flash"))
+        neuralBrickList.add(AskGemini2Brick("Hello! How are you?", "models/gemini-flash-lite-latest"))
         neuralBrickList.add(AskGPTBrick("Привет!", "Отвечай на все словом \"апельсин\""))
 
         neuralBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_neural_local), template))
@@ -2535,6 +2604,12 @@ void main() {
         threedBrickList.add(SetObjectColorBrick("myObject", 1.0, 0.0, 0.0))
         threedBrickList.add(SetObjectTextureBrick("myObject", "texture.png"))
         threedBrickList.add(BakeByPrefixBrick("wall_", "bakedObject"))
+        threedBrickList.add(
+            Export3dObjectToGlbBrick(
+                Formula("myObject"),
+                Formula("exported_model.glb")
+            )
+        )
 
         // Motion & Hierarchy
         threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_transform), template))
@@ -2591,6 +2666,7 @@ void main() {
         threedBrickList.add(SetPointLightBrick("sun", 100.0, 100.0, 0.0, 255, 255, 230, 5.0, 300.0))
         threedBrickList.add(SetSpotLightBrick("sun", 100.0, 100.0, 0.0, 0.3, -0.4, 0.2, 255, 255, 230, 5.0, 60.0, 1.0, 300.0))
         threedBrickList.add(SetDirectionalLight2Brick(0.3, -0.2, -0.3, 5.0))
+        threedBrickList.add(ConfigureLightBrick("sun", 0, "5.0"))
         threedBrickList.add(RemovePbrLightBrick("sun"))
         threedBrickList.add(PromoteLightBrick("sun"))
         threedBrickList.add(SetMaxPointLightsBrick(5))
@@ -2762,6 +2838,7 @@ void main() {
         threedBrickList.add(SetMaterialBrick("myObject", 255.0, 0.0, 255.0, 255.0, 100.0, 0.0, "none.png", "none.png", "none.png"))
         threedBrickList.add(SetTextureTilingBrick("myObject", 10f, 10f))
         threedBrickList.add(SetEmissiveBrick("myObject", 1f, 1f, 1f, 1f, 10f, "emissive_texture.png"))
+        threedBrickList.add(ConfigureMaterialBrick("myObject", 1, "0.8"));
         threedBrickList.add(SetAnisotropicFilterBrick("myObject", 2.0))
 
         // Animations
@@ -2806,6 +2883,7 @@ void main() {
         threedBrickList.add(SetFpsBrick(24))
         threedBrickList.add(CreateParticlesBrick("particles"))
         threedBrickList.add(SetParticleEmissionBrick("particles", 10f))
+        threedBrickList.add(ConfigureParticlesBrick("particles", 0, "15.0"));
         threedBrickList.add(DeleteParticlesBrick("particles"))
 
         return threedBrickList

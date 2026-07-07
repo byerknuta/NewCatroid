@@ -21,6 +21,7 @@ import com.badlogic.gdx.utils.ScreenUtils
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.stage.ShowTextActor
 import org.catrobat.catroid.stage.StageActivity
+import org.catrobat.catroid.utils.BufferVideoRecorder
 
 class RenderTexture(val width: Int, val height: Int) {
     var fbo: FrameBuffer = FrameBuffer(Pixmap.Format.RGBA8888, width, height, true)
@@ -108,6 +109,23 @@ object RenderTextureManager {
                     if (!target.actorsToRender.contains(actor)) {
                         target.actorsToRender.add(actor)
                     }
+                    break
+                }
+            }
+        }
+    }
+
+    @JvmStatic
+    fun setTextBufferOnly(variableName: String, onlyInBuffer: Boolean) {
+        val stageListener = StageActivity.getActiveStageListener() ?: return
+        val actors = stageListener.stage?.actors ?: return
+        val trimmedName = variableName.trim()
+
+        for (i in 0 until actors.size) {
+            val actor = actors.get(i)
+            if (actor is ShowTextActor) {
+                if (actor.variableNameToCompare.equals(trimmedName, ignoreCase = true)) {
+                    actor.setDrawOnlyInBuffer(onlyInBuffer)
                     break
                 }
             }
@@ -295,6 +313,11 @@ object RenderTextureManager {
             }
 
             target.needsUpdate = false
+
+            val targetName = renderTextures.entries.firstOrNull { it.value == target }?.key ?: ""
+            if (targetName.isNotEmpty()) {
+                BufferVideoRecorder.onFrameRendered(targetName, target)
+            }
         }
 
         batch.projectionMatrix = tempMatrix

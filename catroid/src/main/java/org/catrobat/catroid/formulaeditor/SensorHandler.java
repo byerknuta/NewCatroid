@@ -454,6 +454,33 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 				return LocalServer.Companion.getIP();
 			case PORT:
 				return LocalServer.Companion.getPort();
+            case CLIPBOARD_TEXT: {
+                android.content.ClipboardManager clipboard = (android.content.ClipboardManager)
+                        org.catrobat.catroid.CatroidApplication.getAppContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                if (clipboard != null && clipboard.hasPrimaryClip()) {
+                    android.content.ClipDescription desc = clipboard.getPrimaryClipDescription();
+                    if (desc != null && (desc.hasMimeType(android.content.ClipDescription.MIMETYPE_TEXT_PLAIN)
+                            || desc.hasMimeType(android.content.ClipDescription.MIMETYPE_TEXT_HTML))) {
+                        android.content.ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
+                        CharSequence clipText = item.getText();
+                        return clipText != null ? clipText.toString() : "";
+                    }
+                }
+                return "";
+            }
+            case KEYBOARD_HEIGHT: {
+                if (org.catrobat.catroid.stage.StageActivity.isKeyboardVisible) {
+                    int kb = org.catrobat.catroid.stage.StageActivity.realKeyboardHeight;
+                    if (kb > 0) return (double) kb;
+
+                    org.catrobat.catroid.stage.StageActivity stage = org.catrobat.catroid.stage.StageActivity.activeStageActivity.get();
+                    if (stage != null) {
+                        return (double) (stage.getResources().getDisplayMetrics().heightPixels * 0.38f);
+                    }
+                    return 800.0;
+                }
+                return 0.0;
+            }
 			case FREQ:
 				return (double) Objects.requireNonNull(VolumeManager.Companion.getFrequency());
 			case INTERNET:

@@ -93,7 +93,7 @@ class AskGeminiAction() : TemporalAction() {
         val askReq = askVal.toString().replace("\"", "\\\"")
         val apiKey = GeminiManager.api_key
         if (apiKey.isNullOrBlank()) return
-        val urlText = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+        val urlText = "https://generativelanguage.googleapis.com/v1beta/models/models/gemini-flash-lite-latest:generateContent"
 
         val json = """
     {

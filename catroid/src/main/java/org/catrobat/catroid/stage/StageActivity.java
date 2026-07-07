@@ -408,7 +408,30 @@ public class StageActivity extends AndroidApplication implements ContextProvider
             setContentView(rootLayout);
         }
 
-		GlobalManager.Companion.setSaveScenes(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
+            rootLayout.setOnApplyWindowInsetsListener((v, insets) -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    boolean visible = insets.isVisible(android.view.WindowInsets.Type.ime());
+                    isKeyboardVisible = visible;
+                    if (visible) {
+                        int h = insets.getInsets(android.view.WindowInsets.Type.ime()).bottom;
+                        if (h > 200) realKeyboardHeight = h;
+                    }
+                } else {
+                    int h = insets.getSystemWindowInsetBottom();
+                    if (h > 200) {
+                        isKeyboardVisible = true;
+                        realKeyboardHeight = h;
+                    } else if (h < 150) {
+                        isKeyboardVisible = false;
+                    }
+                }
+                return v.onApplyWindowInsets(insets);
+            });
+        }
+
+
+        GlobalManager.Companion.setSaveScenes(true);
 		GlobalManager.Companion.setStopSounds(true);
 		mainThreadHandler = new Handler(Looper.getMainLooper());
 
@@ -421,6 +444,9 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
         handleNotificationIntent(getIntent());
 	}
+
+    public static volatile boolean isKeyboardVisible = false;
+    public static volatile int realKeyboardHeight = 0;
 
     private void handleNotificationIntent(android.content.Intent intent) {
         if (intent == null) return;
@@ -949,76 +975,77 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 	}
 
+    public void createContainer(String viewId, int x, int y, int width, int height) {
+        FrameLayout container = new FrameLayout(this);
+        container.setBackgroundColor(Color.TRANSPARENT);
 
+        container.setVisibility(org.catrobat.catroid.common.NativeViewBindingManager.getDefaultVisibility());
 
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height);
+        params.gravity = Gravity.TOP | Gravity.START;
+        params.leftMargin = x;
+        params.topMargin = y;
 
+        addViewToStage(viewId, container, params);
+    }
 
-	public float getViewX(final String viewId) {
-		Callable<Float> callable = () -> {
-			View view = dynamicViews.get(viewId);
-			return (view != null) ? view.getX() : -1.0f;
-		};
+    public float getViewX(final String viewId) {
+        View view = dynamicViews.get(viewId);
+        if (view == null) return -1.0f;
 
-		FutureTask<Float> task = new FutureTask<>(callable);
-		runOnUiThread(task);
-		try {
-			return task.get(1, TimeUnit.SECONDS);
-		} catch (Exception e) {
-			Log.e("StageActivity", "Failed to get X for " + viewId, e);
-			return -1.0f;
-		}
-	}
+        if (view.getLayoutParams() instanceof android.view.WindowManager.LayoutParams) {
+            return (float) ((android.view.WindowManager.LayoutParams) view.getLayoutParams()).x;
+        }
 
+        if (view.getParent() != null) {
+            View parent = (View) view.getParent();
+            if (parent.getLayoutParams() instanceof android.view.WindowManager.LayoutParams) {
+                float parentX = (float) ((android.view.WindowManager.LayoutParams) parent.getLayoutParams()).x;
+                return parentX + view.getX();
+            }
+        }
 
-	public float getViewY(final String viewId) {
-		Callable<Float> callable = () -> {
-			View view = dynamicViews.get(viewId);
-			return (view != null) ? view.getY() : -1.0f;
-		};
+        return view.getX();
+    }
 
-		FutureTask<Float> task = new FutureTask<>(callable);
-		runOnUiThread(task);
-		try {
-			return task.get(1, TimeUnit.SECONDS);
-		} catch (Exception e) {
-			Log.e("StageActivity", "Failed to get Y for " + viewId, e);
-			return -1.0f;
-		}
-	}
+    public float getViewY(final String viewId) {
+        Callable<Float> callable = () -> {
+            View view = dynamicViews.get(viewId);
+            if (view != null) {
+                if (view.getLayoutParams() instanceof android.view.WindowManager.LayoutParams) {
+                    return (float) ((android.view.WindowManager.LayoutParams) view.getLayoutParams()).y;
+                }
+                return view.getY();
+            }
+            return -1.0f;
+        };
 
+        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+            try {
+                return callable.call();
+            } catch (Exception e) {
+                return -1.0f;
+            }
+        }
 
-	public int getViewWidth(final String viewId) {
-		Callable<Integer> callable = () -> {
-			View view = dynamicViews.get(viewId);
-			return (view != null) ? view.getWidth() : -1;
-		};
+        FutureTask<Float> task = new FutureTask<>(callable);
+        runOnUiThread(task);
+        try {
+            return task.get(500, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return -1.0f;
+        }
+    }
 
-		FutureTask<Integer> task = new FutureTask<>(callable);
-		runOnUiThread(task);
-		try {
-			return task.get(1, TimeUnit.SECONDS);
-		} catch (Exception e) {
-			Log.e("StageActivity", "Failed to get width for " + viewId, e);
-			return -1;
-		}
-	}
+    public int getViewWidth(final String viewId) {
+        View view = dynamicViews.get(viewId);
+        return (view != null) ? view.getWidth() : -1;
+    }
 
-
-	public int getViewHeight(final String viewId) {
-		Callable<Integer> callable = () -> {
-			View view = dynamicViews.get(viewId);
-			return (view != null) ? view.getHeight() : -1;
-		};
-
-		FutureTask<Integer> task = new FutureTask<>(callable);
-		runOnUiThread(task);
-		try {
-			return task.get(1, TimeUnit.SECONDS);
-		} catch (Exception e) {
-			Log.e("StageActivity", "Failed to get height for " + viewId, e);
-			return -1;
-		}
-	}
+    public int getViewHeight(final String viewId) {
+        View view = dynamicViews.get(viewId);
+        return (view != null) ? view.getHeight() : -1;
+    }
 
 
 	public void createWebViewWithHtml(String viewId, String htmlContent, int x, int y, int width, int height) {
@@ -1401,19 +1428,23 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
 
-	public void setViewPosition(final String viewId, final int x, final int y) {
-		runOnUiThread(() -> {
-			View view = dynamicViews.get(viewId);
-			if (view != null && view.getLayoutParams() instanceof FrameLayout.LayoutParams) {
-				FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
-				params.leftMargin = x;
-				params.topMargin = y;
-				view.setLayoutParams(params);
-			} else {
-				Log.w(TAG, "Cannot set position for view '" + viewId + "'. View not found or has wrong LayoutParams.");
-			}
-		});
-	}
+    public void setViewPosition(final String viewId, final int x, final int y) {
+        runOnUiThread(() -> {
+            View view = dynamicViews.get(viewId);
+            if (view != null) {
+                if (view.getLayoutParams() instanceof FrameLayout.LayoutParams) {
+                    FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
+                    params.leftMargin = x;
+                    params.topMargin = y;
+                    view.setLayoutParams(params);
+                } else if (view.getLayoutParams() instanceof android.view.WindowManager.LayoutParams) {
+                    org.catrobat.catroid.utils.OverlayViewManager.updateOverlayPosition(viewId, x, y);
+                }
+            } else {
+                Log.w(TAG, "Cannot set position for view '" + viewId + "'. View not found.");
+            }
+        });
+    }
 
 
 	public void createVideoPlayer(String viewId, String videoPath, int x, int y, int width, int height, boolean showControls, final boolean loopVideo, boolean isTransparent) {
@@ -1617,8 +1648,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	@Override
 	protected void onDestroy() {
-
-
 		super.onDestroy();
 
 		if (NativeBridge.INSTANCE.isWorking()) NativeBridge.INSTANCE.cleanupAllInstances();
@@ -1628,6 +1657,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			StageLifeCycleController.stageDestroy(this);
 		}
 
+        org.catrobat.catroid.utils.OverlayViewManager.removeAllOverlays();
 
 		RunJSAction.Companion.destroyWebView();
 	}
@@ -2041,7 +2071,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
 	private static final String PREFS_NAME = "SecurityPreferences";
-	private static final String PREFS_KEY_SUPPRESS_WARNING = "suppress_security_warning";
+	private static final String PREFS_KEY_SUPPRESS_WARNING = "suppress_security_warning_new";
 
 	public static void handlePlayButton(ProjectManager projectManager, final Activity activity) {
 		Project project = projectManager.getCurrentProject();
@@ -2065,7 +2095,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	private static void showSecurityWarningDialog(ProjectManager projectManager, Activity activity) {
 		new AlertDialog.Builder(activity)
 				.setTitle("Проект может содержать вредоносный код")
-				.setMessage("В проекте используется LunoScript, Python или Библиотеки, это может быть опасно. Запускайте его только если проверили код или доверяете источнику.")
+				.setMessage("В проекте используется Java компиляция, LunoScript, Python или Библиотеки, это может быть опасно. Запускайте его только если проверили код или доверяете источнику.")
 				.setCancelable(false)
 				.setIcon(android.R.drawable.ic_dialog_alert)
 

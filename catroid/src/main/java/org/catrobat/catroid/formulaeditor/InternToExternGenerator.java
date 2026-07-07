@@ -320,6 +320,10 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_FOOT_INDEX_Y.name(), R.string.formula_editor_sensor_left_foot_index_y);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_FOOT_INDEX_X.name(), R.string.formula_editor_sensor_right_foot_index_x);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_FOOT_INDEX_Y.name(), R.string.formula_editor_sensor_right_foot_index_y);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CAMERA_X.name(), R.string.formula_camera_x);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CAMERA_Y.name(), R.string.formula_camera_y);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CAMERA_ROTATION.name(), R.string.formula_camera_rotation);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CAMERA_ZOOM.name(), R.string.formula_camera_zoom);
 
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.TEXT_FROM_CAMERA.name(),
 				R.string.formula_editor_sensor_text_from_camera);
@@ -387,6 +391,8 @@ public class InternToExternGenerator {
 				R.string.formula_editor_sensor_ip);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.PORT.name(),
 				R.string.formula_editor_sensor_port);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.CLIPBOARD_TEXT.name(), R.string.formula_clipboard_text);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.KEYBOARD_HEIGHT.name(), R.string.formula_keyboard_height);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.INTERNET.name(),
 				R.string.formula_editor_sensor_internet);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.ARCH.name(),

@@ -23,6 +23,90 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string formatted="false" name="brick_export_3d_glb_title">Экспортировать объект в GLB</string>
+    <string formatted="false" name="brick_export_3d_glb_id">ID объекта</string>
+    <string formatted="false" name="brick_export_3d_glb_file">Имя файла (.glb)</string>
+
+    <string formatted="false" name="brick_java_download_title">Java: Скачать Maven библиотеку</string>
+    <string formatted="false" name="brick_java_download_id">ID библиотеки (group:artifact:version)</string>
+    <string formatted="false" name="brick_java_download_repos">Репозитории (через запятую)</string>
+    <string formatted="false" name="brick_java_download_log">Записать список JAR в переменную</string>
+    <string formatted="false" name="brick_java_download_recursive">Скачивать рекурсивно</string>
+
+    <string formatted="false" name="brick_open_app_title">Открыть приложение с пакетом</string>
+    <string formatted="false" name="brick_open_app_pkg">Имя пакета</string>
+
+    <string formatted="false" name="brick_java_compile_title">Java: Скомпилировать файлы в DEX</string>
+    <string formatted="false" name="brick_java_compile_src">Java-файлы (через запятую)</string>
+    <string formatted="false" name="brick_java_compile_dest">Имя выходного DEX</string>
+    <string formatted="false" name="brick_java_compile_log">Записать ошибки в переменную</string>
+
+    <string formatted="false" name="brick_java_load_title">Java: Загрузить и запустить DEX</string>
+    <string formatted="false" name="brick_java_load_path">Пути к DEX (через запятую)</string>
+    <string formatted="false" name="brick_java_load_class">Имя класса (напр. game.Main)</string>
+    <string formatted="false" name="brick_java_load_method">Имя метода</string>
+    <string formatted="false" name="brick_java_load_arg">Аргумент (необязательно)</string>
+
+    <string name="formula_keyboard_height" formatted="false">высота_клавиатуры</string>
+    <string name="formula_clipboard_text" formatted="false">текст_буфера_обмена</string>
+
+    <string formatted="false" name="brick_start_buffer_recording_title">Начать запись буфера в видео</string>
+    <string formatted="false" name="brick_start_buffer_recording_buf">Имя буфера</string>
+    <string formatted="false" name="brick_start_buffer_recording_file">Имя видеофайла в проекте</string>
+    <string formatted="false" name="brick_start_buffer_recording_fps">Кадров в секунду (FPS)</string>
+    <string formatted="false" name="brick_start_buffer_recording_bitrate">Битрейт (Качество)</string>
+
+    <string formatted="false" name="brick_stop_buffer_recording_title">Остановить запись буфера и сохранить</string>
+
+    <string formatted="false" name="brick_set_text_buffer_only_title">Рисовать текст только в буфере</string>
+    <string formatted="false" name="brick_set_text_buffer_only_name_label">Имя текста/переменной</string>
+    <string formatted="false" name="brick_set_text_buffer_only_state_label">Состояние (1/0)</string>
+    <string name="brick_http_configure_particles_title" formatted="false">Настроить частицы</string>
+    <string name="brick_http_configure_particles_id" formatted="false">ID частиц</string>
+    <string name="brick_http_configure_particles_property" formatted="false">Настройка</string>
+    <string name="brick_http_configure_particles_value" formatted="false">Значение</string>
+
+    <string-array name="brick_http_configure_particles_types">
+        <item>Скорость эмиссии (Emission Rate)</item>
+        <item>Базовый размер (Particle Size)</item>
+        <item>Угол рассеивания (Cone Angle)</item>
+        <item>Максимум частиц (Max Particles)</item>
+    </string-array>
+
+    <string name="brick_http_configure_material_title" formatted="false">Настроить материал</string>
+    <string name="brick_http_configure_material_id" formatted="false">ID объекта</string>
+    <string name="brick_http_configure_material_property" formatted="false">Свойство</string>
+    <string name="brick_http_configure_material_value" formatted="false">Значение</string>
+
+    <string-array name="brick_http_configure_material_types">
+        <item>Основной цвет (R, G, B, A через запятую)</item>
+        <item>Металличность (0.0 ... 1.0)</item>
+        <item>Шероховатость (0.0 ... 1.0)</item>
+        <item>Масштаб текстуры (UV Scale U, V)</item>
+        <item>Цвет свечения (Emissive R, G, B)</item>
+        <item>Яркость свечения (Emissive Intensity)</item>
+    </string-array>
+
+    <string name="brick_http_configure_light_title" formatted="false">Настроить свет</string>
+    <string name="brick_http_configure_light_id" formatted="false">ID</string>
+    <string name="brick_http_configure_light_property" formatted="false">Параметр</string>
+    <string name="brick_http_configure_light_value" formatted="false">Значение</string>
+
+    <string-array name="brick_http_configure_light_types">
+        <item>Интенсивность (Яркость)</item>
+        <item>Радиус свечения (Range)</item>
+        <item>Цвет (R, G, B через запятую)</item>
+        <item>Позиция (X, Y, Z через запятую)</item>
+        <item>Направление (X, Y, Z через запятую)</item>
+        <item>Угол конуса (Cone Angle)</item>
+        <item>Мягкость краев (0.0 ... 1.0)</item>
+    </string-array>
+
+    <string name="formula_camera_x" formatted="false">камера_x</string>
+    <string name="formula_camera_y" formatted="false">камера_y</string>
+    <string name="formula_camera_rotation" formatted="false">камера_вращение</string>
+    <string name="formula_camera_zoom" formatted="false">камера_зум</string>
+
     <string name="native_views">Интерфейс</string>
     <string name="tables_and_vars">Память</string>
     <string name="category_network">Сеть</string>
@@ -139,6 +223,8 @@
         <item>Масштаб Y</item>
         <item>Смещение X (px)</item>
         <item>Смещение Y (px)</item>
+        <item>Координата X (px)</item>
+        <item>Координата Y (px)</item>
     </string-array>
 
     <string formatted="false" name="brick_create_image_view_title">Создать картинку</string>
@@ -198,6 +284,7 @@
         <item>Все окна: Клик по окну (истина)</item>
         <item>Ползунок: Значение изменилось</item>
         <item>Переключатель: Состояние изменилось (истина/ложь)</item>
+        <item>Поле ввода: Позиция курсора (индекс)</item>
     </string-array>
 
     <string formatted="false" name="brick_native_view_control_title">Выполнить команду окна</string>
@@ -278,6 +365,14 @@
         <item>Все: Точка привязки поворота (X,Y)</item>
         <item>Видео: Слой (Foreground / Background)</item>
         <item>Все окна: Видимость при создании по умолчанию (истина/ложь)</item>
+        <item>WebView: Масштаб страницы (%)</item>
+        <item>Текст: Подсветка букв (Старт,Конец,HEX_Цвет)</item>
+        <item>Текст: Автоподсветка слова (Ключ,HEX_Цвет)</item>
+        <item>Текст: Подсветка фона (Старт,Конец,HEX_Цвет)</item>
+        <item>Текст: Автоподсветка фона слова (Ключ,HEX_Цвет)</item>
+        <item>Оверлей режим (истина/ложь)</item>
+        <item>Режим перетаскивания (истина/ложь)</item>
+        <item>Оверлей: Сделать ручкой перемещения для (ID родителя)</item>
     </string-array>
 
     <string formatted="false" name="brick_create_scroll_view_title">Создать скролл-контейнер</string>
