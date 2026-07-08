@@ -20,6 +20,7 @@ import org.catrobat.catroid.io.asynctask.ProjectLoader
 import org.catrobat.catroid.io.asynctask.ProjectLoader.ProjectLoadListener
 import org.catrobat.catroid.io.asynctask.loadProject
 import org.catrobat.catroid.stage.StageActivity
+import org.catrobat.catroid.ui.CommunityWebViewActivity
 import org.catrobat.catroid.ui.ProjectActivity
 import org.catrobat.catroid.ui.WebViewActivity
 import org.catrobat.catroid.ui.dialogs.NewProjectDialogFragment
@@ -122,9 +123,8 @@ class MainMenuPcFragment : Fragment(), View.OnClickListener, ProjectLoadListener
 
 
             R.id.btnCommunity -> {
-                val webIntent = Intent(activity, WebViewActivity::class.java)
-                webIntent.putExtra(WebViewActivity.INTENT_PARAMETER_URL, FlavoredConstants.COMMUNITY_URL)
-                startActivity(webIntent)
+                val communityIntent = Intent(activity, CommunityWebViewActivity::class.java)
+                startActivity(communityIntent)
             }
 
 

@@ -119,7 +119,7 @@
         android:supportsRtl="true"
         android:requestLegacyExternalStorage="false"
         tools:ignore="UnusedAttribute"
-        tools:replace="android:label,android:allowBackup,android:name"
+        tools:replace="android:label,android:allowBackup,android:name,android:usesCleartextTraffic"
         android:usesCleartextTraffic="true">
 
         <meta-data android:name="secret_agent" android:value="Mr. ThisIs100%NotDanveyd" />
@@ -319,6 +319,14 @@
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize"
             android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
         </activity>
+
+        <activity
+            android:name="org.catrobat.catroid.ui.CommunityWebViewActivity"
+            android:theme="@style/Theme.NewCatroid.LibraryEditor" />
+
+        <activity
+            android:name="org.catrobat.catroid.ui.CommunityLoginActivity"
+            android:theme="@style/Theme.NewCatroid.LibraryEditor" />
 
         <activity
             android:name=".visualplacement.VisualPlacementActivity"/>

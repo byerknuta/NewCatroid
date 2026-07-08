@@ -49,6 +49,7 @@ import org.catrobat.catroid.io.asynctask.ProjectLoader
 import org.catrobat.catroid.io.asynctask.ProjectLoader.ProjectLoadListener
 import org.catrobat.catroid.io.asynctask.loadProject
 import org.catrobat.catroid.stage.StageActivity
+import org.catrobat.catroid.ui.CommunityWebViewActivity
 import org.catrobat.catroid.ui.PROJECT_DIR
 import org.catrobat.catroid.ui.ProjectActivity
 import org.catrobat.catroid.ui.ProjectListActivity
@@ -353,9 +354,8 @@ class MainMenuFragment : Fragment(),
             }
             R.id.featuredProjectsTextView2 -> {
                 viewModel.setIsLoading(true)
-                val webIntent = Intent(activity, WebViewActivity::class.java)
-                webIntent.putExtra(WebViewActivity.INTENT_PARAMETER_URL, FlavoredConstants.COMMUNITY_URL)
-                startActivity(webIntent)
+                val communityIntent = Intent(activity, CommunityWebViewActivity::class.java)
+                startActivity(communityIntent)
             }
         }
     }

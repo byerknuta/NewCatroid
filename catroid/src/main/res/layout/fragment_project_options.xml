@@ -1,520 +1,526 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  ~ Catroid: An on-device visual programming system for Android devices
-  ~ Copyright (C) 2010-2022 The Catrobat Team
-  ~ (<http://developer.catrobat.org/credits>)
-  ~
-  ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU Affero General Public License as
-  ~ published by the Free Software Foundation, either version 3 of the
-  ~ License, or (at your option) any later version.
-  ~
-  ~ An additional term exception under section 7 of the GNU Affero
-  ~ General Public License, version 3, is available at
-  ~ http://developer.catrobat.org/license_additional_term
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  ~ GNU Affero General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU Affero General Public License
-  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  -->
-
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/app_background">
 
-    <LinearLayout
-        android:id="@+id/project_options_layout"
-        android:layout_width="match_parent"
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingBottom="90dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:id="@+id/project_options_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="end">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/project_options_name_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/project_name_label"
+                    android:paddingEnd="@dimen/dialog_content_area_padding"
+                    android:paddingStart="@dimen/dialog_content_area_padding"
+                    android:paddingTop="@dimen/dialog_content_area_padding_top"
+                    app:errorEnabled="true"
+                    app:hintEnabled="true">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/project_options_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:selectAllOnFocus="true" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="end">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/project_options_description_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/project_options_description"
+                    android:paddingEnd="@dimen/dialog_content_area_padding"
+                    android:paddingStart="@dimen/dialog_content_area_padding"
+                    android:paddingTop="@dimen/dialog_content_area_padding_top"
+                    app:errorEnabled="true"
+                    app:hintEnabled="true"
+                    app:endIconMode="custom"
+                    app:endIconDrawable="@drawable/landscape_2_24px"
+                    app:endIconContentDescription="@string/insert_image">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/project_options_description"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="top"
+                        android:inputType="textMultiLine"
+                        android:minLines="4"
+                        android:selectAllOnFocus="true" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="end">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/project_options_notes_and_credits_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/project_options_notes_and_credits"
+                    android:paddingEnd="@dimen/dialog_content_area_padding"
+                    android:paddingStart="@dimen/dialog_content_area_padding"
+                    android:paddingTop="@dimen/dialog_content_area_padding_top"
+                    app:errorEnabled="true"
+                    app:hintEnabled="true">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/project_options_notes_and_credits"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:selectAllOnFocus="true" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/tags"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="end">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="@dimen/dialog_content_area_padding"
+                    android:paddingEnd="@dimen/dialog_content_area_padding"
+                    android:paddingTop="@dimen/dialog_content_area_padding_top"
+                    android:hint="@string/project_options_tags" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chip_group_tags"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/dialog_content_area_padding_input"
+                    android:paddingStart="@dimen/dialog_content_area_padding"
+                    android:paddingEnd="@dimen/dialog_content_area_padding"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="end">
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/project_options_aspect_ratio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:paddingBottom="@dimen/material_design_spacing_x_large"
+                    android:paddingEnd="@dimen/material_design_spacing_x_large"
+                    android:paddingStart="@dimen/material_design_spacing_x_large"
+                    android:paddingTop="@dimen/material_design_spacing_x_large"
+                    android:textColor="#B2FFFFFF"
+                    android:text="@string/project_options_aspect_ratio"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="end">
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/project_options_custom_resolution"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:checked="false"
+                    android:paddingBottom="@dimen/material_design_spacing_x_large"
+                    android:paddingEnd="@dimen/material_design_spacing_x_large"
+                    android:paddingStart="@dimen/material_design_spacing_x_large"
+                    android:paddingTop="@dimen/material_design_spacing_x_large"
+                    android:textColor="#B2FFFFFF"
+                    android:text="@string/project_options_custom_resolution"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="end">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/project_options_physics_width_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/project_physics_width"
+                    android:paddingEnd="@dimen/dialog_content_area_padding"
+                    android:paddingStart="@dimen/dialog_content_area_padding"
+                    android:paddingTop="@dimen/dialog_content_area_padding_top"
+                    app:errorEnabled="true"
+                    app:hintEnabled="true">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/project_options_physics_width"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:selectAllOnFocus="true" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="end">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/project_options_physics_height_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/project_physics_height"
+                    android:paddingEnd="@dimen/dialog_content_area_padding"
+                    android:paddingStart="@dimen/dialog_content_area_padding"
+                    android:paddingTop="@dimen/dialog_content_area_padding_top"
+                    app:errorEnabled="true"
+                    app:hintEnabled="true">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/project_options_physics_height"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:selectAllOnFocus="true" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="end">
+
+                <TextView
+                    android:id="@+id/project_options_upload"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/material_design_spacing_x_large"
+                    android:paddingEnd="@dimen/material_design_spacing_x_large"
+                    android:paddingStart="@dimen/material_design_spacing_x_large"
+                    android:paddingTop="@dimen/material_design_spacing_x_large"
+                    android:background="@drawable/button_background_selector_dark"
+                    android:text="@string/community_publish_btn" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="end">
+
+                <TextView
+                    android:id="@+id/project_options_save_external"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/material_design_spacing_x_large"
+                    android:paddingEnd="@dimen/material_design_spacing_x_large"
+                    android:paddingStart="@dimen/material_design_spacing_x_large"
+                    android:paddingTop="@dimen/material_design_spacing_x_large"
+                    android:background="@drawable/button_background_selector_dark"
+                    android:text="@string/save_to_external_storage_button" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="end">
+
+                <TextView
+                    android:id="@+id/project_options_clear_vars"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/material_design_spacing_x_large"
+                    android:paddingEnd="@dimen/material_design_spacing_x_large"
+                    android:paddingStart="@dimen/material_design_spacing_x_large"
+                    android:paddingTop="@dimen/material_design_spacing_x_large"
+                    android:background="@drawable/button_background_selector_dark"
+                    android:text="@string/clear_vars_button" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="end">
+
+                <TextView
+                    android:id="@+id/project_options_change_icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/material_design_spacing_x_large"
+                    android:paddingEnd="@dimen/material_design_spacing_x_large"
+                    android:paddingStart="@dimen/material_design_spacing_x_large"
+                    android:paddingTop="@dimen/material_design_spacing_x_large"
+                    android:background="@drawable/button_background_selector_dark"
+                    android:text="@string/change_icon_button" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="end">
+
+                <TextView
+                    android:id="@+id/project_options_change_orientation"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/material_design_spacing_x_large"
+                    android:paddingEnd="@dimen/material_design_spacing_x_large"
+                    android:paddingStart="@dimen/material_design_spacing_x_large"
+                    android:paddingTop="@dimen/material_design_spacing_x_large"
+                    android:background="@drawable/button_background_selector_dark"
+                    android:text="@string/change_orientation_button" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="end">
+
+                <TextView
+                    android:id="@+id/project_options_rebuild_cache"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/material_design_spacing_x_large"
+                    android:paddingEnd="@dimen/material_design_spacing_x_large"
+                    android:paddingStart="@dimen/material_design_spacing_x_large"
+                    android:paddingTop="@dimen/material_design_spacing_x_large"
+                    android:background="@drawable/button_background_selector_dark"
+                    android:text="@string/rebuild_cache_button" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="end">
+
+                <TextView
+                    android:id="@+id/project_options_more_details"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/material_design_spacing_x_large"
+                    android:paddingEnd="@dimen/material_design_spacing_x_large"
+                    android:paddingStart="@dimen/material_design_spacing_x_large"
+                    android:paddingTop="@dimen/material_design_spacing_x_large"
+                    android:background="@drawable/button_background_selector_dark"
+                    android:text="@string/project_options_more_details" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="end"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/project_options_bake"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/material_design_spacing_x_large"
+                    android:paddingEnd="@dimen/material_design_spacing_x_large"
+                    android:paddingStart="@dimen/material_design_spacing_x_large"
+                    android:paddingTop="@dimen/material_design_spacing_x_large"
+                    android:background="@drawable/button_background_selector_dark"
+                    android:text="Запечь проект (Bake)" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:paddingTop="8dp"
+                android:showDividers="middle|end">
+
+                <TextView
+                    style="@style/TextAppearance.AppCompat.Subhead"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="@dimen/material_design_spacing_x_large"
+                    android:paddingEnd="@dimen/material_design_spacing_x_large"
+                    android:paddingBottom="8dp"
+                    android:text="@string/github_integration" />
+
+                <TextView
+                    android:id="@+id/git_connect_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/button_background_selector_dark"
+                    android:paddingStart="@dimen/material_design_spacing_x_large"
+                    android:paddingTop="@dimen/material_design_spacing_x_large"
+                    android:paddingEnd="@dimen/material_design_spacing_x_large"
+                    android:paddingBottom="@dimen/material_design_spacing_x_large"
+                    android:text="@string/git_connect" />
+
+                <TextView
+                    android:id="@+id/git_publish_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/button_background_selector_dark"
+                    android:paddingStart="@dimen/material_design_spacing_x_large"
+                    android:paddingTop="@dimen/material_design_spacing_x_large"
+                    android:paddingEnd="@dimen/material_design_spacing_x_large"
+                    android:paddingBottom="@dimen/material_design_spacing_x_large"
+                    android:text="@string/git_publish_changes"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/git_update_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/button_background_selector_dark"
+                    android:paddingStart="@dimen/material_design_spacing_x_large"
+                    android:paddingTop="@dimen/material_design_spacing_x_large"
+                    android:paddingEnd="@dimen/material_design_spacing_x_large"
+                    android:paddingBottom="@dimen/material_design_spacing_x_large"
+                    android:text="@string/git_update_project"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/project_options_delete"
+                android:layout_width="220dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="@dimen/material_design_spacing_x_large"
+                android:layout_marginTop="@dimen/material_design_spacing_x_large"
+                android:backgroundTint="@color/red"
+                android:text="@string/project_options_delete_project"
+                android:textAllCaps="true" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/publishProgressPill"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_margin="16dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="@color/surface_card"
+        app:cardCornerRadius="32dp"
+        app:cardElevation="12dp"
+        app:strokeColor="@color/accent"
+        app:strokeWidth="1.5dp"
+        app:layout_constraintWidth_percent="0.95"
+        app:layout_constraintWidth_max="450dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-       <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:divider="@drawable/divider"
-           android:orientation="vertical"
-           android:showDividers="end">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="12dp">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/project_options_name_layout"
-                android:layout_width="match_parent"
+            <ProgressBar
+                android:id="@+id/publishProgressBar"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:indeterminate="true"
+                android:progressTint="@color/accent"
+                android:indeterminateTint="@color/accent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:hint="@string/project_name_label"
-                android:paddingEnd="@dimen/dialog_content_area_padding"
-                android:paddingStart="@dimen/dialog_content_area_padding"
-                android:paddingTop="@dimen/dialog_content_area_padding_top"
-                app:errorEnabled="true"
-                app:hintEnabled="true">
+                android:orientation="vertical"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"
+                app:layout_constraintStart_toEndOf="@id/publishProgressBar"
+                app:layout_constraintEnd_toStartOf="@id/btnDismissPublishNotification"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/project_options_name"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/tvPublishProgressTitle"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:selectAllOnFocus="true" />
+                    android:text="Публикация проекта"
+                    android:textColor="@color/view_holder_item_title"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
-            </com.google.android.material.textfield.TextInputLayout>
-
-       </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:showDividers="end">
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/project_options_description_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/project_options_description"
-                android:paddingEnd="@dimen/dialog_content_area_padding"
-                android:paddingStart="@dimen/dialog_content_area_padding"
-                android:paddingTop="@dimen/dialog_content_area_padding_top"
-                app:errorEnabled="true"
-                app:hintEnabled="true"
-                app:endIconMode="custom"
-                app:endIconDrawable="@drawable/landscape_2_24px"
-                app:endIconContentDescription="@string/insert_image">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/project_options_description"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/tvPublishProgressStatus"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="top"
-                    android:inputType="textMultiLine"
-                    android:minLines="4"
-                    android:selectAllOnFocus="true" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-       </LinearLayout>
-
-       <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:divider="@drawable/divider"
-           android:orientation="vertical"
-           android:showDividers="end">
-
-           <com.google.android.material.textfield.TextInputLayout
-               android:id="@+id/project_options_notes_and_credits_layout"
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:hint="@string/project_options_notes_and_credits"
-               android:paddingEnd="@dimen/dialog_content_area_padding"
-               android:paddingStart="@dimen/dialog_content_area_padding"
-               android:paddingTop="@dimen/dialog_content_area_padding_top"
-               app:errorEnabled="true"
-               app:hintEnabled="true">
-
-               <com.google.android.material.textfield.TextInputEditText
-                   android:id="@+id/project_options_notes_and_credits"
-                   android:layout_width="match_parent"
-                   android:layout_height="wrap_content"
-                   android:selectAllOnFocus="true" />
-
-           </com.google.android.material.textfield.TextInputLayout>
-
-       </LinearLayout>
-
-       <LinearLayout
-           android:id="@+id/tags"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:divider="@drawable/divider"
-           android:orientation="vertical"
-           android:showDividers="end">
-
-           <TextView
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:paddingStart="@dimen/dialog_content_area_padding"
-               android:paddingEnd="@dimen/dialog_content_area_padding"
-               android:paddingTop="@dimen/dialog_content_area_padding_top"
-               android:hint="@string/project_options_tags" />
-
-           <com.google.android.material.chip.ChipGroup
-               android:id="@+id/chip_group_tags"
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:paddingBottom="@dimen/dialog_content_area_padding_input"
-               android:paddingStart="@dimen/dialog_content_area_padding"
-               android:paddingEnd="@dimen/dialog_content_area_padding"/>
-       </LinearLayout>
-
-       <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:divider="@drawable/divider"
-           android:orientation="vertical"
-           android:showDividers="end">
-
-           <com.google.android.material.switchmaterial.SwitchMaterial
-               android:id="@+id/project_options_aspect_ratio"
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:checked="true"
-               android:paddingBottom="@dimen/material_design_spacing_x_large"
-               android:paddingEnd="@dimen/material_design_spacing_x_large"
-               android:paddingStart="@dimen/material_design_spacing_x_large"
-               android:paddingTop="@dimen/material_design_spacing_x_large"
-               android:textColor="#B2FFFFFF"
-               android:text="@string/project_options_aspect_ratio"/>
-
-       </LinearLayout>
-
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:showDividers="end">
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/project_options_custom_resolution"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:checked="false"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:textColor="#B2FFFFFF"
-                android:text="@string/project_options_custom_resolution"/>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:showDividers="end">
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/project_options_physics_width_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/project_physics_width"
-                android:paddingEnd="@dimen/dialog_content_area_padding"
-                android:paddingStart="@dimen/dialog_content_area_padding"
-                android:paddingTop="@dimen/dialog_content_area_padding_top"
-                app:errorEnabled="true"
-                app:hintEnabled="true">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/project_options_physics_width"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:selectAllOnFocus="true" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:showDividers="end">
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/project_options_physics_height_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/project_physics_height"
-                android:paddingEnd="@dimen/dialog_content_area_padding"
-                android:paddingStart="@dimen/dialog_content_area_padding"
-                android:paddingTop="@dimen/dialog_content_area_padding_top"
-                app:errorEnabled="true"
-                app:hintEnabled="true">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/project_options_physics_height"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:selectAllOnFocus="true" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-        </LinearLayout>
-
-       <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:divider="@drawable/divider"
-           android:orientation="vertical"
-           android:visibility="gone"
-           android:showDividers="end">
-
-           <TextView
-               android:id="@+id/project_options_upload"
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:paddingBottom="@dimen/material_design_spacing_x_large"
-               android:paddingEnd="@dimen/material_design_spacing_x_large"
-               android:paddingStart="@dimen/material_design_spacing_x_large"
-               android:paddingTop="@dimen/material_design_spacing_x_large"
-               android:background="@drawable/button_background_selector_dark"
-               android:text="Экспорт для сервера" />
-
-       </LinearLayout>
-
-       <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:divider="@drawable/divider"
-           android:orientation="vertical"
-           android:showDividers="end">
-
-           <TextView
-               android:id="@+id/project_options_save_external"
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:paddingBottom="@dimen/material_design_spacing_x_large"
-               android:paddingEnd="@dimen/material_design_spacing_x_large"
-               android:paddingStart="@dimen/material_design_spacing_x_large"
-               android:paddingTop="@dimen/material_design_spacing_x_large"
-               android:background="@drawable/button_background_selector_dark"
-               android:text="@string/save_to_external_storage_button" />
-
-       </LinearLayout>
-
-        <!--<LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:showDividers="end">
-
-            <TextView
-                android:id="@+id/project_options_save_apk"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:background="@drawable/button_background_selector_dark"
-                android:text="@string/save_apk_button" />
-
-        </LinearLayout>!-->
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:showDividers="end">
-
-            <TextView
-                android:id="@+id/project_options_clear_vars"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:background="@drawable/button_background_selector_dark"
-                android:text="@string/clear_vars_button" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:showDividers="end">
-
-            <TextView
-                android:id="@+id/project_options_change_icon"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:background="@drawable/button_background_selector_dark"
-                android:text="@string/change_icon_button" />
-
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:showDividers="end">
-
-            <TextView
-                android:id="@+id/project_options_change_orientation"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:background="@drawable/button_background_selector_dark"
-                android:text="@string/change_orientation_button" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:showDividers="end">
-
-            <TextView
-                android:id="@+id/project_options_rebuild_cache"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:background="@drawable/button_background_selector_dark"
-                android:text="@string/rebuild_cache_button" />
-
-        </LinearLayout>
-
-       <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:divider="@drawable/divider"
-           android:orientation="vertical"
-           android:showDividers="end">
-
-           <TextView
-               android:id="@+id/project_options_more_details"
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:paddingBottom="@dimen/material_design_spacing_x_large"
-               android:paddingEnd="@dimen/material_design_spacing_x_large"
-               android:paddingStart="@dimen/material_design_spacing_x_large"
-               android:paddingTop="@dimen/material_design_spacing_x_large"
-               android:background="@drawable/button_background_selector_dark"
-               android:text="@string/project_options_more_details" />
-
-       </LinearLayout>
-
-        <!--<LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:showDividers="end">
-
-            <TextView
-                android:id="@+id/project_options_mishk_frede"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:background="@drawable/button_background_selector_dark"
-                android:text="@string/ogurec" />
-
-        </LinearLayout>-->
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:showDividers="end"
-            android:visibility="gone">
-
-            <TextView
-                android:id="@+id/project_options_bake"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:background="@drawable/button_background_selector_dark"
-                android:text="Запечь проект (Bake)" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:paddingTop="8dp"
-            android:showDividers="middle|end">
-
-            <TextView
-                style="@style/TextAppearance.AppCompat.Subhead"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingBottom="8dp"
-                android:text="@string/github_integration" />
-
-            <TextView
-                android:id="@+id/git_connect_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/button_background_selector_dark"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:text="@string/git_connect" />
-
-            <TextView
-                android:id="@+id/git_publish_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/button_background_selector_dark"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:text="@string/git_publish_changes"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/git_update_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/button_background_selector_dark"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:text="@string/git_update_project"
-                android:visibility="gone" />
-
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/project_options_delete"
-            android:layout_width="220dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginBottom="@dimen/material_design_spacing_x_large"
-            android:layout_marginTop="@dimen/material_design_spacing_x_large"
-            android:backgroundTint="@color/red"
-            android:text="@string/project_options_delete_project"
-            android:textAllCaps="true" />
-
-     </LinearLayout>
- </ScrollView>
+                    android:text="Пожалуйста, подождите..."
+                    android:textColor="@color/solid_white"
+                    android:textSize="12sp"
+                    android:ellipsize="end"
+                    android:maxLines="1" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btnDismissPublishNotification"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:visibility="gone"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                app:tint="@color/solid_white"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

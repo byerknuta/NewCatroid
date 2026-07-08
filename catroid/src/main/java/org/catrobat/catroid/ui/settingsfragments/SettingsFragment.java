@@ -167,6 +167,8 @@ public class SettingsFragment extends PreferenceFragment {
 
 	private Preference githubPreference;
 
+    private Preference communityPreference;
+
 	@SuppressWarnings("deprecation")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -295,6 +297,19 @@ public class SettingsFragment extends PreferenceFragment {
 			return true;
 		});
 
+        communityPreference = findPreference("setting_community_login");
+        if (communityPreference != null) {
+            communityPreference.setOnPreferenceClickListener(preference -> {
+                boolean isLoggedIn = org.catrobat.catroid.utils.community.CommunityTokenManager.isLoggedIn(getActivity());
+                if (isLoggedIn) {
+                    showCommunityLogoutDialog();
+                } else {
+                    startActivity(new Intent(getActivity(), org.catrobat.catroid.ui.CommunityLoginActivity.class));
+                }
+                return true;
+            });
+        }
+
 		setCorrectPreferenceViewForEmbroidery();
 		setCorrectPreferenceViewForPhiro();
 
@@ -386,7 +401,34 @@ public class SettingsFragment extends PreferenceFragment {
 		super.onResume();
 		((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(R.string.preference_title);
 		updateGitHubPreference();
+        updateCommunityPreference();
 	}
+
+    private void updateCommunityPreference() {
+        if (communityPreference == null) return;
+
+        Context context = getActivity();
+        if (context == null) return;
+
+        if (org.catrobat.catroid.utils.community.CommunityTokenManager.isLoggedIn(context)) {
+            String username = org.catrobat.catroid.utils.community.CommunityTokenManager.getUsername(context);
+            communityPreference.setSummary("Вы вошли как @" + username + " (Нажмите, чтобы выйти)");
+        } else {
+            communityPreference.setSummary("Войдите или зарегистрируйтесь, чтобы выкладывать свои проекты");
+        }
+    }
+
+    private void showCommunityLogoutDialog() {
+        new AlertDialog.Builder(getActivity())
+                .setTitle("Выйти из сообщества?")
+                .setMessage("Вы уверены, что хотите выйти из своего аккаунта сообщества NewCatroid?")
+                .setPositiveButton("Выйти", (dialog, which) -> {
+                    org.catrobat.catroid.utils.community.CommunityTokenManager.clearSession(getActivity());
+                    updateCommunityPreference();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
 
 	private void updateGitHubPreference() {
 		String token = TokenManager.INSTANCE.getToken(getActivity());

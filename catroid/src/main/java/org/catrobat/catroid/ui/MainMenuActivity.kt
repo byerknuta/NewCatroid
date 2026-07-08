@@ -107,6 +107,8 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
         SettingsFragment.setToChosenLanguage(this)
 
+        org.catrobat.catroid.utils.community.ModerationCheckWorker.schedulePeriodicCheck(this)
+
         if (!BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
             val startTime = System.currentTimeMillis()
 

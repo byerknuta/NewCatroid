@@ -1,25 +1,3 @@
-/*
- * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2022 The Catrobat Team
- * (<http://developer.catrobat.org/credits>)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * An additional term exception under section 7 of the GNU Affero
- * General Public License, version 3, is available at
- * http://developer.catrobat.org/license_additional_term
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 package org.catrobat.catroid.ui.fragment
 
 import android.Manifest.permission
@@ -29,17 +7,21 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.text.Editable
+import android.util.Base64
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -48,11 +30,22 @@ import androidx.lifecycle.lifecycleScope
 import com.android.apksig.ApkSigner
 import com.danvexteam.lunoscript_annotations.LunoClass
 import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
+import com.hcaptcha.sdk.HCaptcha
+import com.hcaptcha.sdk.HCaptchaConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import okio.buffer
 import org.catrobat.catroid.CatroidApplication
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.R
@@ -80,12 +73,14 @@ import org.catrobat.catroid.ui.SettingsActivity
 import org.catrobat.catroid.ui.runtimepermissions.RequiresPermissionTask
 import org.catrobat.catroid.utils.ToastUtil
 import org.catrobat.catroid.utils.Utils
+import org.catrobat.catroid.utils.community.CommunityTokenManager
 import org.catrobat.catroid.utils.git.GitController
 import org.catrobat.catroid.utils.git.GitResult
 import org.catrobat.catroid.utils.git.TokenManager
 import org.catrobat.catroid.utils.lunoscript.baker.ProjectBaker
-import org.catrobat.catroid.utils.lunoscript.security.LunoSecurity
 import org.catrobat.catroid.utils.notifications.StatusBarNotificationManager
+import org.json.JSONArray
+import org.json.JSONObject
 import org.koin.android.ext.android.inject
 import java.io.File
 import java.io.FileInputStream
@@ -96,6 +91,7 @@ import java.io.OutputStream
 import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.cert.X509Certificate
+import java.util.concurrent.TimeUnit
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -114,6 +110,20 @@ class ProjectOptionsFragment : Fragment() {
     private var zipTempDir: File? = null
     private lateinit var gitController: GitController
     private var progressDialog: AlertDialog? = null
+
+    private val httpClient = OkHttpClient.Builder()
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .build()
+
+    private val genresList = listOf(
+        "Action", "Adventure", "Arcade", "Casual", "Platformer", "Puzzle", "RPG", "Racing", "Shooter", "Simulation",
+        "Sports", "Strategy", "Fighting", "Survival", "Stealth", "Roguelike", "Sandbox", "Tower Defense", "MMO", "MOBA",
+        "Indie", "Retro", "Pixel Art", "VR", "Multiplayer", "Singleplayer", "Co-op", "Educational", "Music", "Card",
+        "Fantasy", "Sci-Fi", "Horror", "Cyberpunk", "Post-apocalyptic", "Steampunk", "Anime", "Cartoon", "Realistic",
+        "Mystery", "Romance", "Comedy", "Thriller", "Historical", "Drama", "Other"
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -141,9 +151,14 @@ class ProjectOptionsFragment : Fragment() {
         addTags()
         setupProjectAspectRatio()
         setupCustomResolution()
-        setupProjectUpload()
+
+        binding.projectOptionsUpload.visibility = View.VISIBLE
+        binding.projectOptionsUpload.text = getString(R.string.community_publish_btn)
+        binding.projectOptionsUpload.setOnClickListener {
+            startCommunityPublishFlow()
+        }
+
         setupProjectSaveExternal()
-        //setupProjectSaveApk()
         setupRebuildCache()
         setupClearVars()
         setupChangeIcon()
@@ -153,10 +168,442 @@ class ProjectOptionsFragment : Fragment() {
         setupMishkFrede()
 
         setupGitButtons()
-
         setupBakeOption()
 
         hideBottomBar(requireActivity())
+    }
+
+    private fun parseServerError(errorJson: String?): String {
+        if (errorJson.isNullOrEmpty()) return "Неизвестная ошибка сервера"
+        return try {
+            val json = JSONObject(errorJson)
+            json.optString("detail", json.optString("message", "Ошибка сервера"))
+        } catch (e: Exception) {
+            "Ошибка разбора ответа сервера"
+        }
+    }
+
+    private fun startCommunityPublishFlow() {
+        val context = requireContext()
+
+        if (!CommunityTokenManager.isLoggedIn(context)) {
+            showLoginRequiredCommunityDialog()
+            return
+        }
+
+        val currentProject = project ?: return
+
+        val iconFile = getProjectIconFile(currentProject.directory)
+        if (iconFile == null) {
+            AlertDialog.Builder(context, R.style.Theme_NewCatroid_Dialog)
+                .setTitle(R.string.community_publish_error_no_cover_title)
+                .setMessage(R.string.community_publish_error_no_cover)
+                .setPositiveButton(R.string.ok, null)
+                .show()
+            return
+        }
+
+        val rawDescription = currentProject.description ?: ""
+        val cleanDescription = rawDescription.replace(Regex("""!\[.*?\]\(.*?\)"""), "").trim()
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_publish_preparation, null)
+
+        val dialog = AlertDialog.Builder(context, R.style.Theme_NewCatroid_Dialog)
+            .setView(dialogView)
+            .create()
+
+        val etTitle = dialogView.findViewById<TextInputEditText>(R.id.etPublishTitle)
+        val etDesc = dialogView.findViewById<TextInputEditText>(R.id.etPublishDescription)
+        val chipGroup = dialogView.findViewById<ChipGroup>(R.id.chipGroupPublishGenres)
+        val btnSubmit = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSubmitPublish)
+        val tvRulesLink = dialogView.findViewById<TextView>(R.id.tvPublishRulesLink)
+
+        etTitle.setText(currentProject.name)
+        etDesc.setText(cleanDescription)
+
+        tvRulesLink.setOnClickListener {
+            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://newcatroid.sois.site/market/documents"))
+            startActivity(browserIntent)
+        }
+
+        genresList.forEach { genreName ->
+            val chip = Chip(context).apply {
+                val resourceName = "genre_${genreName.replace(" ", "_").replace("-", "_")}"
+                val resId = context.resources.getIdentifier(resourceName, "string", context.packageName)
+                text = if (resId != 0) context.getString(resId) else genreName
+
+                isCheckable = true
+                setChipBackgroundColorResource(R.color.button_background)
+                setChipStrokeColorResource(R.color.accent)
+                chipStrokeWidth = resources.displayMetrics.density * 1f
+                setTextColor(context.resources.getColor(R.color.solid_white))
+
+                tag = genreName
+            }
+            chipGroup.addView(chip)
+        }
+
+        btnSubmit.setOnClickListener {
+            val title = etTitle.text.toString().trim()
+            val desc = etDesc.text.toString().trim()
+
+            if (title.isEmpty()) {
+                ToastUtil.showError(context, "Название проекта не может быть пустым")
+                return@setOnClickListener
+            }
+            if (title.length > 30) {
+                ToastUtil.showError(context, "Название проекта слишком длинное (макс. 30 символов)")
+                return@setOnClickListener
+            }
+            if (desc.isEmpty()) {
+                ToastUtil.showError(context, "Описание проекта не может быть пустым")
+                return@setOnClickListener
+            }
+            if (desc.length > 400) {
+                ToastUtil.showError(context, "Описание слишком длинное (макс. 400 символов)")
+                return@setOnClickListener
+            }
+
+            val selectedGenres = mutableListOf<String>()
+            for (i in 0 until chipGroup.childCount) {
+                val chip = chipGroup.getChildAt(i) as? Chip
+                if (chip?.isChecked == true) {
+                    selectedGenres.add(chip.tag as String)
+                }
+            }
+
+            dialog.dismiss()
+            executePublicationStages(title, desc, selectedGenres)
+        }
+
+        dialog.show()
+    }
+
+    private fun showLoginRequiredCommunityDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.community_publish_auth_required)
+            .setMessage(R.string.community_publish_auth_desc)
+            .setPositiveButton("Вход") { _, _ ->
+                startActivity(Intent(requireContext(), org.catrobat.catroid.ui.CommunityLoginActivity::class.java))
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun executePublicationStages(title: String, description: String, genres: List<String>) {
+        val currentProject = project ?: return
+        showPublishPill(getString(R.string.community_stage_zipping))
+
+        lifecycleScope.launch(Dispatchers.Main) {
+            try {
+                saveProject()
+
+                val tempZipFile = withContext(Dispatchers.IO) {
+                    val file = File(requireContext().cacheDir, "publish_temp_${System.currentTimeMillis()}.zip")
+                    ZipOutputStream(FileOutputStream(file)).use { zos ->
+                        zipDirectory3(currentProject.directory, zos)
+                    }
+                    file
+                }
+
+                Log.d("UploadCommunity", "Создан ZIP архив публикации. Путь: ${tempZipFile.absolutePath} | Размер: ${tempZipFile.length()} байт")
+
+                if (tempZipFile.length() <= 0L) {
+                    throw IOException("Размер файла проекта равен 0 байт. Ошибка архивации.")
+                }
+
+                updatePublishPillStatus(getString(R.string.community_stage_captcha))
+                val siteKey = withContext(Dispatchers.IO) { fetchCaptchaSiteKey() }
+                if (siteKey == null) {
+                    hidePublishPill()
+                    ToastUtil.showError(requireContext(), getString(R.string.community_error_config_failed))
+                    tempZipFile.delete()
+                    return@launch
+                }
+
+                verifyCaptchaForUpload(siteKey) { captchaToken: String? ->
+                    if (captchaToken != null) {
+                        performChunkedUpload(tempZipFile, title, description, genres, captchaToken)
+                    } else {
+                        hidePublishPill()
+                        ToastUtil.showError(requireContext(), getString(R.string.community_captcha_cancelled))
+                        tempZipFile.delete()
+                    }
+                }
+
+            } catch (e: Exception) {
+                hidePublishPill()
+                ToastUtil.showError(requireContext(), "Ошибка упаковки: ${e.message}")
+            }
+        }
+    }
+
+    private fun getProjectIconFile(projectDir: File): File? {
+        val manualScreen = File(projectDir, "manual_screenshot.png")
+        val autoScreen = File(projectDir, "automatic_screenshot.png")
+
+        if (manualScreen.exists() && manualScreen.length() > 0L) return manualScreen
+        if (autoScreen.exists() && autoScreen.length() > 0L) return autoScreen
+        return null
+    }
+
+    private fun getProjectIconBase64(iconFile: File): String {
+        return try {
+            val bytes = iconFile.readBytes()
+            val base64String = Base64.encodeToString(bytes, Base64.NO_WRAP)
+            "data:image/png;base64,$base64String"
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
+    private fun performChunkedUpload(zipFile: File, title: String, description: String, genres: List<String>, captchaToken: String) {
+        val currentProject = project ?: return
+
+        val iconFile = getProjectIconFile(currentProject.directory)
+        if (iconFile == null) {
+            zipFile.delete()
+
+            hidePublishPill()
+            ToastUtil.showError(requireContext(), getString(R.string.community_publish_error_no_cover))
+            return
+        }
+
+        val imageBase64 = getProjectIconBase64(iconFile)
+        val token = CommunityTokenManager.getToken(requireContext()) ?: return
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val fileSize = zipFile.length()
+                val jsonGenres = JSONArray()
+                genres.forEach { jsonGenres.put(it) }
+
+                val initPayload = JSONObject().apply {
+                    put("title", title)
+                    put("description", description)
+                    put("genres", jsonGenres)
+                    put("file_size", fileSize)
+                    put("file_name", "${project!!.name}.newtrobat")
+                    put("image_b64", imageBase64)
+                    put("h-captcha-response", captchaToken)
+                    put("size", fileSize)
+                    put("quest_size_bytes", fileSize)
+                    put("total_size", fileSize)
+                }
+
+                val jsonString = initPayload.toString()
+                val initUrl = "https://backend.sois.site/games/upload/init"
+                val initRequest = Request.Builder()
+                    .url(initUrl)
+                    .header("Authorization", "Bearer $token")
+                    .post(jsonString.toRequestBody("application/json; charset=utf-8".toMediaType()))
+                    .build()
+
+                httpClient.newCall(initRequest).execute().use { response ->
+                    val responseBody = response.body?.string()
+                    Log.d("UploadCommunity", "Init Response: $responseBody")
+
+                    if (!response.isSuccessful) {
+                        val serverMessage = parseServerError(responseBody)
+                        throw IOException(serverMessage)
+                    }
+
+                    val initResponse = JSONObject(responseBody!!)
+                    val uploadId = initResponse.getString("upload_id")
+                    val chunkSize = initResponse.getInt("chunk_size")
+                    Log.d("UploadCommunity", "Инициализация успешна. ID сессии: $uploadId | Размер чанка: $chunkSize байт")
+
+                    uploadChunks(zipFile, uploadId, chunkSize, token) { progress ->
+                        updatePublishPillStatus(getString(R.string.community_stage_uploading, progress))
+                    }
+
+                    updatePublishPillStatus(getString(R.string.community_stage_finishing))
+                    val finishUrl = "https://backend.sois.site/games/upload/finish"
+
+                    val multipartBodyBuilder = MultipartBody.Builder()
+                        .setType(MultipartBody.FORM)
+                        .addFormDataPart("upload_id", uploadId)
+                        .addFormDataPart("image", iconFile.name, iconFile.asRequestBody("image/png".toMediaType()))
+
+                    val finishRequestBody = multipartBodyBuilder.build()
+                    val finishRequest = Request.Builder()
+                        .url(finishUrl)
+                        .header("Authorization", "Bearer $token")
+                        .post(finishRequestBody)
+                        .build()
+
+                    httpClient.newCall(finishRequest).execute().use { finishResponse ->
+                        val finishResponseBody = finishResponse.body?.string()
+                        zipFile.delete()
+
+                        if (finishResponse.isSuccessful) {
+                            showPublishPillSuccess()
+                        } else {
+                            val serverMessage = parseServerError(finishResponseBody)
+                            throw IOException(serverMessage)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                zipFile.delete()
+                withContext(Dispatchers.Main) {
+                    hidePublishPill()
+                    ToastUtil.showError(requireContext(), "Ошибка: ${e.message}")
+                }
+            }
+        }
+    }
+
+    private fun uploadChunks(file: File, uploadId: String, chunkSize: Int, token: String, onProgress: (Int) -> Unit) {
+        val fileLength = file.length()
+        val totalChunks = Math.ceil(fileLength.toDouble() / chunkSize).toInt()
+        var lastReportedProgress = -1
+
+        for (chunkIndex in 0 until totalChunks) {
+            val offset = chunkIndex.toLong() * chunkSize
+            val remaining = fileLength - offset
+            val currentChunkSize = if (remaining < chunkSize) remaining else chunkSize.toLong()
+
+            val progressRequestBody = object : RequestBody() {
+                override fun contentType() = "application/octet-stream".toMediaType()
+                override fun contentLength() = currentChunkSize
+
+                override fun writeTo(sink: okio.BufferedSink) {
+                    file.inputStream().use { inputStream ->
+                        inputStream.skip(offset)
+                        val buffer = ByteArray(8192)
+                        var bytesToWrite = currentChunkSize
+                        var chunkBytesWritten = 0L
+
+                        while (bytesToWrite > 0) {
+                            val toRead = if (bytesToWrite > buffer.size) buffer.size else bytesToWrite.toInt()
+                            val read = inputStream.read(buffer, 0, toRead)
+                            if (read == -1) break
+
+                            sink.write(buffer, 0, read)
+
+                            bytesToWrite -= read
+                            chunkBytesWritten += read
+
+                            val overallProgress = (((offset + chunkBytesWritten).toFloat() / fileLength) * 100).toInt()
+
+                            if (overallProgress != lastReportedProgress) {
+                                lastReportedProgress = overallProgress
+                                onProgress(overallProgress.coerceIn(0, 100))
+                            }
+                        }
+                    }
+                }
+            }
+
+            val chunkRequest = Request.Builder()
+                .url("https://backend.sois.site/games/upload/chunk")
+                .header("Authorization", "Bearer $token")
+                .header("X-Upload-Id", uploadId)
+                .header("X-Chunk-Index", chunkIndex.toString())
+                .post(progressRequestBody)
+                .build()
+
+            httpClient.newCall(chunkRequest).execute().use { response ->
+                val responseBody = response.body?.string()
+                if (!response.isSuccessful) {
+                    val serverMessage = parseServerError(responseBody)
+                    throw IOException("Чанк №$chunkIndex: $serverMessage")
+                }
+            }
+        }
+    }
+
+    private fun showPublishPill(status: String) {
+        activity?.runOnUiThread {
+            binding.tvPublishProgressTitle.text = "Публикация проекта"
+            binding.tvPublishProgressStatus.text = status
+            binding.publishProgressBar.visibility = View.VISIBLE
+            binding.publishProgressBar.isIndeterminate = true
+            binding.btnDismissPublishNotification.visibility = View.GONE
+
+            if (binding.publishProgressPill.visibility != View.VISIBLE) {
+                binding.publishProgressPill.translationY = 300f
+                binding.publishProgressPill.alpha = 0f
+                binding.publishProgressPill.visibility = View.VISIBLE
+
+                binding.publishProgressPill.animate()
+                    .translationY(0f)
+                    .alpha(1f)
+                    .setDuration(400)
+                    .setInterpolator(android.view.animation.OvershootInterpolator(1.1f))
+                    .start()
+            }
+        }
+    }
+
+    private fun updatePublishPillStatus(status: String) {
+        activity?.runOnUiThread {
+            if (status.contains("%")) {
+                val percentString = status.substringAfterLast(": ").substringBefore("%")
+                val percent = percentString.toIntOrNull() ?: 0
+                binding.publishProgressBar.isIndeterminate = false
+                binding.publishProgressBar.progress = percent
+            } else {
+                binding.publishProgressBar.isIndeterminate = true
+            }
+
+            binding.tvPublishProgressStatus.text = status
+        }
+    }
+
+    private fun showPublishPillSuccess() {
+        activity?.runOnUiThread {
+            binding.tvPublishProgressTitle.text = getString(R.string.community_stage_success)
+            binding.tvPublishProgressStatus.text = getString(R.string.community_stage_success_desc)
+            binding.publishProgressBar.visibility = View.GONE
+            binding.btnDismissPublishNotification.visibility = View.VISIBLE
+
+            binding.btnDismissPublishNotification.setOnClickListener {
+                hidePublishPill()
+            }
+        }
+    }
+
+    private fun hidePublishPill() {
+        activity?.runOnUiThread {
+            if (binding.publishProgressPill.visibility == View.VISIBLE) {
+                binding.publishProgressPill.animate()
+                    .translationY(300f)
+                    .alpha(0f)
+                    .setDuration(300)
+                    .setInterpolator(android.view.animation.AccelerateInterpolator())
+                    .withEndAction {
+                        binding.publishProgressPill.visibility = View.GONE
+                    }
+                    .start()
+            }
+        }
+    }
+
+    private suspend fun fetchCaptchaSiteKey(): String? {
+        val request = Request.Builder().url("https://backend.sois.site/config").get().build()
+        return withContext(Dispatchers.IO) {
+            try {
+                httpClient.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val body = response.body?.string() ?: return@use null
+                        JSONObject(body).getString("hcaptcha_site_key")
+                    } else null
+                }
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
+
+    private fun verifyCaptchaForUpload(siteKey: String, onResult: (String?) -> Unit) {
+        val config = HCaptchaConfig.builder()
+            .siteKey(siteKey)
+            .build()
+        HCaptcha.getClient(requireActivity()).verifyWithHCaptcha(config)
+            .addOnSuccessListener { response -> onResult(response.tokenResult) }
+            .addOnFailureListener { onResult(null) }
     }
 
     private fun setupBakeOption() {
@@ -606,82 +1053,6 @@ class ProjectOptionsFragment : Fragment() {
     }
 
     private fun setupMishkFrede() {
-        /*binding.projectOptionsMishkFrede.setOnClickListener {
-            AlertDialog.Builder(requireContext())
-                .setTitle("Мы подозреваем, что вы не кушаете огурцы")
-                .setMessage("Нам нужно удостоверится в этом, ответьте на вопрос. Едите ли вы огурцы?")
-                .setPositiveButton("ДА") { _: DialogInterface?, _: Int ->
-                    AlertDialog.Builder(requireContext())
-                        .setTitle("Мы так и знали! Вы - Фуфулшмерц")
-                        .setMessage("Грейпфрут")
-                        .setPositiveButton("Отмена") { _: DialogInterface?, _: Int ->
-                            AlertDialog.Builder(requireContext())
-                                .setTitle("Черепица")
-                                .setPositiveButton("Лом") { _: DialogInterface?, _: Int ->
-                                    AlertDialog.Builder(requireContext())
-                                        .setTitle("Громоотвод")
-                                        .setPositiveButton("Гора") { _: DialogInterface?, _: Int ->
-                                            AlertDialog.Builder(requireContext())
-                                                .setTitle("Угол")
-                                                .setPositiveButton("Ъ") { _: DialogInterface?, _: Int ->
-                                                    AlertDialog.Builder(requireContext())
-                                                        .setTitle("Я щас проект удалю")
-                                                        .setPositiveButton("Нинада") { _: DialogInterface?, _: Int ->
-                                                            AlertDialog.Builder(requireContext())
-                                                                .setTitle("Ок")
-                                                                .setPositiveButton("Ок") { _: DialogInterface?, _: Int ->
-
-                                                                }
-                                                                .setCancelable(false)
-                                                                .show()
-                                                        }
-                                                        .setCancelable(false)
-                                                        .show()
-                                                }
-                                                .setCancelable(false)
-                                                .show()
-                                        }
-                                        .setCancelable(false)
-                                        .show()
-                                }
-                                .setCancelable(false)
-                                .show()
-                        }
-                        .setNegativeButton("Ок", null)
-                        .setCancelable(false)
-                        .show()
-                }
-                .setNegativeButton("Нет") { _: DialogInterface?, _: Int ->
-                    AlertDialog.Builder(requireContext())
-                        .setTitle("Сейчас к вам залезет Андрей через окно")
-                        .setMessage("не бойтесь, он проверит огурцы в холодильнике")
-                        .setPositiveButton("...") { _: DialogInterface?, _: Int ->
-                            AlertDialog.Builder(requireContext())
-                                .setTitle("...")
-                                .setPositiveButton("...") { _: DialogInterface?, _: Int ->
-                                    AlertDialog.Builder(requireContext())
-                                        .setTitle(".")
-                                        .setPositiveButton("...") { _: DialogInterface?, _: Int ->
-                                            AlertDialog.Builder(requireContext())
-                                                .setTitle("Ладно, Андрей уснул, мы вам поверим наслово")
-                                                .setPositiveButton("Ок") { _: DialogInterface?, _: Int ->
-
-                                                }
-                                                .setCancelable(false)
-                                                .show()
-                                        }
-                                        .setCancelable(false)
-                                        .show()
-                                }
-                                .setCancelable(false)
-                                .show()
-                        }
-                        .setCancelable(false)
-                        .show()
-                }
-                .setCancelable(false)
-                .show()
-        }*/
     }
 
     private fun setupNameInputLayout() {
@@ -863,12 +1234,6 @@ class ProjectOptionsFragment : Fragment() {
         }
     }
 
-    /*private fun setupProjectSaveApk() {
-        binding.projectOptionsSaveApk.setOnClickListener {
-            buildApk()
-        }
-    }*/
-
     private fun setupProjectMoreDetails() {
         binding.projectOptionsMoreDetails.setOnClickListener {
             moreDetails()
@@ -1012,34 +1377,6 @@ class ProjectOptionsFragment : Fragment() {
         startActivity(intent)
     }
 
-    /*fun createApkFromTemplate(context: Context, projectZipFile: File): File {
-
-        val assetFile = "apk_template.zip"
-
-
-        val tempDir = File(context.cacheDir, "apk_temp")
-        tempDir.mkdirs()
-
-
-        unzip(context.assets.open(assetFile), tempDir)
-
-
-        val projectFile = File(tempDir, "assets/project.zip")
-        projectZipFile.copyTo(projectFile, overwrite = true)
-
-
-        val newApkFile = File(context.cacheDir, "project_build.apk")
-        ZipOutputStream(FileOutputStream(newApkFile)).use { zos ->
-            zipDirectory3(tempDir, zos)
-        }
-
-
-        tempDir.deleteRecursively()
-
-
-        return newApkFile
-    }*/
-
     fun copyInputStreamToFile(context: Context, inputStream: InputStream, outputFile: File) {
         val outputStream = FileOutputStream(outputFile)
         inputStream.use { input ->
@@ -1137,67 +1474,9 @@ class ProjectOptionsFragment : Fragment() {
                 .build()
                 .sign()
         } catch (e: Exception) {
-            //ErrorLog.log(e.message?: "**message not provided :(**")
             throw RuntimeException("Ошибка при подписании APK: ${e.message}", e)
         }
     }
-
-    /*fun signApkWithApksig(
-        unsignedApk: File,
-        signedApk: File,
-        keystore: File,
-        keystorePassword: String,
-        keyAlias: String,
-        keyPassword: String
-    ) {
-        try {
-
-            val keyStore = KeyStore.getInstance("JKS").apply {
-                load(FileInputStream(keystore), keystorePassword.toCharArray())
-            }
-
-
-            val privateKey = keyStore.getKey(keyAlias, keyPassword.toCharArray()) as PrivateKey
-
-
-            val certificates = keyStore.getCertificateChain(keyAlias)
-                .map { it as X509Certificate }
-                .toList()
-
-
-            val signerConfig = ApkSigner.SignerConfig.Builder(
-                keyAlias,
-                privateKey,
-                certificates
-            ).build()
-
-
-            ApkSigner.Builder(listOf(signerConfig))
-                .setInputApk(unsignedApk)
-                .setOutputApk(signedApk)
-                .build()
-                .sign()
-        } catch (e: Exception) {
-            throw RuntimeException("Ошибка при подписании APK: ${e.message}", e)
-        }
-    }*/
-
-
-    /*fun signApkWithZipSigner(context: Context, unsignedApk: File, signedApk: File) {
-        try {
-
-            val zipSigner = ZipSigner()
-
-
-            zipSigner.setKeymode("testkey")
-
-
-            zipSigner.signZip(unsignedApk.absolutePath, signedApk.absolutePath)
-        } catch (e: Exception) {
-            throw RuntimeException("Ошибка подписи APK: ${e.message}", e)
-        }
-    }*/
-
 
 
     fun unzip(inputStream: InputStream, outDir: File) {
@@ -1217,27 +1496,6 @@ class ProjectOptionsFragment : Fragment() {
             }
         }
     }
-
-    /*fun zipDirectory3(dir: File, zos: ZipOutputStream, basePath: String = "") {
-
-        val dirEntry = ZipEntry(basePath)
-        zos.putNextEntry(dirEntry)
-        zos.closeEntry()
-
-        dir.listFiles()?.forEach { file ->
-            val filePath = basePath + file.name
-            if (file.isDirectory) {
-
-                zipDirectory3(file, zos, "$filePath/")
-            } else {
-                FileInputStream(file).use { fis ->
-                    zos.putNextEntry(ZipEntry(filePath))
-                    fis.copyTo(zos)
-                    zos.closeEntry()
-                }
-            }
-        }
-    }*/
 
     fun zipDirectory3(dir: File, zos: ZipOutputStream, basePath: String = "") {
 
@@ -1265,8 +1523,6 @@ class ProjectOptionsFragment : Fragment() {
             }
         }
     }
-
-    //dbg: keystore
 
 
     private fun exportProject() {

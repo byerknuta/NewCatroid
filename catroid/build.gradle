@@ -445,6 +445,9 @@ dependencies {
     // MQTT
     implementation 'com.hivemq:hivemq-mqtt-client:1.3.0'
 
+    // Captcha for Community
+    implementation 'com.github.hCaptcha.hcaptcha-android-sdk:sdk:5.0.1'
+
     implementation 'org.eclipse.jgit:org.eclipse.jgit:5.13.1.202206130422-r'
 
     implementation 'org.xmlunit:xmlunit-core:2.9.1'

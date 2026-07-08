@@ -23,6 +23,128 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="notification_moderation_channel">Статус модерации проектов</string>
+    <string name="notification_moderation_approved_title">Проект одобрен!</string>
+    <string name="notification_moderation_approved_body">Ваш проект «%1$s» успешно прошел модерацию и опубликован в сообществе!</string>
+    <string name="notification_moderation_rejected_title">Проект отклонен</string>
+    <string name="notification_moderation_rejected_body">Ваш проект «%1$s» не прошел модерацию. Причина: %2$s</string>
+
+    <string name="community_download_already_active">Другая загрузка уже выполняется!</string>
+
+    <string name="community_publish_error_no_cover_title">Отсутствует обложка</string>
+    <string name="community_publish_error_no_cover">Для публикации у проекта должна быть обложка! Пожалуйста, сначала установите скриншот или иконку с помощью опции «Изменить иконку» ниже.</string>
+
+    <string name="community_publish_rules_link">Публикуя проект, вы соглашаетесь с Правилами Сообщества</string>
+
+    <string name="genre_Action">Экшен</string>
+    <string name="genre_Adventure">Приключение</string>
+    <string name="genre_Arcade">Аркада</string>
+    <string name="genre_Casual">Казуальные</string>
+    <string name="genre_Platformer">Платформер</string>
+    <string name="genre_Puzzle">Головоломка</string>
+    <string name="genre_RPG">RPG</string>
+    <string name="genre_Racing">Гонки</string>
+    <string name="genre_Shooter">Шутер</string>
+    <string name="genre_Simulation">Симулятор</string>
+    <string name="genre_Sports">Спорт</string>
+    <string name="genre_Strategy">Стратегия</string>
+    <string name="genre_Fighting">Файтинг</string>
+    <string name="genre_Survival">Выживание</string>
+    <string name="genre_Stealth">Стелс</string>
+    <string name="genre_Roguelike">Рогалик</string>
+    <string name="genre_Sandbox">Песочница</string>
+    <string name="genre_Tower_Defense">Tower Defense</string>
+    <string name="genre_MMO">MMO</string>
+    <string name="genre_MOBA">MOBA</string>
+    <string name="genre_Indie">Инди</string>
+    <string name="genre_Retro">Ретро</string>
+    <string name="genre_Pixel_Art">Пиксель-арт</string>
+    <string name="genre_VR">VR</string>
+    <string name="genre_Multiplayer">Мультиплеер</string>
+    <string name="genre_Singleplayer">Одиночная</string>
+    <string name="genre_Co_op">Кооператив</string>
+    <string name="genre_Educational">Обучающие</string>
+    <string name="genre_Music">Музыка</string>
+    <string name="genre_Card">Карточные</string>
+    <string name="genre_Fantasy">Фэнтези</string>
+    <string name="genre_Sci_Fi">Научная фантастика</string>
+    <string name="genre_Horror">Хоррор</string>
+    <string name="genre_Cyberpunk">Киберпанк</string>
+    <string name="genre_Post_apocalyptic">Постапокалипсис</string>
+    <string name="genre_Steampunk">Стимпанк</string>
+    <string name="genre_Anime">Аниме</string>
+    <string name="genre_Cartoon">Мультяшные</string>
+    <string name="genre_Realistic">Реализм</string>
+    <string name="genre_Mystery">Мистика</string>
+    <string name="genre_Romance">Романтика</string>
+    <string name="genre_Comedy">Комедия</string>
+    <string name="genre_Thriller">Триллер</string>
+    <string name="genre_Historical">Исторические</string>
+    <string name="genre_Drama">Драма</string>
+    <string name="genre_Other">Другое</string>
+
+    <string name="community_publish_btn">Опубликовать в сообществе</string>
+    <string name="community_publish_title">Публикация проекта</string>
+    <string name="community_publish_desc_hint">Описание проекта (Markdown поддерживается)</string>
+    <string name="community_publish_genres">Выберите жанры (макс. 5)</string>
+    <string name="community_publish_start">Опубликовать</string>
+    <string name="community_publish_auth_required">Требуется вход</string>
+    <string name="community_publish_auth_desc">Войдите в свой аккаунт сообщества, чтобы делиться своими проектами.</string>
+
+    <string name="community_stage_zipping">Этап 1/4: Сборка архива проекта...</string>
+    <string name="community_stage_captcha">Этап 2/4: Проверка безопасности...</string>
+    <string name="community_stage_uploading">Этап 3/4: Отправка на сервер: %1$d%%</string>
+    <string name="community_stage_finishing">Этап 4/4: Анализ модерации...</string>
+    <string name="community_stage_success">Отправлено на модерацию</string>
+    <string name="community_stage_success_desc">Проект успешно загружен и ожидает проверки модератором.</string>
+
+    <string name="community_download_title">Скачивание проекта</string>
+    <string name="community_downloading_files">Загрузка файлов...</string>
+    <string name="community_saving_to_cache">Сохранение архива в кэш...</string>
+    <string name="community_importing_files">Импорт файлов в NewCatroid...</string>
+    <string name="community_import_completed">Импорт завершен</string>
+    <string name="community_project_ready">Проект готов к работе.</string>
+    <string name="community_open_btn">Открыть</string>
+    <string name="community_error_zip_damaged">Ошибка: Скачанный файл поврежден или заблокирован сервером</string>
+    <string name="community_error_unzip">Ошибка распаковки: %1$s</string>
+    <string name="community_error_server_rejected">Сервер отклонил запрос: %1$s</string>
+    <string name="community_error_network">Сетевая ошибка: %1$s</string>
+
+    <string name="community_login_title">Вход в сообщество</string>
+    <string name="community_register_title">Регистрация в сообществе</string>
+
+    <string name="community_login_hint">Имя пользователя или Email</string>
+    <string name="community_email_hint">Электронная почта</string>
+    <string name="community_password_hint">Пароль</string>
+
+    <string name="community_login_btn">Войти</string>
+    <string name="community_register_btn">Зарегистрироваться</string>
+    <string name="community_no_account_hint">Нет аккаунта? Зарегистрироваться</string>
+    <string name="community_have_account_hint">Уже есть аккаунт? Войти</string>
+
+    <string name="community_error_empty_fields">Заполните все поля</string>
+    <string name="community_error_empty_email">Укажите Email для регистрации</string>
+    <string name="community_error_config_failed">Ошибка получения конфигурации сервера</string>
+    <string name="community_captcha_cancelled">Вы отменили проверку капчи</string>
+    <string name="community_error_template">Ошибка: %1$s</string>
+    <string name="community_register_success">Регистрация успешна! Подтвердите почту.</string>
+    <string name="community_login_success">Успешный вход!</string>
+    <string name="community_error_unknown">Неизвестная ошибка</string>
+    <string name="community_error_server">Ошибка сервера</string>
+    <string name="community_error_connection">Ошибка соединения</string>
+
+    <string name="community_downloading">Начало загрузки проекта...</string>
+    <string name="community_import_success">Проект успешно импортирован!</string>
+    <string name="community_import_failed">Ошибка распаковки проекта</string>
+    <string name="community_load_project_failed">Не удалось открыть проект</string>
+
+    <string name="acc_title">Аккаунт NewCatroid</string>
+    <string name="acc_desc">Войдите, чтобы публиковать проекты и писать комментарии</string>
+    <string name="community_title">Сообщество NewCatroid</string>
+
+    <string name="code_analysis_title">Анализ кода в реальном времени</string>
+    <string name="code_analysis_desc">Автоматически проверять скрипты на наличие потенциальных проблем и ошибок.</string>
+
     <string name="brick_ease_3d_title">Плавно изменить</string>
     <string name="brick_ease_3d_object">ID объекта</string>
     <string name="brick_ease_3d_start_label">от</string>
@@ -578,7 +700,7 @@
 
     <!-- Physics warning -->
     <string name="physics_warning_title">Обновление совместимости</string>
-    <string name="physics_warning_message">Этот проект был создан в более старой версии. Рекомендуется обновить кэш физики прямо сейчас, чтобы избежать зависаний и вылетов. P.S. рекомендуем обновить его в опциях проекта, а не здесь</string>
+    <string name="physics_warning_message">Этот проект был создан в более старой версии. Рекомендуется обновить кэш физики прямо сейчас, чтобы избежать зависаний и вылетов.</string>
     <string name="physics_warning_update_now">Обновить сейчас</string>
     <string name="physics_warning_later">Позже</string>
     <string name="physics_warning_updating">Обновление кэша физики, пожалуйста, подождите...</string>
@@ -2575,7 +2697,7 @@
     <string formatted="false" name="main_menu_programs">Проекты на устройстве</string>
     <string formatted="false" name="main_menu_help">Помощь</string>
     <string formatted="false" name="main_menu_web">Telegram Разработчиков</string>
-    <string formatted="false" name="main_menu_community">Сообщество NewCatroid</string>
+    <string formatted="false" name="main_menu_community">Сайт NewCatroid</string>
     <string formatted="false" name="main_menu_upload">Выложить проект</string>
     <string formatted="false" name="main_menu_rate_app">Оцените нас!</string>
     <string formatted="false" name="main_menu_terms_of_use">Условия пользования и обслуживания</string>

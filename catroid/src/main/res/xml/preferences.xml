@@ -268,9 +268,16 @@
 
     <CheckBoxPreference
         android:key="pref_code_analysis_enabled"
-        android:title="Анализ кода в реальном времени"
-        android:summary="Автоматически проверять скрипты на наличие потенциальных проблем и ошибок."
+        android:title="@string/code_analysis_title"
+        android:summary="@string/code_analysis_desc"
         android:defaultValue="true" />
+
+    <PreferenceCategory android:title="@string/community_title">
+        <Preference
+            android:key="setting_community_login"
+            android:title="@string/acc_title"
+            android:summary="@string/acc_desc" />
+    </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/github_integration">
 

@@ -369,7 +369,6 @@ class ProjectActivity : BaseCastActivity() {
         val size = extras.getFloat(VisualPlacementActivity.SIZE_PERCENT_BUNDLE_ARGUMENT)
         val brickHash = extras.getInt(SpriteActivity.EXTRA_BRICK_HASH, -1)
 
-        // РЕШЕНИЕ: Ищем фрагменты по тегам напрямую, обходя проблемы с фокусом в оконном режиме
         var fragment: Fragment? = supportFragmentManager.findFragmentByTag(org.catrobat.catroid.ui.fragment.FormulaEditorFragment.FORMULA_EDITOR_FRAGMENT_TAG)
         if (fragment == null) {
             fragment = supportFragmentManager.findFragmentByTag(org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment.TAG)
@@ -1058,7 +1057,7 @@ class ProjectActivity : BaseCastActivity() {
                         for (sprite in scene.spriteList) {
                             if (sprite.lookList == null) continue
                             for (look in sprite.lookList) {
-                                look.collisionInformation?.calculate()
+                                look.collisionInformation?.forceRecalculateAndSave()
                             }
                         }
                     }

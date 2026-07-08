@@ -23,6 +23,128 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="notification_moderation_channel">Project Moderation Status</string>
+    <string name="notification_moderation_approved_title">Project Approved!</string>
+    <string name="notification_moderation_approved_body">Your project \"%1$s\" has successfully passed moderation and is now published!</string>
+    <string name="notification_moderation_rejected_title">Project Rejected</string>
+    <string name="notification_moderation_rejected_body">Your project \"%1$s\" was rejected. Reason: %2$s</string>
+
+    <string name="community_download_already_active">Another download is already in progress!</string>
+
+    <string name="community_publish_error_no_cover_title">Cover Image Missing</string>
+    <string name="community_publish_error_no_cover">To publish, your project must have a cover image! Please set a screenshot or custom icon first using the \'Change Icon\' option below.</string>
+
+    <string name="community_publish_rules_link">By publishing, you agree to the Community Rules</string>
+
+    <string name="genre_Action">Action</string>
+    <string name="genre_Adventure">Adventure</string>
+    <string name="genre_Arcade">Arcade</string>
+    <string name="genre_Casual">Casual</string>
+    <string name="genre_Platformer">Platformer</string>
+    <string name="genre_Puzzle">Puzzle</string>
+    <string name="genre_RPG">RPG</string>
+    <string name="genre_Racing">Racing</string>
+    <string name="genre_Shooter">Shooter</string>
+    <string name="genre_Simulation">Simulation</string>
+    <string name="genre_Sports">Sports</string>
+    <string name="genre_Strategy">Strategy</string>
+    <string name="genre_Fighting">Fighting</string>
+    <string name="genre_Survival">Survival</string>
+    <string name="genre_Stealth">Stealth</string>
+    <string name="genre_Roguelike">Roguelike</string>
+    <string name="genre_Sandbox">Sandbox</string>
+    <string name="genre_Tower_Defense">Tower Defense</string>
+    <string name="genre_MMO">MMO</string>
+    <string name="genre_MOBA">MOBA</string>
+    <string name="genre_Indie">Indie</string>
+    <string name="genre_Retro">Retro</string>
+    <string name="genre_Pixel_Art">Pixel Art</string>
+    <string name="genre_VR">VR</string>
+    <string name="genre_Multiplayer">Multiplayer</string>
+    <string name="genre_Singleplayer">Singleplayer</string>
+    <string name="genre_Co_op">Co-op</string>
+    <string name="genre_Educational">Educational</string>
+    <string name="genre_Music">Music</string>
+    <string name="genre_Card">Card</string>
+    <string name="genre_Fantasy">Fantasy</string>
+    <string name="genre_Sci_Fi">Sci-Fi</string>
+    <string name="genre_Horror">Horror</string>
+    <string name="genre_Cyberpunk">Cyberpunk</string>
+    <string name="genre_Post_apocalyptic">Post-apocalyptic</string>
+    <string name="genre_Steampunk">Steampunk</string>
+    <string name="genre_Anime">Anime</string>
+    <string name="genre_Cartoon">Cartoon</string>
+    <string name="genre_Realistic">Realistic</string>
+    <string name="genre_Mystery">Mystery</string>
+    <string name="genre_Romance">Romance</string>
+    <string name="genre_Comedy">Comedy</string>
+    <string name="genre_Thriller">Thriller</string>
+    <string name="genre_Historical">Historical</string>
+    <string name="genre_Drama">Drama</string>
+    <string name="genre_Other">Other</string>
+
+    <string name="community_publish_btn">Publish in Community</string>
+    <string name="community_publish_title">Publish Project</string>
+    <string name="community_publish_desc_hint">Project description (Markdown supported)</string>
+    <string name="community_publish_genres">Choose Genres (max 5)</string>
+    <string name="community_publish_start">Publish</string>
+    <string name="community_publish_auth_required">Login Required</string>
+    <string name="community_publish_auth_desc">Please log in to your account first to publish projects.</string>
+
+    <string name="community_stage_zipping">Stage 1/4: Packaging project...</string>
+    <string name="community_stage_captcha">Stage 2/4: Captcha verification...</string>
+    <string name="community_stage_uploading">Stage 3/4: Uploading chunks: %1$d%%</string>
+    <string name="community_stage_finishing">Stage 4/4: Moderation analysis...</string>
+    <string name="community_stage_success">Moderation Pending</string>
+    <string name="community_stage_success_desc">The project has been uploaded and is waiting for review.</string>
+
+    <string name="community_download_title">Downloading Project</string>
+    <string name="community_downloading_files">Downloading files...</string>
+    <string name="community_saving_to_cache">Saving archive to cache...</string>
+    <string name="community_importing_files">Importing files to NewCatroid...</string>
+    <string name="community_import_completed">Import Completed</string>
+    <string name="community_project_ready">Project is ready to use.</string>
+    <string name="community_open_btn">Open</string>
+    <string name="community_error_zip_damaged">Error: Downloaded file is damaged or blocked by the server</string>
+    <string name="community_error_unzip">Unzip error: %1$s</string>
+    <string name="community_error_server_rejected">Server rejected the request: %1$s</string>
+    <string name="community_error_network">Network error: %1$s</string>
+
+    <string name="community_login_title">Log In to Community</string>
+    <string name="community_register_title">Register in Community</string>
+
+    <string name="community_login_hint">Username or Email</string>
+    <string name="community_email_hint">Email address</string>
+    <string name="community_password_hint">Password</string>
+
+    <string name="community_login_btn">Log In</string>
+    <string name="community_register_btn">Register</string>
+    <string name="community_no_account_hint">Don\'t have an account? Register</string>
+    <string name="community_have_account_hint">Already have an account? Log In</string>
+
+    <string name="community_error_empty_fields">Please fill in all fields</string>
+    <string name="community_error_empty_email">Please specify an email for registration</string>
+    <string name="community_error_config_failed">Failed to load server configuration</string>
+    <string name="community_captcha_cancelled">Captcha verification was cancelled</string>
+    <string name="community_error_template">Error: %1$s</string>
+    <string name="community_register_success">Registration successful! Please verify your email.</string>
+    <string name="community_login_success">Login successful!</string>
+    <string name="community_error_unknown">Unknown error</string>
+    <string name="community_error_server">Server error</string>
+    <string name="community_error_connection">Connection error</string>
+
+    <string name="community_downloading">Downloading project...</string>
+    <string name="community_import_success">Project successfully imported!</string>
+    <string name="community_import_failed">Failed to unzip/import project</string>
+    <string name="community_load_project_failed">Failed to open project</string>
+
+    <string name="acc_title">NewCatroid Account</string>
+    <string name="acc_desc">Sign in to publish projects and write comments</string>
+    <string name="community_title">NewCatroid Community</string>
+
+    <string name="code_analysis_title">Real-time code analysis</string>
+    <string name="code_analysis_desc">Automatically check scripts for potential problems and errors</string>
+
     <string name="brick_ease_3d_title">Smoothly change</string>
     <string name="brick_ease_3d_object">Object ID</string>
     <string name="brick_ease_3d_start_label">from</string>
@@ -576,7 +698,7 @@
 
     <!-- Physics warning -->
     <string name="physics_warning_title">Compatibility Update</string>
-    <string name="physics_warning_message">This project was created in an older version. It is highly recommended to update the physics cache now to prevent crashes and freezes. P.S. recommend to update it in Project Options</string>
+    <string name="physics_warning_message">This project was created in an older version. It is highly recommended to update the physics cache now to prevent crashes and freezes.</string>
     <string name="physics_warning_update_now">Update Now</string>
     <string name="physics_warning_later">Later</string>
     <string name="physics_warning_updating">Updating physics cache, please wait...</string>
@@ -2598,7 +2720,7 @@
     <string formatted="false" name="main_menu_programs">Projects on device</string>
     <string formatted="false" name="main_menu_help">Help</string>
     <string formatted="false" name="main_menu_web">Dev\'s Telegram</string>
-    <string formatted="false" name="main_menu_community">NewCatroid community</string>
+    <string formatted="false" name="main_menu_community">NewCatroid site</string>
     <string formatted="false" name="main_menu_upload">Upload project</string>
     <string formatted="false" name="main_menu_play">Play project</string>
 
