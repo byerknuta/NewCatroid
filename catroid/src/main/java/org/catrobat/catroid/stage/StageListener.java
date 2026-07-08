@@ -1331,6 +1331,7 @@ public class StageListener implements ApplicationListener {
 		removeAllClonedSpritesFromStage();
 
 		UserDataWrapper.resetAllUserData(ProjectManager.getInstance().getCurrentProject());
+        org.catrobat.catroid.utils.NewCatroidMqttManager.INSTANCE.disconnectAll();
 
 		for (Scene scene : ProjectManager.getInstance().getCurrentProject().getSceneList()) {
 			scene.firstStart = true;
@@ -2042,6 +2043,7 @@ public class StageListener implements ApplicationListener {
         }
 
 		RenderManager.INSTANCE.dispose();
+        org.catrobat.catroid.utils.NewCatroidMqttManager.INSTANCE.disconnectAll();
 
         try {
             if (MainMenuActivity.pythonEngine != null) {

@@ -857,6 +857,8 @@ public class InternFormulaKeyboardAdapter {
 			case R.string.formula_editor_function_text_block_size:
 				return buildSingleParameterFunction(Functions.TEXT_BLOCK_SIZE,
 						InternTokenType.NUMBER, "1");
+            case R.string.formula_mqtt_message:
+                return buildSingleParameterFunction(Functions.MQTT_MESSAGE, STRING, "room1");
 			case R.string.formula_editor_function_text_block_from_camera:
 				return buildSingleParameterFunction(Functions.TEXT_BLOCK_FROM_CAMERA,
 						InternTokenType.NUMBER, "1");

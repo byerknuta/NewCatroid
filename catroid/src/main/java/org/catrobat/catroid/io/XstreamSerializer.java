@@ -61,6 +61,7 @@ import org.catrobat.catroid.content.WhenConditionScript;
 import org.catrobat.catroid.content.WhenFingerMovedOnScreenScript;
 import org.catrobat.catroid.content.WhenFingerMovedOverSpriteScript;
 import org.catrobat.catroid.content.WhenGamepadButtonScript;
+import org.catrobat.catroid.content.WhenMqttMessageScript;
 import org.catrobat.catroid.content.WhenNfcScript;
 import org.catrobat.catroid.content.WhenNotificationActionTriggeredScript;
 import org.catrobat.catroid.content.WhenNotificationClickedScript;
@@ -829,6 +830,13 @@ public final class XstreamSerializer {
         xstream.alias("brick", OpenAppBrick.class);
         xstream.alias("brick", JavaDownloadDepBrick.class);
         xstream.alias("brick", Export3dObjectToGlbBrick.class);
+        xstream.alias("script", WhenMqttMessageScript.class);
+        xstream.alias("brick", WhenMqttMessageBrick.class);
+        xstream.alias("brick", MqttConnectBrick.class);
+        xstream.alias("brick", MqttJoinRoomBrick.class);
+        xstream.alias("brick", MqttPublishBrick.class);
+        xstream.alias("brick", MqttDisconnectBrick.class);
+        xstream.alias("brick", Ease3DPropertyBrick.class);
 
 
         xstream.alias("brick", org.catrobat.catroid.content.bricks.UnknownBrick.class);

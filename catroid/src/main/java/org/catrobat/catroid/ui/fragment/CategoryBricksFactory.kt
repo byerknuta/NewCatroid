@@ -33,6 +33,7 @@ import org.catrobat.catroid.content.RaspiInterruptScript
 import org.catrobat.catroid.content.WhenBounceOffScript
 import org.catrobat.catroid.content.WhenConditionScript
 import org.catrobat.catroid.content.WhenGamepadButtonScript
+import org.catrobat.catroid.content.WhenMqttMessageScript
 import org.catrobat.catroid.content.WhenNotificationActionTriggeredScript
 import org.catrobat.catroid.content.WhenNotificationClickedScript
 import org.catrobat.catroid.content.actions.NativeViewBindSpriteAction
@@ -171,6 +172,7 @@ import org.catrobat.catroid.content.bricks.DroneSwitchCameraBrick
 import org.catrobat.catroid.content.bricks.DroneTakeOffLandBrick
 import org.catrobat.catroid.content.bricks.DroneTurnLeftBrick
 import org.catrobat.catroid.content.bricks.DroneTurnRightBrick
+import org.catrobat.catroid.content.bricks.Ease3DPropertyBrick
 import org.catrobat.catroid.content.bricks.EasePropertyBrick
 import org.catrobat.catroid.content.bricks.EditLookBrick
 import org.catrobat.catroid.content.bricks.EnableBackgroundModeBrick
@@ -273,6 +275,10 @@ import org.catrobat.catroid.content.bricks.MouseEventBrick
 import org.catrobat.catroid.content.bricks.MoveDownloadsBrick
 import org.catrobat.catroid.content.bricks.MoveFilesBrick
 import org.catrobat.catroid.content.bricks.MoveNStepsBrick
+import org.catrobat.catroid.content.bricks.MqttConnectBrick
+import org.catrobat.catroid.content.bricks.MqttDisconnectBrick
+import org.catrobat.catroid.content.bricks.MqttJoinRoomBrick
+import org.catrobat.catroid.content.bricks.MqttPublishBrick
 import org.catrobat.catroid.content.bricks.NativeLayerBrick
 import org.catrobat.catroid.content.bricks.NativeViewAnimateBrick
 import org.catrobat.catroid.content.bricks.NativeViewBindSpriteBrick
@@ -599,6 +605,7 @@ import org.catrobat.catroid.content.bricks.WhenFingerMovedOverSpriteBrick
 import org.catrobat.catroid.content.bricks.WhenGamepadButtonBrick
 import org.catrobat.catroid.content.bricks.WhenMouseButtonClickedBrick
 import org.catrobat.catroid.content.bricks.WhenMouseWheelScrolledBrick
+import org.catrobat.catroid.content.bricks.WhenMqttMessageBrick
 import org.catrobat.catroid.content.bricks.WhenNfcBrick
 import org.catrobat.catroid.content.bricks.WhenNotificationActionTriggeredBrick
 import org.catrobat.catroid.content.bricks.WhenNotificationClickedBrick
@@ -770,6 +777,7 @@ open class CategoryBricksFactory {
                 eventBrickList.add(WhenAppMinimizedBrick())
                 eventBrickList.add(WhenAppRestoredBrick())
                 eventBrickList.add(WhenWindowResizedBrick())
+                eventBrickList.add(WhenMqttMessageBrick(WhenMqttMessageScript(Formula("room_1"))))
                 if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
                     eventBrickList.add(WhenNfcBrick())
                 }
@@ -815,6 +823,7 @@ open class CategoryBricksFactory {
         eventBrickList.add(WhenNotificationClickedBrick(WhenNotificationClickedScript(Formula(123456))))
         eventBrickList.add(WhenNotificationActionTriggeredBrick(
             WhenNotificationActionTriggeredScript(Formula("123"))))
+        eventBrickList.add(WhenMqttMessageBrick(WhenMqttMessageScript(Formula("room_1"))))
 
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_conditions), template))
         eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
@@ -2618,6 +2627,7 @@ void main() {
         threedBrickList.add(Set3dScaleBrick("myObject", 2.0, 1.0, 1.5))
         threedBrickList.add(ObjectLookAtBrick("myObject", 0.0, 0.0, 0.0))
         threedBrickList.add(ThreedAlignNormalBrick("myObject", -1.0, 0.0, 0.0))
+        threedBrickList.add(Ease3DPropertyBrick(Formula("myObject"), 0, 0, Formula(0), Formula(10), Formula(0.1)));
         threedBrickList.add(SetParentBrick("child", "parent"))
         threedBrickList.add(RemoveParentBrick("child"))
         threedBrickList.add(AttachToCameraBrick("myObject"))
@@ -2904,18 +2914,31 @@ void main() {
         internetBrickList.add(PostWebRequestBrick("https://api.calfire.com/v2/texts?limit=50&offset=200",
             "Content-Type:application/json",
             "{\nusername=password\n}"))
-        internetBrickList.add(HttpCreateBrick("my_request", "GET", "https://api.example.com/data"));
-        internetBrickList.add(HttpConfigBrick("my_request", 0, "User-Agent", "NewCatroidClient"));
+        internetBrickList.add(HttpCreateBrick("my_request", "GET", "https://api.example.com/data"))
+        internetBrickList.add(HttpConfigBrick("my_request", 0, "User-Agent", "NewCatroidClient"))
         internetBrickList.add(
             HttpBodyBrick(
                 "my_request",
                 "{\"text\": \"hello\"}",
                 "application/json"
             )
-        );
-        internetBrickList.add(HttpAttachFileBrick("my_request", "image.png", "file", "image/png"));
-        internetBrickList.add(HttpSendBrick("my_request"));
-        internetBrickList.add(HttpSaveFileBrick("my_request", "downloaded_image.png"));
+        )
+        internetBrickList.add(HttpAttachFileBrick("my_request", "image.png", "file", "image/png"))
+        internetBrickList.add(HttpSendBrick("my_request"))
+        internetBrickList.add(HttpSaveFileBrick("my_request", "downloaded_image.png"))
+
+        internetBrickList.add(WhenMqttMessageBrick(WhenMqttMessageScript(Formula("room_1"))))
+        internetBrickList.add(MqttConnectBrick("my_lobby", "broker.emqx.io", 1883))
+        internetBrickList.add(MqttJoinRoomBrick("my_lobby", "room_1", "my_secret_game_salt"))
+        internetBrickList.add(
+            MqttPublishBrick(
+                "my_lobby",
+                "room_1",
+                "my_secret_game_salt",
+                "player_x: 150, player_y: 340"
+            )
+        )
+        internetBrickList.add(MqttDisconnectBrick("my_lobby"))
         //internetBrickList.add(SetDnsBrick("dns.comss.one"))
         return internetBrickList
     }

@@ -23,6 +23,47 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="brick_ease_3d_title">Плавно изменить</string>
+    <string name="brick_ease_3d_object">ID объекта</string>
+    <string name="brick_ease_3d_start_label">от</string>
+    <string name="brick_ease_3d_end_label">до</string>
+    <string name="brick_ease_3d_duration_label">сек</string>
+
+    <string-array name="brick_ease_3d_properties">
+        <item>Позиция X</item>
+        <item>Позиция Y</item>
+        <item>Позиция Z</item>
+        <item>Вращение Yaw (Y)</item>
+        <item>Вращение Pitch (X)</item>
+        <item>Вращение Roll (Z)</item>
+        <item>Масштаб X</item>
+        <item>Масштаб Y</item>
+        <item>Масштаб Z</item>
+    </string-array>
+
+    <string formatted="false" name="brick_mqtt_disconnect_title">Мультиплеер: Отключить лобби</string>
+
+    <string formatted="false" name="brick_when_mqtt_message_title">Получено сообщение из комнаты</string>
+
+    <string formatted="false" name="brick_mqtt_connect_title">Мультиплеер: Подключиться к лобби</string>
+    <string formatted="false" name="brick_mqtt_connect_id">ID лобби</string>
+    <string formatted="false" name="brick_mqtt_connect_host">Хост брокера</string>
+    <string formatted="false" name="brick_mqtt_connect_port">Порт</string>
+
+    <string formatted="false" name="brick_mqtt_join_room_title">Мультиплеер: Войти в комнату</string>
+    <string formatted="false" name="brick_mqtt_join_room_client_id">ID лобби</string>
+    <string formatted="false" name="brick_mqtt_join_room_id">Имя комнаты</string>
+    <string formatted="false" name="brick_mqtt_join_room_salt">Соль (проект)</string>
+
+    <string formatted="false" name="brick_mqtt_publish_title">Мультиплеер: Отправить текст</string>
+    <string formatted="false" name="brick_mqtt_publish_client_id">ID лобби</string>
+    <string formatted="false" name="brick_mqtt_publish_room_id">Имя комнаты</string>
+    <string formatted="false" name="brick_mqtt_publish_salt">Соль (проект)</string>
+    <string formatted="false" name="brick_mqtt_publish_message">Текст сообщения</string>
+
+    <string formatted="false" name="formula_mqtt_message">mqtt_сообщение</string>
+    <string formatted="false" name="formula_mqtt_message_param">(\'имя_комнаты\')</string>
+
     <string formatted="false" name="brick_export_3d_glb_title">Экспортировать объект в GLB</string>
     <string formatted="false" name="brick_export_3d_glb_id">ID объекта</string>
     <string formatted="false" name="brick_export_3d_glb_file">Имя файла (.glb)</string>

@@ -248,12 +248,14 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
     private static final List<Integer> HTTP_FUNCTIONS = asList(
             R.string.formula_http_response_text,
             R.string.formula_http_response_code,
-            R.string.formula_http_response_header
+            R.string.formula_http_response_header,
+            R.string.formula_mqtt_message
     );
     private static final List<Integer> HTTP_PARAMS = asList(
             R.string.formula_http_response_text_param,
             R.string.formula_http_response_code_param,
-            R.string.formula_http_response_header_param
+            R.string.formula_http_response_header_param,
+            R.string.formula_mqtt_message_param
     );
 	private static final List<Integer> LOGIC_BOOL = asList(R.string.formula_editor_logic_and,
 			R.string.formula_editor_logic_or, R.string.formula_editor_logic_not,

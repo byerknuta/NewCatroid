@@ -23,6 +23,47 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="brick_ease_3d_title">Smoothly change</string>
+    <string name="brick_ease_3d_object">Object ID</string>
+    <string name="brick_ease_3d_start_label">from</string>
+    <string name="brick_ease_3d_end_label">to</string>
+    <string name="brick_ease_3d_duration_label">sec</string>
+
+    <string-array name="brick_ease_3d_properties">
+        <item>Position X</item>
+        <item>Position Y</item>
+        <item>Position Z</item>
+        <item>Rotation Yaw (Y)</item>
+        <item>Rotation Pitch (X)</item>
+        <item>Rotation Roll (Z)</item>
+        <item>Scale X</item>
+        <item>Scale Y</item>
+        <item>Scale Z</item>
+    </string-array>
+
+    <string formatted="false" name="brick_mqtt_disconnect_title">Multiplayer: Disconnect lobby</string>
+
+    <string formatted="false" name="brick_when_mqtt_message_title">Message received from room</string>
+
+    <string formatted="false" name="brick_mqtt_connect_title">Multiplayer: Connect to Lobby</string>
+    <string formatted="false" name="brick_mqtt_connect_id">Lobby ID</string>
+    <string formatted="false" name="brick_mqtt_connect_host">Broker Host</string>
+    <string formatted="false" name="brick_mqtt_connect_port">Port</string>
+
+    <string formatted="false" name="brick_mqtt_join_room_title">Multiplayer: Join Room</string>
+    <string formatted="false" name="brick_mqtt_join_room_client_id">Lobby ID</string>
+    <string formatted="false" name="brick_mqtt_join_room_id">Room Name</string>
+    <string formatted="false" name="brick_mqtt_join_room_salt">Salt (Project ID)</string>
+
+    <string formatted="false" name="brick_mqtt_publish_title">Multiplayer: Send Message</string>
+    <string formatted="false" name="brick_mqtt_publish_client_id">Lobby ID</string>
+    <string formatted="false" name="brick_mqtt_publish_room_id">Room Name</string>
+    <string formatted="false" name="brick_mqtt_publish_salt">Salt (Project ID)</string>
+    <string formatted="false" name="brick_mqtt_publish_message">Message Text</string>
+
+    <string formatted="false" name="formula_mqtt_message">mqtt_message</string>
+    <string formatted="false" name="formula_mqtt_message_param">(\'room_name\')</string>
+
     <string formatted="false" name="brick_export_3d_glb_title">Export object to GLB</string>
     <string formatted="false" name="brick_export_3d_glb_id">Object ID</string>
     <string formatted="false" name="brick_export_3d_glb_file">Output file name (.glb)</string>

@@ -31,7 +31,7 @@ public class EventId {
 
     @Retention(RetentionPolicy.SOURCE)
 	@IntDef({TAP, TAP_BACKGROUND, START, START_AS_CLONE, ANY_NFC, OTHER, PROJECT_EXIT, BACK_PRESSED, MOUSE_BUTTON_CLICKED, MOUSE_WHEEL_SCROLLED, BEFORE_UPDATE, AFTER_UPDATE,
-            SPRITE_RELEASED, FINGER_MOVED_OVER_SPRITE, FINGER_MOVED_ON_SCREEN, NOTIFICATION_CLICKED, APP_MINIMIZED, APP_RESTORED, WINDOW_RESIZED})
+            SPRITE_RELEASED, FINGER_MOVED_OVER_SPRITE, FINGER_MOVED_ON_SCREEN, NOTIFICATION_CLICKED, APP_MINIMIZED, APP_RESTORED, WINDOW_RESIZED, USER_CONCAT})
 	public @interface EventType {
 	}
 
@@ -55,6 +55,7 @@ public class EventId {
     public static final int APP_MINIMIZED = 16;
     public static final int APP_RESTORED = 17;
     public static final int WINDOW_RESIZED = 18;
+    public static final int USER_CONCAT = 19;
 
 	@EventType
 	private final int type;

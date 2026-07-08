@@ -5211,4 +5211,61 @@ public class ActionFactory extends Actions {
         action.setDestFileName(destFileName);
         return action;
     }
+
+    public Action createMqttConnectAction(Sprite sprite, SequenceAction sequence,
+                                          Formula clientId, Formula host, Formula port) {
+        MqttConnectAction action = action(MqttConnectAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setClientId(clientId);
+        action.setHost(host);
+        action.setPort(port);
+        return action;
+    }
+
+    public Action createMqttJoinRoomAction(Sprite sprite, SequenceAction sequence,
+                                           Formula clientId, Formula roomId, Formula salt) {
+        MqttJoinRoomAction action = action(MqttJoinRoomAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setClientId(clientId);
+        action.setRoomId(roomId);
+        action.setSalt(salt);
+        return action;
+    }
+
+    public Action createMqttPublishAction(Sprite sprite, SequenceAction sequence,
+                                          Formula clientId, Formula roomId, Formula salt, Formula message) {
+        MqttPublishAction action = action(MqttPublishAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setClientId(clientId);
+        action.setRoomId(roomId);
+        action.setSalt(salt);
+        action.setMessage(message);
+        return action;
+    }
+
+    public Action createMqttDisconnectAction(Sprite sprite, SequenceAction sequence,
+                                             Formula clientId) {
+        MqttDisconnectAction action = action(MqttDisconnectAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setClientId(clientId);
+        return action;
+    }
+
+    public Action createEase3DPropertyAction(Sprite sprite, SequenceAction sequence,
+                                             Formula objectId, int propertyIndex, int typeIndex, Formula duration, Formula start, Formula end) {
+        Ease3DPropertyAction action = action(Ease3DPropertyAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectId(objectId);
+        action.setPropertyIndex(propertyIndex);
+        action.setTypeIndex(typeIndex);
+        action.setDurationFormula(duration);
+        action.setStartFormula(start);
+        action.setEndFormula(end);
+        return action;
+    }
 }

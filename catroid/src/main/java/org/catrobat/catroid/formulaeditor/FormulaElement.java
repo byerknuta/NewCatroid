@@ -32,6 +32,7 @@ import org.catrobat.catroid.sensing.ColorCollisionDetection;
 import org.catrobat.catroid.sensing.ColorEqualsColor;
 import org.catrobat.catroid.stage.StageActivity;
 import org.catrobat.catroid.stage.StageListener;
+import org.catrobat.catroid.utils.NewCatroidMqttManager;
 import org.catrobat.catroid.utils.NewCatroidNotificationManager;
 import org.catrobat.catroid.utils.lunoscript.Interpreter;
 import org.catrobat.catroid.utils.lunoscript.LunoRuntimeError;
@@ -39,16 +40,9 @@ import org.catrobat.catroid.utils.lunoscript.LunoValue;
 import org.catrobat.catroid.utils.lunoscript.Token;
 import org.catrobat.catroid.utils.lunoscript.TokenType;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.luaj.vm2.Globals;
-import org.luaj.vm2.lib.jse.JsePlatform;
 
 import java.io.File;
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -830,6 +824,10 @@ public class FormulaElement implements Serializable {
                 String id = String.valueOf(arg0);
                 String headerName = String.valueOf(arg1);
                 return org.catrobat.catroid.common.NewCatroidHttpManager.INSTANCE.getResponseHeader(id, headerName);
+            }
+            case MQTT_MESSAGE: {
+                String roomId = String.valueOf(arg0);
+                return NewCatroidMqttManager.INSTANCE.getLatestMessage(roomId);
             }
             case READ_FILE: {
                 String filename = String.valueOf(arg0);
