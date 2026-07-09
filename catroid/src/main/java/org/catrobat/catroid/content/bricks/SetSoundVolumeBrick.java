@@ -29,17 +29,14 @@ public class SetSoundVolumeBrick extends FormulaBrick implements BrickSpinner.On
     private transient BrickSpinner<SoundInfo> spinner;
 
     public SetSoundVolumeBrick() {
-        // Связываем поле громкости с ID из layout
         addAllowedBrickField(BrickField.VOLUME, R.id.brick_set_sound_volume_edit_text);
     }
 
-    // Конструктор для строк
     public SetSoundVolumeBrick(Double volume) {
         this();
         setFormulaWithBrickField(BrickField.VOLUME, new Formula(volume));
     }
 
-    // Основной конструктор
     public SetSoundVolumeBrick(SoundInfo sound, Formula volume) {
         this();
         this.sound = sound;

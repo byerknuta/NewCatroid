@@ -27,11 +27,7 @@ import android.os.Build
 import android.util.Log
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.Pixmap
-import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.badlogic.gdx.graphics.glutils.FrameBuffer
 import com.badlogic.gdx.math.Matrix4
 import com.danvexteam.lunoscript_annotations.LunoClass
 import org.catrobat.catroid.ProjectManager
@@ -57,23 +53,8 @@ class ColorAtXYDetection(
     stageListener: StageListener?
 ) : ColorDetection(scope, stageListener) {
     companion object {
-        // Создаем дорогие объекты ОДИН РАЗ и переиспользуем их всегда.
-        private val batch: SpriteBatch by lazy { SpriteBatch() }
-        private val camera: OrthographicCamera by lazy { OrthographicCamera(1f, 1f) }
-        private val fbo: FrameBuffer by lazy {
-            FrameBuffer(Pixmap.Format.RGBA8888, 1, 1, false)
-        }
-
-        // Метод для очистки ресурсов при выходе из игры (важно!)
+        @JvmStatic
         fun disposeShared() {
-            try {
-                if (batch.isDrawing) batch.end()
-                batch.dispose()
-                fbo.dispose()
-            } catch (e: Exception) {
-                //ErrorLog.log(e.message?: "**message not provided :(**")
-                Log.e("ColorAtXYDetection", "Error when disponse")
-            }
         }
     }
 
@@ -94,8 +75,6 @@ class ColorAtXYDetection(
         xPosition = xPositionUnchecked.roundToInt()
         yPosition = yPositionUnchecked.roundToInt()
 
-        // the camera feature cannot be tested automatically yet
-        // in the future, tests can be added with the ongoing sensor-robot-test project
         if (
             StageActivity.getActiveCameraManager() != null &&
             StageActivity.getActiveCameraManager().isCameraActive
@@ -133,68 +112,67 @@ class ColorAtXYDetection(
 
     private fun isYCoordinateOnTopBorderLandscape() =
         ProjectManager.getInstance().isCurrentProjectLandscapeMode &&
-            yPosition == virtualHeight / 2
+                yPosition == virtualHeight / 2
 
     private fun isYCoordinateOnBottomBorderPortrait() =
         !ProjectManager.getInstance().isCurrentProjectLandscapeMode &&
-            yPosition == -virtualHeight / 2
+                yPosition == -virtualHeight / 2
 
     private fun getHexColorStringFromStagePixmap(): String {
-        // 1. Находим ТОЛЬКО ОДИН самый верхний спрайт в нужной точке
-        var topLook: Look? = null
-        // Итерируем спрайты в обратном порядке, чтобы найти самый верхний (последний в списке отрисовки)
-        stageListener?.spritesFromStage?.asReversed()?.forEach { sprite ->
-            if (sprite.look.isLookVisible && sprite.look.isVisible) {
-                val polygons = sprite.look.currentCollisionPolygon
-                for (poly in polygons) {
-                    // Проверяем, содержит ли полигон нашу точку
-                    if (poly.contains(xPosition.toFloat(), yPosition.toFloat())) {
-                        topLook = sprite.look
-                        return@forEach // Выходим из forEach, так как нашли нужный спрайт
+        val listener = stageListener ?: return HEX_COLOR_BLACK
+        val sprites = listener.spritesFromStage ?: return HEX_COLOR_BLACK
+
+        val queryX = xPosition.toFloat()
+        val queryY = yPosition.toFloat()
+
+        val localPos = com.badlogic.gdx.math.Vector2()
+
+        for (i in sprites.indices.reversed()) {
+            val sprite = sprites[i]
+            val look = sprite.look ?: continue
+            if (!look.isLookVisible || !look.isVisible) continue
+
+            val polygons = look.currentCollisionPolygon
+            var isInsidePolygon = false
+            for (poly in polygons) {
+                if (poly.contains(queryX, queryY)) {
+                    isInsidePolygon = true
+                    break
+                }
+            }
+
+            if (isInsidePolygon) {
+                val lookData = look.lookData ?: continue
+                val pixmap = lookData.pixmap ?: continue
+
+                localPos.set(queryX, queryY)
+                look.stageToLocalCoordinates(localPos)
+
+                val px = localPos.x.roundToInt()
+                val py = pixmap.height - localPos.y.roundToInt()
+
+                if (px in 0 until pixmap.width && py in 0 until pixmap.height) {
+                    val pixelVal = pixmap.getPixel(px, py)
+
+                    val alpha = pixelVal and 0xFF
+
+                    if (alpha > 10) {
+                        val r = (pixelVal shr 24) and 0xFF
+                        val g = (pixelVal shr 16) and 0xFF
+                        val b = (pixelVal shr 8) and 0xFF
+
+                        val rHex = r.toString(16).padStart(2, '0')
+                        val gHex = g.toString(16).padStart(2, '0')
+                        val bHex = b.toString(16).padStart(2, '0')
+                        return "#$rHex$gHex$bHex"
                     }
                 }
             }
         }
 
-        // 2. Настраиваем нашу статическую камеру, чтобы она смотрела точно на нужный пиксель
-        camera.position.set(xPosition.toFloat(), yPosition.toFloat(), 0f)
-        camera.update()
-        batch.projectionMatrix = camera.combined
-
-        // 3. Рисуем в наш 1x1 буфер (FBO)
-        fbo.begin() // Начинаем рисовать в текстуру
-
-        // Очищаем буфер прозрачным цветом
-        Gdx.gl.glClearColor(0f, 0f, 0f, 0f)
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-
-        batch.begin()
-        if (topLook != null) {
-            // Если нашли спрайт, рисуем ТОЛЬКО ЕГО
-            topLook!!.draw(batch, 1f)
-        } else {
-            // Если спрайтов в этой точке нет, рисуем цвет фона сцены.
-            // Здесь можно получить цвет фона из ProjectManager и залить им.
-            // Пока просто оставим прозрачным (черным).
-        }
-        batch.end()
-
-        // 4. Получаем пиксель из буфера
-        val pixmap = Pixmap.createFromFrameBuffer(0, 0, 1, 1)
-
-        fbo.end() // Заканчиваем рисовать в текстуру
-
-        val pixelColor = Color(pixmap.getPixel(0, 0))
-        pixmap.dispose() // Обязательно очищаем Pixmap
-
-        return rgbaColorToRGBHexString(pixelColor)
+        return HEX_COLOR_BLACK
     }
 
-// УДАЛИТЕ СТАРЫЙ createProjectionMatrix, он больше не нужен в этом классе
-// private fun createProjectionMatrix(project: Project): Matrix4 { ... }
-
-    // Также можно упростить getLooksOfRelevantSprites, так как он больше не нужен
-// для этой функции.
     override fun getLooksOfRelevantSprites(): MutableList<Look>? =
         stageListener?.let {
             ArrayList(it.spritesFromStage)
@@ -202,19 +180,6 @@ class ColorAtXYDetection(
                 .map { s -> s.look }
                 .toMutableList()
         }
-
-    private fun tryRgbaColorToRGBHexString(color: Color, batch: SpriteBatch, stagePixmap: Pixmap):
-        String {
-        return try {
-            rgbaColorToRGBHexString(color)
-        } catch (e: StringIndexOutOfBoundsException) {
-            Log.e(TAG, "String index is out of bounds when converting rgba color to hex string ")
-            return HEX_COLOR_BLACK
-        } finally {
-            stagePixmap.dispose()
-            batch.dispose()
-        }
-    }
 
     private fun getHexColorStringFromBitmapAtPosition(
         bitmap: Bitmap?,
@@ -283,23 +248,15 @@ class ColorAtXYDetection(
     }
 
     private fun isXPositionOutsideOfScreen(): Boolean = xPosition > virtualWidth / 2 ||
-        xPosition < -virtualWidth / 2
+            xPosition < -virtualWidth / 2
 
     private fun isYPositionOutsideOfScreen(): Boolean = yPosition > virtualHeight / 2 ||
-        yPosition < -virtualHeight / 2
+            yPosition < -virtualHeight / 2
 
     override fun setBufferParameters() {
         bufferHeight = 1
         bufferWidth = 1
     }
-
-    /*override fun getLooksOfRelevantSprites(): MutableList<Look>? =
-        stageListener?.let {
-            ArrayList<Sprite>(it.spritesFromStage)
-                .filter { s -> s.look.isLookVisible }
-                .map { s -> s.look }
-                .toMutableList()
-        }*/
 
     override fun isParameterInvalid(parameter: Any?): Boolean =
         convertArgumentToDouble(parameter) == null

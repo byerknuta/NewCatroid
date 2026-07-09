@@ -510,6 +510,10 @@ public class ThreeDManager implements Disposable {
     private int renderWidth;
     private int renderHeight;
 
+    private final Map<String, net.mgsx.gltf.scene3d.scene.SceneAsset> loadedGltfAssets = new HashMap<>();
+
+    private net.mgsx.gltf.scene3d.scene.Scene gridScene;
+
     public void init() {
         init(new SceneSettings());
     }
@@ -2614,6 +2618,12 @@ public class ThreeDManager implements Disposable {
 
 
     public void setPointLight(String lightId, float x, float y, float z, float r, float g, float b, float intensity, float range) {
+        net.mgsx.gltf.scene3d.lights.SpotLightEx oldSpot = spotLights.remove(lightId);
+
+        if (oldSpot != null && sceneManager != null) {
+            sceneManager.environment.remove(oldSpot);
+        }
+
         net.mgsx.gltf.scene3d.lights.PointLightEx light = pointLights.get(lightId);
         if (light == null) {
             light = new net.mgsx.gltf.scene3d.lights.PointLightEx();
@@ -2630,6 +2640,11 @@ public class ThreeDManager implements Disposable {
     }
 
     public void setSpotLight(String lightId, float x, float y, float z, float dirX, float dirY, float dirZ, float r, float g, float b, float intensity, float cutoffAngle, float softness, float range) {
+        net.mgsx.gltf.scene3d.lights.PointLightEx oldPoint = pointLights.remove(lightId);
+        if (oldPoint != null && sceneManager != null) {
+            sceneManager.environment.remove(oldPoint);
+        }
+
         net.mgsx.gltf.scene3d.lights.SpotLightEx light = spotLights.get(lightId);
         if (light == null) {
             light = new net.mgsx.gltf.scene3d.lights.SpotLightEx();
@@ -2651,6 +2666,11 @@ public class ThreeDManager implements Disposable {
 
     @Deprecated
     public void setSpotLightOld(String lightId, float x, float y, float z, float dirX, float dirY, float dirZ, float r, float g, float b, float intensity, float cutoffAngle, float exponent, float range) {
+        net.mgsx.gltf.scene3d.lights.PointLightEx oldPoint = pointLights.remove(lightId);
+        if (oldPoint != null && sceneManager != null) {
+            sceneManager.environment.remove(oldPoint);
+        }
+
         net.mgsx.gltf.scene3d.lights.SpotLightEx light = spotLights.get(lightId);
         if (light == null) {
             light = new net.mgsx.gltf.scene3d.lights.SpotLightEx();
@@ -2668,17 +2688,22 @@ public class ThreeDManager implements Disposable {
 
 
     public boolean removePBRLight(String lightId) {
+        boolean removed = false;
         net.mgsx.gltf.scene3d.lights.PointLightEx pointLight = pointLights.remove(lightId);
         if (pointLight != null) {
-            sceneManager.environment.remove(pointLight);
-            return true;
+            if (sceneManager != null) {
+                sceneManager.environment.remove(pointLight);
+            }
+            removed = true;
         }
         net.mgsx.gltf.scene3d.lights.SpotLightEx spotLight = spotLights.remove(lightId);
         if (spotLight != null) {
-            sceneManager.environment.remove(spotLight);
-            return true;
+            if (sceneManager != null) {
+                sceneManager.environment.remove(spotLight);
+            }
+            removed = true;
         }
-        return false;
+        return removed;
     }
 
 
@@ -4154,18 +4179,21 @@ public class ThreeDManager implements Disposable {
             String lowerCasePath = modelPath.toLowerCase();
 
             if (lowerCasePath.endsWith(".glb") || lowerCasePath.endsWith(".gltf")) {
-                net.mgsx.gltf.scene3d.scene.SceneAsset sceneAsset;
+                net.mgsx.gltf.scene3d.scene.SceneAsset sceneAsset = loadedGltfAssets.get(modelPath);
 
-                if (lowerCasePath.endsWith(".glb")) {
-                    sceneAsset = new net.mgsx.gltf.loaders.glb.GLBLoader().load(fileHandle, true);
-                } else {
-                    sceneAsset = new net.mgsx.gltf.loaders.gltf.GLTFLoader().load(fileHandle, true);
+                if (sceneAsset == null) {
+                    if (lowerCasePath.endsWith(".glb")) {
+                        sceneAsset = new net.mgsx.gltf.loaders.glb.GLBLoader().load(fileHandle, true);
+                    } else {
+                        sceneAsset = new net.mgsx.gltf.loaders.gltf.GLTFLoader().load(fileHandle, true);
+                    }
+                    if (sceneAsset != null) {
+                        loadedGltfAssets.put(modelPath, sceneAsset);
+                    }
                 }
 
                 if (sceneAsset != null) {
-
                     net.mgsx.gltf.scene3d.scene.Scene scene = new net.mgsx.gltf.scene3d.scene.Scene(sceneAsset.scene);
-
                     sceneManager.addScene(scene);
                     sceneObjects.put(objectId, scene.modelInstance);
 
@@ -4177,8 +4205,6 @@ public class ThreeDManager implements Disposable {
                     }
                     return true;
                 }
-
-
             } else {
                 Model model = loadedModels.get(modelPath);
 
@@ -4841,6 +4867,7 @@ public class ThreeDManager implements Disposable {
     public boolean removeObject(String objectId) {
         manager.removeGameObject(manager.findGameObject(objectId));
         ModelInstance instance = sceneObjects.remove(objectId);
+
         if (instance != null) {
             removePhysicsBody(objectId);
             animationControllers.remove(objectId);
@@ -5235,9 +5262,15 @@ public class ThreeDManager implements Disposable {
 
 
     public void createGrid(float size, int divisions) {
+        if (gridScene != null) {
+            if (sceneManager != null) {
+                sceneManager.removeScene(gridScene);
+            }
+            gridScene = null;
+        }
         if (gridInstance != null) {
-            sceneManager.removeScene(new net.mgsx.gltf.scene3d.scene.Scene(gridInstance));
             gridInstance.model.dispose();
+            gridInstance = null;
         }
 
         com.badlogic.gdx.graphics.g3d.utils.ModelBuilder modelBuilder = new com.badlogic.gdx.graphics.g3d.utils.ModelBuilder();
@@ -5246,7 +5279,11 @@ public class ThreeDManager implements Disposable {
                 com.badlogic.gdx.graphics.VertexAttributes.Usage.Position | com.badlogic.gdx.graphics.VertexAttributes.Usage.ColorUnpacked);
 
         gridInstance = new ModelInstance(gridModel);
-        sceneManager.addScene(new net.mgsx.gltf.scene3d.scene.Scene(gridInstance));
+        gridScene = new net.mgsx.gltf.scene3d.scene.Scene(gridInstance);
+
+        if (sceneManager != null) {
+            sceneManager.addScene(gridScene);
+        }
     }
 
 
@@ -5887,6 +5924,11 @@ public class ThreeDManager implements Disposable {
         }
         sceneObjects.clear();
 
+        for (net.mgsx.gltf.scene3d.scene.SceneAsset asset : loadedGltfAssets.values()) {
+            if (asset != null) asset.dispose();
+        }
+        loadedGltfAssets.clear();
+
         Array<String> bodyIds = new Array<>();
         for (String id : physicsBodies.keySet()) {
             bodyIds.add(id);
@@ -5916,8 +5958,13 @@ public class ThreeDManager implements Disposable {
             specularCubemap.dispose();
             specularCubemap = null;
         }
+        if (gridScene != null) {
+            if (sceneManager != null) {
+                sceneManager.removeScene(gridScene);
+            }
+            gridScene = null;
+        }
         if (gridInstance != null) {
-            sceneManager.removeScene(new net.mgsx.gltf.scene3d.scene.Scene(gridInstance));
             gridInstance.model.dispose();
             gridInstance = null;
         }
@@ -5985,6 +6032,34 @@ public class ThreeDManager implements Disposable {
     public void dispose() {
         clearScene();
         physicsConstraints.clear();
+
+        if (depthFbo != null) {
+            depthFbo.dispose();
+            depthFbo = null;
+        }
+        if (materialFbo != null) {
+            materialFbo.dispose();
+            materialFbo = null;
+        }
+        if (materialBatch != null) {
+            materialBatch.dispose();
+            materialBatch = null;
+        }
+
+        for (BufferPipeline pipeline : bufferPipelines.values()) {
+            if (pipeline != null) pipeline.dispose();
+        }
+        bufferPipelines.clear();
+
+        if (ssaoEffect != null) { ssaoEffect.dispose(); ssaoEffect = null; }
+        if (rayTracingEffect != null) { rayTracingEffect.dispose(); rayTracingEffect = null; }
+        if (ssgiEffect != null) { ssgiEffect.dispose(); ssgiEffect = null; }
+        if (godRaysEffect != null) { godRaysEffect.dispose(); godRaysEffect = null; }
+        if (heightFogEffect != null) { heightFogEffect.dispose(); heightFogEffect = null; }
+        if (volumetricFogEffect != null) { volumetricFogEffect.dispose(); volumetricFogEffect = null; }
+        if (dofEffect != null) { dofEffect.dispose(); dofEffect = null; }
+        if (linearizeEffect != null) { linearizeEffect.dispose(); linearizeEffect = null; }
+        if (customScreenEffect != null) { customScreenEffect.dispose(); customScreenEffect = null; }
 
         if (particleProxyModel != null) particleProxyModel.dispose();
         if (modelBatch != null) modelBatch.dispose();

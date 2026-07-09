@@ -320,18 +320,43 @@ public class StageListener implements ApplicationListener {
 
     private final java.util.Map<Sprite, PinnedState> pinnedSprites = new java.util.HashMap<>();
 
-	@Override
-	public void create() {
+    public void create() {
         isFirstResize = true;
         org.catrobat.catroid.utils.ActionThreadRegistry.clear();
 
-		deltaActionTimeDivisor = 10f;
+        deltaActionTimeDivisor = 10f;
 
-        stage = null;
-        uiStage = null;
+        if (stage != null) {
+            stage.dispose();
+            stage = null;
+        }
+        if (uiStage != null) {
+            uiStage.dispose();
+            uiStage = null;
+        }
+        if (shapeRenderer != null) {
+            shapeRenderer.dispose();
+            shapeRenderer = null;
+        }
+        if (brightnessContrastHueShader != null) {
+            brightnessContrastHueShader.dispose();
+            brightnessContrastHueShader = null;
+        }
+        if (vncSwizzleShader != null) {
+            vncSwizzleShader.dispose();
+            vncSwizzleShader = null;
+        }
+        if (threeDManager != null) {
+            threeDManager.dispose();
+            threeDManager = null;
+        }
+        if (axes != null) {
+            axes.dispose();
+            axes = null;
+        }
 
-		brightnessContrastHueShader = new Look.BrightnessContrastHueShader();
-		shapeRenderer = new ShapeRenderer();
+        brightnessContrastHueShader = new Look.BrightnessContrastHueShader();
+        shapeRenderer = new ShapeRenderer();
 
 		project = ProjectManager.getInstance().getCurrentProject();
 		scene = ProjectManager.getInstance().getCurrentlyPlayingScene();
@@ -1680,29 +1705,55 @@ public class StageListener implements ApplicationListener {
             }
 
             if (makeScreenshot) {
-				Scene scene = ProjectManager.getInstance().getCurrentlyEditedScene();
-				String manualScreenshotPath = scene.getDirectory()
-						+ "/" + SCREENSHOT_MANUAL_FILE_NAME;
-				File manualScreenshot = new File(manualScreenshotPath);
-				if (!manualScreenshot.exists() || Objects.equals(screenshotName,
-						SCREENSHOT_MANUAL_FILE_NAME)) {
-					byte[] screenshot = ScreenUtils
-							.getFrameBufferPixels(screenshotX, screenshotY, screenshotWidth, screenshotHeight, true);
-					screenshotSaver.saveScreenshotAndNotify(
-							screenshot,
-							screenshotName,
-							this::notifyScreenshotCallbackAndCleanup,
-							GlobalScope.INSTANCE
-					);
-				}
-				String automaticScreenShotPath = scene.getDirectory()
-						+ "/" + SCREENSHOT_AUTOMATIC_FILE_NAME;
-				File automaticScreenShot = new File(automaticScreenShotPath);
-				if (manualScreenshot.exists() && automaticScreenShot.exists()) {
-					automaticScreenShot.delete();
-				}
-				makeScreenshot = false;
-			}
+                Scene scene = ProjectManager.getInstance().getCurrentlyEditedScene();
+                String manualScreenshotPath = scene.getDirectory()
+                        + "/" + SCREENSHOT_MANUAL_FILE_NAME;
+                File manualScreenshot = new File(manualScreenshotPath);
+                if (!manualScreenshot.exists() || Objects.equals(screenshotName,
+                        SCREENSHOT_MANUAL_FILE_NAME)) {
+
+                    int actualX = screenshotX;
+                    int actualY = screenshotY;
+                    int actualW = screenshotWidth;
+                    int actualH = screenshotHeight;
+
+                    StageActivity activity = StageActivity.activeStageActivity.get();
+                    boolean isFreeStageEnabled = (activity != null && "StageWorkspaceActivity".equals(activity.getClass().getSimpleName()));
+
+                    if (isFreeStageEnabled) {
+                        actualX = 0;
+                        actualY = 0;
+                        actualW = Gdx.graphics.getWidth();
+                        actualH = Gdx.graphics.getHeight();
+                    } else {
+                        actualX = Math.max(0, actualX);
+                        actualY = Math.max(0, actualY);
+                        actualW = Math.min(Gdx.graphics.getWidth() - actualX, actualW);
+                        actualH = Math.min(Gdx.graphics.getHeight() - actualY, actualH);
+                    }
+
+                    if (actualW <= 0) actualW = 1;
+                    if (actualH <= 0) actualH = 1;
+
+                    byte[] screenshot = ScreenUtils
+                            .getFrameBufferPixels(actualX, actualY, actualW, actualH, true);
+
+                    ScreenshotSaver tempSaver = new ScreenshotSaver(Gdx.files, getScreenshotPath(), actualW, actualH);
+                    tempSaver.saveScreenshotAndNotify(
+                            screenshot,
+                            screenshotName,
+                            this::notifyScreenshotCallbackAndCleanup,
+                            GlobalScope.INSTANCE
+                    );
+                }
+                String automaticScreenShotPath = scene.getDirectory()
+                        + "/" + SCREENSHOT_AUTOMATIC_FILE_NAME;
+                File automaticScreenShot = new File(automaticScreenShotPath);
+                if (manualScreenshot.exists() && automaticScreenShot.exists()) {
+                    automaticScreenShot.delete();
+                }
+                makeScreenshot = false;
+            }
 
 			if (axesOn && !finished) {
 				drawAxes();

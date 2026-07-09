@@ -412,4 +412,17 @@ public class PhysicsWorld {
 			}
 		}
 	}
+
+    public void destroyPhysicsObject(Sprite sprite) {
+        if (sprite != null && physicsObjects.containsKey(sprite)) {
+            PhysicsObject physicsObject = physicsObjects.remove(sprite);
+            if (physicsObject != null && physicsObject.body != null) {
+                try {
+                    world.destroyBody(physicsObject.body);
+                } catch (Exception e) {
+                    Log.e(TAG, "Error destroying physics body: " + e.getMessage());
+                }
+            }
+        }
+    }
 }

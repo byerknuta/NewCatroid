@@ -67,7 +67,7 @@ class LaunchProjectAction : TemporalAction() {
             return
         }
 
-        ProjectManager.pushProjectHistory(currentProject.directory.absolutePath)
+        ProjectManager.pushProjectHistory()
 
         val intent = Intent(stage, StageActivity::class.java)
 

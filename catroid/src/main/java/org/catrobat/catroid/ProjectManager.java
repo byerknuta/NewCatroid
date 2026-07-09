@@ -95,9 +95,7 @@ public final class ProjectManager {
 
 	private Context applicationContext;
 
-	private static Deque<String> projectCallStack = new ArrayDeque<>();
-
-	public Context getApplicationContext() {
+    public Context getApplicationContext() {
 		return applicationContext;
 	}
 
@@ -806,17 +804,6 @@ public final class ProjectManager {
 		currentSprite = null;
 	}
 
-	public static void pushProjectHistory(String projectPath) {
-		projectCallStack.push(projectPath);
-	}
-
-	public static String popProjectHistory() {
-		if (projectCallStack.isEmpty()) {
-			return null;
-		}
-		return projectCallStack.pop();
-	}
-
     private boolean needsPhysicsCacheWarning = false;
 
     public boolean isNeedsPhysicsCacheWarning() {
@@ -825,5 +812,57 @@ public final class ProjectManager {
 
     public void setNeedsPhysicsCacheWarning(boolean needsPhysicsCacheWarning) {
         this.needsPhysicsCacheWarning = needsPhysicsCacheWarning;
+    }
+
+    public static class ProjectManagerState {
+        public Project project;
+        public Scene currentlyEditedScene;
+        public Scene currentlyPlayingScene;
+        public Scene startScene;
+        public Sprite currentSprite;
+
+        public ProjectManagerState(Project project, Scene currentlyEditedScene, Scene currentlyPlayingScene, Scene startScene, Sprite currentSprite) {
+            this.project = project;
+            this.currentlyEditedScene = currentlyEditedScene;
+            this.currentlyPlayingScene = currentlyPlayingScene;
+            this.startScene = startScene;
+            this.currentSprite = currentSprite;
+        }
+    }
+
+    private static Deque<ProjectManagerState> projectCallStack = new ArrayDeque<>();
+
+    public static void pushProjectHistory() {
+        if (instance != null && instance.project != null) {
+            ProjectManagerState state = new ProjectManagerState(
+                    instance.project,
+                    instance.currentlyEditedScene,
+                    instance.currentlyPlayingScene,
+                    instance.startScene,
+                    instance.currentSprite
+            );
+            projectCallStack.push(state);
+        }
+    }
+
+    @Deprecated
+    public static void pushProjectHistory(String projectPath) {
+        pushProjectHistory();
+    }
+
+    public static boolean popProjectHistory() {
+        if (projectCallStack.isEmpty()) {
+            return false;
+        }
+        ProjectManagerState state = projectCallStack.pop();
+        if (instance != null && state != null) {
+            instance.project = state.project;
+            instance.currentlyEditedScene = state.currentlyEditedScene;
+            instance.currentlyPlayingScene = state.currentlyPlayingScene;
+            instance.startScene = state.startScene;
+            instance.currentSprite = state.currentSprite;
+            return true;
+        }
+        return false;
     }
 }

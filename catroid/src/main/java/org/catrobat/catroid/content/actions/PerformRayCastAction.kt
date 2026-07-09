@@ -15,17 +15,35 @@ class PerformRayCastAction : TemporalAction() {
     private var endY: Formula? = null
 
     override fun update(percent: Float) {
-        val id = rayId!!.interpretString(scope)
-        if (id == null || id.isEmpty()) return
+        val id = rayId?.interpretString(scope)
+        if (id.isNullOrEmpty()) return
 
-        val sX = startX!!.interpretFloat(scope)
-        val sY = startY!!.interpretFloat(scope)
-        val eX = endX!!.interpretFloat(scope)
-        val eY = endY!!.interpretFloat(scope)
+        val sX = startX?.interpretFloat(scope) ?: return
+        val sY = startY?.interpretFloat(scope) ?: return
+        val eX = endX?.interpretFloat(scope) ?: return
+        val eY = endY?.interpretFloat(scope) ?: return
+
+        if (!sX.isFinite() || !sY.isFinite() || !eX.isFinite() || !eY.isFinite()) {
+            return
+        }
+
+        val dx = eX - sX
+        val dy = eY - sY
+        if (dx * dx + dy * dy < 0.0001f) {
+            return
+        }
+
+        val limit = 50000f
+        val clampedStart = Vector2(sX.coerceIn(-limit, limit), sY.coerceIn(-limit, limit))
+        val clampedEnd = Vector2(eX.coerceIn(-limit, limit), eY.coerceIn(-limit, limit))
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
 
-        scene.physicsWorld.performRayCast(id, Vector2(sX, sY), Vector2(eX, eY))
+        try {
+            scene.physicsWorld.performRayCast(id, clampedStart, clampedEnd)
+        } catch (e: Exception) {
+            android.util.Log.e("PerformRayCast", "Failed to perform RayCast in native Box2D", e)
+        }
     }
 
     fun setScope(scope: Scope?) {

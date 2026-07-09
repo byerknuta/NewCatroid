@@ -45,6 +45,8 @@ import io.noties.markwon.Markwon
 import io.noties.markwon.image.ImagesPlugin
 import io.noties.markwon.image.file.FileSchemeHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.catrobat.catroid.CatroidApplication
@@ -134,6 +136,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
 
         when (result) {
             is org.catrobat.catroid.io.asynctask.ImportResult.Success -> {
+                ProjectListFragment.clearCache()
                 setAdapterItems(adapter.projectsSorted)
             }
 
@@ -247,7 +250,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
 
     override fun initializeAdapter() {
         sharedPreferenceDetailsKey = SharedPreferenceKeys.SHOW_DETAILS_PROJECTS_PREFERENCE_KEY
-        adapter = ProjectAdapter(itemList)
+        adapter = ProjectAdapter(ArrayList<ProjectData?>())
         onAdapterReady()
     }
 
@@ -511,7 +514,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
         ) {
             requireActivity().runOnUiThread {
                 setShowProgressBar(true)
-
+                ProjectListFragment.clearCache()
                 for (item in validItems) {
                     projectManager.deleteDownloadedProjectInformation(item.name)
                     adapter.remove(item)
@@ -558,6 +561,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
         name ?: return
         if (name != item.name) {
             setShowProgressBar(true)
+            ProjectListFragment.clearCache()
             ProjectRenamer(item.directory, name)
                 .renameProjectAsync({ success: Boolean -> onRenameFinished(success) })
         }
@@ -758,29 +762,32 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
         private const val PERMISSIONS_REQUEST_IMPORT_FROM_EXTERNAL_STORAGE = 801
         private const val REQUEST_IMPORT_PROJECT = 7
 
+        private val projectDataCache = java.util.concurrent.ConcurrentHashMap<String, ProjectData>()
+
+        @JvmStatic
+        fun clearCache() {
+            projectDataCache.clear()
+        }
+
         @JvmStatic
         fun getLocalProjectList(items: MutableList<ProjectData>) {
             FlavoredConstants.DEFAULT_ROOT_DIRECTORY.listFiles()?.forEach { projectDir ->
                 val codeXml = File(projectDir, Constants.CODE_XML_FILE_NAME)
-                val scenesDir = File(projectDir, "scenes")
-                val filesDir = File(projectDir, "files")
 
-
-                if (codeXml.exists() && scenesDir.isDirectory && filesDir.isDirectory) {
-                    try {
-                        val metaDataParser = ProjectMetaDataParser(codeXml)
-                        items.add(metaDataParser.projectMetaData)
-                    } catch (exception: IOException) {
-                        Log.e(TAG, "Could not parse local project.", exception)
-                    }
-                }
-
-                else if (codeXml.exists()) {
-                    try {
-                        val metaDataParser = ProjectMetaDataParser(codeXml)
-                        items.add(metaDataParser.projectMetaData)
-                    } catch (exception: IOException) {
-                        Log.e(TAG, "Could not parse local project.", exception)
+                if (codeXml.exists()) {
+                    val key = codeXml.absolutePath
+                    val cached = projectDataCache[key]
+                    if (cached != null) {
+                        items.add(cached)
+                    } else {
+                        try {
+                            val metaDataParser = ProjectMetaDataParser(codeXml)
+                            val meta = metaDataParser.projectMetaData
+                            projectDataCache[key] = meta
+                            items.add(meta)
+                        } catch (exception: IOException) {
+                            Log.e(TAG, "Could not parse local project.", exception)
+                        }
                     }
                 }
             }
@@ -790,23 +797,73 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     private fun updateAdapterAsync() {
         setShowProgressBar(true)
 
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val items = if (adapter.projectsSorted) sortedItemList else itemList
-
-            withContext(Dispatchers.Main) {
-                adapter.setItems(items)
-                adapter.notifyDataSetChanged()
-
-                if (adapter.items.isEmpty()) {
-                    if (projectManager.initializeDefaultProject()) {
-                        updateAdapterAsync()
-                    } else {
-                        ToastUtil.showError(requireContext(), R.string.wtf_error)
-                        requireActivity().finish()
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+            val quickItems: List<ProjectData?> = withContext(Dispatchers.IO) {
+                val list = ArrayList<ProjectData>()
+                FlavoredConstants.DEFAULT_ROOT_DIRECTORY.listFiles()?.forEach { projectDir ->
+                    val codeXml = File(projectDir, Constants.CODE_XML_FILE_NAME)
+                    if (codeXml.exists()) {
+                        list.add(ProjectData(projectDir.name, projectDir, codeXml.lastModified().toDouble(), false))
                     }
-                } else {
-                    setShowProgressBar(false)
                 }
+                if (adapter.projectsSorted) {
+                    list.sortWith(Comparator { p1, p2 -> p1.name.compareTo(p2.name) })
+                } else {
+                    list.sortWith(Comparator { p1, p2 -> p2.lastUsed.compareTo(p1.lastUsed) })
+                }
+                list
+            }
+
+            adapter.setItems(quickItems)
+            adapter.notifyDataSetChanged()
+
+            val finalItems = withContext(Dispatchers.IO) {
+                val projectDirs = FlavoredConstants.DEFAULT_ROOT_DIRECTORY.listFiles()?.filter {
+                    File(it, Constants.CODE_XML_FILE_NAME).exists()
+                } ?: emptyList()
+
+                val deferredList = projectDirs.map { projectDir ->
+                    async(Dispatchers.IO) {
+                        val codeXml = File(projectDir, Constants.CODE_XML_FILE_NAME)
+                        val key = codeXml.absolutePath
+                        val cached = projectDataCache[key]
+                        if (cached != null) {
+                            cached
+                        } else {
+                            try {
+                                val metaDataParser = ProjectMetaDataParser(codeXml)
+                                val meta = metaDataParser.projectMetaData
+                                projectDataCache[key] = meta
+                                meta
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Could not parse local project $projectDir", e)
+                                ProjectData(projectDir.name, projectDir, codeXml.lastModified().toDouble(), false)
+                            }
+                        }
+                    }
+                }
+
+                val list = deferredList.awaitAll().toMutableList()
+                if (adapter.projectsSorted) {
+                    list.sortWith(Comparator { p1, p2 -> p1.name.compareTo(p2.name) })
+                } else {
+                    list.sortWith(Comparator { p1, p2 -> p2.lastUsed.compareTo(p1.lastUsed) })
+                }
+                list
+            }
+
+            adapter.setItems(finalItems)
+            adapter.notifyDataSetChanged()
+
+            if (adapter.items.isEmpty()) {
+                if (projectManager.initializeDefaultProject()) {
+                    updateAdapterAsync()
+                } else {
+                    ToastUtil.showError(requireContext(), R.string.wtf_error)
+                    requireActivity().finish()
+                }
+            } else {
+                setShowProgressBar(false)
             }
         }
     }

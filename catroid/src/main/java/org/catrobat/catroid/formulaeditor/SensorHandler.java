@@ -437,9 +437,9 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 			case USER_LANGUAGE:
 				return userLocaleTag;
 			case STAGE_WIDTH:
-				return (double) Gdx.app.getGraphics().getWidth();
+				return (double) Gdx.graphics.getWidth();
 			case STAGE_HEIGHT:
-				return (double) Gdx.app.getGraphics().getHeight();
+				return (double) Gdx.graphics.getHeight();
 			case BATTARY:
 				IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
 				Intent batteryStatus = CatroidApplication.getAppContext().registerReceiver(null, intentFilter);

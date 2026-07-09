@@ -1,4 +1,3 @@
-// В пакете: org.catrobat.catroid.content.actions
 package org.catrobat.catroid.content.actions
 
 import android.util.Log

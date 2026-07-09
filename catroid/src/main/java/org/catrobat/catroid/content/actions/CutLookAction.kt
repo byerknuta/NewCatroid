@@ -23,27 +23,16 @@
 
 package org.catrobat.catroid.content.actions
 
-import android.widget.Toast
-import android.content.Context
-import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
-import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import org.catrobat.catroid.stage.StageActivity
-import org.catrobat.catroid.stage.StageActivity.IntentListener
-import android.util.Log
-import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.CatroidApplication
-import org.catrobat.catroid.R
 import org.catrobat.catroid.common.LookData
-
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.utils.ErrorLog
-import org.catrobat.catroid.utils.GlobalShaderManager
 import java.io.File
 import java.io.FileOutputStream
-import java.util.ArrayList
 import kotlin.math.abs
 
 class CutLookAction() : TemporalAction() {
@@ -53,66 +42,68 @@ class CutLookAction() : TemporalAction() {
     var x2: Formula? = null
     var y2: Formula? = null
 
+    private var hasExecuted = false
+
     override fun update(percent: Float) {
-        val x1_i: Int = x1?.interpretInteger(scope) ?: 0
-        val y1_i: Int = y1?.interpretInteger(scope) ?: 0
-        val x2_i: Int = x2?.interpretInteger(scope) ?: 0
-        val y2_i: Int = y2?.interpretInteger(scope) ?: 0
-        val lookData: LookData? = scope?.sprite?.look?.lookData
+        if (hasExecuted) return
+        hasExecuted = true
 
-        lookData?.let {
-            val file: File = it.file
-            try {
-                val originalBitmap = BitmapFactory.decodeFile(file.absolutePath)
-                if (originalBitmap == null) {
-                    return
+        val s = scope ?: return
+        val x1_i: Int = x1?.interpretInteger(s) ?: 0
+        val y1_i: Int = y1?.interpretInteger(s) ?: 0
+        val x2_i: Int = x2?.interpretInteger(s) ?: 0
+        val y2_i: Int = y2?.interpretInteger(s) ?: 0
+        val lookData: LookData = s.sprite?.look?.lookData ?: return
+
+        val file: File = lookData.file
+        try {
+            val originalBitmap = BitmapFactory.decodeFile(file.absolutePath) ?: return
+
+            val bitmapWidth = originalBitmap.width
+            val bitmapHeight = originalBitmap.height
+
+            val safeX1 = x1_i.coerceIn(0, bitmapWidth)
+            val safeY1 = y1_i.coerceIn(0, bitmapHeight)
+            val safeX2 = x2_i.coerceIn(0, bitmapWidth)
+            val safeY2 = y2_i.coerceIn(0, bitmapHeight)
+
+            val cropX = minOf(safeX1, safeX2)
+            val cropY = minOf(safeY1, safeY2)
+            val width = abs(safeX2 - safeX1)
+            val height = abs(safeY2 - safeY1)
+
+            if (width > 0 && height > 0) {
+                val croppedBitmap = Bitmap.createBitmap(originalBitmap, cropX, cropY, width, height)
+
+                val context = CatroidApplication.getAppContext()
+                val tempFile = File.createTempFile("cropped_look_", ".png", context?.cacheDir)
+                FileOutputStream(tempFile).use { out ->
+                    croppedBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
                 }
 
-                val cropX = minOf(x1_i, x2_i)
-                val cropY = minOf(y1_i, y2_i)
-                val width = abs(x2_i - x1_i)
-                val height = abs(y2_i - y1_i)
+                val newLook = createlook(tempFile)
+                setLook(newLook)
 
-                if (width > 0 && height > 0 &&
-                    cropX + width <= originalBitmap.width &&
-                    cropY + height <= originalBitmap.height) {
-
-                    val croppedBitmap = Bitmap.createBitmap(originalBitmap, cropX, cropY, width, height)
-
-                    val context = CatroidApplication.getAppContext()
-                    val tempFile = File.createTempFile("cropped_look_", ".png", context?.cacheDir)
-                    FileOutputStream(tempFile).use { out ->
-                        croppedBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-                    }
-
-                    val newLook = createlook(tempFile)
-                    setLook(newLook)
-
-                    originalBitmap.recycle()
-                    croppedBitmap.recycle()
-                }
-
-            } catch (e: Exception) {
-                ErrorLog.log(e.message)
-                e.printStackTrace()
+                croppedBitmap.recycle()
             }
+            originalBitmap.recycle()
+
+        } catch (e: Exception) {
+            ErrorLog.log(e.message)
+            e.printStackTrace()
         }
     }
 
     fun createlook(file: File): LookData {
-        LookData(file.name, file).apply {
-            collisionInformation.calculate()
-            return this
-        }
+        val look = LookData(file.name, file)
+        look.collisionInformation.calculate()
+        return look
     }
 
     fun setLook(look: LookData) {
-        look?.apply {
-            updateLookListIndex()
-            scope?.sprite?.look?.lookData = this
-            collisionInformation?.collisionPolygonCalculationThread?.join()
-            isWebRequest = false
-        }
+        updateLookListIndex()
+        scope?.sprite?.look?.lookData = look
+        look.isWebRequest = false
     }
 
     private fun updateLookListIndex() {

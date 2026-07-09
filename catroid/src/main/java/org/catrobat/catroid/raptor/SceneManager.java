@@ -1525,9 +1525,6 @@ public class SceneManager {
     private void applyLightAndTransform(GameObject go) {
         if (go == null) return;
 
-
-
-
         if (go.hasComponent(LightComponent.class)) {
 
             Vector3 worldPosition = go.transform.worldTransform.getTranslation(new Vector3());
@@ -1559,6 +1556,7 @@ public class SceneManager {
                 engine.setPointLight(go.id, tmpPos.x, tmpPos.y, tmpPos.z, r, g, b, light.intensity, light.range);
                 break;
             case DIRECTIONAL:
+                engine.removePBRLight(go.id);
                 Vector3 sunDir = tmpScale;
                 sunDir.set(0, 0, -1);
                 tmpRot.transform(sunDir);

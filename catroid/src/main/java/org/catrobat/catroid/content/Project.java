@@ -163,13 +163,51 @@ public class Project implements Serializable {
 		return names;
 	}
 
-	public void addScene(Scene scene) {
-		sceneList.add(scene);
-	}
+    public void addScene(Scene scene) {
+        if (scene != null) {
+            boolean isDuplicate = false;
+            for (Scene existingScene : sceneList) {
+                if (existingScene.getSceneId() != null && existingScene.getSceneId().equals(scene.getSceneId())) {
+                    isDuplicate = true;
+                    break;
+                }
+            }
 
-	public void removeScene(Scene scene) {
-		sceneList.remove(scene);
-	}
+            if (isDuplicate) {
+                scene.setSceneId(java.util.UUID.randomUUID().toString());
+
+                if (scene.getSpriteList() != null) {
+                    for (Sprite sprite : scene.getSpriteList()) {
+                        sprite.setSpriteId(java.util.UUID.randomUUID().toString());
+
+                        if (sprite.getLookList() != null) {
+                            for (org.catrobat.catroid.common.LookData look : sprite.getLookList()) {
+                                look.setLookId(java.util.UUID.randomUUID().toString());
+                            }
+                        }
+
+                        if (sprite.getSoundList() != null) {
+                            for (org.catrobat.catroid.common.SoundInfo sound : sprite.getSoundList()) {
+                                sound.setSoundId(java.util.UUID.randomUUID().toString());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        sceneList.add(scene);
+    }
+
+    public void removeScene(Scene scene) {
+        if (scene != null) {
+            for (int i = 0; i < sceneList.size(); i++) {
+                if (sceneList.get(i) == scene) {
+                    sceneList.remove(i);
+                    break;
+                }
+            }
+        }
+    }
 
 	public boolean hasScene() {
 		return (sceneList.size() > 0);

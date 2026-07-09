@@ -104,7 +104,7 @@ private fun unzipAndImportProject(projectZipFile: File): ImportResult = try {
 
     ZipArchiver().unzip(projectZipFile, cachedProjectDir)
 
-    org.catrobat.catroid.utils.MatryoshkaManager.unpackIfMatryoshka(cachedProjectDir)
+    //org.catrobat.catroid.utils.MatryoshkaManager.unpackIfMatryoshka(cachedProjectDir)
 
     val codeXml = File(cachedProjectDir, Constants.CODE_XML_FILE_NAME)
     val initLunoTxt = File(cachedProjectDir, "init.luno.txt")

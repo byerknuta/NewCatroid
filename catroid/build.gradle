@@ -133,6 +133,13 @@ android {
 
     namespace 'org.catrobat.catroid'
 
+    variantFilter { variant ->
+        def flavorName = variant.flavors[0].name
+        if (variant.buildType.name == 'templateRelease' && flavorName != 'apktemplate') {
+            setIgnore(true)
+        }
+    }
+
     buildFeatures {
         buildConfig = true
         viewBinding = true
@@ -230,6 +237,9 @@ android {
         androidTest {
             resources.srcDirs += ['src/androidTest/res', 'src/androidTest/assets']
         }
+        apktemplate {
+            assets.exclude 'catblocks/**'
+        }
     }
 
     packagingOptions {
@@ -237,7 +247,13 @@ android {
             excludes += ['lib/mips/*', 'lib/armeabi/*']
         }
         resources {
-            excludes += ['LICENSE.txt', 'META-INF/LICENSE.md', 'META-INF/INDEX.LIST', 'lib/mips/*', 'lib/armeabi/*', "classes.dex"]
+            excludes += [
+                    'LICENSE.txt', 'META-INF/LICENSE.md', 'META-INF/INDEX.LIST',
+                    'lib/mips/*', 'lib/armeabi/*', 'classes.dex',
+                    'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/NOTICE',
+                    'META-INF/NOTICE.txt', 'META-INF/DEPENDENCIES', 'META-INF/ASL2.0',
+                    '**/*.properties', '**/*.proto', 'about.html'
+            ]
         }
         pickFirst 'META-INF/io.netty.versions.properties'
 
@@ -295,6 +311,21 @@ android {
             signingConfig signingConfigs.signedRelease
             matchingFallbacks = ["release"]
         }
+        templateRelease {
+            initWith buildTypes.release
+
+            minifyEnabled false
+            shrinkResources false
+
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules-template.pro'
+
+            firebaseCrashlytics {
+                mappingFileUploadEnabled false
+            }
+
+            signingConfig signingConfigs.debug
+            matchingFallbacks = ["release"]
+        }
     }
 
     flavorDimensions = ["default"]
@@ -336,6 +367,18 @@ android {
             versionName '1.0'
 
             ext.set("disableGoogleServices", true)
+
+            matchingFallbacks = ["danvex"]
+
+            firebaseCrashlytics {
+                mappingFileUploadEnabled false
+            }
+
+            resConfigs "en"
+
+            ndk {
+                abiFilters "armeabi-v7a", "arm64-v8a"
+            }
 
             resValue "string", "FEATURE_APK_GENERATOR_ENABLED", "true"
             buildConfigField "boolean", "FEATURE_APK_GENERATOR_ENABLED", "true"
@@ -409,11 +452,9 @@ android {
 
     packagingOptions {
         resources {
-
             excludes += "META-INF/services/javax.script.ScriptEngineFactory"
             excludes += "META-INF/kotlin-script.imports"
             excludes += "kotlin/script/script.properties"
-
 
             pickFirsts += "kotlin/**"
             pickFirsts += "META-INF/*.kotlin_module"
@@ -811,17 +852,6 @@ afterEvaluate {
             Task googleServicesTask = tasks.findByName(googleServicesTaskName)
             if (googleServicesTask != null) {
                 googleServicesTask.enabled = false
-            }
-
-
-
-
-
-            
-            def variantCapitalized = variant.name.capitalize()
-            tasks.matching { it.name.startsWith("kapt") && it.name.contains(variantCapitalized) }.all { task ->
-                println "  -> Disabling task: ${task.name}"
-                task.enabled = false
             }
         }
     }

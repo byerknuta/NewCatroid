@@ -43,6 +43,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,574 +53,595 @@ import ar.com.hjg.pngj.PngjInputException;
 
 @LunoClass
 public class CollisionInformation {
-	private static final String TAG = CollisionInformation.class.getSimpleName();
-	private static final String TAG_COLLISION_POLYGON = "CollisionPolygon";
-
-	public Polygon[] collisionPolygons;
-	public Thread collisionPolygonCalculationThread;
-	private boolean isCalculationThreadCancelled = true;
-	private LookData lookData;
-
-	private Pair<Integer, Integer> leftBubblePos;
-	private Pair<Integer, Integer> rightBubblePos;
-
-	public CollisionInformation(LookData lookData) {
-		this.lookData = lookData;
-	}
-
-	public Pair<Integer, Integer> getLeftBubblePos() {
-		return leftBubblePos;
-	}
-
-	public Pair<Integer, Integer> getRightBubblePos() {
-		return rightBubblePos;
-	}
-
-	public void calculate() {
-		isCalculationThreadCancelled = false;
-		CollisionPolygonCreationTask task = new CollisionPolygonCreationTask(lookData);
-		collisionPolygonCalculationThread = new Thread(task);
-		collisionPolygonCalculationThread.start();
-	}
-
-	public int getNumberOfVertices() {
-		int size = 0;
-		for (Polygon polygon : collisionPolygons) {
-			size += polygon.getVertices().length / 2;
-		}
-		return size;
-	}
-
-	public void calculateBubblePositions() {
-		String path = lookData.getFile().getAbsolutePath();
-		Bitmap bitmap = BitmapFactory.decodeFile(path);
-
-		calculateBubblePositions(bitmap);
-	}
-
-	@VisibleForTesting
-	public void calculateBubblePositions(Bitmap bitmap) {
-		int[] pixels = new int[bitmap.getWidth() * bitmap.getHeight()];
-		bitmap.getPixels(pixels, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
-
-		int centerX = bitmap.getWidth() / 2;
-		int centerY = bitmap.getHeight() / 2;
-
-		for (int y = 0; y < bitmap.getHeight(); y++) {
-			if (rightBubblePos != null) {
-				return;
-			}
-			for (int x = bitmap.getWidth() - 1; x > 0; x--) {
-				if (!ImageEditing.isPixelTransparent(pixels, bitmap.getWidth(), x, y)) {
-					int xDiff = x - centerX;
-					int yDiff = centerY - y;
-
-					if (rightBubblePos == null) {
-						rightBubblePos = new Pair<>(xDiff, yDiff);
-					}
-
-					leftBubblePos = new Pair<>(xDiff, yDiff);
-				}
-			}
-		}
-	}
-
-	public void loadCollisionPolygon() {
-		if (this.collisionPolygons != null) {
-			return;
-		}
-
-		isCalculationThreadCancelled = false;
-		String path = lookData.getFile().getAbsolutePath();
-
-		Polygon[] cachedPolygons = getCollisionPolygonFromPNGMeta(path);
-		if (cachedPolygons.length > 0) {
-			this.collisionPolygons = cachedPolygons;
-			Log.i(TAG, "Successfully loaded " + collisionPolygons.length + " polygons from PNG cache.");
-			return;
-		}
-		createCollisionPolygon(path);
-
-		if(isCalculationThreadCancelled) {
-			this.collisionPolygons = null;
-		}
-	}
-
-	public boolean forceRecalculateAndSave() {
-		isCalculationThreadCancelled = false;
-		String path = lookData.getFile().getAbsolutePath();
-
-		createCollisionPolygon(path);
-
-		return this.collisionPolygons != null && this.collisionPolygons.length > 0;
-	}
-
-	private void createCollisionPolygon(String path) {
-		Log.i(TAG, "No Collision information from PNG file, creating new one.");
-		if (isCalculationThreadCancelled) {
-			return;
-		}
-
-		Bitmap bitmap = BitmapFactory.decodeFile(path);
-		if (bitmap == null) {
-			return;
-		}
-
-		final int MIN_SIZE_FOR_COMPLEX_COLLISION = 100;
-
-		/*if (bitmap.getWidth() < MIN_SIZE_FOR_COMPLEX_COLLISION || bitmap.getHeight() < MIN_SIZE_FOR_COMPLEX_COLLISION) {
-			Log.i(TAG, "Sprite is too small (" + bitmap.getWidth() + "x" + bitmap.getHeight() + "). Using simple hitbox instead of complex polygon.");
-			collisionPolygons = createCollisionPolygonByHitbox(bitmap);
-
-			if (!isCalculationThreadCancelled && lookData.isValid()) {
-				writeCollisionVerticesToPNGMeta(collisionPolygons, path);
-			}
-
-			return;
-		}*/
-
-		ArrayList<ArrayList<CollisionPolygonVertex>> boundingPolygon = createBoundingPolygonVertices(path, lookData);
-		if (boundingPolygon.size() == 0) {
-			if (bitmap != null) {
-				collisionPolygons = createCollisionPolygonByHitbox(bitmap);
-			}
-			return;
-		}
-
-		int initialVertices = 0;
-		for (ArrayList<CollisionPolygonVertex> part : boundingPolygon) {
-			initialVertices += part.size();
-		}
-		Log.d("CollisionDebug", "Look: " + lookData.getName() + " - Initial vertex count: " + initialVertices + " / Limit: " + Constants.COLLISION_VERTEX_LIMIT);
-
-		//float minDimension = Math.min(bitmap.getWidth(), bitmap.getHeight());
-		android.graphics.Rect spriteBounds = ImageEditing.findVisibleBounds(bitmap);
-
-		if (spriteBounds == null) {
-			collisionPolygons = createCollisionPolygonByHitbox(bitmap);
-			if (!isCalculationThreadCancelled && lookData.isValid()) {
-				writeCollisionVerticesToPNGMeta(collisionPolygons, path);
-			}
-			return;
-		}
-
-		float contentWidth = spriteBounds.width();
-		float contentHeight = spriteBounds.height();
-		float minContentDimension = Math.min(contentWidth, contentHeight);
-
-		float epsilon = Math.max(1.5f, minContentDimension * 0.05f);
-
-		collisionPolygons = new Polygon[0];
-
-		do {
-			Log.d("CollisionDebug", "Look: " + lookData.getName() + " - Simplification loop. Epsilon: " + epsilon + ", Vertices: " + getNumberOfVertices());
-
-			if (isCalculationThreadCancelled) {
-				return;
-			}
-
-			ArrayList<Polygon> simplifiedPolygons = new ArrayList<>();
-
-			for (int i = 0; i < boundingPolygon.size(); i++) {
-				ArrayList<PointF> points = getPointsFromPolygonVertices(boundingPolygon.get(i));
-				if (points.size() < 3) continue;
-				ArrayList<PointF> simplified = simplifyPolygon(points, 0, points.size() - 1, epsilon);
-				if (simplified.size() >= 2) {
-					float dx = simplified.get(simplified.size() - 1).x - simplified.get(0).x;
-					float dy = simplified.get(simplified.size() - 1).y - simplified.get(0).y;
-					if (Math.hypot(dx, dy) < epsilon) {
-						simplified.remove(simplified.size() - 1);
-					}
-				}
-				if (simplified.size() < 3) continue;
-				simplifiedPolygons.add(createPolygonFromPoints(simplified));
-			}
-
-			EarClippingTriangulator triangulator = new EarClippingTriangulator();
-			com.badlogic.gdx.utils.Array<Polygon> finalTriangles = new com.badlogic.gdx.utils.Array<>();
-
-			for (Polygon poly : simplifiedPolygons) {
-				float[] vertices = poly.getVertices();
-				if (vertices.length < 6) continue;
-
-				ShortArray triangleIndices = triangulator.computeTriangles(vertices);
-
-				for (int i = 0; i < triangleIndices.size; i += 3) {
-					int p1_index = triangleIndices.get(i) * 2;
-					int p2_index = triangleIndices.get(i + 1) * 2;
-					int p3_index = triangleIndices.get(i + 2) * 2;
-
-					float[] triangleVertices = {
-							vertices[p1_index], vertices[p1_index + 1],
-							vertices[p2_index], vertices[p2_index + 1],
-							vertices[p3_index], vertices[p3_index + 1]
-					};
-
-					finalTriangles.add(new Polygon(triangleVertices));
-				}
-			}
-
-			collisionPolygons = finalTriangles.toArray(Polygon.class);
-
-
-			epsilon *= 1.2f;
-
-		} while (getNumberOfVertices() > Constants.COLLISION_VERTEX_LIMIT);
-
-		Log.d("CollisionDebug", "Look: " + lookData.getName() + " - Final vertex count: " + getNumberOfVertices() + " in " + collisionPolygons.length + " polygons.");
-
-		if (collisionPolygons == null || collisionPolygons.length == 0) {
-			if (bitmap != null) {
-				collisionPolygons = createCollisionPolygonByHitbox(bitmap);
-			}
-		}
-
-		if (isCalculationThreadCancelled || !lookData.isValid()) {
-			return;
-		}
-
-		writeCollisionVerticesToPNGMeta(collisionPolygons, path);
-		// Теперь лог должен показать гораздо большее количество "shapes"
-		Log.i(TAG_COLLISION_POLYGON, "Polygon size of look " + lookData.getName() + ": " + getNumberOfVertices() + " vertices in " + collisionPolygons.length + " convex shapes (triangles).");
-	}
-
-	public static ArrayList<ArrayList<CollisionPolygonVertex>> createBoundingPolygonVertices(String absoluteBitmapPath,
-			LookData lookData) {
-		Bitmap bitmap = BitmapFactory.decodeFile(absoluteBitmapPath);
-		if (bitmap == null) {
-			Log.e(TAG_COLLISION_POLYGON, "bitmap " + absoluteBitmapPath + " is null. Cannot create Collision " + "polygon");
-			return new ArrayList<>();
-		}
-
-		Matrix matrix = new Matrix();
-		matrix.preScale(1.0f, -1.0f);
-		bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-
-		boolean[][] grid = createCollisionGrid(bitmap);
-
-		if (lookData.getCollisionInformation().isCalculationThreadCancelled) {
-			return new ArrayList<>();
-		}
-
-		ArrayList<CollisionPolygonVertex> vertical = createVerticalVertices(grid, bitmap.getWidth(), bitmap.getHeight());
-		ArrayList<CollisionPolygonVertex> horizontal = createHorizontalVertices(grid, bitmap.getWidth(), bitmap.getHeight());
-
-		if (vertical.size() == 0 || horizontal.size() == 0) {
-			return new ArrayList<>();
-		}
-
-		if (lookData.getCollisionInformation().isCalculationThreadCancelled) {
-			return new ArrayList<>();
-		}
-
-		ArrayList<ArrayList<CollisionPolygonVertex>> finalVertices = new ArrayList<>();
-		finalVertices.add(new ArrayList<>());
-		int polygonNumber = 0;
-		finalVertices.get(polygonNumber).add(vertical.get(0));
-		vertical.remove(0);
-
-		do {
-			if (lookData.getCollisionInformation().isCalculationThreadCancelled) {
-				return new ArrayList<>();
-			}
-
-			List<CollisionPolygonVertex> currentPolygonVertex = finalVertices.get(polygonNumber);
-			CollisionPolygonVertex end = currentPolygonVertex.get(currentPolygonVertex.size() - 1);
-
-			boolean found = false;
-			for (int h = 0; h < horizontal.size(); h++) {
-				if (end.isConnected(horizontal.get(h))) {
-					currentPolygonVertex.add(horizontal.get(h));
-					end = horizontal.get(h);
-					horizontal.remove(h);
-					found = true;
-					break;
-				}
-			}
-
-			for (int v = 0; v < vertical.size(); v++) {
-				if (end.isConnected(vertical.get(v))) {
-					currentPolygonVertex.add(vertical.get(v));
-					vertical.remove(v);
-					found = true;
-					break;
-				}
-			}
-
-			if (!found) {
-				polygonNumber++;
-				finalVertices.add(new ArrayList<>());
-				finalVertices.get(polygonNumber).add(vertical.get(0));
-				vertical.remove(0);
-			}
-		} while (horizontal.size() > 0);
-		return finalVertices;
-	}
-
-	public static ArrayList<CollisionPolygonVertex> createHorizontalVertices(boolean[][] grid, int gridWidth, int
-			gridHeight) {
-		ArrayList<CollisionPolygonVertex> horizontal = new ArrayList<>();
-		for (int y = 0; y < gridHeight; y++) {
-			for (int x = 0; x < gridWidth; x++) {
-				if (grid[x][y]) {
-
-					boolean topEdge = y == 0 || !grid[x][y - 1];
-					if (topEdge) {
-						boolean extendPrevious = horizontal.size() > 0
-								&& horizontal.get(horizontal.size() - 1).endX == x
-								&& horizontal.get(horizontal.size() - 1).endY == y;
-						boolean extendPreviousOtherSide = horizontal.size() > 1
-								&& horizontal.get(horizontal.size() - 2).endX == x
-								&& horizontal.get(horizontal.size() - 2).endY == y;
-
-						if (extendPrevious) {
-							horizontal.get(horizontal.size() - 1).extend(x + 1, y);
-						} else if (extendPreviousOtherSide) {
-							horizontal.get(horizontal.size() - 2).extend(x + 1,
-									horizontal.get(horizontal.size() - 2).endY);
-						} else {
-							horizontal.add(new CollisionPolygonVertex(x, y, x + 1, y));
-						}
-					}
-
-					boolean bottomEdge = y == gridHeight - 1 || !grid[x][y + 1];
-					if (bottomEdge) {
-						boolean extendPrevious = horizontal.size() > 0
-								&& horizontal.get(horizontal.size() - 1).endX == x
-								&& horizontal.get(horizontal.size() - 1).endY == y + 1;
-						boolean extendPreviousOtherSide = horizontal.size() > 1
-								&& horizontal.get(horizontal.size() - 2).endX == x
-								&& horizontal.get(horizontal.size() - 2).endY == y + 1;
-
-						if (extendPrevious) {
-							horizontal.get(horizontal.size() - 1).extend(x + 1, y + 1);
-						} else if (extendPreviousOtherSide) {
-							horizontal.get(horizontal.size() - 2).extend(x + 1,
-									horizontal.get(horizontal.size() - 2).endY);
-						} else {
-							horizontal.add(new CollisionPolygonVertex(x, y + 1, x + 1, y + 1));
-						}
-					}
-				}
-			}
-		}
-		return horizontal;
-	}
-
-	public static ArrayList<CollisionPolygonVertex> createVerticalVertices(boolean[][] grid, int gridWidth, int
-			gridHeight) {
-		ArrayList<CollisionPolygonVertex> vertical = new ArrayList<>();
-		for (int x = 0; x < gridWidth; x++) {
-			for (int y = 0; y < gridHeight; y++) {
-				if (grid[x][y]) {
-					boolean leftEdge = x == 0 || !grid[x - 1][y];
-					if (leftEdge) {
-						boolean extendPrevious = vertical.size() > 0
-								&& vertical.get(vertical.size() - 1).endX == x
-								&& vertical.get(vertical.size() - 1).endY == y;
-						boolean extendPreviousOtherSide = vertical.size() > 1
-								&& vertical.get(vertical.size() - 2).endX == x
-								&& vertical.get(vertical.size() - 2).endY == y;
-
-						if (extendPrevious) {
-							vertical.get(vertical.size() - 1).extend(vertical.get(vertical.size() - 1).endX, y + 1);
-						} else if (extendPreviousOtherSide) {
-							vertical.get(vertical.size() - 2).extend(vertical.get(vertical.size() - 2).endX, y + 1);
-						} else {
-							vertical.add(new CollisionPolygonVertex(x, y, x, y + 1));
-						}
-					}
-
-					boolean rightEdge = x == gridWidth - 1 || !grid[x + 1][y];
-					if (rightEdge) {
-						boolean extendPrevious = vertical.size() > 0
-								&& vertical.get(vertical.size() - 1).endX == x + 1
-								&& vertical.get(vertical.size() - 1).endY == y;
-						boolean extendPreviousOtherSide = vertical.size() > 1
-								&& vertical.get(vertical.size() - 2).endX == x + 1
-								&& vertical.get(vertical.size() - 2).endY == y;
-
-						if (extendPrevious) {
-							vertical.get(vertical.size() - 1).extend(vertical.get(vertical.size() - 1).endX, y + 1);
-						} else if (extendPreviousOtherSide) {
-							vertical.get(vertical.size() - 2).extend(vertical.get(vertical.size() - 2).endX, y + 1);
-						} else {
-							vertical.add(new CollisionPolygonVertex(x + 1, y, x + 1, y + 1));
-						}
-					}
-				}
-			}
-		}
-		return vertical;
-	}
-
-	private static float pointToLineDistance(PointF lineStart, PointF lineEnd, PointF point) {
-		float normalLength = (float) Math.sqrt((lineEnd.x - lineStart.x) * (lineEnd.x - lineStart.x)
-				+ (lineEnd.y - lineStart.y) * (lineEnd.y - lineStart.y));
-		return Math.abs((point.x - lineStart.x) * (lineEnd.y - lineStart.y)
-				- (point.y - lineStart.y) * (lineEnd.x - lineStart.x)) / normalLength;
-	}
-
-	public static ArrayList<PointF> simplifyPolygon(ArrayList<PointF> points, int start, int end, float epsilon) {
-		float dmax = 0f;
-		int index = start;
-
-		for (int i = index + 1; i < end; ++i) {
-			float d = pointToLineDistance(points.get(start), points.get(end), points.get(i));
-			if (d > dmax) {
-				index = i;
-				dmax = d;
-			}
-		}
-
-		ArrayList<PointF> finalRes = new ArrayList<>();
-		if (dmax > epsilon) {
-			ArrayList<PointF> res1 = simplifyPolygon(points, start, index, epsilon);
-			ArrayList<PointF> res2 = simplifyPolygon(points, index, end, epsilon);
-
-			for (int i = 0; i < res1.size() - 1; i++) {
-				finalRes.add(res1.get(i));
-			}
-			for (int i = 0; i < res2.size(); i++) {
-				finalRes.add(res2.get(i));
-			}
-		} else {
-			finalRes.add(points.get(start));
-			finalRes.add(points.get(end));
-		}
-		return finalRes;
-	}
-
-	public static ArrayList<PointF> getPointsFromPolygonVertices(ArrayList<CollisionPolygonVertex> polygon) {
-		ArrayList<PointF> points = new ArrayList<>();
-		for (CollisionPolygonVertex vertex : polygon) {
-			points.add(vertex.getStartPoint());
-		}
-		return points;
-	}
-
-	public static Polygon createPolygonFromPoints(ArrayList<PointF> points) {
-		float[] polygonNodes = new float[points.size() * 2];
-		for (int node = 0; node < points.size(); node++) {
-			polygonNodes[node * 2] = points.get(node).x;
-			polygonNodes[node * 2 + 1] = points.get(node).y;
-		}
-		return new Polygon(polygonNodes);
-	}
-
-	public static boolean[][] createCollisionGrid(Bitmap bitmap) {
-		int width = bitmap.getWidth();
-		int height = bitmap.getHeight();
-		int[] pixels = new int[width * height];
-		bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
-		boolean[][] grid = new boolean[width][height];
-		for (int x = 0; x < width; x++) {
-			for (int y = 0; y < height; y++) {
-				if (!ImageEditing.isPixelTransparent(pixels, bitmap.getWidth(), x, y)) {
-					grid[x][y] = true;
-				}
-			}
-		}
-		return grid;
-	}
-
-	public static void writeCollisionVerticesToPNGMeta(Polygon[] collisionPolygon,
-			String absolutePath) {
-		StringBuilder metaToWrite = new StringBuilder();
-		for (Polygon polygon : collisionPolygon) {
-			for (int f = 0; f < polygon.getVertices().length; f++) {
-				metaToWrite.append(polygon.getVertices()[f]).append(';');
-			}
-			metaToWrite = new StringBuilder(metaToWrite.substring(0, metaToWrite.length() - 1));
-			metaToWrite.append('|');
-		}
-		if (metaToWrite.length() > 0) {
-			metaToWrite = new StringBuilder(metaToWrite.substring(0, metaToWrite.length() - 1));
-			ImageEditing.writeMetaDataStringToPNG(absolutePath, Constants.COLLISION_PNG_META_TAG_KEY, metaToWrite.toString());
-			ImageEditing.writeMetaDataStringToPNG(absolutePath, Constants.COLLISION_PNG_META_VERSION_KEY, Constants.LATEST_COLLISION_VERSION);
-		}
-	}
-
-	public static Polygon[] getCollisionPolygonFromPNGMeta(String absolutePath) {
-		String metadata;
-		String version;
-		try {
-			version = ImageEditing.readMetaDataStringFromPNG(absolutePath, Constants.COLLISION_PNG_META_VERSION_KEY);
-
-			if (!Constants.LATEST_COLLISION_VERSION.equals(version)) {
-				Log.i(TAG, "Old or invalid collision cache version detected. Forcing regeneration.");
-				return new Polygon[0];
-			}
-
-
-			metadata = ImageEditing.readMetaDataStringFromPNG(absolutePath, Constants.COLLISION_PNG_META_TAG_KEY);
-		} catch (PngjInputException e) {
-			Log.e(TAG, "Error reading metadata from png!");
-			return new Polygon[0];
-		}
-
-		boolean isMetadataValid = checkMetaDataString(metadata);
-		if (!isMetadataValid) {
-			return new Polygon[0];
-		}
-
-		String[] polygonStrings = metadata.split("\\|");
-		Polygon[] collisionPolygon = new Polygon[polygonStrings.length];
-		for (int polygonString = 0; polygonString < polygonStrings.length; polygonString++) {
-			String[] pointStrings = polygonStrings[polygonString].split(";");
-			float[] points = new float[pointStrings.length];
-			for (int pointString = 0; pointString < pointStrings.length; pointString++) {
-				points[pointString] = Float.valueOf(pointStrings[pointString]);
-			}
-			collisionPolygon[polygonString] = new Polygon(points);
-		}
-		Log.i(TAG, "Loaded CollisionPolygon from " + absolutePath + " successfully!");
-		return collisionPolygon;
-	}
-
-	public static boolean checkMetaDataString(String metadata) {
-		if (metadata == null || metadata.equals("")) {
-			return false;
-		}
-		Pattern pattern = Pattern.compile(Constants.COLLISION_POLYGON_METADATA_PATTERN);
-		Matcher matcher = pattern.matcher(metadata);
-		if (matcher.find() && matcher.group().equals(metadata)) {
-			return true;
-		}
-		Log.e(TAG_COLLISION_POLYGON, "Invalid Metadata, creating new Polygon");
-		return false;
-	}
-
-	public static Polygon[] createCollisionPolygonByHitbox(Bitmap bitmap) {
-		float width = bitmap.getWidth();
-		float height = bitmap.getHeight();
-
-		float[] vertices = {
-				0f, 0f,
-				width, 0f,
-				width, height,
-				0f, height
-		};
-
-		Polygon polygon = new Polygon(vertices);
-
-		float[] finalVertices = {
-				0f, 0f,
-				width, 0f,
-				width, height,
-				0f, height
-		};
-
-		Polygon finalPolygon = new Polygon(finalVertices);
-		Polygon[] polygons = new Polygon[1];
-		polygons[0] = finalPolygon;
-		return polygons;
-	}
-
-	public void printDebugCollisionPolygons() {
-		int polygonNr = 0;
-		for (Polygon p : collisionPolygons) {
-			Log.i(TAG, "Collision Polygon " + ++polygonNr + " :\n" + Arrays.toString(p.getTransformedVertices()));
-		}
-	}
+    private static final String TAG = CollisionInformation.class.getSimpleName();
+    private static final String TAG_COLLISION_POLYGON = "CollisionPolygon";
+
+    private static final java.util.Map<String, Polygon[]> ramCache = new ConcurrentHashMap<>();
+
+    public static void clearCache() {
+        ramCache.clear();
+    }
+
+    public volatile Polygon[] collisionPolygons;
+    public Thread collisionPolygonCalculationThread;
+    private volatile boolean isCalculationThreadCancelled = true;
+    private LookData lookData;
+
+    private Pair<Integer, Integer> leftBubblePos;
+    private Pair<Integer, Integer> rightBubblePos;
+
+    public CollisionInformation(LookData lookData) {
+        this.lookData = lookData;
+    }
+
+    public Pair<Integer, Integer> getLeftBubblePos() {
+        return leftBubblePos;
+    }
+
+    public Pair<Integer, Integer> getRightBubblePos() {
+        return rightBubblePos;
+    }
+
+    public void calculate() {
+        isCalculationThreadCancelled = false;
+        CollisionPolygonCreationTask task = new CollisionPolygonCreationTask(lookData);
+        collisionPolygonCalculationThread = new Thread(task);
+        collisionPolygonCalculationThread.start();
+    }
+
+    public int getNumberOfVertices() {
+        int size = 0;
+        if (collisionPolygons != null) {
+            for (Polygon polygon : collisionPolygons) {
+                size += polygon.getVertices().length / 2;
+            }
+        }
+        return size;
+    }
+
+    public void calculateBubblePositions() {
+        String path = lookData.getFile().getAbsolutePath();
+        Bitmap bitmap = BitmapFactory.decodeFile(path);
+
+        calculateBubblePositions(bitmap);
+    }
+
+    @VisibleForTesting
+    public void calculateBubblePositions(Bitmap bitmap) {
+        int[] pixels = new int[bitmap.getWidth() * bitmap.getHeight()];
+        bitmap.getPixels(pixels, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
+
+        int centerX = bitmap.getWidth() / 2;
+        int centerY = bitmap.getHeight() / 2;
+
+        for (int y = 0; y < bitmap.getHeight(); y++) {
+            if (rightBubblePos != null) {
+                return;
+            }
+            for (int x = bitmap.getWidth() - 1; x > 0; x--) {
+                if (!ImageEditing.isPixelTransparent(pixels, bitmap.getWidth(), x, y)) {
+                    int xDiff = x - centerX;
+                    int yDiff = centerY - y;
+
+                    if (rightBubblePos == null) {
+                        rightBubblePos = new Pair<>(xDiff, yDiff);
+                    }
+
+                    leftBubblePos = new Pair<>(xDiff, yDiff);
+                }
+            }
+        }
+    }
+
+    public synchronized void loadCollisionPolygon() {
+        if (this.collisionPolygons != null) {
+            return;
+        }
+
+        isCalculationThreadCancelled = false;
+        String path = lookData.getFile().getAbsolutePath();
+
+        if (ramCache.containsKey(path)) {
+            this.collisionPolygons = ramCache.get(path);
+            Log.i(TAG, "Successfully loaded collision polygons for " + lookData.getName() + " from RAM cache.");
+            return;
+        }
+
+        Polygon[] cachedPolygons = getCollisionPolygonFromPNGMeta(path);
+        if (cachedPolygons.length > 0) {
+            this.collisionPolygons = cachedPolygons;
+            ramCache.put(path, cachedPolygons);
+            Log.i(TAG, "Successfully loaded " + collisionPolygons.length + " polygons from PNG cache.");
+            return;
+        }
+
+        createCollisionPolygon(path);
+
+        if (isCalculationThreadCancelled) {
+            this.collisionPolygons = null;
+        } else if (this.collisionPolygons != null) {
+            ramCache.put(path, this.collisionPolygons);
+        }
+    }
+
+    public synchronized boolean forceRecalculateAndSave() {
+        isCalculationThreadCancelled = false;
+        String path = lookData.getFile().getAbsolutePath();
+
+        createCollisionPolygon(path);
+
+        return this.collisionPolygons != null && this.collisionPolygons.length > 0;
+    }
+
+    private synchronized void createCollisionPolygon(String path) {
+        Log.i(TAG, "No Collision information from PNG file, creating new one.");
+        if (isCalculationThreadCancelled) {
+            return;
+        }
+
+        if (ramCache.containsKey(path)) {
+            this.collisionPolygons = ramCache.get(path);
+            return;
+        }
+
+        Bitmap bitmap = BitmapFactory.decodeFile(path);
+        if (bitmap == null) {
+            return;
+        }
+
+        final int MIN_SIZE_FOR_COMPLEX_COLLISION = 100;
+
+        ArrayList<ArrayList<CollisionPolygonVertex>> boundingPolygon = createBoundingPolygonVertices(path, lookData);
+        if (boundingPolygon.size() == 0) {
+            if (bitmap != null) {
+                collisionPolygons = createCollisionPolygonByHitbox(bitmap);
+            }
+            return;
+        }
+
+        int initialVertices = 0;
+        for (ArrayList<CollisionPolygonVertex> part : boundingPolygon) {
+            initialVertices += part.size();
+        }
+        Log.d("CollisionDebug", "Look: " + lookData.getName() + " - Initial vertex count: " + initialVertices + " / Limit: " + Constants.COLLISION_VERTEX_LIMIT);
+
+        android.graphics.Rect spriteBounds = ImageEditing.findVisibleBounds(bitmap);
+
+        if (spriteBounds == null) {
+            collisionPolygons = createCollisionPolygonByHitbox(bitmap);
+            if (!isCalculationThreadCancelled && lookData.isValid()) {
+                writeCollisionVerticesToPNGMeta(collisionPolygons, path);
+            }
+            return;
+        }
+
+        float contentWidth = spriteBounds.width();
+        float contentHeight = spriteBounds.height();
+        float minContentDimension = Math.min(contentWidth, contentHeight);
+
+        float epsilon = Math.max(1.5f, minContentDimension * 0.05f);
+
+        collisionPolygons = new Polygon[0];
+
+        do {
+            Log.d("CollisionDebug", "Look: " + lookData.getName() + " - Simplification loop. Epsilon: " + epsilon + ", Vertices: " + getNumberOfVertices());
+
+            if (isCalculationThreadCancelled) {
+                return;
+            }
+
+            ArrayList<Polygon> simplifiedPolygons = new ArrayList<>();
+
+            for (int i = 0; i < boundingPolygon.size(); i++) {
+                ArrayList<PointF> points = getPointsFromPolygonVertices(boundingPolygon.get(i));
+                if (points.size() < 3) continue;
+                ArrayList<PointF> simplified = simplifyPolygon(points, 0, points.size() - 1, epsilon);
+                if (simplified.size() >= 2) {
+                    float dx = simplified.get(simplified.size() - 1).x - simplified.get(0).x;
+                    float dy = simplified.get(simplified.size() - 1).y - simplified.get(0).y;
+                    if (Math.hypot(dx, dy) < epsilon) {
+                        simplified.remove(simplified.size() - 1);
+                    }
+                }
+                if (simplified.size() < 3) continue;
+                simplifiedPolygons.add(createPolygonFromPoints(simplified));
+            }
+
+            EarClippingTriangulator triangulator = new EarClippingTriangulator();
+            com.badlogic.gdx.utils.Array<Polygon> finalTriangles = new com.badlogic.gdx.utils.Array<>();
+
+            for (Polygon poly : simplifiedPolygons) {
+                float[] vertices = poly.getVertices();
+                if (vertices.length < 6) continue;
+
+                ShortArray triangleIndices = triangulator.computeTriangles(vertices);
+
+                for (int i = 0; i < triangleIndices.size; i += 3) {
+                    int p1_index = triangleIndices.get(i) * 2;
+                    int p2_index = triangleIndices.get(i + 1) * 2;
+                    int p3_index = triangleIndices.get(i + 2) * 2;
+
+                    float[] triangleVertices = {
+                            vertices[p1_index], vertices[p1_index + 1],
+                            vertices[p2_index], vertices[p2_index + 1],
+                            vertices[p3_index], vertices[p3_index + 1]
+                    };
+
+                    finalTriangles.add(new Polygon(triangleVertices));
+                }
+            }
+
+            collisionPolygons = finalTriangles.toArray(Polygon.class);
+
+            epsilon *= 1.2f;
+
+        } while (getNumberOfVertices() > Constants.COLLISION_VERTEX_LIMIT);
+
+        Log.d("CollisionDebug", "Look: " + lookData.getName() + " - Final vertex count: " + getNumberOfVertices() + " in " + collisionPolygons.length + " polygons.");
+
+        if (collisionPolygons == null || collisionPolygons.length == 0) {
+            if (bitmap != null) {
+                collisionPolygons = createCollisionPolygonByHitbox(bitmap);
+            }
+        }
+
+        if (isCalculationThreadCancelled || !lookData.isValid()) {
+            return;
+        }
+
+        if (this.collisionPolygons != null) {
+            ramCache.put(path, this.collisionPolygons);
+        }
+
+        try {
+            writeCollisionVerticesToPNGMeta(collisionPolygons, path);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to write collision metadata to PNG on disk: " + e.getMessage());
+        }
+
+        Log.i(TAG_COLLISION_POLYGON, "Polygon size of look " + lookData.getName() + ": " + getNumberOfVertices() + " vertices in " + collisionPolygons.length + " convex shapes (triangles).");
+    }
+
+    public static ArrayList<ArrayList<CollisionPolygonVertex>> createBoundingPolygonVertices(String absolutePath,
+                                                                                             LookData lookData) {
+        Bitmap bitmap = BitmapFactory.decodeFile(absolutePath);
+        if (bitmap == null) {
+            Log.e(TAG_COLLISION_POLYGON, "bitmap " + absolutePath + " is null. Cannot create Collision polygon");
+            return new ArrayList<>();
+        }
+
+        Matrix matrix = new Matrix();
+        matrix.preScale(1.0f, -1.0f);
+        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+
+        boolean[][] grid = createCollisionGrid(bitmap);
+
+        if (lookData.getCollisionInformation().isCalculationThreadCancelled) {
+            return new ArrayList<>();
+        }
+
+        ArrayList<CollisionPolygonVertex> vertical = createVerticalVertices(grid, bitmap.getWidth(), bitmap.getHeight());
+        ArrayList<CollisionPolygonVertex> horizontal = createHorizontalVertices(grid, bitmap.getWidth(), bitmap.getHeight());
+
+        if (vertical.size() == 0 || horizontal.size() == 0) {
+            return new ArrayList<>();
+        }
+
+        if (lookData.getCollisionInformation().isCalculationThreadCancelled) {
+            return new ArrayList<>();
+        }
+
+        ArrayList<ArrayList<CollisionPolygonVertex>> finalVertices = new ArrayList<>();
+        finalVertices.add(new ArrayList<>());
+        int polygonNumber = 0;
+        finalVertices.get(polygonNumber).add(vertical.get(0));
+        vertical.remove(0);
+
+        do {
+            if (lookData.getCollisionInformation().isCalculationThreadCancelled) {
+                return new ArrayList<>();
+            }
+
+            List<CollisionPolygonVertex> currentPolygonVertex = finalVertices.get(polygonNumber);
+            CollisionPolygonVertex end = currentPolygonVertex.get(currentPolygonVertex.size() - 1);
+
+            boolean found = false;
+            for (int h = 0; h < horizontal.size(); h++) {
+                if (end.isConnected(horizontal.get(h))) {
+                    currentPolygonVertex.add(horizontal.get(h));
+                    end = horizontal.get(h);
+                    horizontal.remove(h);
+                    found = true;
+                    break;
+                }
+            }
+
+            for (int v = 0; v < vertical.size(); v++) {
+                if (end.isConnected(vertical.get(v))) {
+                    currentPolygonVertex.add(vertical.get(v));
+                    vertical.remove(v);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                polygonNumber++;
+                finalVertices.add(new ArrayList<>());
+                if (vertical.isEmpty()) {
+                    break;
+                }
+                finalVertices.get(polygonNumber).add(vertical.get(0));
+                vertical.remove(0);
+            }
+        } while (horizontal.size() > 0);
+        return finalVertices;
+    }
+
+    public static ArrayList<CollisionPolygonVertex> createHorizontalVertices(boolean[][] grid, int gridWidth, int
+            gridHeight) {
+        ArrayList<CollisionPolygonVertex> horizontal = new ArrayList<>();
+        for (int y = 0; y < gridHeight; y++) {
+            for (int x = 0; x < gridWidth; x++) {
+                if (grid[x][y]) {
+
+                    boolean topEdge = y == 0 || !grid[x][y - 1];
+                    if (topEdge) {
+                        boolean extendPrevious = horizontal.size() > 0
+                                && horizontal.get(horizontal.size() - 1).endX == x
+                                && horizontal.get(horizontal.size() - 1).endY == y;
+                        boolean extendPreviousOtherSide = horizontal.size() > 1
+                                && horizontal.get(horizontal.size() - 2).endX == x
+                                && horizontal.get(horizontal.size() - 2).endY == y;
+
+                        if (extendPrevious) {
+                            horizontal.get(horizontal.size() - 1).extend(x + 1, y);
+                        } else if (extendPreviousOtherSide) {
+                            horizontal.get(horizontal.size() - 2).extend(x + 1,
+                                    horizontal.get(horizontal.size() - 2).endY);
+                        } else {
+                            horizontal.add(new CollisionPolygonVertex(x, y, x + 1, y));
+                        }
+                    }
+
+                    boolean bottomEdge = y == gridHeight - 1 || !grid[x][y + 1];
+                    if (bottomEdge) {
+                        boolean extendPrevious = horizontal.size() > 0
+                                && horizontal.get(horizontal.size() - 1).endX == x
+                                && horizontal.get(horizontal.size() - 1).endY == y + 1;
+                        boolean extendPreviousOtherSide = horizontal.size() > 1
+                                && horizontal.get(horizontal.size() - 2).endX == x
+                                && horizontal.get(horizontal.size() - 2).endY == y + 1;
+
+                        if (extendPrevious) {
+                            horizontal.get(horizontal.size() - 1).extend(x + 1, y + 1);
+                        } else if (extendPreviousOtherSide) {
+                            horizontal.get(horizontal.size() - 2).extend(x + 1,
+                                    horizontal.get(horizontal.size() - 2).endY);
+                        } else {
+                            horizontal.add(new CollisionPolygonVertex(x, y + 1, x + 1, y + 1));
+                        }
+                    }
+                }
+            }
+        }
+        return horizontal;
+    }
+
+    public static ArrayList<CollisionPolygonVertex> createVerticalVertices(boolean[][] grid, int gridWidth, int
+            gridHeight) {
+        ArrayList<CollisionPolygonVertex> vertical = new ArrayList<>();
+        for (int x = 0; x < gridWidth; x++) {
+            for (int y = 0; y < gridHeight; y++) {
+                if (grid[x][y]) {
+                    boolean leftEdge = x == 0 || !grid[x - 1][y];
+                    if (leftEdge) {
+                        boolean extendPrevious = vertical.size() > 0
+                                && vertical.get(vertical.size() - 1).endX == x
+                                && vertical.get(vertical.size() - 1).endY == y;
+                        boolean extendPreviousOtherSide = vertical.size() > 1
+                                && vertical.get(vertical.size() - 2).endX == x
+                                && vertical.get(vertical.size() - 2).endY == y;
+
+                        if (extendPrevious) {
+                            vertical.get(vertical.size() - 1).extend(vertical.get(vertical.size() - 1).endX, y + 1);
+                        } else if (extendPreviousOtherSide) {
+                            vertical.get(vertical.size() - 2).extend(vertical.get(vertical.size() - 2).endX, y + 1);
+                        } else {
+                            vertical.add(new CollisionPolygonVertex(x, y, x, y + 1));
+                        }
+                    }
+
+                    boolean rightEdge = x == gridWidth - 1 || !grid[x + 1][y];
+                    if (rightEdge) {
+                        boolean extendPrevious = vertical.size() > 0
+                                && vertical.get(vertical.size() - 1).endX == x + 1
+                                && vertical.get(vertical.size() - 1).endY == y;
+                        boolean extendPreviousOtherSide = vertical.size() > 1
+                                && vertical.get(vertical.size() - 2).endX == x + 1
+                                && vertical.get(vertical.size() - 2).endY == y;
+
+                        if (extendPrevious) {
+                            vertical.get(vertical.size() - 1).extend(vertical.get(vertical.size() - 1).endX, y + 1);
+                        } else if (extendPreviousOtherSide) {
+                            vertical.get(vertical.size() - 2).extend(vertical.get(vertical.size() - 2).endX, y + 1);
+                        } else {
+                            vertical.add(new CollisionPolygonVertex(x + 1, y, x + 1, y + 1));
+                        }
+                    }
+                }
+            }
+        }
+        return vertical;
+    }
+
+    private static float pointToLineDistance(PointF lineStart, PointF lineEnd, PointF point) {
+        float normalLength = (float) Math.sqrt((lineEnd.x - lineStart.x) * (lineEnd.x - lineStart.x)
+                + (lineEnd.y - lineStart.y) * (lineEnd.y - lineStart.y));
+        return Math.abs((point.x - lineStart.x) * (lineEnd.y - lineStart.y)
+                - (point.y - lineStart.y) * (lineEnd.x - lineStart.x)) / normalLength;
+    }
+
+    public static ArrayList<PointF> simplifyPolygon(ArrayList<PointF> points, int start, int end, float epsilon) {
+        float dmax = 0f;
+        int index = start;
+
+        for (int i = index + 1; i < end; ++i) {
+            float d = pointToLineDistance(points.get(start), points.get(end), points.get(i));
+            if (d > dmax) {
+                index = i;
+                dmax = d;
+            }
+        }
+
+        ArrayList<PointF> finalRes = new ArrayList<>();
+        if (dmax > epsilon) {
+            ArrayList<PointF> res1 = simplifyPolygon(points, start, index, epsilon);
+            ArrayList<PointF> res2 = simplifyPolygon(points, index, end, epsilon);
+
+            for (int i = 0; i < res1.size() - 1; i++) {
+                finalRes.add(res1.get(i));
+            }
+            for (int i = 0; i < res2.size(); i++) {
+                finalRes.add(res2.get(i));
+            }
+        } else {
+            finalRes.add(points.get(start));
+            finalRes.add(points.get(end));
+        }
+        return finalRes;
+    }
+
+    public static ArrayList<PointF> getPointsFromPolygonVertices(ArrayList<CollisionPolygonVertex> polygon) {
+        ArrayList<PointF> points = new ArrayList<>();
+        for (CollisionPolygonVertex vertex : polygon) {
+            points.add(vertex.getStartPoint());
+        }
+        return points;
+    }
+
+    public static Polygon createPolygonFromPoints(ArrayList<PointF> points) {
+        float[] polygonNodes = new float[points.size() * 2];
+        for (int i = 0; i < points.size(); i++) {
+            polygonNodes[i * 2] = points.get(i).x;
+            polygonNodes[i * 2 + 1] = points.get(i).y;
+        }
+        return new Polygon(polygonNodes);
+    }
+
+    public static boolean[][] createCollisionGrid(Bitmap bitmap) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int[] pixels = new int[width * height];
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+
+        boolean[][] grid = new boolean[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (!ImageEditing.isPixelTransparent(pixels, width, x, y)) {
+                    grid[x][y] = true;
+                }
+            }
+        }
+        return grid;
+    }
+
+    public static void writeCollisionVerticesToPNGMeta(Polygon[] collisionPolygon,
+                                                       String absolutePath) {
+        StringBuilder metaToWrite = new StringBuilder();
+        for (Polygon polygon : collisionPolygon) {
+            for (int f = 0; f < polygon.getVertices().length; f++) {
+                metaToWrite.append(polygon.getVertices()[f]).append(';');
+            }
+            metaToWrite = new StringBuilder(metaToWrite.substring(0, metaToWrite.length() - 1));
+            metaToWrite.append('|');
+        }
+        if (metaToWrite.length() > 0) {
+            metaToWrite = new StringBuilder(metaToWrite.substring(0, metaToWrite.length() - 1));
+            ImageEditing.writeMetaDataStringToPNG(absolutePath, Constants.COLLISION_PNG_META_TAG_KEY, metaToWrite.toString());
+            ImageEditing.writeMetaDataStringToPNG(absolutePath, Constants.COLLISION_PNG_META_VERSION_KEY, Constants.LATEST_COLLISION_VERSION);
+        }
+    }
+
+    public static Polygon[] getCollisionPolygonFromPNGMeta(String absolutePath) {
+        String metadata;
+        String version;
+        try {
+            version = ImageEditing.readMetaDataStringFromPNG(absolutePath, Constants.COLLISION_PNG_META_VERSION_KEY);
+
+            if (!Constants.LATEST_COLLISION_VERSION.equals(version)) {
+                Log.i(TAG, "Old or invalid collision cache version detected. Forcing regeneration.");
+                return new Polygon[0];
+            }
+
+            metadata = ImageEditing.readMetaDataStringFromPNG(absolutePath, Constants.COLLISION_PNG_META_TAG_KEY);
+        } catch (PngjInputException e) {
+            Log.e(TAG, "Error reading metadata from png!");
+            return new Polygon[0];
+        }
+
+        boolean isMetadataValid = checkMetaDataString(metadata);
+        if (!isMetadataValid) {
+            return new Polygon[0];
+        }
+
+        String[] polygonStrings = metadata.split("\\|");
+        Polygon[] collisionPolygon = new Polygon[polygonStrings.length];
+        for (int polygonString = 0; polygonString < polygonStrings.length; polygonString++) {
+            String[] pointStrings = polygonStrings[polygonString].split(";");
+            float[] points = new float[pointStrings.length];
+            for (int pointString = 0; pointString < pointStrings.length; pointString++) {
+                points[pointString] = Float.valueOf(pointStrings[pointString]);
+            }
+            collisionPolygon[polygonString] = new Polygon(points);
+        }
+        Log.i(TAG, "Loaded CollisionPolygon from " + absolutePath + " successfully!");
+        return collisionPolygon;
+    }
+
+    public static boolean checkMetaDataString(String metadata) {
+        if (metadata == null || metadata.equals("")) {
+            return false;
+        }
+        Pattern pattern = Pattern.compile(Constants.COLLISION_POLYGON_METADATA_PATTERN);
+        Matcher matcher = pattern.matcher(metadata);
+        if (matcher.find() && matcher.group().equals(metadata)) {
+            return true;
+        }
+        Log.e(TAG_COLLISION_POLYGON, "Invalid Metadata, creating new Polygon");
+        return false;
+    }
+
+    public static Polygon[] createCollisionPolygonByHitbox(Bitmap bitmap) {
+        float width = bitmap.getWidth();
+        float height = bitmap.getHeight();
+
+        float[] vertices = {
+                0f, 0f,
+                width, 0f,
+                width, height,
+                0f, height
+        };
+
+        Polygon polygon = new Polygon(vertices);
+
+        float[] finalVertices = {
+                0f, 0f,
+                width, 0f,
+                width, height,
+                0f, height
+        };
+
+        Polygon finalPolygon = new Polygon(finalVertices);
+        Polygon[] polygons = new Polygon[1];
+        polygons[0] = finalPolygon;
+        return polygons;
+    }
+
+    public void printDebugCollisionPolygons() {
+        int polygonNr = 0;
+        for (Polygon p : collisionPolygons) {
+            Log.i(TAG, "Collision Polygon " + ++polygonNr + " :\n" + Arrays.toString(p.getTransformedVertices()));
+        }
+    }
 }

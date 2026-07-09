@@ -22,6 +22,8 @@
  */
 package org.catrobat.catroid.physics;
 
+import android.util.Log;
+
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 import com.danvexteam.lunoscript_annotations.LunoClass;
@@ -48,6 +50,22 @@ public class PhysicsLook extends Look {
 		physicsObject = physicsWorld.getPhysicsObject(sprite);
 		physicsObjectStateHandler = new PhysicsObjectStateHandler(this, physicsObject);
 	}
+
+    @Override
+    public void destroy() {
+        try {
+            if (ProjectManager.getInstance() != null
+                    && ProjectManager.getInstance().getCurrentlyPlayingScene() != null) {
+                PhysicsWorld physicsWorld = ProjectManager.getInstance().getCurrentlyPlayingScene().getPhysicsWorld();
+                if (physicsWorld != null && sprite != null) {
+                    physicsWorld.destroyPhysicsObject(sprite);
+                }
+            }
+        } catch (Exception e) {
+            Log.e("PhysicsLook", "Error destroying physics object", e);
+        }
+        super.destroy();
+    }
 
 	@Override
 	public void copyTo(final Look destination) {
@@ -189,13 +207,38 @@ public class PhysicsLook extends Look {
 		return super.getRotation();
 	}
 
-	@Override
-	public void setRotation(float degrees) {
-		super.setRotation(degrees);
-		if (null != physicsObject) {
-			physicsObject.setDirection(super.getRotation() % FULL_CIRCLE_DEGREE);
-		}
-	}
+    @Override
+    public void setRotation(float degrees) {
+        super.setRotation(degrees);
+        if (null != physicsObject) {
+            if (getRotationMode() == ROTATION_STYLE_ALL_AROUND) {
+                physicsObject.setDirection(super.getRotation() % FULL_CIRCLE_DEGREE);
+            }
+        }
+    }
+
+    @Override
+    public void setMotionDirectionInUserInterfaceDimensionUnit(float degrees) {
+        if (physicsObject != null) {
+            float physicalDirection = (-degrees + DEGREE_UI_OFFSET) % FULL_CIRCLE_DEGREE;
+            physicsObject.setDirection(physicalDirection);
+        }
+        super.setMotionDirectionInUserInterfaceDimensionUnit(degrees);
+    }
+
+    private void flipLookDataIfNeeded(float realRotation) {
+        float catroidAngle = breakDownCatroidAngle(physicsObject.getDirection());
+        boolean orientedRight = catroidAngle >= 0;
+        boolean orientedLeft = catroidAngle < 0;
+
+        boolean isLookDataFlipped = isFlipped();
+        if (isFlippedByAction) {
+            isLookDataFlipped = !isLookDataFlipped;
+        }
+        if (lookData != null && ((isLookDataFlipped && orientedRight) || (!isLookDataFlipped && orientedLeft))) {
+            lookData.getTextureRegion().flip(true, false);
+        }
+    }
 
 	@Override
 	public void setRotationMode(int mode) {
@@ -284,18 +327,6 @@ public class PhysicsLook extends Look {
 
 	private boolean isLookMoving() {
 		return physicsObject.getVelocity().y != 0.0 || physicsObject.getVelocity().x != 0.0;
-	}
-
-	private void flipLookDataIfNeeded(float realRotation) {
-		boolean orientedRight = realRotation > HALF_CIRCLE_DEGREE || realRotation == 0;
-		boolean orientedLeft = realRotation <= HALF_CIRCLE_DEGREE && realRotation != 0;
-		boolean isLookDataFlipped = isFlipped();
-		if (isFlippedByAction) {
-			isLookDataFlipped = !isLookDataFlipped;
-		}
-		if (lookData != null && ((isLookDataFlipped && orientedRight) || (!isLookDataFlipped && orientedLeft))) {
-			lookData.getTextureRegion().flip(true, false);
-		}
 	}
 
 	private float applyCenterOffset(float coordinate, boolean isXCoordinate, boolean add) {

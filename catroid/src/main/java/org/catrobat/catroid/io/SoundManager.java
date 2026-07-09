@@ -47,237 +47,269 @@ import androidx.core.content.ContextCompat;
  * synchronized.
  */
 public class SoundManager {
-	public static final int MAX_MEDIA_PLAYERS = 7;
+    public static final int MAX_MEDIA_PLAYERS = 7;
 
-	private static final String TAG = SoundManager.class.getSimpleName();
-	private static final SoundManager INSTANCE = new SoundManager();
+    private static final String TAG = SoundManager.class.getSimpleName();
+    private static final SoundManager INSTANCE = new SoundManager();
 
-	private final List<MediaPlayerWithSoundDetails> mediaPlayers = new ArrayList<>(MAX_MEDIA_PLAYERS);
-	private float volume = 70.0f;
+    private final List<MediaPlayerWithSoundDetails> mediaPlayers = new ArrayList<>(MAX_MEDIA_PLAYERS);
+    private float volume = 70.0f;
 
-	private final Set<SoundFilePathWithSprite> recentlyStoppedSoundfilePaths = new HashSet<>();
+    private final Set<SoundFilePathWithSprite> recentlyStoppedSoundfilePaths = new HashSet<>();
 
-	private final java.util.Map<String, MediaPlayerWithSoundDetails> preparedSounds = new java.util.HashMap<>();
+    private final java.util.Map<String, MediaPlayerWithSoundDetails> preparedSounds = new java.util.HashMap<>();
 
-	@VisibleForTesting
-	public SoundManager() {
-	}
+    private final java.util.Map<String, Float> soundVolumes = new java.util.HashMap<>();
 
-	public static SoundManager getInstance() {
-		return INSTANCE;
-	}
+    @VisibleForTesting
+    public SoundManager() {
+    }
 
-	public synchronized void playSoundFile(String soundFilePath, Sprite sprite) {
-		playSoundFileWithStartTime(soundFilePath, sprite, 0);
-	}
+    public static SoundManager getInstance() {
+        return INSTANCE;
+    }
+
+    private String getVolumeKey(String soundFilePath, Sprite sprite) {
+        return (sprite != null ? sprite.getSpriteId() : "global") + "::" + soundFilePath;
+    }
+
+    public synchronized float getVolumeForSound(String soundFilePath, Sprite sprite) {
+        String key = getVolumeKey(soundFilePath, sprite);
+        if (soundVolumes.containsKey(key)) {
+            return soundVolumes.get(key);
+        }
+        return this.volume;
+    }
+
+    public synchronized void playSoundFile(String soundFilePath, Sprite sprite) {
+        playSoundFileWithStartTime(soundFilePath, sprite, 0);
+    }
+
+    public synchronized void setVolumeForSound(String soundFilePath, Sprite sprite, float volume) {
+        if (volume > 100.0f) {
+            volume = 100.0f;
+        } else if (volume < 0.0f) {
+            volume = 0.0f;
+        }
+
+        String key = getVolumeKey(soundFilePath, sprite);
+        soundVolumes.put(key, volume);
+
+        float volumeScalar = volume * 0.01f;
+
+        for (MediaPlayerWithSoundDetails mediaPlayer : mediaPlayers) {
+            if (mediaPlayer.isPlaying() &&
+                    mediaPlayer.getStartedBySprite() == sprite &&
+                    mediaPlayer.getPathToSoundFile().equals(soundFilePath)) {
+
+                mediaPlayer.setVolume(volumeScalar, volumeScalar);
+            }
+        }
+    }
+
+    public synchronized void playSoundFileWithStartTime(String soundFilePath,
+                                                        Sprite sprite, int startTimeInMilSeconds) {
+        stopSameSoundInSprite(soundFilePath, sprite);
+        MediaPlayerWithSoundDetails mediaPlayer = getAvailableMediaPlayer();
+        if (mediaPlayer != null) {
+            try {
+                mediaPlayer.setStartedBySprite(sprite);
+                mediaPlayer.setPathToSoundFile(soundFilePath);
+                mediaPlayer.setDataSource(soundFilePath);
+                mediaPlayer.prepare();
+                mediaPlayer.seekTo(startTimeInMilSeconds);
+
+                float customVolume = getVolumeForSound(soundFilePath, sprite);
+                float volumeScalar = customVolume * 0.01f;
+                mediaPlayer.setVolume(volumeScalar, volumeScalar);
+
+                mediaPlayer.start();
+            } catch (Exception exception) {
+                Log.e(TAG, "Couldn't play sound file '" + soundFilePath + "'", exception);
+            }
+        }
+    }
+
+    public synchronized void stopSameSoundInSprite(String pathToSoundFile, Sprite sprite) {
+        for (MediaPlayerWithSoundDetails mediaPlayer : mediaPlayers) {
+            if (mediaPlayer.isPlaying() && mediaPlayer.getStartedBySprite() == sprite
+                    && mediaPlayer.getPathToSoundFile().equals(pathToSoundFile)) {
+                mediaPlayer.stop();
+                recentlyStoppedSoundfilePaths.add(new SoundFilePathWithSprite(
+                        mediaPlayer.getPathToSoundFile(), sprite));
+            }
+        }
+    }
+
+    public synchronized Set<SoundFilePathWithSprite> getRecentlyStoppedSoundfilePaths() {
+        return recentlyStoppedSoundfilePaths;
+    }
+
+    public synchronized float getDurationOfSoundFile(String pathToSoundfile) {
+        MediaPlayer mediaPlayer = getAvailableMediaPlayer();
+        float duration = 0f;
+        if (mediaPlayer != null) {
+            try {
+                mediaPlayer.setDataSource(pathToSoundfile);
+                mediaPlayer.prepare();
+                duration = mediaPlayer.getDuration();
+                mediaPlayer.stop();
+            } catch (Exception exception) {
+                Log.e(TAG, "Couldn't play sound file '" + pathToSoundfile + "'", exception);
+            }
+        }
+        return duration;
+    }
+
+    private MediaPlayerWithSoundDetails getAvailableMediaPlayer() {
+        for (MediaPlayerWithSoundDetails mediaPlayer : mediaPlayers) {
+            if (!mediaPlayer.isPlaying()) {
+                mediaPlayer.reset();
+                return mediaPlayer;
+            }
+        }
+
+        if (mediaPlayers.size() < MAX_MEDIA_PLAYERS) {
+            MediaPlayerWithSoundDetails mediaPlayer = new MediaPlayerWithSoundDetails();
+            mediaPlayers.add(mediaPlayer);
+
+            float volumeScalar = this.volume * 0.01f;
+            mediaPlayer.setVolume(volumeScalar, volumeScalar);
+
+            return mediaPlayer;
+        }
+        Log.d(TAG, "All MediaPlayer instances in use");
+        return null;
+    }
+
+    public synchronized void setVolume(float volume) {
+        if (volume > 100.0f) {
+            volume = 100.0f;
+        } else if (volume < 0.0f) {
+            volume = 0.0f;
+        }
+
+        this.volume = volume;
+        float globalScalar = volume * 0.01f;
+
+        for (MediaPlayerWithSoundDetails mediaPlayer : mediaPlayers) {
+            if (mediaPlayer.isPlaying()) {
+                float currentVolume = getVolumeForSound(mediaPlayer.getPathToSoundFile(), mediaPlayer.getStartedBySprite());
+                float volumeScalar = currentVolume * 0.01f;
+                mediaPlayer.setVolume(volumeScalar, volumeScalar);
+            } else {
+                mediaPlayer.setVolume(globalScalar, globalScalar);
+            }
+        }
+    }
+
+    public synchronized float getVolume() {
+        return this.volume;
+    }
+
+    public synchronized void clear() {
+        for (MediaPlayerWithSoundDetails mediaPlayer : mediaPlayers) {
+            mediaPlayer.reset();
+            mediaPlayer.release();
+        }
+        mediaPlayers.clear();
+        for (MediaPlayerWithSoundDetails preparedPlayer : preparedSounds.values()) {
+            preparedPlayer.release();
+        }
+        preparedSounds.clear();
+
+        recentlyStoppedSoundfilePaths.clear();
+        soundVolumes.clear();
+    }
+
+    public synchronized void pause() {
+        for (MediaPlayer mediaPlayer : mediaPlayers) {
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.pause();
+            } else {
+                mediaPlayer.reset();
+            }
+        }
+    }
+
+    public synchronized void resume() {
+        for (MediaPlayer mediaPlayer : mediaPlayers) {
+            if (!mediaPlayer.isPlaying()) {
+                mediaPlayer.start();
+            }
+        }
+    }
+
+    public synchronized void stopAllSounds() {
+        for (MediaPlayer mediaPlayer : mediaPlayers) {
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.stop();
+            }
+        }
+    }
+
+    public List<SoundBackup> getPlayingSoundBackups() {
+        List<SoundBackup> backupList = new ArrayList<>();
+        for (MediaPlayerWithSoundDetails mediaPlayer : mediaPlayers) {
+            if (mediaPlayer.isPlaying()) {
+                backupList.add(new SoundBackup(mediaPlayer.getPathToSoundFile(), mediaPlayer.getStartedBySprite(), mediaPlayer.getCurrentPosition()));
+            }
+        }
+        return backupList;
+    }
 
 
-	public synchronized void setVolumeForSound(String soundFilePath, Sprite sprite, float volume) {
-		if (volume > 100.0f) {
-			volume = 100.0f;
-		} else if (volume < 0.0f) {
-			volume = 0.0f;
-		}
+    public synchronized boolean prepareSound(String cacheName, String soundFilePath, Sprite sprite) {
+        if (preparedSounds.containsKey(cacheName)) {
+            // If a sound with this name is already prepared, release it first
+            MediaPlayerWithSoundDetails oldPlayer = preparedSounds.get(cacheName);
+            if (oldPlayer != null) {
+                oldPlayer.release();
+            }
+        }
 
-		float volumeScalar = volume * 0.01f;
+        try {
+            MediaPlayerWithSoundDetails mediaPlayer = new MediaPlayerWithSoundDetails();
+            mediaPlayer.setStartedBySprite(sprite);
+            mediaPlayer.setPathToSoundFile(soundFilePath);
+            mediaPlayer.setDataSource(soundFilePath);
+            mediaPlayer.prepare(); // This is the slow part we do in advance
 
-		for (MediaPlayerWithSoundDetails mediaPlayer : mediaPlayers) {
-			if (mediaPlayer.isPlaying() &&
-					mediaPlayer.getStartedBySprite() == sprite &&
-					mediaPlayer.getPathToSoundFile().equals(soundFilePath)) {
+            float volumeScalar = volume * 0.01f;
+            mediaPlayer.setVolume(volumeScalar, volumeScalar);
 
-				mediaPlayer.setVolume(volumeScalar, volumeScalar);
-			}
-		}
-	}
+            preparedSounds.put(cacheName, mediaPlayer);
+            return true;
+        } catch (Exception exception) {
+            Log.e(TAG, "Couldn't prepare sound file '" + soundFilePath + "' for cache name '" + cacheName + "'", exception);
+            return false;
+        }
+    }
 
-	public synchronized void playSoundFileWithStartTime(String soundFilePath,
-			Sprite sprite, int startTimeInMilSeconds) {
-		stopSameSoundInSprite(soundFilePath, sprite);
-		MediaPlayerWithSoundDetails mediaPlayer = getAvailableMediaPlayer();
-		if (mediaPlayer != null) {
-			try {
-				mediaPlayer.setStartedBySprite(sprite);
-				mediaPlayer.setPathToSoundFile(soundFilePath);
-				mediaPlayer.setDataSource(soundFilePath);
-				mediaPlayer.prepare();
-				mediaPlayer.seekTo(startTimeInMilSeconds);
-				mediaPlayer.start();
-			} catch (Exception exception) {
-				Log.e(TAG, "Couldn't play sound file '" + soundFilePath + "'", exception);
-			}
-		}
-	}
+    public synchronized boolean playSoundFromCache(String cacheName) {
+        MediaPlayerWithSoundDetails mediaPlayer = preparedSounds.get(cacheName);
+        if (mediaPlayer == null) {
+            Log.e(TAG, "No prepared sound found for cache name: " + cacheName);
+            return false;
+        }
 
-	public synchronized void stopSameSoundInSprite(String pathToSoundFile, Sprite sprite) {
-		for (MediaPlayerWithSoundDetails mediaPlayer : mediaPlayers) {
-			if (mediaPlayer.isPlaying() && mediaPlayer.getStartedBySprite() == sprite
-					&& mediaPlayer.getPathToSoundFile().equals(pathToSoundFile)) {
-				mediaPlayer.stop();
-				recentlyStoppedSoundfilePaths.add(new SoundFilePathWithSprite(
-						mediaPlayer.getPathToSoundFile(), sprite));
-			}
-		}
-	}
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+            try {
+                // Must re-prepare after stop()
+                mediaPlayer.prepare();
+            } catch (Exception e) {
+                Log.e(TAG, "Could not re-prepare sound from cache", e);
+                return false;
+            }
+        }
 
-	public synchronized Set<SoundFilePathWithSprite> getRecentlyStoppedSoundfilePaths() {
-		return recentlyStoppedSoundfilePaths;
-	}
+        mediaPlayer.seekTo(0);
+        mediaPlayer.start();
+        return true;
+    }
 
-	public synchronized float getDurationOfSoundFile(String pathToSoundfile) {
-		MediaPlayer mediaPlayer = getAvailableMediaPlayer();
-		float duration = 0f;
-		if (mediaPlayer != null) {
-			try {
-				mediaPlayer.setDataSource(pathToSoundfile);
-				mediaPlayer.prepare();
-				duration = mediaPlayer.getDuration();
-				mediaPlayer.stop();
-			} catch (Exception exception) {
-				Log.e(TAG, "Couldn't play sound file '" + pathToSoundfile + "'", exception);
-			}
-		}
-		return duration;
-	}
-
-	private MediaPlayerWithSoundDetails getAvailableMediaPlayer() {
-		for (MediaPlayerWithSoundDetails mediaPlayer : mediaPlayers) {
-			if (!mediaPlayer.isPlaying()) {
-				mediaPlayer.reset();
-				return mediaPlayer;
-			}
-		}
-
-		if (mediaPlayers.size() < MAX_MEDIA_PLAYERS) {
-			MediaPlayerWithSoundDetails mediaPlayer = new MediaPlayerWithSoundDetails();
-			mediaPlayers.add(mediaPlayer);
-			setVolume(volume);
-			return mediaPlayer;
-		}
-		Log.d(TAG, "All MediaPlayer instances in use");
-		return null;
-	}
-
-	public synchronized void setVolume(float volume) {
-		if (volume > 100.0f) {
-			volume = 100.0f;
-		} else if (volume < 0.0f) {
-			volume = 0.0f;
-		}
-
-		this.volume = volume;
-		float volumeScalar = volume * 0.01f;
-		for (MediaPlayer mediaPlayer : mediaPlayers) {
-			mediaPlayer.setVolume(volumeScalar, volumeScalar);
-		}
-	}
-
-	public synchronized float getVolume() {
-		return this.volume;
-	}
-
-	public synchronized void clear() {
-		for (MediaPlayerWithSoundDetails mediaPlayer : mediaPlayers) {
-			mediaPlayer.reset();
-			mediaPlayer.release();
-		}
-		mediaPlayers.clear();
-		for (MediaPlayerWithSoundDetails preparedPlayer : preparedSounds.values()) {
-			preparedPlayer.release();
-		}
-		preparedSounds.clear();
-
-		recentlyStoppedSoundfilePaths.clear();
-	}
-
-	public synchronized void pause() {
-		for (MediaPlayer mediaPlayer : mediaPlayers) {
-			if (mediaPlayer.isPlaying()) {
-				mediaPlayer.pause();
-			} else {
-				mediaPlayer.reset();
-			}
-		}
-	}
-
-	public synchronized void resume() {
-		for (MediaPlayer mediaPlayer : mediaPlayers) {
-			if (!mediaPlayer.isPlaying()) {
-				mediaPlayer.start();
-			}
-		}
-	}
-
-	public synchronized void stopAllSounds() {
-		for (MediaPlayer mediaPlayer : mediaPlayers) {
-			if (mediaPlayer.isPlaying()) {
-				mediaPlayer.stop();
-			}
-		}
-	}
-
-	public List<SoundBackup> getPlayingSoundBackups() {
-		List<SoundBackup> backupList = new ArrayList<>();
-		for (MediaPlayerWithSoundDetails mediaPlayer : mediaPlayers) {
-			if (mediaPlayer.isPlaying()) {
-				backupList.add(new SoundBackup(mediaPlayer.getPathToSoundFile(), mediaPlayer.getStartedBySprite(), mediaPlayer.getCurrentPosition()));
-			}
-		}
-		return backupList;
-	}
-
-
-	public synchronized boolean prepareSound(String cacheName, String soundFilePath, Sprite sprite) {
-		if (preparedSounds.containsKey(cacheName)) {
-			// If a sound with this name is already prepared, release it first
-			MediaPlayerWithSoundDetails oldPlayer = preparedSounds.get(cacheName);
-			if (oldPlayer != null) {
-				oldPlayer.release();
-			}
-		}
-
-		try {
-			MediaPlayerWithSoundDetails mediaPlayer = new MediaPlayerWithSoundDetails();
-			mediaPlayer.setStartedBySprite(sprite);
-			mediaPlayer.setPathToSoundFile(soundFilePath);
-			mediaPlayer.setDataSource(soundFilePath);
-			mediaPlayer.prepare(); // This is the slow part we do in advance
-
-			float volumeScalar = volume * 0.01f;
-			mediaPlayer.setVolume(volumeScalar, volumeScalar);
-
-			preparedSounds.put(cacheName, mediaPlayer);
-			return true;
-		} catch (Exception exception) {
-			Log.e(TAG, "Couldn't prepare sound file '" + soundFilePath + "' for cache name '" + cacheName + "'", exception);
-			return false;
-		}
-	}
-
-	public synchronized boolean playSoundFromCache(String cacheName) {
-		MediaPlayerWithSoundDetails mediaPlayer = preparedSounds.get(cacheName);
-		if (mediaPlayer == null) {
-			Log.e(TAG, "No prepared sound found for cache name: " + cacheName);
-			return false;
-		}
-
-		if (mediaPlayer.isPlaying()) {
-			mediaPlayer.stop();
-			try {
-				// Must re-prepare after stop()
-				mediaPlayer.prepare();
-			} catch (Exception e) {
-				Log.e(TAG, "Could not re-prepare sound from cache", e);
-				return false;
-			}
-		}
-
-		mediaPlayer.seekTo(0);
-		mediaPlayer.start();
-		return true;
-	}
-
-	public List<MediaPlayerWithSoundDetails> getMediaPlayers() {
-		return mediaPlayers;
-	}
+    public List<MediaPlayerWithSoundDetails> getMediaPlayers() {
+        return mediaPlayers;
+    }
 }

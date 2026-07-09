@@ -280,33 +280,23 @@ class CameraManager(private val stageActivity: StageActivity) : LifecycleOwner {
         }
     }
 
-    /**
-     * Делает снимок и сохраняет его в указанный файл.
-     *
-     * @param outputFile Файл, в который будет сохранено изображение. Убедитесь, что у приложения есть права на запись в это место!
-     * @param callback Колбэк, который будет вызван по завершении (в основном потоке).
-     */
     fun takePicture(outputFile: File, callback: (success: Boolean) -> Unit) {
-        // 1. Создаем опции для сохранения, используя переданный файл.
         val outputOptions = ImageCapture.OutputFileOptions.Builder(outputFile).build()
 
-        // 2. Вызываем асинхронный метод съемки.
         imageCaptureUseCase.takePicture(
             outputOptions,
-            Executors.newSingleThreadExecutor(), // Выполняем в фоновом потоке
+            Executors.newSingleThreadExecutor(),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    // Успех! Вызываем колбэк в основном потоке.
                     stageActivity.runOnUiThread {
                         val msg = "Photo capture succeeded: ${outputFile.absolutePath}"
                         //ToastUtil.showSuccess(stageActivity, msg)
                         Log.d(TAG, msg)
-                        callback(true) // Теперь просто возвращаем успех
+                        callback(true)
                     }
                 }
 
                 override fun onError(exc: ImageCaptureException) {
-                    // Ошибка! Вызываем колбэк в основном потоке.
                     stageActivity.runOnUiThread {
                         val msg = "Photo capture failed: ${exc.message}"
                         //ToastUtil.showError(stageActivity, msg)
@@ -321,29 +311,21 @@ class CameraManager(private val stageActivity: StageActivity) : LifecycleOwner {
     fun takePicture2(callback: (success: Boolean, file: File?) -> Unit) {
         if (ProjectManager.getInstance().currentProject == null) {
             Log.e("CameraManager", "Project is null, cannot save photo.")
-            callback(false, null) // Не забываем вернуть ошибку
+            callback(false, null)
             return
         }
 
-        // 1. Получаем директорию проекта.
         val projectDir = ProjectManager.getInstance().currentProject.filesDir
 
-        // --- НАЧАЛО ИСПРАВЛЕНИЯ ---
-        // 2. Убеждаемся, что все родительские папки существуют.
-        //    Метод mkdirs() создаст все недостающие папки по пути.
         if (!projectDir.exists()) {
             projectDir.mkdirs()
         }
-        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 
-        // 3. Теперь безопасно создаем файл.
-        //    Имя файла должно быть уникальным, чтобы не затирать старые фото.
         val photoFile = File(
             projectDir,
-            "photo.png" // Используем .jpg и уникальное имя
+            "photo.png"
         )
 
-        // Остальной код остается без изменений...
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
         imageCaptureUseCase.takePicture(
@@ -370,26 +352,15 @@ class CameraManager(private val stageActivity: StageActivity) : LifecycleOwner {
 
     @UiThread
     private fun rebindUseCases() {
-        // 1. Сначала всегда отвязываем все предыдущие сценарии, чтобы избежать конфликтов.
-        //if (!isFirst) {
-            //cameraProvider.unbindAll()
-        //}
-
-        //isFirst = false
-
-        // 2. Создаем список сценариев, которые должны быть активны.
         val useCaseList = mutableListOf<UseCase>()
 
-        // imageCaptureUseCase должен быть активен всегда, когда мы хотим иметь возможность делать фото.
         useCaseList.add(imageCaptureUseCase)
 
-        // Добавляем превью, только если оно должно быть видимым.
         if (previewVisible) {
             useCaseList.add(previewUseCase)
             previewUseCase.setSurfaceProvider(previewView.createSurfaceProvider())
         }
 
-        // Добавляем анализ изображения (детекторы), если он включен.
         if (detectionOn) {
             val mobileServiceAvailability = get(MobileServiceAvailability::class.java)
             if (mobileServiceAvailability.isGmsAvailable(stageActivity)) {
@@ -401,15 +372,13 @@ class CameraManager(private val stageActivity: StageActivity) : LifecycleOwner {
             useCaseList.add(analysisUseCase)
         }
 
-        // 3. Если список не пуст, привязываем все сценарии к жизненному циклу.
         if (useCaseList.isNotEmpty()) {
             try {
                 currentCamera = cameraProvider.bindToLifecycle(
                     this,
                     currentCameraSelector,
-                    *useCaseList.toTypedArray() // Привязываем все собранные сценарии разом
+                    *useCaseList.toTypedArray()
                 )
-                // Включаем фонарик, если нужно
                 currentCamera?.cameraControl?.enableTorch(flashOn)
                 lifecycle.currentState = Lifecycle.State.STARTED
             } catch (e: Exception) {
@@ -417,7 +386,6 @@ class CameraManager(private val stageActivity: StageActivity) : LifecycleOwner {
                 handleError()
             }
         } else {
-            // Если никакие сценарии не активны, обнуляем камеру.
             currentCamera = null
         }
     }
@@ -434,23 +402,19 @@ class CameraManager(private val stageActivity: StageActivity) : LifecycleOwner {
     }
 
     @UiThread
-    private fun bindUseCase(vararg useCases: UseCase): Boolean { // ИЗМЕНЕНО: принимаем массив UseCase
-        // Сначала отвязываем все, чтобы избежать конфликтов
-        // cameraProvider.unbindAll() // Лучше отвязывать конкретные, но для простоты можно и так
-
+    private fun bindUseCase(vararg useCases: UseCase): Boolean {
         return try {
-            // Отвязываем старые use cases перед привязкой новых
             cameraProvider.unbind(*useCases)
 
             currentCamera = cameraProvider.bindToLifecycle(
                 this,
                 currentCameraSelector,
-                *useCases // ИЗМЕНЕНО: привязываем все переданные use cases
+                *useCases
             )
             currentCamera?.cameraControl?.enableTorch(flashOn)
             lifecycle.currentState = Lifecycle.State.STARTED
             true
-        } catch (exception: Exception) { // Ловим более общие исключения
+        } catch (exception: Exception) {
             Log.e(TAG, "Could not bind use case(s).", exception)
             handleError()
             false

@@ -641,22 +641,50 @@ public class Look extends Image {
 		return lookData2;
 	}
 
-	public synchronized void setLookData(LookData lookData) {
-		if (this.lookData != lookData) {
-			this.lookData = lookData;
-			this.lookData2 = lookData;
-			collisionDirty.set(true);
-			refreshTextures(false);
-		}
-	}
+    public synchronized void setLookData(LookData lookData) {
+        if (this.lookData != lookData) {
+            this.lookData = lookData;
+            this.lookData2 = lookData;
+            collisionDirty.set(true);
+            refreshTextures(false);
 
-	public synchronized void setLookData2(LookData lookData) {
-		if (this.lookData2 != lookData) {
-			this.lookData2 = lookData;
-			collisionDirty.set(true);
-			refreshTextures(false);
-		}
-	}
+            if (sprite != null && sprite.getLookList() != null && sprite.getLookList().size() > 100) {
+                int size = sprite.getLookList().size();
+                int currentIndex = sprite.getLookList().indexOf(lookData);
+                if (currentIndex != -1) {
+                    for (int i = 0; i < size; i++) {
+                        int diff = Math.abs(i - currentIndex);
+                        diff = Math.min(diff, size - diff);
+                        if (diff > 30) {
+                            sprite.getLookList().get(i).dispose();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public synchronized void setLookData2(LookData lookData) {
+        if (this.lookData2 != lookData) {
+            this.lookData2 = lookData;
+            collisionDirty.set(true);
+            refreshTextures(false);
+
+            if (sprite != null && sprite.getLookList() != null && sprite.getLookList().size() > 100) {
+                int size = sprite.getLookList().size();
+                int currentIndex = sprite.getLookList().indexOf(lookData);
+                if (currentIndex != -1) {
+                    for (int i = 0; i < size; i++) {
+                        int diff = Math.abs(i - currentIndex);
+                        diff = Math.min(diff, size - diff);
+                        if (diff > 30) {
+                            sprite.getLookList().get(i).dispose();
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 	public boolean haveAllThreadsFinished() {
 		return scheduler.haveAllThreadsFinished();

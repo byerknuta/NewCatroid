@@ -169,89 +169,105 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		return true;
 	}
 
-	@Override
-	protected void onCreate(@Nullable Bundle savedInstanceState) {
-		super.onCreate(null);
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(null);
 
-		DisplayMetrics displayMetrics = new DisplayMetrics();
-		getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 
-		if (isFinishing()) {
-			return;
-		}
+        if (isFinishing()) {
+            return;
+        }
 
-		projectManager = ProjectManager.getInstance();
-		Project currentProject = projectManager.getCurrentProject();
+        projectManager = ProjectManager.getInstance();
+        Project currentProject = projectManager.getCurrentProject();
 
-		setContentView(R.layout.visual_placement_layout);
-		Bundle extras = getIntent().getExtras();
-		translateX = extras.getInt(EXTRA_X_TRANSFORM);
-		translateY = extras.getInt(EXTRA_Y_TRANSFORM);
-		rotationAngle = extras.getFloat(EXTRA_ROTATION);
-		if (extras.containsKey(EXTRA_TEXT)) {
-			isText = true;
-			text = extras.getString(EXTRA_TEXT);
-			textAlignment = ALIGNMENT_STYLE_CENTERED;
-			relativeTextSize = 1.0f;
-			if (extras.containsKey(EXTRA_TEXT_COLOR)) {
-				textColor = extras.getString(EXTRA_TEXT_COLOR);
-				textAlignment = extras.getInt(EXTRA_TEXT_ALIGNMENT);
-				relativeTextSize = extras.getFloat(EXTRA_TEXT_SIZE);
-			}
-			xOffsetText = -DEFAULT_X_OFFSET;
-		}
+        setContentView(R.layout.visual_placement_layout);
+        Bundle extras = getIntent().getExtras();
+        translateX = extras.getInt(EXTRA_X_TRANSFORM);
+        translateY = extras.getInt(EXTRA_Y_TRANSFORM);
+        rotationAngle = extras.getFloat(EXTRA_ROTATION);
+        if (extras.containsKey(EXTRA_TEXT)) {
+            isText = true;
+            text = extras.getString(EXTRA_TEXT);
+            textAlignment = ALIGNMENT_STYLE_CENTERED;
+            relativeTextSize = 1.0f;
+            if (extras.containsKey(EXTRA_TEXT_COLOR)) {
+                textColor = extras.getString(EXTRA_TEXT_COLOR);
+                textAlignment = extras.getInt(EXTRA_TEXT_ALIGNMENT);
+                relativeTextSize = extras.getFloat(EXTRA_TEXT_SIZE);
+            }
+            xOffsetText = -DEFAULT_X_OFFSET;
+        }
 
-		Toolbar toolbar = findViewById(R.id.transparent_toolbar);
-		setSupportActionBar(toolbar);
-		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-		getSupportActionBar().setTitle(R.string.brick_option_place_visually);
+        Toolbar toolbar = findViewById(R.id.transparent_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(R.string.brick_option_place_visually);
 
-		if (projectManager.isCurrentProjectLandscapeMode()) {
-			setRequestedOrientation(SCREEN_ORIENTATION_LANDSCAPE);
-		} else {
-			setRequestedOrientation(SCREEN_ORIENTATION_PORTRAIT);
-		}
-		visualPlacementTouchListener = new VisualPlacementTouchListener();
+        if (projectManager.isCurrentProjectLandscapeMode()) {
+            setRequestedOrientation(SCREEN_ORIENTATION_LANDSCAPE);
+        } else {
+            setRequestedOrientation(SCREEN_ORIENTATION_PORTRAIT);
+        }
+        visualPlacementTouchListener = new VisualPlacementTouchListener();
 
-		frameLayout = findViewById(R.id.frame_container);
+        frameLayout = findViewById(R.id.frame_container);
 
-		Resolution projectResolution = new Resolution(
-				currentProject.getXmlHeader().getVirtualScreenWidth(),
-				currentProject.getXmlHeader().getVirtualScreenHeight());
+        Resolution projectResolution = new Resolution(
+                currentProject.getXmlHeader().getVirtualScreenWidth(),
+                currentProject.getXmlHeader().getVirtualScreenHeight());
 
-		switch (currentProject.getScreenMode()) {
-			case MAXIMIZE:
-				layoutResolution = projectResolution.resizeToFit(ScreenValues.currentScreenResolution);
-				break;
-			case STRETCH:
-				layoutResolution = ScreenValues.currentScreenResolution;
-				break;
-		}
+        int displayWidth = displayMetrics.widthPixels;
+        int displayHeight = displayMetrics.heightPixels;
 
-		LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
-				ViewGroup.LayoutParams.WRAP_CONTENT);
-		layoutParams.gravity = Gravity.CENTER;
-		layoutParams.width = layoutResolution.getWidth();
-		layoutParams.height = layoutResolution.getHeight();
-		frameLayout.setLayoutParams(layoutParams);
+        boolean targetLandscape = projectManager.isCurrentProjectLandscapeMode();
+        int targetWidth = targetLandscape ? Math.max(displayWidth, displayHeight) : Math.min(displayWidth, displayHeight);
+        int targetHeight = targetLandscape ? Math.min(displayWidth, displayHeight) : Math.max(displayWidth, displayHeight);
 
-		layoutHeightRatio = (float) layoutResolution.getHeight() / (float) projectResolution.getHeight();
-		layoutWidthRatio = (float) layoutResolution.getWidth() / (float) projectResolution.getWidth();
+        Resolution targetScreenResolution = new Resolution(targetWidth, targetHeight);
 
-		bitmapOptions = new BitmapFactory.Options();
-		bitmapOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        switch (currentProject.getScreenMode()) {
+            case MAXIMIZE:
+                layoutResolution = projectResolution.resizeToFit(targetScreenResolution);
+                break;
+            case STRETCH:
+                layoutResolution = targetScreenResolution;
+                break;
+        }
 
-		setBackground();
-		showMovableImageView();
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        layoutParams.gravity = Gravity.CENTER;
+        layoutParams.width = layoutResolution.getWidth();
+        layoutParams.height = layoutResolution.getHeight();
+        frameLayout.setLayoutParams(layoutParams);
 
-		toolbar.bringToFront();
-		frameLayout.setOnTouchListener(this);
+        layoutHeightRatio = (float) layoutResolution.getHeight() / (float) projectResolution.getHeight();
+        layoutWidthRatio = (float) layoutResolution.getWidth() / (float) projectResolution.getWidth();
 
-		scaleGestureDetector = new ScaleGestureDetector(this, new MyScaleGestureListener());
-		initialRotation = extras.getFloat(EXTRA_ROTATION, 0f);
-		initialX = translateX;
-		initialY = translateY;
-	}
+        if (layoutWidthRatio <= 0f || Float.isNaN(layoutWidthRatio) || Float.isInfinite(layoutWidthRatio)) {
+            layoutWidthRatio = 1.0f;
+        }
+        if (layoutHeightRatio <= 0f || Float.isNaN(layoutHeightRatio) || Float.isInfinite(layoutHeightRatio)) {
+            layoutHeightRatio = 1.0f;
+        }
+
+        bitmapOptions = new BitmapFactory.Options();
+        bitmapOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
+
+        setBackground();
+        showMovableImageView();
+
+        toolbar.bringToFront();
+        frameLayout.setOnTouchListener(this);
+
+        scaleGestureDetector = new ScaleGestureDetector(this, new MyScaleGestureListener());
+        initialRotation = extras.getFloat(EXTRA_ROTATION, 0f);
+        initialX = translateX;
+        initialY = translateY;
+    }
 
 	private void setBackground() {
 		try {
@@ -268,109 +284,116 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		}
 	}
 
-	public void showMovableImageView() {
-		Bitmap visualPlacementBitmap;
-		String objectLookPath;
-		Sprite currentSprite = projectManager.getCurrentSprite();
-		Log.d("VisualPlacement", "Started...");
-		if(currentSprite == null) {
-			Log.e("VisualPlacement", "sprite is null");
-		}
+    public void showMovableImageView() {
+        try {
+            Bitmap visualPlacementBitmap;
+            String objectLookPath;
+            Sprite currentSprite = projectManager.getCurrentSprite();
+            Log.d("VisualPlacement", "Started...");
 
-		if(projectManager == null) {
-			Log.e("VisualPlacement", "projectManager is null");
-		}
-
-		imageView = new ImageView(this);
-
-		if (isText) {
-			Log.d("VisualPlacement", "isText");
-			scaleX = 1;
-			scaleY = 1;
-			visualPlacementBitmap = convertTextToBitmap();
-		} else {
-			if (!currentSprite.look.getImagePath().isEmpty()) {
-				Log.d("VisualPlacement", "!currentSprite.look.getImagePath().isEmpty()");
-				objectLookPath = currentSprite.look.getImagePath();
-				scaleX = currentSprite.look.getScaleX();
-				scaleY = currentSprite.look.getScaleY();
-				rotationMode = currentSprite.look.getRotationMode();
-				rotation = currentSprite.look.getMotionDirectionInUserInterfaceDimensionUnit();
-				visualPlacementBitmap = BitmapFactory.decodeFile(objectLookPath, bitmapOptions);
-			} else if (currentSprite.getLookList().size() != 0) {
-				Log.d("VisualPlacement", "currentSprite.getLookList().size() != 0");
-				objectLookPath = currentSprite.getLookList().get(0).getFile().getAbsolutePath();
-				Log.d("VisualPlacement", "objectLookPath: " + objectLookPath);
-				visualPlacementBitmap = BitmapFactory.decodeFile(objectLookPath, bitmapOptions);
-				scaleX = 1;
-				scaleY = 1;
-			} else {
-				Log.d("VisualPlacement", "else");
-				Drawable drawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.pc_toolbar_icon);
-
-				visualPlacementBitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-				Canvas canvas = new Canvas(visualPlacementBitmap);
-				drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-				drawable.draw(canvas);
-			}
-
-            if (visualPlacementBitmap == null) {
-                Drawable drawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.pc_toolbar_icon);
-                visualPlacementBitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-                Canvas canvas = new Canvas(visualPlacementBitmap);
-                drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-                drawable.draw(canvas);
+            if (currentSprite == null) {
+                Log.e("VisualPlacement", "sprite is null");
             }
-		}
 
-		Matrix matrix = new Matrix();
-		switch (rotationMode) {
-			case ROTATION_STYLE_NONE:
-				matrix.postRotate(0);
-				break;
-			case ROTATION_STYLE_ALL_AROUND:
-				if (rotation != 90) {
-					matrix.postRotate(rotation - DEGREE_UI_OFFSET);
-				}
-				break;
-			case ROTATION_STYLE_LEFT_RIGHT_ONLY:
-				if (rotation < 0) {
-					matrix.postScale(-1, 1, (float) visualPlacementBitmap.getWidth() / 2, (float) visualPlacementBitmap.getHeight() / 2);
-				}
-				break;
-		}
+            imageView = new ImageView(this);
 
-		visualPlacementBitmap = Bitmap.createBitmap(visualPlacementBitmap, 0, 0,
-				visualPlacementBitmap.getWidth(),
-				visualPlacementBitmap.getHeight(), matrix, true);
+            if (isText) {
+                Log.d("VisualPlacement", "isText");
+                scaleX = 1;
+                scaleY = 1;
+                visualPlacementBitmap = convertTextToBitmap();
+            } else {
+                if (currentSprite != null && !currentSprite.look.getImagePath().isEmpty()) {
+                    Log.d("VisualPlacement", "!currentSprite.look.getImagePath().isEmpty()");
+                    objectLookPath = currentSprite.look.getImagePath();
+                    scaleX = currentSprite.look.getScaleX();
+                    scaleY = currentSprite.look.getScaleY();
+                    rotationMode = currentSprite.look.getRotationMode();
+                    rotation = currentSprite.look.getMotionDirectionInUserInterfaceDimensionUnit();
+                    visualPlacementBitmap = BitmapFactory.decodeFile(objectLookPath, bitmapOptions);
+                } else if (currentSprite != null && currentSprite.getLookList().size() != 0) {
+                    Log.d("VisualPlacement", "currentSprite.getLookList().size() != 0");
+                    objectLookPath = currentSprite.getLookList().get(0).getFile().getAbsolutePath();
+                    Log.d("VisualPlacement", "objectLookPath: " + objectLookPath);
+                    visualPlacementBitmap = BitmapFactory.decodeFile(objectLookPath, bitmapOptions);
+                    scaleX = 1;
+                    scaleY = 1;
+                } else {
+                    Log.d("VisualPlacement", "else");
+                    Drawable drawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.pc_toolbar_icon);
 
-		Bitmap scaledBitmap = Bitmap.createScaledBitmap(visualPlacementBitmap, (int) (visualPlacementBitmap.getWidth() * layoutWidthRatio),
-				(int) (visualPlacementBitmap.getHeight() * layoutHeightRatio), true);
+                    visualPlacementBitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+                    Canvas canvas = new Canvas(visualPlacementBitmap);
+                    drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+                    drawable.draw(canvas);
+                }
 
-		imageView.setImageBitmap(scaledBitmap);
-		imageView.setScaleType(ImageView.ScaleType.CENTER);
+                if (visualPlacementBitmap == null) {
+                    Drawable drawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.pc_toolbar_icon);
+                    visualPlacementBitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+                    Canvas canvas = new Canvas(visualPlacementBitmap);
+                    drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+                    drawable.draw(canvas);
+                }
+            }
 
-		float finalX = translateX;
-		float finalY = -translateY;
+            Matrix matrix = new Matrix();
+            switch (rotationMode) {
+                case ROTATION_STYLE_NONE:
+                    matrix.postRotate(0);
+                    break;
+                case ROTATION_STYLE_ALL_AROUND:
+                    if (rotation != 90) {
+                        matrix.postRotate(rotation - DEGREE_UI_OFFSET);
+                    }
+                    break;
+                case ROTATION_STYLE_LEFT_RIGHT_ONLY:
+                    if (rotation < 0) {
+                        matrix.postScale(-1, 1, (float) visualPlacementBitmap.getWidth() / 2, (float) visualPlacementBitmap.getHeight() / 2);
+                    }
+                    break;
+            }
 
-        if (isText) {
-            imageView.setTranslationX(finalX + xOffsetText);
-            imageView.setTranslationY(finalY + yOffsetText - (float) visualPlacementBitmap.getHeight() / 2);
-        } else {
-            imageView.setTranslationX(finalX);
-            imageView.setTranslationY(finalY);
+            visualPlacementBitmap = Bitmap.createBitmap(visualPlacementBitmap, 0, 0,
+                    visualPlacementBitmap.getWidth(),
+                    visualPlacementBitmap.getHeight(), matrix, true);
+
+            int targetW = (int) (visualPlacementBitmap.getWidth() * layoutWidthRatio);
+            int targetH = (int) (visualPlacementBitmap.getHeight() * layoutHeightRatio);
+            if (targetW <= 0) targetW = 1;
+            if (targetH <= 0) targetH = 1;
+
+            Bitmap scaledBitmap = Bitmap.createScaledBitmap(visualPlacementBitmap, targetW, targetH, true);
+
+            imageView.setImageBitmap(scaledBitmap);
+            imageView.setScaleType(ImageView.ScaleType.CENTER);
+
+            float finalX = translateX;
+            float finalY = -translateY;
+
+            if (isText) {
+                imageView.setTranslationX(finalX + xOffsetText);
+                imageView.setTranslationY(finalY + yOffsetText - (float) visualPlacementBitmap.getHeight() / 2);
+            } else {
+                imageView.setTranslationX(finalX);
+                imageView.setTranslationY(finalY);
+            }
+
+            xCoord = translateX;
+            yCoord = translateY;
+
+            imageView.setScaleX(scaleX);
+            imageView.setScaleY(scaleY);
+            imageView.setRotation(initialRotation);
+            initialScale = scaleX;
+
+            frameLayout.addView(imageView);
+        } catch (Exception e) {
+            Log.e("VisualPlacement", "Error displaying movable image", e);
+            ToastUtil.showError(this, R.string.error_unknown_error);
+            finish();
         }
-
-		xCoord = translateX;
-		yCoord = translateY;
-
-		imageView.setScaleX(scaleX);
-		imageView.setScaleY(scaleY);
-		imageView.setRotation(initialRotation);
-		initialScale = scaleX;
-
-		frameLayout.addView(imageView);
-	}
+    }
 
 	private Bitmap convertTextToBitmap() {
 		Bitmap visualPlacementBitmap;
@@ -441,18 +464,17 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
         }
 	}
 
-	@Override
-	public void onBackPressed() {
-        super.onBackPressed();
+    @Override
+    public void onBackPressed() {
         int xCoordinate = Math.round(xCoord / layoutWidthRatio);
-		int yCoordinate = Math.round(yCoord / layoutHeightRatio);
+        int yCoordinate = Math.round(yCoord / layoutHeightRatio);
 
-		if (translateX != xCoordinate || translateY != yCoordinate) {
-			showSaveChangesDialog(this);
-		} else {
-			finish();
-		}
-	}
+        if (translateX != xCoordinate || translateY != yCoordinate) {
+            showSaveChangesDialog(this);
+        } else {
+            super.onBackPressed();
+        }
+    }
 
 	@Override
 	public void onClick(DialogInterface dialog, int which) {

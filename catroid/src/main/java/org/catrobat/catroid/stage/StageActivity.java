@@ -336,6 +336,10 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
         gameView = initializeForView(getApplicationListener(), configuration);
 
+        if (ProjectManager.getInstance().getCurrentProject() != null) {
+            calculateScreenSizes();
+        }
+
         injectSafeKeyboardProvider();
 
         if (gameView instanceof android.view.SurfaceView) {
@@ -1645,6 +1649,12 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			surveyCampaign.startStageTime();
 		}
 	}
+
+    @Override
+    public void finish() {
+        ProjectManager.popProjectHistory();
+        super.finish();
+    }
 
 	@Override
 	protected void onDestroy() {
