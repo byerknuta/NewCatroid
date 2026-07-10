@@ -105,11 +105,51 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            try {
+                val sw = java.io.StringWriter()
+                val pw = java.io.PrintWriter(sw)
+                throwable.printStackTrace(pw)
+                val crashLog = sw.toString()
+
+                val crashFile = File(applicationContext.cacheDir, "last_crash_log.txt")
+                crashFile.writeText(crashLog)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            defaultHandler?.uncaughtException(thread, throwable)
+        }
+
         SettingsFragment.setToChosenLanguage(this)
 
         org.catrobat.catroid.utils.community.ModerationCheckWorker.schedulePeriodicCheck(this)
 
-        if (!BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
+        val crashFile = File(applicationContext.cacheDir, "last_crash_log.txt")
+        if (crashFile.exists()) {
+            val errorText = try { crashFile.readText() } catch (e: Exception) { "" }
+            crashFile.delete()
+
+            if (errorText.isNotEmpty()) {
+                AlertDialog.Builder(this)
+                    .setTitle("Аварийное завершение / Crash Log")
+                    .setMessage("В прошлый раз приложение закрылось с ошибкой. Пожалуйста, отправьте этот текст разработчику:\n\n$errorText")
+                    .setPositiveButton("OK", null)
+                    .show()
+            }
+        }
+
+        if (BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
+            val splashBinding = ActivityMainMenuSplashscreenBinding.inflate(layoutInflater)
+            setContentView(splashBinding.root)
+
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+                    heavyInitialization()
+                }
+                loadFinalContent()
+            }
+        } else {
             val startTime = System.currentTimeMillis()
 
             mainMenuBinding = ActivityMainMenuBinding.inflate(layoutInflater)
@@ -233,13 +273,6 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
                     loadFinalContent()
                     performExitTransition()
                 }
-            }
-        } else {
-            lifecycleScope.launch {
-                withContext(Dispatchers.IO) {
-                    heavyInitialization()
-                }
-                loadFinalContent()
             }
         }
     }
@@ -619,43 +652,53 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
     private fun prepareStandaloneProject() {
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        val lastUnpackedVersion = prefs.getInt("standalone_project_version", -1)
-        val currentVersion = BuildConfig.VERSION_CODE
+
+        val apkLastModified = try {
+            File(packageCodePath).lastModified()
+        } catch (e: Exception) {
+            0L
+        }
+
+        val lastUnpackedApkTime = prefs.getLong("last_unpacked_apk_time", -1L)
 
         val projectDir = File(
             FlavoredConstants.DEFAULT_ROOT_DIRECTORY,
             FileMetaDataExtractor.encodeSpecialCharsForFileSystem(BuildConfig.PROJECT_NAME)
         )
 
-        if (lastUnpackedVersion >= currentVersion && projectDir.exists()) {
-            Log.d("STANDALONE", "Project version ($lastUnpackedVersion) is up to date. Loading from storage.")
+        if (apkLastModified <= lastUnpackedApkTime && projectDir.exists()) {
+            Log.d("STANDALONE", "Project is up to date (APK unchanged). Loading from storage.")
             ProjectLoader(projectDir, this).setListener(this).loadProjectAsync()
             return
         }
 
-        Log.d("STANDALONE", "New version detected (current: $currentVersion, last: $lastUnpackedVersion). Starting update/install...")
+        Log.d("STANDALONE", "APK update detected or first launch (APK time: $apkLastModified, Last: $lastUnpackedApkTime). Running selective update...")
 
         try {
             val tempDir = File(cacheDir, "standalone_temp_${System.currentTimeMillis()}")
             val inputStream = assets.open(BuildConfig.START_PROJECT + ".zip")
             ZipArchiver().unzip(inputStream, tempDir)
-            Log.d("STANDALONE", "Unpacked new template to temporary directory: ${tempDir.path}")
+            Log.d("STANDALONE", "Unpacked new template assets to temporary directory: ${tempDir.path}")
 
             if (projectDir.exists()) {
                 Log.d("STANDALONE", "Old project found. Updating assets and preserving user data...")
 
-                val templateFilesAndDirs = listOf(
-                    "code.xml",
-                    "libs"
-                )
-                templateFilesAndDirs.forEach { name ->
-                    val file = File(projectDir, name)
-                    if (file.exists()) {
-                        file.deleteRecursively()
+                projectDir.listFiles()?.forEach { file ->
+                    val name = file.name
+                    if (name == "DeviceVariables.json" || name == "DeviceLists.json" || name == "files") {
+                        return@forEach
                     }
+                    file.deleteRecursively()
                 }
 
-                tempDir.copyRecursively(projectDir, overwrite = true)
+                tempDir.listFiles()?.forEach { file ->
+                    val destFile = File(projectDir, file.name)
+                    if (file.name == "files") {
+                        mergeDirectoriesWithoutOverwrite(file, destFile)
+                    } else {
+                        file.copyRecursively(destFile, overwrite = true)
+                    }
+                }
                 tempDir.deleteRecursively()
             } else {
                 Log.d("STANDALONE", "First install. Creating project directory...")
@@ -667,8 +710,8 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
             ProjectLoader(projectDir, this).setListener(this).loadProjectAsync()
 
-            prefs.edit().putInt("standalone_project_version", currentVersion).apply()
-            Log.d("STANDALONE", "Update complete. Saved version: $currentVersion")
+            prefs.edit().putLong("last_unpacked_apk_time", apkLastModified).apply()
+            Log.d("STANDALONE", "Update complete. Saved APK timestamp: $apkLastModified")
 
         } catch (e: IOException) {
             Log.e("STANDALONE", "Cannot unpack or update standalone project: ", e)
@@ -678,35 +721,26 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
         }
     }
 
-    private fun migrateUserData(oldProjectDir: File, newProjectDir: File) {
-        val filesToPreserve = listOf("DeviceVariables.json", "DeviceLists.json")
-        filesToPreserve.forEach { fileName ->
-            val oldFile = File(oldProjectDir, fileName)
-            if (oldFile.exists()) {
-                val newFile = File(newProjectDir, fileName)
-                try {
-                    oldFile.copyTo(newFile, overwrite = true)
-                    Log.d("STANDALONE_MIGRATE", "Preserved: $fileName")
-                } catch (e: IOException) {
-                    Log.e("STANDALONE_MIGRATE", "Failed to copy $fileName", e)
+    private fun mergeDirectoriesWithoutOverwrite(source: File, destination: File) {
+        if (!source.exists()) return
+        if (!destination.exists()) {
+            destination.mkdirs()
+        }
+        source.listFiles()?.forEach { file ->
+            val targetFile = File(destination, file.name)
+            if (file.isDirectory) {
+                mergeDirectoriesWithoutOverwrite(file, targetFile)
+            } else {
+                if (!targetFile.exists()) {
+                    file.copyTo(targetFile, overwrite = false)
+                    Log.d("STANDALONE_MIGRATE", "Merged new default asset: ${file.name}")
+                } else {
+                    Log.d("STANDALONE_MIGRATE", "Preserved user-modified file: ${file.name}")
                 }
             }
         }
-
-        val oldFilesDir = File(oldProjectDir, "files")
-        val newFilesDir = File(newProjectDir, "files")
-        if (oldFilesDir.exists() && oldFilesDir.isDirectory) {
-            if (!newFilesDir.exists()) {
-                newFilesDir.mkdirs()
-            }
-            try {
-                oldFilesDir.copyRecursively(newFilesDir, overwrite = true)
-                Log.d("STANDALONE_MIGRATE", "Merged '/files' directory content.")
-            } catch (e: Exception) {
-                Log.e("STANDALONE_MIGRATE", "Failed to merge '/files' directory", e)
-            }
-        }
     }
+
 
     override fun onLoadFinished(success: Boolean) {
         if (BuildConfig.FEATURE_APK_GENERATOR_ENABLED && success) {

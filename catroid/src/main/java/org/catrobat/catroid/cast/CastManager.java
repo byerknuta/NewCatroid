@@ -116,19 +116,28 @@ public final class CastManager {
 		initGamepadListeners();
 	}
 
-	public synchronized void setIsConnected(boolean isConnected) {
+    public synchronized void setIsConnected(boolean isConnected) {
+        this.isConnected = isConnected;
 
-		int drawableId = isConnected ? R.drawable.ic_cast_connected_white : R.drawable.ic_cast_white;
-		castButton.setIcon(drawableId);
-		this.isConnected = isConnected;
-		initializingActivity.invalidateOptionsMenu();
-	}
+        if (castButton != null) {
+            int drawableId = isConnected ? R.drawable.ic_cast_connected_white : R.drawable.ic_cast_white;
+            castButton.setIcon(drawableId);
+        }
 
-	public void startCastButtonAnimation() {
-		int drawableId = R.drawable.animation_cast_button_connecting;
-		castButton.setIcon(drawableId);
-		((AnimationDrawable) castButton.getIcon()).start();
-	}
+        if (initializingActivity != null) {
+            initializingActivity.invalidateOptionsMenu();
+        }
+    }
+
+    public void startCastButtonAnimation() {
+        if (castButton != null) {
+            int drawableId = R.drawable.animation_cast_button_connecting;
+            castButton.setIcon(drawableId);
+            if (castButton.getIcon() instanceof AnimationDrawable) {
+                ((AnimationDrawable) castButton.getIcon()).start();
+            }
+        }
+    }
 
 	public synchronized boolean isConnected() {
 		return isConnected;
@@ -385,23 +394,23 @@ public final class CastManager {
 			}
 		}
 
-		@Override
-		public void onRouteRemoved(MediaRouter router, MediaRouter.RouteInfo info) {
-			// Remove route from list of routes
-			synchronized (this) {
-				for (int i = 0; i < routeInfos.size(); i++) {
-					MediaRouter.RouteInfo routeInfo = routeInfos.get(i);
-					if (routeInfo.equals(info)) {
-						routeInfos.remove(i);
-						if (routeInfos.size() == 0) {
-							castButton.setVisible(mediaRouter.isRouteAvailable(mediaRouteSelector, MediaRouter
-									.AVAILABILITY_FLAG_REQUIRE_MATCH));
-						}
-						deviceAdapter.notifyDataSetChanged();
-					}
-				}
-			}
-		}
+        @Override
+        public void onRouteRemoved(MediaRouter router, MediaRouter.RouteInfo info) {
+            // Remove route from list of routes
+            synchronized (this) {
+                for (int i = 0; i < routeInfos.size(); i++) {
+                    MediaRouter.RouteInfo routeInfo = routeInfos.get(i);
+                    if (routeInfo.equals(info)) {
+                        routeInfos.remove(i);
+                        if (routeInfos.size() == 0 && castButton != null) {
+                            castButton.setVisible(mediaRouter.isRouteAvailable(mediaRouteSelector, MediaRouter
+                                    .AVAILABILITY_FLAG_REQUIRE_MATCH));
+                        }
+                        deviceAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+        }
 
 		@Override
 		public void onRouteSelected(MediaRouter router, MediaRouter.RouteInfo info) {
