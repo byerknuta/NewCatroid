@@ -452,6 +452,8 @@ public class InternToExternGenerator {
 				.formula_editor_object_look_height);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_LOOK_NAME.name(), R.string
 				.formula_editor_object_look_name);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_NAME.name(), R.string
+                .formula_get_object_name);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_NUMBER_OF_LOOKS.name(), R.string.formula_editor_object_number_of_looks);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_BACKGROUND_NUMBER.name(), R.string
 				.formula_editor_object_background_number);

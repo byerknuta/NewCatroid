@@ -40,7 +40,7 @@
         style="@style/BrickContainer.Sound.Small">
         <include layout="@layout/icon_brick_category_sound" />
         <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_stop_recording_and_save" />
-        <TextView android:id="@+id/brick_recording_filename" style="@style/BrickEditText" />
+        <TextView android:id="@+id/brick_recording_filename" style="@style/BrickEditText" app:layout_newLine="true" />
     </org.catrobat.catroid.ui.BrickLayout>
 
 </LinearLayout>

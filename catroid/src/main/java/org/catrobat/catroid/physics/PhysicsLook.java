@@ -248,7 +248,15 @@ public class PhysicsLook extends Look {
 
 	@Override
 	public void setScale(float scaleX, float scaleY) {
-		Vector2 oldScales = new Vector2(getScaleX(), getScaleY());
+        if (Float.isNaN(scaleX) || Float.isInfinite(scaleX) || scaleX < 0.0001f) {
+            scaleX = 1.0f;
+        }
+        if (Float.isNaN(scaleY) || Float.isInfinite(scaleY) || scaleY < 0.0001f) {
+            scaleY = 1.0f;
+        }
+
+
+        Vector2 oldScales = new Vector2(getScaleX(), getScaleY());
 		//if (scaleX < 0.0f || scaleY < 0.0f) {
 		//	scaleX = 0.0f;
 		//	scaleY = 0.0f;

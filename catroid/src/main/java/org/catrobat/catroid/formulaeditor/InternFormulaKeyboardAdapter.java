@@ -830,6 +830,8 @@ public class InternFormulaKeyboardAdapter {
 				return buildObject(Sensors.OBJECT_LOOK_HEIGHT);
 			case R.string.formula_editor_object_look_name:
 				return buildObject(Sensors.OBJECT_LOOK_NAME);
+            case R.string.formula_get_object_name:
+                return buildObject(Sensors.OBJECT_NAME);
 			case R.string.formula_editor_object_number_of_looks:
 			case R.string.formula_editor_object_number_of_backgrounds:
 				return buildObject(Sensors.OBJECT_NUMBER_OF_LOOKS);

@@ -57,6 +57,7 @@ import org.catrobat.catroid.content.WhenAppRestoredScript;
 import org.catrobat.catroid.content.WhenBackgroundChangesScript;
 import org.catrobat.catroid.content.WhenBounceOffScript;
 import org.catrobat.catroid.content.WhenClonedScript;
+import org.catrobat.catroid.content.WhenClonedWithNameScript;
 import org.catrobat.catroid.content.WhenConditionScript;
 import org.catrobat.catroid.content.WhenFingerMovedOnScreenScript;
 import org.catrobat.catroid.content.WhenFingerMovedOverSpriteScript;
@@ -357,6 +358,7 @@ public final class XstreamSerializer {
         xstream.alias("brick", Fast2DSetZIndexBrick.class);
         xstream.alias("brick", Fast2DDeleteBrick.class);
         xstream.alias("brick", Fast2DCreateBrick.class);
+        xstream.alias("Fast2DSetGravityBrick", Fast2DSetGravityBrick.class);
         xstream.alias("brick", Fast2DSetCollisionFilterBrick.class);
         xstream.alias("brick", Fast2DSetVelocityBrick.class);
         xstream.alias("brick", Fast2DMakePhysicsBrick.class);
@@ -425,6 +427,7 @@ public final class XstreamSerializer {
 		xstream.alias("brick", PutFloatBrick.class);
 		xstream.alias("brick", Set3dRotationBrick.class);
 		xstream.alias("brick", ObjectLookAtBrick.class);
+        xstream.alias("brick", ObjectLookAtCorrectBrick.class);
 		xstream.alias("brick", Set3dScaleBrick.class);
 		xstream.alias("brick", SetCameraRotationBrick.class);
 		xstream.alias("brick", DeleteFloatBrick.class);
@@ -632,6 +635,8 @@ public final class XstreamSerializer {
 		xstream.alias("brick", UnlockMouseBrick.class);
 		xstream.alias("brick", WhenMouseWheelScrolledBrick.class);
 		xstream.alias("brick", WhenClonedBrick.class);
+        xstream.alias("WhenClonedWithNameScript", WhenClonedWithNameScript.class);
+        xstream.alias("WhenClonedWithNameBrick", WhenClonedWithNameBrick.class);
 		xstream.alias("brick", WriteVariableOnDeviceBrick.class);
 		xstream.alias("brick", ReadVariableFromFileBrick.class);
 		xstream.alias("brick", WriteListOnDeviceBrick.class);

@@ -179,7 +179,16 @@ object GltfToGlbConverter {
                     val img = images.getJSONObject(i)
                     val uri = img.optString("uri")
                     if (uri.isNotEmpty() && !uri.startsWith("data:")) {
-                        val imgFile = if (uri.startsWith("/")) File(uri) else File(projectDir, uri)
+                        val imgFile = if (uri.startsWith("/")) {
+                            File(uri)
+                        } else {
+                            val fileInTemp = File(tempDir, uri)
+                            if (fileInTemp.exists()) {
+                                fileInTemp
+                            } else {
+                                File(projectDir, uri)
+                            }
+                        }
 
                         if (imgFile.exists()) {
                             val bytes = imgFile.readBytes()

@@ -94,6 +94,8 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
 
     private val projectManager: ProjectManager by inject()
 
+    private var importDialog: AlertDialog? = null
+
     override fun onActivityCreated(savedInstance: Bundle?) {
         super.onActivityCreated(savedInstance)
         filesForUnzipAndImportTask = ArrayList()
@@ -130,7 +132,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     }*/
 
     private fun onImportProjectFinished(result: org.catrobat.catroid.io.asynctask.ImportResult) {
-
+        dismissImportProgressDialog()
         filesForUnzipAndImportTask?.clear()
         setShowProgressBar(false)
 
@@ -151,6 +153,54 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                 launchBakedProject(result.projectDir)
             }
         }
+    }
+
+    private fun showImportProgressDialog() {
+        val context = context ?: return
+
+        val layout = android.widget.LinearLayout(context).apply {
+            orientation = android.widget.LinearLayout.HORIZONTAL
+            val padding = (24 * resources.displayMetrics.density).toInt()
+            setPadding(padding, padding, padding, padding)
+            gravity = android.view.Gravity.CENTER_VERTICAL
+        }
+
+        val progressBar = android.widget.ProgressBar(context).apply {
+            isIndeterminate = true
+        }
+
+        val textView = android.widget.TextView(context).apply {
+            text = getString(R.string.importing_project_dialog_msg)
+            val marginStart = (16 * resources.displayMetrics.density).toInt()
+            setPadding(marginStart, 0, 0, 0)
+            textSize = 16f
+            setTextColor(android.graphics.Color.WHITE)
+        }
+
+        layout.addView(progressBar)
+        layout.addView(textView)
+
+        importDialog = AlertDialog.Builder(context)
+            .setView(layout)
+            .setCancelable(false)
+            .create()
+
+        importDialog?.show()
+    }
+
+    private fun dismissImportProgressDialog() {
+        try {
+            if (importDialog != null && importDialog!!.isShowing) {
+                importDialog?.dismiss()
+            }
+        } catch (e: Exception) {
+        }
+        importDialog = null
+    }
+
+    override fun onDestroy() {
+        dismissImportProgressDialog()
+        super.onDestroy()
     }
 
     private fun launchBakedProject(projectDir: File) {
@@ -380,6 +430,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     }
 
     private fun onImportError() {
+        dismissImportProgressDialog()
         setShowProgressBar(false)
         ToastUtil.showError(requireContext(), R.string.error_import_project)
     }
@@ -400,14 +451,15 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     }
 
     private fun importProjectUris(uris: ArrayList<Uri>) {
+        showImportProgressDialog()
         prepareFilesForImport(uris)
         filesForUnzipAndImportTask?.apply {
             if (isNotEmpty()) {
                 val filesToUnzipAndImport = toTypedArray()
-                /*ProjectUnZipperAndImporter({ success: Boolean -> onImportProjectFinished(success) })
-                    .unZipAndImportAsync(filesToUnzipAndImport)*/
                 ProjectUnZipperAndImporter({ result -> onImportProjectFinished(result) })
                     .unZipAndImportAsync(filesToUnzipAndImport)
+            } else {
+                dismissImportProgressDialog()
             }
         }
     }

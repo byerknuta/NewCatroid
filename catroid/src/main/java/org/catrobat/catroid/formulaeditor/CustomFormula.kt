@@ -3,9 +3,6 @@ package org.catrobat.catroid.formulaeditor
 import android.util.Log
 import com.danvexteam.lunoscript_annotations.LunoClass
 
-// Убедитесь, что InternTokenType импортирован или доступен
-// import org.catrobat.catroid.formulaeditor.InternTokenType
-
 @LunoClass
 data class CustomFormula(
     val uniqueName: String,
@@ -14,9 +11,8 @@ data class CustomFormula(
     val defaultParamValues: List<String>,
     val defaultParamTypes: List<InternTokenType>,
 
-    // --- ЗАМЕНЯЕМ JS НА ЭТО ---
-    val lunoFunctionName: String, // Имя функции в code.txt
-    val ownerLibraryId: String    // ID библиотеки (имя файла .newlib)
+    val lunoFunctionName: String,
+    val ownerLibraryId: String
 ) {
     init {
         require(defaultParamValues.size == paramCount) {
@@ -33,26 +29,7 @@ object CustomFormulaManager {
     val formulas: MutableList<CustomFormula> = mutableListOf()
 
     fun initialize() {
-        /*addFormula(
-            CustomFormula(
-                uniqueName = "JS_ADD",
-                displayName = "JS Сложение",
-                paramCount = 2,
-                defaultParamValues = listOf("1", "2"),
-                defaultParamTypes = listOf(InternTokenType.NUMBER, InternTokenType.NUMBER),
-                jsCode = "p[0] + p[1]" // p - массив параметров
-            )
-        )
-        addFormula(
-            CustomFormula(
-                uniqueName = "JS_CONCAT",
-                displayName = "JS Конкатенация",
-                paramCount = 2,
-                defaultParamValues = listOf("Привет", "Мир"),
-                defaultParamTypes = listOf(InternTokenType.STRING, InternTokenType.STRING),
-                jsCode = "String(p[0]) + String(p[1]);"
-            )
-        )*/
+
     }
 
     fun addFormula(formula: CustomFormula) {
@@ -60,10 +37,8 @@ object CustomFormulaManager {
             Log.w("CustomFormulaManager", "Попытка добавить дублирующуюся формулу: ${formula.uniqueName}")
             return
         }
-        // Проверка, что имя не конфликтует с существующими функциями из Functions.java
         if (Functions.isFunction(formula.uniqueName)) {
             Log.e("CustomFormulaManager", "Имя кастомной формулы '${formula.uniqueName}' конфликтует с существующей стандартной функцией!")
-            // Можно выбросить исключение или просто не добавлять
             return
         }
         formulas.add(formula)

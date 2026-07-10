@@ -17,12 +17,12 @@
 
         <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_create_button_color" app:layout_newLine="true"/>
         <TextView android:id="@+id/brick_color_field" style="@style/BrickEditText" />
-        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_create_button_size" />
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_create_button_size" app:layout_newLine="true" />
         <TextView android:id="@+id/brick_size_field" style="@style/BrickEditText" />
 
         <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_create_button_bg" app:layout_newLine="true"/>
         <TextView android:id="@+id/brick_bg_field" style="@style/BrickEditText" />
-        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_create_button_radius" />
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_create_button_radius" app:layout_newLine="true" />
         <TextView android:id="@+id/brick_radius_field" style="@style/BrickEditText" />
 
         <TextView style="@style/BrickText.SingleLine" android:text="X: " app:layout_newLine="true"/>

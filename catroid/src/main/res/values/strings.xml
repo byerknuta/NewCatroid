@@ -23,6 +23,22 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string formatted="false" name="brick_when_cloned_with_name_title">When you start as a clone</string>
+
+    <string formatted="false" name="fast2d_set_gravity">Set gravity</string>
+    <string formatted="false" name="fast2d_gravity_x_param">Gravity X</string>
+    <string formatted="false" name="fast2d_gravity_y_param">Gravity Y</string>
+
+    <string name="preference_title_accessibility_interface_scale">Interface scale</string>
+    <string name="preference_description_accessibility_interface_scale">Changes the size of blocks, menus, and text inside them</string>
+
+    <string name="formula_get_object_name" formatted="false">get_object_name</string>
+
+    <string name="importing_project_dialog_msg">Importing project, please wait…</string>
+
+    <string name="brick_object_look_at_correct_object">Point object (world space)</string>
+    <string name="brick_object_look_at_correct_to">towards point</string>
+
     <string name="orientation_portrait">Portrait</string>
     <string name="orientation_landscape">Landscape</string>
     <string name="orientation_sensor">Auto/Sensor</string>

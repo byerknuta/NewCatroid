@@ -406,21 +406,20 @@ public class Sprite implements Nameable, Serializable {
 		runningStitch = null;
 	}
 
-	public void initConditionScriptTriggers() {
-		conditionScriptTriggers.clear();
-		for (Script script : scriptList) {
-			if (script instanceof WhenConditionScript) {
-				WhenConditionBrick conditionBrick = (WhenConditionBrick) script.getScriptBrick();
-				Formula formula = conditionBrick.getFormulaWithBrickField(Brick.BrickField.IF_CONDITION);
-				ConditionScriptTrigger conditionScriptTrigger = new ConditionScriptTrigger(formula);
+    public void initConditionScriptTriggers() {
+        conditionScriptTriggers.clear();
+        for (Script script : scriptList) {
+            if (script instanceof WhenConditionScript) {
+                WhenConditionBrick conditionBrick = (WhenConditionBrick) script.getScriptBrick();
+                Formula formula = conditionBrick.getFormulaWithBrickField(Brick.BrickField.IF_CONDITION);
+                ConditionScriptTrigger conditionScriptTrigger = new ConditionScriptTrigger(formula);
 
-				if (waitBeforeCheckingCollision(formula)) {
-					conditionScriptTrigger.updateSceneFirstStart();
-				}
-				conditionScriptTriggers.add(conditionScriptTrigger);
-			}
-		}
-	}
+                conditionScriptTrigger.updateSceneFirstStart();
+
+                conditionScriptTriggers.add(conditionScriptTrigger);
+            }
+        }
+    }
 
 	public void resetConditionScriptTriggers() {
 		for (ConditionScriptTrigger conditionScriptTrigger : conditionScriptTriggers) {

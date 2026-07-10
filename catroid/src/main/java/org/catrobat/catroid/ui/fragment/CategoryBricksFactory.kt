@@ -31,6 +31,7 @@ import org.catrobat.catroid.content.BroadcastScript
 import org.catrobat.catroid.content.BroadcastWithParamsReceiverScript
 import org.catrobat.catroid.content.RaspiInterruptScript
 import org.catrobat.catroid.content.WhenBounceOffScript
+import org.catrobat.catroid.content.WhenClonedWithNameScript
 import org.catrobat.catroid.content.WhenConditionScript
 import org.catrobat.catroid.content.WhenGamepadButtonScript
 import org.catrobat.catroid.content.WhenMqttMessageScript
@@ -192,6 +193,7 @@ import org.catrobat.catroid.content.bricks.Fast2DSetAngularVelocityBrick
 import org.catrobat.catroid.content.bricks.Fast2DSetCameraBrick
 import org.catrobat.catroid.content.bricks.Fast2DSetCollisionFilterBrick
 import org.catrobat.catroid.content.bricks.Fast2DSetColorBrick
+import org.catrobat.catroid.content.bricks.Fast2DSetGravityBrick
 import org.catrobat.catroid.content.bricks.Fast2DSetPhysicsVelocityBrick
 import org.catrobat.catroid.content.bricks.Fast2DSetPositionBrick
 import org.catrobat.catroid.content.bricks.Fast2DSetRotationBrick
@@ -293,6 +295,7 @@ import org.catrobat.catroid.content.bricks.NotificationCancelBrick
 import org.catrobat.catroid.content.bricks.NotificationCreateBrick
 import org.catrobat.catroid.content.bricks.NotificationShowBrick
 import org.catrobat.catroid.content.bricks.ObjectLookAtBrick
+import org.catrobat.catroid.content.bricks.ObjectLookAtCorrectBrick
 import org.catrobat.catroid.content.bricks.OpenAppBrick
 import org.catrobat.catroid.content.bricks.OpenFileBrick
 import org.catrobat.catroid.content.bricks.OpenFilesBrick
@@ -599,6 +602,7 @@ import org.catrobat.catroid.content.bricks.WhenBeforeUpdateBrick
 import org.catrobat.catroid.content.bricks.WhenBounceOffBrick
 import org.catrobat.catroid.content.bricks.WhenBrick
 import org.catrobat.catroid.content.bricks.WhenClonedBrick
+import org.catrobat.catroid.content.bricks.WhenClonedWithNameBrick
 import org.catrobat.catroid.content.bricks.WhenConditionBrick
 import org.catrobat.catroid.content.bricks.WhenFingerMovedOnScreenBrick
 import org.catrobat.catroid.content.bricks.WhenFingerMovedOverSpriteBrick
@@ -770,8 +774,9 @@ open class CategoryBricksFactory {
                 eventBrickList.add(WhenBackgroundChangesBrick())
                 eventBrickList.add(WhenClonedBrick())
                 eventBrickList.add(CloneBrick())
-                eventBrickList.add(CloneAndNameBrick("clone"))
                 eventBrickList.add(DeleteThisCloneBrick())
+                eventBrickList.add(WhenClonedWithNameBrick(WhenClonedWithNameScript(Formula("clone"))))
+                eventBrickList.add(CloneAndNameBrick("clone"))
                 eventBrickList.add(WhenBeforeUpdateBrick())
                 eventBrickList.add(WhenAfterUpdateBrick())
                 eventBrickList.add(WhenAppMinimizedBrick())
@@ -835,8 +840,9 @@ open class CategoryBricksFactory {
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_cloning), template))
         eventBrickList.add(WhenClonedBrick())
         eventBrickList.add(CloneBrick())
-        eventBrickList.add(CloneAndNameBrick("clone"))
         eventBrickList.add(DeleteThisCloneBrick())
+        eventBrickList.add(WhenClonedWithNameBrick(WhenClonedWithNameScript(Formula("clone"))))
+        eventBrickList.add(CloneAndNameBrick("clone"))
 
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_system), template))
         eventBrickList.add(WhenProjectExitsBrick())
@@ -901,8 +907,9 @@ open class CategoryBricksFactory {
                 controlBrickList.add(TryCatchFinallyBrick())
                 controlBrickList.add(WhenClonedBrick())
                 controlBrickList.add(CloneBrick())
-                controlBrickList.add(CloneAndNameBrick("clone"))
                 controlBrickList.add(DeleteThisCloneBrick())
+                controlBrickList.add(WhenClonedWithNameBrick(WhenClonedWithNameScript(Formula("clone"))))
+                controlBrickList.add(CloneAndNameBrick("clone"))
                 if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
                     controlBrickList.add(SetNfcTagBrick(context.getString(R.string.brick_set_nfc_tag_default_value)))
                 }
@@ -974,8 +981,9 @@ open class CategoryBricksFactory {
         controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_cloning), template))
         controlBrickList.add(WhenClonedBrick())
         controlBrickList.add(CloneBrick())
-        controlBrickList.add(CloneAndNameBrick("clone"))
         controlBrickList.add(DeleteThisCloneBrick())
+        controlBrickList.add(WhenClonedWithNameBrick(WhenClonedWithNameScript(Formula("clone"))))
+        controlBrickList.add(CloneAndNameBrick("clone"))
         controlBrickList.add(RunAsSpriteBrick(Formula("Sprite")))
 
         controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_messages), template))
@@ -2512,6 +2520,7 @@ void main() {
         fast2dBrickList.add(Fast2DApplyForceBrick("object", 100.0, 300.0))
         fast2dBrickList.add(Fast2DApplyImpulseBrick("object", 10.0, 5.0))
         fast2dBrickList.add(Fast2DSetPhysicsVelocityBrick("object", 10.0, 2.0))
+        fast2dBrickList.add(Fast2DSetGravityBrick(0f, -9.8f));
 
         return fast2dBrickList
     }
@@ -2626,6 +2635,7 @@ void main() {
         threedBrickList.add(Set3dRotationBrick("myObject", 1.0, 0.0, 0.0))
         threedBrickList.add(Set3dScaleBrick("myObject", 2.0, 1.0, 1.5))
         threedBrickList.add(ObjectLookAtBrick("myObject", 0.0, 0.0, 0.0))
+        threedBrickList.add(ObjectLookAtCorrectBrick("myObject", 0.0, 0.0, 0.0))
         threedBrickList.add(ThreedAlignNormalBrick("myObject", -1.0, 0.0, 0.0))
         threedBrickList.add(Ease3DPropertyBrick(Formula("myObject"), 0, 0, Formula(0), Formula(10), Formula(0.1)));
         threedBrickList.add(SetParentBrick("child", "parent"))

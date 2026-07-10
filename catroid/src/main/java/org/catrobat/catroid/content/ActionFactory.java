@@ -788,6 +788,18 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+    public Action createObjectLookAtCorrectAction(Sprite sprite, ScriptSequenceAction sequence,
+                                                  Formula objectId, Formula x, Formula y, Formula z) {
+        ObjectLookAtCorrectAction action = Actions.action(ObjectLookAtCorrectAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.scope = scope;
+        action.objectId = objectId;
+        action.xValue = x;
+        action.yValue = y;
+        action.zValue = z;
+        return action;
+    }
+
 	public Action createPlaySoundAtAction(Sprite sprite, SequenceAction sequence, Formula delay,
 			SoundInfo sound) {
 		PlaySoundAtAction action = action(PlaySoundAtAction.class);
@@ -4202,6 +4214,16 @@ public class ActionFactory extends Actions {
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
         action.setScope(scope);
         action.setEntityId(entityId);
+        return action;
+    }
+
+    public Action createFast2DSetGravityAction(Sprite sprite, SequenceAction sequence,
+                                               Formula gravityX, Formula gravityY) {
+        Fast2DSetGravityAction action = action(Fast2DSetGravityAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setGravityX(gravityX);
+        action.setGravityY(gravityY);
         return action;
     }
 

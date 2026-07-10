@@ -111,7 +111,7 @@ class NewDialogManager {
                 }
 
                 val builder = AlertDialog.Builder(
-                    android.view.ContextThemeWrapper(context, R.style.Theme_NewCatroid_Dialog)
+                    context
                 )
                     .setTitle(dialogData.title)
                     .setMessage(dialogData.message)

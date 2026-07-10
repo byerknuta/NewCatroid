@@ -76,6 +76,24 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
         MyActivityManager.base_activity = this
     }
 
+    override fun attachBaseContext(newBase: Context) {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(newBase)
+        val scaleString = sharedPreferences.getString("accessibility_brick_scale", "1.0") ?: "1.0"
+        val scaleFactor = scaleString.toFloatOrNull() ?: 1.0f
+
+        val config = Configuration(newBase.resources.configuration)
+        config.fontScale = scaleFactor
+
+        val context = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            newBase.createConfigurationContext(config)
+        } else {
+            @Suppress("DEPRECATION")
+            newBase.resources.updateConfiguration(config, newBase.resources.displayMetrics)
+            newBase
+        }
+        super.attachBaseContext(context)
+    }
+
     override fun dispatchTouchEvent(ev: android.view.MotionEvent): Boolean {
         val isAprilFoolsEnabled = PreferenceManager.getDefaultSharedPreferences(CatroidApplication.getAppContext()).getBoolean("pref_1_april_enabled", false);
 

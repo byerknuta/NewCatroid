@@ -4984,17 +4984,15 @@ public class ThreeDManager implements Disposable {
         camera.update();
     }
 
-    public void objectLookAt(String id, float x, float y, float z) {
+    public void objectLookAtCorrect(String id, float x, float y, float z) {
         ModelInstance instance = sceneObjects.get(id);
         if (instance == null) return;
-
 
         GameObject go = null;
         if (manager != null) {
             manager.updateWorldTransforms();
             go = manager.findGameObject(id);
         }
-
 
         Vector3 position = new Vector3();
         Vector3 scale = new Vector3(1, 1, 1);
@@ -5003,29 +5001,22 @@ public class ThreeDManager implements Disposable {
             go.transform.worldTransform.getTranslation(position);
             go.transform.worldTransform.getScale(scale);
         } else {
-
             instance.transform.getTranslation(position);
             instance.transform.getScale(scale);
         }
 
-
         Vector3 target = new Vector3(x, y, z);
         Vector3 forward = new Vector3(target).sub(position).nor();
 
-
         if (forward.isZero()) return;
 
-
-
         Vector3 up = new Vector3(Vector3.Y);
-
         if (Math.abs(forward.y) > 0.999f) {
             up.set(Vector3.Z);
         }
 
         Vector3 right = new Vector3(up).crs(forward).nor();
         Vector3 newUp = new Vector3(forward).crs(right).nor();
-
 
         Matrix4 rotMat = new Matrix4().idt();
         rotMat.val[Matrix4.M00] = right.x;   rotMat.val[Matrix4.M10] = right.y;   rotMat.val[Matrix4.M20] = right.z;
@@ -5035,9 +5026,7 @@ public class ThreeDManager implements Disposable {
         Quaternion worldRot = new Quaternion();
         rotMat.getRotation(worldRot, true);
 
-
         if (go != null) {
-
             if (go.parentId != null) {
                 GameObject parent = manager.findGameObject(go.parentId);
                 if (parent != null) {
@@ -5055,9 +5044,7 @@ public class ThreeDManager implements Disposable {
 
             manager.updateWorldTransforms();
             setWorldTransform(id, go.transform.worldTransform);
-
         } else {
-
             instance.transform.set(position, worldRot, scale);
 
             btRigidBody body = physicsBodies.get(id);
@@ -5071,6 +5058,55 @@ public class ThreeDManager implements Disposable {
                 }
                 body.activate();
             }
+        }
+    }
+
+    public void objectLookAt(String id, float x, float y, float z) {
+        ModelInstance instance = sceneObjects.get(id);
+        if (instance == null) return;
+
+        Vector3 position = new Vector3();
+        instance.transform.getTranslation(position);
+        Vector3 scale = new Vector3();
+        instance.transform.getScale(scale);
+
+        Matrix4 tempMat = new Matrix4().setToLookAt(new Vector3(x, y, z), Vector3.Y);
+        Quaternion oldViewRot = new Quaternion();
+        tempMat.getRotation(oldViewRot);
+
+        if (manager != null && manager.findGameObject(id) != null) {
+            GameObject go = manager.findGameObject(id);
+            if (go.parentId != null) {
+                GameObject parent = manager.findGameObject(go.parentId);
+                if (parent != null) {
+                    Quaternion parentWorldRot = new Quaternion();
+                    parent.transform.worldTransform.getRotation(parentWorldRot, true);
+                    Quaternion localRot = parentWorldRot.conjugate().mul(oldViewRot);
+                    manager.setRotation(go, localRot);
+                } else {
+                    manager.setRotation(go, oldViewRot);
+                }
+            } else {
+                manager.setRotation(go, oldViewRot);
+            }
+
+            manager.updateWorldTransforms();
+            setWorldTransform(id, go.transform.worldTransform);
+            return;
+        }
+
+        instance.transform.set(position, oldViewRot, scale);
+
+        btRigidBody body = physicsBodies.get(id);
+        if (body != null) {
+            com.badlogic.gdx.math.Matrix4 transform = body.getWorldTransform();
+            transform.getTranslation(position);
+            transform.set(position, oldViewRot);
+            body.setWorldTransform(transform);
+            if (body.getMotionState() != null) {
+                body.getMotionState().setWorldTransform(transform);
+            }
+            body.activate();
         }
     }
 

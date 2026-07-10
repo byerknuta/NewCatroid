@@ -312,6 +312,14 @@ public class FastTwoDManager implements Disposable {
         });
     }
 
+    public void setGravity(final float x, final float y) {
+        Gdx.app.postRunnable(() -> {
+            if (physicsWorld != null) {
+                physicsWorld.setGravity(new Vector2(x, y));
+            }
+        });
+    }
+
     public void setCollisionFilter(final String id, final boolean isSensor, final int groupIndex) {
         Gdx.app.postRunnable(() -> {
             try {

@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:gravity="center_vertical"
     android:orientation="horizontal">
 
@@ -35,7 +36,8 @@
 
         <TextView
             android:id="@+id/brick_shadow_resolution_edit"
-            style="@style/BrickEditText" />
+            style="@style/BrickEditText"
+            app:layout_newLine="true" />
 
     </org.catrobat.catroid.ui.BrickLayout>
 </LinearLayout>

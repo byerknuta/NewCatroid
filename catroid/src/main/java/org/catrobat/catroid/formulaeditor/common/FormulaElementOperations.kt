@@ -199,6 +199,7 @@ object FormulaElementOperations {
             Sensors.OBJECT_LOOK_HEIGHT -> getLookHeight(lookData)
             Sensors.NFC_TAG_MESSAGE -> NfcHandler.getLastNfcTagMessage()
             Sensors.NFC_TAG_ID -> NfcHandler.getLastNfcTagId()
+            Sensors.OBJECT_NAME -> sprite.name
             Sensors.COLLIDES_WITH_EDGE -> tryCalculateCollidesWithEdge(
                 look,
                 StageActivity.activeStageActivity.get()?.stageListener,

@@ -59,7 +59,8 @@
 		
 		<TextView
             android:id="@+id/brick_play_note_for_beats_beats_edit_text"
-            style="@style/BrickEditText">
+            style="@style/BrickEditText"
+            app:layout_newLine="true" >
         </TextView>
 
         <TextView

@@ -246,14 +246,18 @@ class BrickSearchFragment : ListFragment() {
     }
 
     private fun searchBrick(query: String) {
+        val currentContext = context ?: return
+
         availableBricks.forEach { brick ->
             val regexQuery = (".*" + query.toLowerCase(Locale.ROOT).replace("\\s".toRegex(), ".*") + ".*").toRegex()
-            val brickView = brick.getView(context)
-            if (regexQuery.containsMatchIn(findBrickString(brickView)) && !searchResultContains(brick)) {
+            val brickView = brick.getView(currentContext)
+
+            if (brickView != null && regexQuery.containsMatchIn(findBrickString(brickView)) && !searchResultContains(brick)) {
                 searchResults.add(brick)
             }
         }
     }
+
     private fun searchResultContains(brick: Brick): Boolean {
         searchResults.forEach {
             if (brick.javaClass == it.javaClass) {
@@ -263,7 +267,8 @@ class BrickSearchFragment : ListFragment() {
         return false
     }
 
-    private fun findBrickString(view: View): String {
+    private fun findBrickString(view: View?): String {
+        if (view == null) return ""
         var wholeStringFoundInBrick = ""
         if (view is ViewGroup) {
             for (i in 0 until view.childCount) {
@@ -273,7 +278,7 @@ class BrickSearchFragment : ListFragment() {
             }
         } else if (view is TextView) return view.text.toString().toLowerCase(Locale.ROOT)
         return wholeStringFoundInBrick
-        }
+    }
 
     fun getRecentlyUsedBricks() {
         val categoryBricksFactory: CategoryBricksFactory = when {

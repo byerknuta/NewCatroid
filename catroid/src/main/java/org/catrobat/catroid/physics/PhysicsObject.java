@@ -92,6 +92,13 @@ public class PhysicsObject {
 		tmpVertice = new Vector2();
 	}
 
+    private float sanitize(float value) {
+        if (Float.isNaN(value) || Float.isInfinite(value)) {
+            return 0f;
+        }
+        return value;
+    }
+
 	public void copyTo(PhysicsObject destination) {
 		destination.setType(this.getType());
 		destination.setPosition(this.getPosition());
@@ -184,10 +191,6 @@ public class PhysicsObject {
 		return PhysicsWorldConverter.convertBox2dToNormalAngle(body.getAngle());
 	}
 
-	public void setDirection(float degrees) {
-		body.setTransform(body.getPosition(), PhysicsWorldConverter.convertNormalToBox2dAngle(degrees));
-	}
-
 	public float getX() {
 		return PhysicsWorldConverter.convertBox2dToNormalCoordinate(body.getPosition().x);
 	}
@@ -208,23 +211,44 @@ public class PhysicsObject {
 		return PhysicsWorldConverter.convertBox2dToNormalVector(body.getPosition());
 	}
 
-	public void setX(float x) {
-		body.setTransform(PhysicsWorldConverter.convertNormalToBox2dCoordinate(x), body.getPosition().y,
-				body.getAngle());
-	}
+    public void setX(float x) {
+        x = sanitize(x);
+        body.setTransform(PhysicsWorldConverter.convertNormalToBox2dCoordinate(x), body.getPosition().y,
+                body.getAngle());
+    }
 
-	public void setY(float y) {
-		body.setTransform(body.getPosition().x, PhysicsWorldConverter.convertNormalToBox2dCoordinate(y),
-				body.getAngle());
-	}
+    public void setY(float y) {
+        y = sanitize(y);
+        body.setTransform(body.getPosition().x, PhysicsWorldConverter.convertNormalToBox2dCoordinate(y),
+                body.getAngle());
+    }
 
-	public void setPosition(float x, float y) {
-		x = PhysicsWorldConverter.convertNormalToBox2dCoordinate(x);
-		y = PhysicsWorldConverter.convertNormalToBox2dCoordinate(y);
-		body.setTransform(x, y, body.getAngle());
-	}
+    public void setPosition(float x, float y) {
+        x = sanitize(x);
+        y = sanitize(y);
+        x = PhysicsWorldConverter.convertNormalToBox2dCoordinate(x);
+        y = PhysicsWorldConverter.convertNormalToBox2dCoordinate(y);
+        body.setTransform(x, y, body.getAngle());
+    }
 
-	public void setPosition(Vector2 position) {
+    public void setDirection(float degrees) {
+        degrees = sanitize(degrees);
+        body.setTransform(body.getPosition(), PhysicsWorldConverter.convertNormalToBox2dAngle(degrees));
+    }
+
+    public void setVelocity(float x, float y) {
+        x = sanitize(x);
+        y = sanitize(y);
+        body.setLinearVelocity(PhysicsWorldConverter.convertNormalToBox2dCoordinate(x),
+                PhysicsWorldConverter.convertNormalToBox2dCoordinate(y));
+    }
+
+    public void setRotationSpeed(float degreesPerSecond) {
+        degreesPerSecond = sanitize(degreesPerSecond);
+        body.setAngularVelocity((float) Math.toRadians(degreesPerSecond));
+    }
+
+    public void setPosition(Vector2 position) {
 		setPosition(position.x, position.y);
 	}
 
@@ -232,17 +256,8 @@ public class PhysicsObject {
 		return (float) Math.toDegrees(body.getAngularVelocity());
 	}
 
-	public void setRotationSpeed(float degreesPerSecond) {
-		body.setAngularVelocity((float) Math.toRadians(degreesPerSecond));
-	}
-
 	public Vector2 getVelocity() {
 		return PhysicsWorldConverter.convertBox2dToNormalVector(body.getLinearVelocity());
-	}
-
-	public void setVelocity(float x, float y) {
-		body.setLinearVelocity(PhysicsWorldConverter.convertNormalToBox2dCoordinate(x),
-				PhysicsWorldConverter.convertNormalToBox2dCoordinate(y));
 	}
 
 	public void setVelocity(Vector2 velocity) {

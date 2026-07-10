@@ -102,6 +102,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 	public static final int CUSTOM_FUNCTION_ITEM_TYPE_ID = -100;
 
 	private static final List<Integer> OBJECT_GENERAL_PROPERTIES = asList(
+            R.string.formula_get_object_name,
 			R.string.formula_editor_object_rotation_look,
 			R.string.formula_editor_object_transparency,
 			R.string.formula_editor_object_brightness,
