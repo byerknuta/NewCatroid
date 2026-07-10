@@ -90,7 +90,7 @@ public abstract class VisualPlacementBrick extends FormulaBrick {
 				context.getString(R.string.brick_context_dialog_formula_edit_brick)};
 
 		new AlertDialog.Builder(
-                new ContextThemeWrapper(context, R.style.Theme_NewCatroid_Dialog)
+               context
         ).setItems(optionStrings, (dialog, which) -> {
 			switch (which) {
 				case 0:

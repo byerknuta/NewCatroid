@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -20,7 +21,13 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
+import android.widget.CheckBox
+import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.RadioGroup
+import android.widget.Spinner
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
@@ -32,6 +39,7 @@ import com.danvexteam.lunoscript_annotations.LunoClass
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.hcaptcha.sdk.HCaptcha
 import com.hcaptcha.sdk.HCaptchaConfig
@@ -49,6 +57,9 @@ import okio.buffer
 import org.catrobat.catroid.CatroidApplication
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.R
+import org.catrobat.catroid.apkbuild.ApkToolboxManager
+import org.catrobat.catroid.apkbuild.ProjectScanner
+import org.catrobat.catroid.apkbuild.TemplateManager
 import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.common.LookData
 import org.catrobat.catroid.common.Nameable
@@ -125,6 +136,13 @@ class ProjectOptionsFragment : Fragment() {
         "Mystery", "Romance", "Comedy", "Thriller", "Historical", "Drama", "Other"
     )
 
+    private var selectedCustomKeystoreFile: File? = null
+    private var tempGenAlias: String? = null
+    private var tempGenPass: String? = null
+    private var tempGenOwner: String? = null
+
+    private var activeDialogView: View? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -170,7 +188,706 @@ class ProjectOptionsFragment : Fragment() {
         setupGitButtons()
         setupBakeOption()
 
+        val buildApkBtn = view.findViewById<android.widget.TextView>(R.id.project_options_build_apk)
+        buildApkBtn?.setOnClickListener {
+            showBuildDialog()
+        }
+
         hideBottomBar(requireActivity())
+    }
+
+    override fun onDestroyView() {
+        activeDialogView = null
+        _binding = null
+        super.onDestroyView()
+    }
+
+    private fun showBuildDialog() {
+        val context = requireContext()
+        project ?: return
+
+        val scanResult = ProjectScanner.scanProject(project!!.directory)
+        val dialogView = layoutInflater.inflate(R.layout.dialog_apk_build_settings, null)
+        activeDialogView = dialogView
+
+        val tvStepSubtitle = dialogView.findViewById<TextView>(R.id.tvStepSubtitle)
+        val stepProgressIndicator = dialogView.findViewById<ProgressBar>(R.id.stepProgressIndicator)
+
+        val step1Container = dialogView.findViewById<LinearLayout>(R.id.step1Container)
+        val step2Container = dialogView.findViewById<LinearLayout>(R.id.step2Container)
+        val step3Container = dialogView.findViewById<LinearLayout>(R.id.step3Container)
+        val step4Container = dialogView.findViewById<LinearLayout>(R.id.step4Container)
+
+        val btnCancel = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
+        val btnBack = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnBack)
+        val btnNext = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnNext)
+
+        val etAppName = dialogView.findViewById<TextInputEditText>(R.id.etBuildAppName)
+        val etPackageName = dialogView.findViewById<TextInputEditText>(R.id.etBuildPackageName)
+        val etVersionName = dialogView.findViewById<TextInputEditText>(R.id.etBuildVersionName)
+        val etVersionCode = dialogView.findViewById<TextInputEditText>(R.id.etBuildVersionCode)
+        val spinnerTemplates = dialogView.findViewById<AutoCompleteTextView>(R.id.etBuildTemplate)
+
+        val toggleGroupOrientation = dialogView.findViewById<com.google.android.material.button.MaterialButtonToggleGroup>(R.id.toggleGroupOrientation)
+
+        val switchPython = dialogView.findViewById<SwitchMaterial>(R.id.switchPython)
+        val switchQemu = dialogView.findViewById<SwitchMaterial>(R.id.switchQemu)
+        val switchCompiler = dialogView.findViewById<SwitchMaterial>(R.id.switchCompiler)
+        val switchMkit = dialogView.findViewById<SwitchMaterial>(R.id.switchMkit)
+        val switchOnnx = dialogView.findViewById<SwitchMaterial>(R.id.switchOnnx)
+        val switchMnn = dialogView.findViewById<SwitchMaterial>(R.id.switchMnn)
+        val cbArm64 = dialogView.findViewById<CheckBox>(R.id.cbArm64)
+        val cbArmv7 = dialogView.findViewById<CheckBox>(R.id.cbArmv7)
+
+        val cgDetectedPermissions = dialogView.findViewById<com.google.android.material.chip.ChipGroup>(R.id.cgDetectedPermissions)
+        val switchCustomizePermissions = dialogView.findViewById<SwitchMaterial>(R.id.switchCustomizePermissions)
+        val llManualPermissions = dialogView.findViewById<LinearLayout>(R.id.llManualPermissions)
+
+        val switchPermInternet = dialogView.findViewById<SwitchMaterial>(R.id.switchPermInternet)
+        val switchPermStorage = dialogView.findViewById<SwitchMaterial>(R.id.switchPermStorage)
+        val switchPermCamera = dialogView.findViewById<SwitchMaterial>(R.id.switchPermCamera)
+        val switchPermAudio = dialogView.findViewById<SwitchMaterial>(R.id.switchPermAudio)
+        val switchPermLocation = dialogView.findViewById<SwitchMaterial>(R.id.switchPermLocation)
+        val switchPermBluetooth = dialogView.findViewById<SwitchMaterial>(R.id.switchPermBluetooth)
+        val switchPermNfc = dialogView.findViewById<SwitchMaterial>(R.id.switchPermNfc)
+        val switchPermVibrate = dialogView.findViewById<SwitchMaterial>(R.id.switchPermVibrate)
+        val switchPermOverlay = dialogView.findViewById<SwitchMaterial>(R.id.switchPermOverlay)
+        val switchPermBackground = dialogView.findViewById<SwitchMaterial>(R.id.switchPermBackground)
+
+        val rgKeystore = dialogView.findViewById<RadioGroup>(R.id.rgKeystore)
+        val llGenerateKeystoreFields = dialogView.findViewById<LinearLayout>(R.id.llGenerateKeystoreFields)
+        val llCustomKeystoreFields = dialogView.findViewById<LinearLayout>(R.id.llCustomKeystoreFields)
+
+        val etGenAlias = dialogView.findViewById<TextInputEditText>(R.id.etGenAlias)
+        val etGenPass = dialogView.findViewById<TextInputEditText>(R.id.etGenPass)
+        val etGenOwner = dialogView.findViewById<TextInputEditText>(R.id.etGenOwner)
+        val btnGenerateAndExportKeystore = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnGenerateAndExportKeystore)
+
+        val btnSelectKeystore = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSelectKeystore)
+        val tvSelectedKeystorePath = dialogView.findViewById<TextView>(R.id.tvSelectedKeystorePath)
+        val etKeystoreAlias = dialogView.findViewById<TextInputEditText>(R.id.etKeystoreAlias)
+        val etKeystorePass = dialogView.findViewById<TextInputEditText>(R.id.etKeystorePass)
+
+        etAppName.setText(project!!.name)
+        val cleanProjName = project!!.name.lowercase().replace(Regex("[^a-z0-9]"), "").ifEmpty { "game" }
+        etPackageName.setText("org.danvexteam.newcatroid.project.$cleanProjName")
+        etVersionName.setText("1.0.0")
+        etVersionCode.setText("1")
+
+        switchPermInternet.isChecked = scanResult.needsInternet
+        switchPermStorage.isChecked = scanResult.needsStorage
+        switchPermCamera.isChecked = scanResult.needsCamera
+        switchPermAudio.isChecked = scanResult.needsAudioRecord
+        switchPermLocation.isChecked = scanResult.needsLocation
+        switchPermBluetooth.isChecked = scanResult.needsBluetooth
+        switchPermNfc.isChecked = scanResult.needsNfc
+        switchPermVibrate.isChecked = scanResult.needsVibrate
+        switchPermOverlay.isChecked = scanResult.needsOverlay
+        switchPermBackground.isChecked = scanResult.needsBackground
+
+        switchPython.isChecked = scanResult.hasPython
+        switchQemu.isChecked = scanResult.hasQemu
+        switchCompiler.isChecked = scanResult.hasCompiler
+        switchMkit.isChecked = scanResult.hasMkit
+        switchOnnx.isChecked = scanResult.hasOnnx
+        switchMnn.isChecked = scanResult.hasMnn
+
+        cgDetectedPermissions.removeAllViews()
+        val addFriendlyPermissionChip = { text: String ->
+            val chip = com.google.android.material.chip.Chip(context).apply {
+                this.text = text
+                isClickable = false
+                isCheckable = false
+                setChipBackgroundColorResource(R.color.button_background)
+                setTextColor(context.resources.getColor(R.color.solid_white))
+                setChipStrokeColorResource(R.color.accent)
+                chipStrokeWidth = resources.displayMetrics.density * 1f
+            }
+            cgDetectedPermissions.addView(chip)
+        }
+
+        if (scanResult.needsInternet) addFriendlyPermissionChip(getString(R.string.perm_internet_short))
+        if (scanResult.needsStorage) addFriendlyPermissionChip(getString(R.string.perm_storage_short))
+        if (scanResult.needsCamera) addFriendlyPermissionChip(getString(R.string.perm_camera_short))
+        if (scanResult.needsAudioRecord) addFriendlyPermissionChip(getString(R.string.perm_audio_short))
+        if (scanResult.needsLocation) addFriendlyPermissionChip(getString(R.string.perm_location_short))
+        if (scanResult.needsBluetooth) addFriendlyPermissionChip(getString(R.string.perm_bluetooth_short))
+        if (scanResult.needsNfc) addFriendlyPermissionChip(getString(R.string.perm_nfc_short))
+        if (scanResult.needsVibrate) addFriendlyPermissionChip(getString(R.string.perm_vibrate_short))
+        if (scanResult.needsOverlay) addFriendlyPermissionChip(getString(R.string.perm_overlay_short))
+        if (scanResult.needsBackground) addFriendlyPermissionChip(getString(R.string.perm_background_short))
+
+        switchCustomizePermissions.setOnCheckedChangeListener { _, isChecked ->
+            androidx.transition.TransitionManager.beginDelayedTransition(dialogView as ViewGroup, androidx.transition.AutoTransition())
+            llManualPermissions.visibility = if (isChecked) View.VISIBLE else View.GONE
+        }
+
+        val isLandscape = project!!.xmlHeader.islandscapeMode()
+        toggleGroupOrientation.check(if (isLandscape) R.id.btnLandscape else R.id.btnPortrait)
+
+        fun updateOrientationTogglesVisuals() {
+            val checkedId = toggleGroupOrientation.checkedButtonId
+            val buttons = listOf(R.id.btnPortrait, R.id.btnLandscape, R.id.btnSensor)
+
+            for (id in buttons) {
+                val button = dialogView.findViewById<com.google.android.material.button.MaterialButton>(id) ?: continue
+                if (id == checkedId) {
+                    button.backgroundTintList = android.content.res.ColorStateList.valueOf(context.resources.getColor(R.color.accent))
+                    button.setTextColor(context.resources.getColor(R.color.app_background_dark))
+                } else {
+                    button.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
+                    button.setTextColor(context.resources.getColor(R.color.solid_white))
+                }
+            }
+        }
+
+        updateOrientationTogglesVisuals()
+
+        toggleGroupOrientation.addOnButtonCheckedListener { _, _, _ ->
+            updateOrientationTogglesVisuals()
+        }
+
+        var availableTemplates = listOf<TemplateManager.TemplateRelease>()
+        var selectedTemplateIndex = -1
+
+        lifecycleScope.launch(Dispatchers.Main) {
+            showProgressDialog(getString(R.string.fetching_templates))
+            try {
+                availableTemplates = TemplateManager.fetchAvailableTemplates()
+                if (availableTemplates.isEmpty()) {
+                    ToastUtil.showError(context, getString(R.string.error_fetch_templates))
+                } else {
+                    val templateNames = availableTemplates.map { "${it.tagName} (${it.fileName})" }
+                    val templateAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, templateNames)
+                    spinnerTemplates.setAdapter(templateAdapter)
+
+                    val currentVersionName = try {
+                        context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "2.2.0"
+                    } catch (e: Exception) {
+                        "2.2.0"
+                    }
+
+                    fun parseSemVer(versionStr: String): List<Int> {
+                        val baseVersion = versionStr.substringBefore("-")
+                        val clean = baseVersion.replace(Regex("[^0-9.]"), "")
+                        return clean.split(".").mapNotNull { it.toIntOrNull() }
+                    }
+
+                    fun compareSemVer(v1: List<Int>, v2: List<Int>): Int {
+                        val maxLen = maxOf(v1.size, v2.size)
+                        for (i in 0 until maxLen) {
+                            val part1 = v1.getOrNull(i) ?: 0
+                            val part2 = v2.getOrNull(i) ?: 0
+                            if (part1 != part2) {
+                                return part1.compareTo(part2)
+                            }
+                        }
+                        return 0
+                    }
+
+                    val parsedAppVersion = parseSemVer(currentVersionName)
+
+                    var bestMatchIndex = -1
+                    var bestMatchVersion: List<Int>? = null
+
+                    for (index in availableTemplates.indices) {
+                        val template = availableTemplates[index]
+                        val parsedTemplateVersion = parseSemVer(template.tagName)
+
+                        val comparison = compareSemVer(parsedTemplateVersion, parsedAppVersion)
+
+                        if (comparison <= 0) {
+                            if (bestMatchVersion == null || compareSemVer(parsedTemplateVersion, bestMatchVersion) > 0) {
+                                bestMatchVersion = parsedTemplateVersion
+                                bestMatchIndex = index
+                            }
+                        }
+                    }
+
+                    val defaultIndex = if (bestMatchIndex != -1) bestMatchIndex else 0
+
+                    if (defaultIndex != -1) {
+                        spinnerTemplates.setText(templateNames[defaultIndex], false)
+                        selectedTemplateIndex = defaultIndex
+                    } else {
+                        spinnerTemplates.setText(templateNames[0], false)
+                        selectedTemplateIndex = 0
+                    }
+                }
+            } catch (e: Exception) {
+                ToastUtil.showError(context, "${getString(R.string.error_fetch_templates)} ${e.localizedMessage}")
+            } finally {
+                hideProgressDialog()
+            }
+        }
+
+        spinnerTemplates.setOnItemClickListener { _, _, position, _ ->
+            selectedTemplateIndex = position
+        }
+
+        rgKeystore.setOnCheckedChangeListener { _, checkedId ->
+            androidx.transition.TransitionManager.beginDelayedTransition(dialogView as ViewGroup, androidx.transition.AutoTransition())
+            when (checkedId) {
+                R.id.rbAutoDebug -> {
+                    llGenerateKeystoreFields.visibility = View.GONE
+                    llCustomKeystoreFields.visibility = View.GONE
+                }
+                R.id.rbGenerateNew -> {
+                    llGenerateKeystoreFields.visibility = View.VISIBLE
+                    llCustomKeystoreFields.visibility = View.GONE
+                }
+                R.id.rbCustomKeystore -> {
+                    llGenerateKeystoreFields.visibility = View.GONE
+                    llCustomKeystoreFields.visibility = View.VISIBLE
+                }
+            }
+        }
+
+        btnGenerateAndExportKeystore.setOnClickListener {
+            val genAlias = etGenAlias.text.toString().trim()
+            val genPass = etGenPass.text.toString().trim()
+            val genOwner = etGenOwner.text.toString().trim()
+
+            if (genAlias.isEmpty() || genPass.isEmpty() || genOwner.isEmpty()) {
+                ToastUtil.showError(context, getString(R.string.error_fill_generation))
+                return@setOnClickListener
+            }
+
+            tempGenAlias = genAlias
+            tempGenPass = genPass
+            tempGenOwner = genOwner
+
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/x-pkcs12"
+                putExtra(Intent.EXTRA_TITLE, "newcatroid_release_key.p12")
+            }
+            startActivityForResult(intent, REQUEST_CODE_GENERATE_KEYSTORE)
+        }
+
+        btnSelectKeystore.setOnClickListener {
+            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                type = "*/*"
+                addCategory(Intent.CATEGORY_OPENABLE)
+            }
+            startActivityForResult(intent, REQUEST_CODE_SELECT_KEYSTORE)
+        }
+        tvSelectedKeystorePathTag = tvSelectedKeystorePath
+
+        val builder = AlertDialog.Builder(context, R.style.Theme_NewCatroid_Dialog)
+            .setView(dialogView)
+        val dialog = builder.create()
+
+        btnCancel.setOnClickListener { dialog.dismiss() }
+
+        var currentStep = 1
+
+        fun updateStepUI() {
+            androidx.transition.TransitionManager.beginDelayedTransition(dialogView as ViewGroup, androidx.transition.AutoTransition())
+
+            when (currentStep) {
+                1 -> {
+                    tvStepSubtitle.text = getString(R.string.step_format, 1, getString(R.string.step_basic))
+                    stepProgressIndicator.progress = 25
+                    step1Container.visibility = View.VISIBLE
+                    step2Container.visibility = View.GONE
+                    step3Container.visibility = View.GONE
+                    step4Container.visibility = View.GONE
+
+                    btnBack.visibility = View.INVISIBLE
+                    btnNext.text = getString(R.string.btn_next)
+                }
+                2 -> {
+                    tvStepSubtitle.text = getString(R.string.step_format, 2, getString(R.string.step_modules))
+                    stepProgressIndicator.progress = 50
+                    step1Container.visibility = View.GONE
+                    step2Container.visibility = View.VISIBLE
+                    step3Container.visibility = View.GONE
+                    step4Container.visibility = View.GONE
+
+                    btnBack.visibility = View.VISIBLE
+                    btnNext.text = getString(R.string.btn_next)
+                }
+                3 -> {
+                    tvStepSubtitle.text = getString(R.string.step_format, 3, getString(R.string.step_permissions))
+                    stepProgressIndicator.progress = 75
+                    step1Container.visibility = View.GONE
+                    step2Container.visibility = View.GONE
+                    step3Container.visibility = View.VISIBLE
+                    step4Container.visibility = View.GONE
+
+                    btnBack.visibility = View.VISIBLE
+                    btnNext.text = getString(R.string.btn_next)
+                }
+                4 -> {
+                    tvStepSubtitle.text = getString(R.string.step_format, 4, getString(R.string.step_signature))
+                    stepProgressIndicator.progress = 100
+                    step1Container.visibility = View.GONE
+                    step2Container.visibility = View.GONE
+                    step3Container.visibility = View.GONE
+                    step4Container.visibility = View.VISIBLE
+
+                    btnBack.visibility = View.VISIBLE
+                    btnNext.text = getString(R.string.btn_build)
+                }
+            }
+        }
+
+        btnBack.setOnClickListener {
+            if (currentStep > 1) {
+                currentStep--
+                updateStepUI()
+            }
+        }
+
+        btnNext.setOnClickListener {
+            when (currentStep) {
+                1 -> {
+                    val appName = etAppName.text.toString().trim()
+                    val packageName = etPackageName.text.toString().trim()
+                    val versionName = etVersionName.text.toString().trim()
+
+                    if (appName.isEmpty() || packageName.isEmpty() || versionName.isEmpty()) {
+                        ToastUtil.showError(context, getString(R.string.error_fill_required))
+                        return@setOnClickListener
+                    }
+                    currentStep = 2
+                    updateStepUI()
+                }
+                2 -> {
+                    if (!cbArm64.isChecked && !cbArmv7.isChecked) {
+                        ToastUtil.showError(context, getString(R.string.error_no_arch))
+                        return@setOnClickListener
+                    }
+                    currentStep = 3
+                    updateStepUI()
+                }
+                3 -> {
+                    currentStep = 4
+                    updateStepUI()
+                }
+                4 -> {
+                    val appName = etAppName.text.toString().trim()
+                    val packageName = etPackageName.text.toString().trim()
+                    val versionName = etVersionName.text.toString().trim()
+                    val versionCode = etVersionCode.text.toString().toIntOrNull() ?: 1
+
+                    val selectedOrientation = when (toggleGroupOrientation.checkedButtonId) {
+                        R.id.btnLandscape -> "landscape"
+                        R.id.btnSensor -> "sensor"
+                        else -> "portrait"
+                    }
+
+                    val template = if (availableTemplates.isNotEmpty() && selectedTemplateIndex in availableTemplates.indices) {
+                        availableTemplates[selectedTemplateIndex]
+                    } else {
+                        null
+                    }
+
+                    if (template == null) {
+                        ToastUtil.showError(context, getString(R.string.error_select_template))
+                        return@setOnClickListener
+                    }
+
+                    val isCustomKeystore = rgKeystore.checkedRadioButtonId == R.id.rbCustomKeystore
+                    val isGenerateNewKeystore = rgKeystore.checkedRadioButtonId == R.id.rbGenerateNew
+                    val customAlias = etKeystoreAlias.text.toString().trim()
+                    val customPass = etKeystorePass.text.toString().trim()
+
+                    if (isGenerateNewKeystore) {
+                        ToastUtil.showError(context, getString(R.string.error_key_generation_needed))
+                        return@setOnClickListener
+                    }
+
+                    if (isCustomKeystore && (selectedCustomKeystoreFile == null || customAlias.isEmpty() || customPass.isEmpty())) {
+                        ToastUtil.showError(context, getString(R.string.error_fill_keystore))
+                        return@setOnClickListener
+                    }
+
+                    dialog.dismiss()
+
+                    val excludedLibraries = mutableListOf<String>()
+                    if (!switchPython.isChecked) excludedLibraries.add("python")
+                    if (!switchQemu.isChecked) excludedLibraries.add("qemu")
+                    if (!switchCompiler.isChecked) excludedLibraries.add("compiler")
+                    if (!switchMkit.isChecked) excludedLibraries.add("mkit")
+                    if (!switchOnnx.isChecked) excludedLibraries.add("onnx")
+                    if (!switchMnn.isChecked) excludedLibraries.add("mnn")
+
+                    val excludedArches = mutableListOf<String>()
+                    if (!cbArm64.isChecked) excludedArches.add("arm64-v8a")
+                    if (!cbArmv7.isChecked) excludedArches.add("armeabi-v7a")
+                    excludedArches.add("x86")
+                    excludedArches.add("x86_64")
+
+                    val useManual = switchCustomizePermissions.isChecked
+                    val internet = if (useManual) switchPermInternet.isChecked else scanResult.needsInternet
+                    val storage = if (useManual) switchPermStorage.isChecked else scanResult.needsStorage
+                    val camera = if (useManual) switchPermCamera.isChecked else scanResult.needsCamera
+                    val audio = if (useManual) switchPermAudio.isChecked else scanResult.needsAudioRecord
+                    val location = if (useManual) switchPermLocation.isChecked else scanResult.needsLocation
+                    val bluetooth = if (useManual) switchPermBluetooth.isChecked else scanResult.needsBluetooth
+                    val nfc = if (useManual) switchPermNfc.isChecked else scanResult.needsNfc
+                    val vibrate = if (useManual) switchPermVibrate.isChecked else scanResult.needsVibrate
+                    val overlay = if (useManual) switchPermOverlay.isChecked else scanResult.needsOverlay
+                    val background = if (useManual) switchPermBackground.isChecked else scanResult.needsBackground
+
+                    val allowedPermissions = mutableListOf<String>().apply {
+                        add("android.permission.POST_NOTIFICATIONS")
+                        if (internet) {
+                            add("android.permission.INTERNET")
+                            add("android.permission.ACCESS_NETWORK_STATE")
+                            add("android.permission.ACCESS_WIFI_STATE")
+                        }
+                        if (storage) {
+                            add("android.permission.READ_EXTERNAL_STORAGE")
+                            add("android.permission.WRITE_EXTERNAL_STORAGE")
+                            add("android.permission.MANAGE_EXTERNAL_STORAGE")
+                            add("android.permission.READ_MEDIA_AUDIO")
+                            add("android.permission.READ_MEDIA_VIDEO")
+                            add("android.permission.READ_MEDIA_IMAGES")
+                        }
+                        if (camera) add("android.permission.CAMERA")
+                        if (audio) add("android.permission.RECORD_AUDIO")
+                        if (location) {
+                            add("android.permission.ACCESS_FINE_LOCATION")
+                            add("android.permission.ACCESS_COARSE_LOCATION")
+                        }
+                        if (bluetooth) {
+                            add("android.permission.BLUETOOTH")
+                            add("android.permission.BLUETOOTH_ADMIN")
+                            add("android.permission.BLUETOOTH_SCAN")
+                            add("android.permission.BLUETOOTH_CONNECT")
+                            add("android.permission.BLUETOOTH_ADVERTISE")
+                            add("android.permission.NEARBY_WIFI_DEVICES")
+                        }
+                        if (nfc) add("android.permission.NFC")
+                        if (vibrate) add("android.permission.VIBRATE")
+                        if (overlay) add("android.permission.SYSTEM_ALERT_WINDOW")
+                        if (background) {
+                            add("android.permission.FOREGROUND_SERVICE")
+                            add("android.permission.FOREGROUND_SERVICE_DATA_SYNC")
+                        }
+                    }
+
+                    executeApkBuildProcess(
+                        appName, packageName, versionName, versionCode, selectedOrientation,
+                        template, excludedLibraries, excludedArches,
+                        isCustomKeystore, selectedCustomKeystoreFile, customAlias, customPass,
+                        allowedPermissions
+                    )
+                }
+            }
+        }
+
+        dialog.show()
+    }
+
+    private var tvSelectedKeystorePathTag: TextView? = null
+    private val REQUEST_CODE_SELECT_KEYSTORE = 1002
+
+    private fun processProjectIcon(sourceFile: File, destFile: File): Boolean {
+        return try {
+            val options = BitmapFactory.Options().apply {
+                inJustDecodeBounds = false
+            }
+            val originalBitmap = BitmapFactory.decodeFile(sourceFile.absolutePath, options) ?: return false
+
+            val width = originalBitmap.width
+            val height = originalBitmap.height
+
+            val squareSize = Math.min(width, height)
+            val xOffset = (width - squareSize) / 2
+            val yOffset = (height - squareSize) / 2
+
+            val squareBitmap = Bitmap.createBitmap(originalBitmap, xOffset, yOffset, squareSize, squareSize)
+
+            val targetSize = 512
+            val resizedBitmap = Bitmap.createScaledBitmap(squareBitmap, targetSize, targetSize, true)
+
+            FileOutputStream(destFile).use { out ->
+                resizedBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+
+            if (originalBitmap != resizedBitmap) originalBitmap.recycle()
+            if (squareBitmap != resizedBitmap) squareBitmap.recycle()
+            resizedBitmap.recycle()
+            true
+        } catch (e: Exception) {
+            android.util.Log.e("ApkBuilder", "Failed to process launcher icon", e)
+            false
+        }
+    }
+
+    private fun executeApkBuildProcess(
+        appName: String,
+        packageName: String,
+        versionName: String,
+        versionCode: Int,
+        orientation: String,
+        template: TemplateManager.TemplateRelease,
+        excludedLibraries: List<String>,
+        excludedArches: List<String>,
+        useCustomKeystore: Boolean,
+        keystoreFile: File?,
+        keystoreAlias: String?,
+        keystorePass: String?,
+        allowedPermissions: List<String>
+    ) {
+        val context = requireContext()
+        val projectDir = project!!.directory
+
+        showProgressDialog(getString(R.string.downloading_template))
+
+        lifecycleScope.launch(Dispatchers.Main) {
+            val downloadedTemplateApk = TemplateManager.downloadTemplate(
+                context, template.downloadUrl, template.fileName
+            ) { progress ->
+                updateProgressDialogMessage(getString(R.string.downloading_template_progress, progress))
+            }
+
+            if (downloadedTemplateApk == null || !downloadedTemplateApk.exists()) {
+                hideProgressDialog()
+                ToastUtil.showError(context, getString(R.string.error_download_template))
+                return@launch
+            }
+
+            updateProgressDialogMessage(getString(R.string.preparing_project))
+
+            val projectZipFile = withContext(Dispatchers.IO) {
+                val file = File(context.cacheDir, "project_clean.zip")
+                ZipOutputStream(FileOutputStream(file)).use { zos ->
+                    zipProjectWithoutSaves(projectDir, zos)
+                }
+                file
+            }
+
+            updateProgressDialogMessage(getString(R.string.preparing_apk_structure))
+
+            val unsignedApkFile = File(context.cacheDir, "build_unsigned.apk")
+            val finalApkFile = File(context.cacheDir, "${appName}_build.apk")
+
+            withContext(Dispatchers.IO) {
+                downloadedTemplateApk.copyTo(unsignedApkFile, overwrite = true)
+            }
+
+            updateProgressDialogMessage(getString(R.string.customizing_apk))
+
+            val rawIconFile = getProjectIconFile(projectDir)
+            var iconFile: File? = null
+
+            if (rawIconFile != null && rawIconFile.exists()) {
+                val processedIcon = File(context.cacheDir, "processed_icon.png")
+                if (processProjectIcon(rawIconFile, processedIcon)) {
+                    iconFile = processedIcon
+                }
+            }
+
+            val buildOptions = ApkToolboxManager.BuildOptions(
+                appName = appName,
+                packageName = packageName,
+                versionName = versionName,
+                versionCode = versionCode,
+                orientation = orientation,
+                iconFile = iconFile,
+                projectZipFile = projectZipFile,
+                excludedArches = excludedArches,
+                excludedLibraries = excludedLibraries,
+                allowedPermissions = allowedPermissions
+            )
+
+            val customizationSuccess = withContext(Dispatchers.IO) {
+                ApkToolboxManager.customizeApk(unsignedApkFile.absolutePath, buildOptions)
+            }
+
+            projectZipFile.delete()
+
+            if (!customizationSuccess) {
+                hideProgressDialog()
+                ToastUtil.showError(context, getString(R.string.error_build_optimization))
+                unsignedApkFile.delete()
+                return@launch
+            }
+
+            updateProgressDialogMessage(getString(R.string.signing_apk))
+
+            val signSuccess = withContext(Dispatchers.IO) {
+                if (useCustomKeystore && keystoreFile != null) {
+                    ApkToolboxManager.signApk(
+                        context,
+                        unsignedApkFile.absolutePath,
+                        finalApkFile.absolutePath,
+                        keystoreFile.absolutePath,
+                        keystoreAlias,
+                        keystorePass
+                    )
+                } else {
+                    ApkToolboxManager.signApk(
+                        context,
+                        unsignedApkFile.absolutePath,
+                        finalApkFile.absolutePath,
+                        null, null, null
+                    )
+                }
+            }
+
+            unsignedApkFile.delete()
+
+            hideProgressDialog()
+
+            if (signSuccess && finalApkFile.exists()) {
+                ToastUtil.showSuccess(context, getString(R.string.success_build))
+                shareApkFile(finalApkFile, appName)
+            } else {
+                ToastUtil.showError(context, getString(R.string.error_signing_apk))
+                finalApkFile.delete()
+            }
+        }
+    }
+
+    private fun shareApkFile(file: File, appName: String) {
+        val uri = androidx.core.content.FileProvider.getUriForFile(
+            requireContext(),
+            requireContext().packageName + ".fileProvider",
+            file
+        )
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "application/vnd.android.package-archive"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        startActivity(Intent.createChooser(intent, getString(R.string.share_apk_title, appName)))
+    }
+
+    private fun zipProjectWithoutSaves(dir: File, zos: ZipOutputStream, basePath: String = "") {
+        val ignoredFiles = listOf("DeviceVariables.json", "DeviceLists.json", "undo_code.xml")
+
+        dir.listFiles()?.forEach { file ->
+            val filePath = if (basePath.isEmpty()) file.name else "$basePath/${file.name}"
+
+            if (ignoredFiles.contains(file.name)) {
+                return@forEach
+            }
+
+            if (file.isDirectory) {
+                val dirEntry = ZipEntry("$filePath/")
+                zos.putNextEntry(dirEntry)
+                zos.closeEntry()
+                zipProjectWithoutSaves(file, zos, filePath)
+            } else {
+                FileInputStream(file).use { fis ->
+                    zos.putNextEntry(ZipEntry(filePath))
+                    fis.copyTo(zos)
+                    zos.closeEntry()
+                }
+            }
+        }
+    }
+
+    private fun updateProgressDialogMessage(message: String) {
+        activity?.runOnUiThread {
+            progressDialog?.setMessage(message)
+        }
     }
 
     private fun parseServerError(errorJson: String?): String {
@@ -1838,6 +2555,80 @@ class ProjectOptionsFragment : Fragment() {
                 }
             } ?: showToast(getRandomError())
         }
+        if (requestCode == REQUEST_CODE_SELECT_KEYSTORE && resultCode == Activity.RESULT_OK) {
+            data.data?.let { uri ->
+                try {
+                    val tempKeystore = File(requireContext().cacheDir, "custom_user_signing.jks")
+                    tempKeystore.parentFile?.mkdirs()
+
+                    requireContext().contentResolver.openInputStream(uri)?.use { input ->
+                        FileOutputStream(tempKeystore).use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+
+                    selectedCustomKeystoreFile = tempKeystore
+                    tvSelectedKeystorePathTag?.text = getString(R.string.keystore_loaded)
+                    ToastUtil.showSuccess(requireContext(), getString(R.string.keystore_loaded))
+                } catch (e: Exception) {
+                    tvSelectedKeystorePathTag?.text = getString(R.string.error_loading_key)
+                    ToastUtil.showError(requireContext(), getString(R.string.error_load_keystore, e.message))
+                }
+            }
+        }
+
+        if (requestCode == REQUEST_CODE_GENERATE_KEYSTORE && resultCode == Activity.RESULT_OK) {
+            val destinationUri = data.data ?: return
+            val alias = tempGenAlias ?: "debug"
+            val pass = tempGenPass ?: "android"
+            val ownerName = tempGenOwner ?: "NewCatroid Owner"
+
+            try {
+                val tempGeneratedKeystore = File(requireContext().cacheDir, "user_generated_keystore.p12")
+                if (tempGeneratedKeystore.exists()) tempGeneratedKeystore.delete()
+
+                val generateSuccess = ApkToolboxManager.generateKeyStore(
+                    tempGeneratedKeystore.absolutePath, alias, pass, ownerName
+                )
+
+                if (generateSuccess && tempGeneratedKeystore.exists()) {
+                    requireContext().contentResolver.openOutputStream(destinationUri)?.use { outputStream ->
+                        FileInputStream(tempGeneratedKeystore).use { inputStream ->
+                            inputStream.copyTo(outputStream)
+                        }
+                    }
+
+                    selectedCustomKeystoreFile = tempGeneratedKeystore
+
+                    activeDialogView?.let { view ->
+                        val rgKeystore = view.findViewById<RadioGroup>(R.id.rgKeystore)
+                        val tvSelectedKeystorePath = view.findViewById<TextView>(R.id.tvSelectedKeystorePath)
+                        val etKeystoreAlias = view.findViewById<TextInputEditText>(R.id.etKeystoreAlias)
+                        val etKeystorePass = view.findViewById<TextInputEditText>(R.id.etKeystorePass)
+
+                        view.findViewById<TextInputEditText>(R.id.etGenAlias)?.setText("")
+                        view.findViewById<TextInputEditText>(R.id.etGenPass)?.setText("")
+                        view.findViewById<TextInputEditText>(R.id.etGenOwner)?.setText("")
+
+                        etKeystoreAlias?.setText(alias)
+                        etKeystorePass?.setText(pass)
+                        tvSelectedKeystorePath?.text = getString(R.string.generated_path_label)
+
+                        rgKeystore?.check(R.id.rbCustomKeystore)
+                    }
+
+                    ToastUtil.showSuccess(requireContext(), getString(R.string.success_key_generated))
+                } else {
+                    ToastUtil.showError(requireContext(), getString(R.string.error_key_failed))
+                }
+            } catch (e: Exception) {
+                ToastUtil.showError(requireContext(), "Ошибка: ${e.message}")
+            } finally {
+                tempGenAlias = null
+                tempGenPass = null
+                tempGenOwner = null
+            }
+        }
     }
 
     fun copyFileToUri(context: Context, sourceFile: File, directoryUri: Uri, fileName: String) {
@@ -1953,5 +2744,6 @@ class ProjectOptionsFragment : Fragment() {
         private const val REQUEST_EXPORT_PROJECT = 10
         private const val REQUEST_BUILD_PROJECT = 11
         private const val REQUEST_SELECT_IMAGE = 12
+        private const val REQUEST_CODE_GENERATE_KEYSTORE = 1003
     }
 }

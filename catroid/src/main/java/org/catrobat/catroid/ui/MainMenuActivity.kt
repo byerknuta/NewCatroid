@@ -199,7 +199,7 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
                 factJob.cancel()
 
                 val elapsedTime = System.currentTimeMillis() - startTime
-                val remainingTime = 2500 - elapsedTime
+                val remainingTime = 1400 - elapsedTime
                 if (remainingTime > 0) {
                     kotlinx.coroutines.delay(remainingTime)
                 }
@@ -252,7 +252,6 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
     private fun heavyInitialization() {
         NativeLibraryManager.initialize()
-        Thread.sleep(3000)
         PreferenceManager.setDefaultValues(this, R.xml.preferences, true)
         PreferenceManager.setDefaultValues(this, R.xml.nxt_preferences, true)
         PreferenceManager.setDefaultValues(this, R.xml.ev3_preferences, true)
@@ -634,34 +633,42 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
             return
         }
 
-        Log.d("STANDALONE", "New version detected (current: $currentVersion, last: $lastUnpackedVersion). Starting update process...")
+        Log.d("STANDALONE", "New version detected (current: $currentVersion, last: $lastUnpackedVersion). Starting update/install...")
 
         try {
             val tempDir = File(cacheDir, "standalone_temp_${System.currentTimeMillis()}")
             val inputStream = assets.open(BuildConfig.START_PROJECT + ".zip")
             ZipArchiver().unzip(inputStream, tempDir)
-            Log.d("STANDALONE", "Unpacked new project to temporary directory: ${tempDir.path}")
-
-            if (projectDir.exists() && lastUnpackedVersion != -1) {
-                Log.d("STANDALONE", "Old project found. Migrating user data...")
-                migrateUserData(projectDir, tempDir)
-            }
+            Log.d("STANDALONE", "Unpacked new template to temporary directory: ${tempDir.path}")
 
             if (projectDir.exists()) {
-                projectDir.deleteRecursively()
-            }
-            if (tempDir.renameTo(projectDir)) {
-                Log.d("STANDALONE", "Project directory updated successfully.")
-            } else {
-                Log.e("STANDALONE", "FATAL: Failed to rename temp directory to final project directory.")
+                Log.d("STANDALONE", "Old project found. Updating assets and preserving user data...")
+
+                val templateFilesAndDirs = listOf(
+                    "code.xml",
+                    "libs"
+                )
+                templateFilesAndDirs.forEach { name ->
+                    val file = File(projectDir, name)
+                    if (file.exists()) {
+                        file.deleteRecursively()
+                    }
+                }
+
                 tempDir.copyRecursively(projectDir, overwrite = true)
                 tempDir.deleteRecursively()
+            } else {
+                Log.d("STANDALONE", "First install. Creating project directory...")
+                if (!tempDir.renameTo(projectDir)) {
+                    tempDir.copyRecursively(projectDir, overwrite = true)
+                    tempDir.deleteRecursively()
+                }
             }
 
             ProjectLoader(projectDir, this).setListener(this).loadProjectAsync()
 
             prefs.edit().putInt("standalone_project_version", currentVersion).apply()
-            Log.d("STANDALONE", "Update complete. Saved new version: $currentVersion")
+            Log.d("STANDALONE", "Update complete. Saved version: $currentVersion")
 
         } catch (e: IOException) {
             Log.e("STANDALONE", "Cannot unpack or update standalone project: ", e)

@@ -23,6 +23,107 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="orientation_portrait">Портретная</string>
+    <string name="orientation_landscape">Альбомная</string>
+    <string name="orientation_sensor">Авто/Сенсор</string>
+
+    <string name="perm_auto_recommended">Автовыбор разрешений (Рекомендуется)</string>
+    <string name="perm_customize_manually">Настроить вручную</string>
+    <string name="perm_internet_short">Интернет</string>
+    <string name="perm_storage_short">Хранилище</string>
+    <string name="perm_camera_short">Камера</string>
+    <string name="perm_audio_short">Микрофон</string>
+    <string name="perm_location_short">Геолокация</string>
+    <string name="perm_bluetooth_short">Bluetooth</string>
+    <string name="perm_nfc_short">NFC</string>
+    <string name="perm_vibrate_short">Вибрация</string>
+    <string name="perm_overlay_short">Окна поверх</string>
+    <string name="perm_background_short">Фоновый режим</string>
+
+    <string name="success_key_generated">Ключ успешно создан и сохранен!</string>
+    <string name="error_key_failed">Не удалось сгенерировать файл ключа!</string>
+
+    <string name="apk_builder_title">Настройки сборщика APK</string>
+    <string name="step_format">Шаг %1$d из 4: %2$s</string>
+    <string name="step_basic">Основное</string>
+    <string name="step_modules">Модули и CPU</string>
+    <string name="step_permissions">Разрешения</string>
+    <string name="step_signature">Подпись</string>
+
+    <string name="build_app_name">Название приложения</string>
+    <string name="build_package_name">Имя пакета (Package ID)</string>
+    <string name="build_version_name">Версия (Name)</string>
+    <string name="build_version_code">Код версии (Code)</string>
+    <string name="build_template">Версия APK шаблона</string>
+    <string name="build_orientation">Ориентация экрана</string>
+
+    <string name="build_modules_title">Включить библиотеки / модули</string>
+    <string name="build_cpu_archs">Архитектуры процессора</string>
+    <string name="build_permissions_title">Разрешения приложения (Permissions)</string>
+    <string name="build_signature_title">Цифровая подпись</string>
+
+    <string name="build_auto_debug">Автоматический отладочный ключ</string>
+    <string name="build_custom_keystore">Использовать существующий Keystore</string>
+    <string name="build_generate_new_title">Сгенерировать новый Keystore</string>
+    <string name="build_gen_alias">Имя нового ключа (Alias)</string>
+    <string name="build_gen_pass">Пароль нового ключа</string>
+    <string name="build_gen_owner">ФИО владельца (Common Name)</string>
+    <string name="build_btn_generate_save">Сгенерировать и сохранить .p12</string>
+
+    <string name="build_select_keystore">Выбрать файл Keystore (.jks/.p12)</string>
+    <string name="build_key_alias">Имя ключа (Alias)</string>
+    <string name="build_key_pass">Пароль Keystore / Ключа</string>
+
+    <string name="btn_back">Назад</string>
+    <string name="btn_next">Далее</string>
+    <string name="btn_build">Собрать</string>
+
+    <string name="perm_internet">Доступ в Интернет (INTERNET)</string>
+    <string name="perm_storage">Доступ к хранилищу (STORAGE)</string>
+    <string name="perm_camera">Использование камеры (CAMERA)</string>
+    <string name="perm_audio">Запись звука (RECORD_AUDIO)</string>
+    <string name="perm_location">Геолокация (GPS / LOCATION)</string>
+    <string name="perm_bluetooth">Связь через Bluetooth</string>
+    <string name="perm_nfc">Связь через NFC</string>
+    <string name="perm_vibrate">Вибрация устройства (VIBRATE)</string>
+    <string name="perm_overlay">Поверх других окон (SYSTEM_ALERT)</string>
+    <string name="perm_background">Фоновая работа (FOREGROUND_SERVICE)</string>
+
+    <string name="lib_python_engine">Python Engine</string>
+    <string name="lib_qemu_vm">Qemu Virtual Machine</string>
+    <string name="lib_compiler">ECJ / D8 (Компиляция Java/Python)</string>
+    <string name="lib_ml_kit">ML Kit (Машинное обучение)</string>
+    <string name="lib_onnx">ONNX Runtime</string>
+    <string name="lib_mnn">MNN Engine</string>
+    <string name="arch_arm64">ARM64 (arm64-v8a)</string>
+    <string name="arch_armv7">ARMv7 (armeabi-v7a)</string>
+
+    <string name="downloading_template">Скачивание шаблона APK...</string>
+    <string name="downloading_template_progress">Скачивание шаблона... %1$d%%</string>
+    <string name="preparing_project">Очистка сохранений и подготовка проекта...</string>
+    <string name="preparing_apk_structure">Подготовка структуры APK...</string>
+    <string name="customizing_apk">Кастомизация и оптимизация APK...</string>
+    <string name="signing_apk">Цифровая подпись APK...</string>
+    <string name="error_download_template">Не удалось скачать шаблон APK!</string>
+    <string name="error_build_optimization">Ошибка сборки и оптимизации APK!</string>
+    <string name="error_signing_apk">Не удалось подписать собранный APK!</string>
+    <string name="success_build">Сборка успешно завершена!</string>
+    <string name="share_apk_title">Сохранить собранный APK: %1$s</string>
+    <string name="no_file_selected">Файл не выбран</string>
+    <string name="keystore_loaded">Keystore файл загружен!</string>
+    <string name="error_load_keystore">Не удалось загрузить файл Keystore: %1$s</string>
+    <string name="error_loading_key">Ошибка при загрузке</string>
+    <string name="generated_path_label">Создан и выбран</string>
+
+    <string name="error_fill_required">Все поля основной информации должны быть заполнены!</string>
+    <string name="error_select_template">Не выбран шаблон для сборки!</string>
+    <string name="error_fill_keystore">Заполните все данные для собственной цифровой подписи!</string>
+    <string name="error_fill_generation">Заполните все поля для генерации ключа!</string>
+    <string name="error_key_generation_needed">Сначала сгенерируйте и сохраните файл ключа с помощью кнопки выше!</string>
+    <string name="fetching_templates">Запрос списка шаблонов...</string>
+    <string name="error_fetch_templates">Не удалось загрузить список шаблонов (ошибка сети).</string>
+    <string name="error_no_arch">Выберите хотя бы одну архитектуру процессора!</string>
+
     <string name="notification_moderation_channel">Статус модерации проектов</string>
     <string name="notification_moderation_approved_title">Проект одобрен!</string>
     <string name="notification_moderation_approved_body">Ваш проект «%1$s» успешно прошел модерацию и опубликован в сообществе!</string>
@@ -2517,7 +2618,7 @@
     <string formatted="false" name="brick_save_look">Образ в файл (Загрузки)</string>
     <string formatted="false" name="brick_scene_id">Запустить сцену под номером</string>
     <string formatted="false" name="brick_file_url">Сохранить файл (Загрузки)</string>
-    <string formatted="false" name="build_apk">Сохранить APK</string>
+    <string formatted="false" name="build_apk">Собрать APK</string>
     <string formatted="false" name="save_apk_button">Билд APK</string>
     <string formatted="false" name="change_icon_button">Изменить иконку</string>
     <string formatted="false" name="change_orientation_button">Изменить ориентацию</string>

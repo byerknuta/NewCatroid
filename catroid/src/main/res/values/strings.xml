@@ -23,6 +23,107 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="orientation_portrait">Portrait</string>
+    <string name="orientation_landscape">Landscape</string>
+    <string name="orientation_sensor">Auto/Sensor</string>
+
+    <string name="perm_auto_recommended">Auto-detected permissions (Recommended)</string>
+    <string name="perm_customize_manually">Customize manually</string>
+    <string name="perm_internet_short">Internet</string>
+    <string name="perm_storage_short">Storage</string>
+    <string name="perm_camera_short">Camera</string>
+    <string name="perm_audio_short">Microphone</string>
+    <string name="perm_location_short">Location</string>
+    <string name="perm_bluetooth_short">Bluetooth</string>
+    <string name="perm_nfc_short">NFC</string>
+    <string name="perm_vibrate_short">Vibration</string>
+    <string name="perm_overlay_short">Overlay</string>
+    <string name="perm_background_short">Background Work</string>
+
+    <string name="success_key_generated">Keystore successfully generated and saved!</string>
+    <string name="error_key_failed">Failed to generate key file!</string>
+
+    <string name="apk_builder_title">APK Build Settings</string>
+    <string name="step_format">Step %1$d of 4: %2$s</string>
+    <string name="step_basic">General</string>
+    <string name="step_modules">Modules &amp; CPU</string>
+    <string name="step_permissions">Permissions</string>
+    <string name="step_signature">Signature</string>
+
+    <string name="build_app_name">Application Name</string>
+    <string name="build_package_name">Package ID</string>
+    <string name="build_version_name">Version Name</string>
+    <string name="build_version_code">Version Code</string>
+    <string name="build_template">APK Template Version</string>
+    <string name="build_orientation">Screen Orientation</string>
+
+    <string name="build_modules_title">Enable Modules &amp; Engines</string>
+    <string name="build_cpu_archs">Processor Architectures</string>
+    <string name="build_permissions_title">Application Permissions</string>
+    <string name="build_signature_title">Digital Keystore Signature</string>
+
+    <string name="build_auto_debug">Automatic Debug Keystore</string>
+    <string name="build_custom_keystore">Use Existing Keystore</string>
+    <string name="build_generate_new_title">Generate New Keystore</string>
+    <string name="build_gen_alias">New Key Alias</string>
+    <string name="build_gen_pass">New Key Password</string>
+    <string name="build_gen_owner">Owner Full Name (CN)</string>
+    <string name="build_btn_generate_save">Generate and Save Keystore File</string>
+
+    <string name="build_select_keystore">Choose Keystore File (.jks/.p12)</string>
+    <string name="build_key_alias">Key Alias</string>
+    <string name="build_key_pass">Keystore / Key Password</string>
+
+    <string name="btn_back">Back</string>
+    <string name="btn_next">Next</string>
+    <string name="btn_build">Build</string>
+
+    <string name="perm_internet">Internet Access (INTERNET)</string>
+    <string name="perm_storage">Storage Access (STORAGE)</string>
+    <string name="perm_camera">Camera Usage (CAMERA)</string>
+    <string name="perm_audio">Record Audio (RECORD_AUDIO)</string>
+    <string name="perm_location">Location (GPS / LOCATION)</string>
+    <string name="perm_bluetooth">Bluetooth Connection</string>
+    <string name="perm_nfc">NFC Connection</string>
+    <string name="perm_vibrate">Device Vibration (VIBRATE)</string>
+    <string name="perm_overlay">System Overlay (SYSTEM_ALERT)</string>
+    <string name="perm_background">Background Service (FOREGROUND_SERVICE)</string>
+
+    <string name="lib_python_engine">Python Engine</string>
+    <string name="lib_qemu_vm">Qemu Virtual Machine</string>
+    <string name="lib_compiler">ECJ / D8 (Java/Python Compilation)</string>
+    <string name="lib_ml_kit">ML Kit (Machine Learning)</string>
+    <string name="lib_onnx">ONNX Runtime</string>
+    <string name="lib_mnn">MNN Engine</string>
+    <string name="arch_arm64">ARM64 (arm64-v8a)</string>
+    <string name="arch_armv7">ARMv7 (armeabi-v7a)</string>
+
+    <string name="downloading_template">Downloading APK template...</string>
+    <string name="downloading_template_progress">Downloading template... %1$d%%</string>
+    <string name="preparing_project">Clearing saves and preparing project...</string>
+    <string name="preparing_apk_structure">Preparing APK structure...</string>
+    <string name="customizing_apk">Customizing and optimizing APK...</string>
+    <string name="signing_apk">Signing APK...</string>
+    <string name="error_download_template">Failed to download APK template!</string>
+    <string name="error_build_optimization">Build and optimization error!</string>
+    <string name="error_signing_apk">Failed to sign compiled APK!</string>
+    <string name="success_build">Build completed successfully!</string>
+    <string name="share_apk_title">Save compiled APK: %1$s</string>
+    <string name="no_file_selected">No file selected</string>
+    <string name="keystore_loaded">Keystore file loaded!</string>
+    <string name="error_load_keystore">Failed to load Keystore file: %1$s</string>
+    <string name="error_loading_key">Error loading key</string>
+    <string name="generated_path_label">Created and selected</string>
+
+    <string name="error_fill_required">All basic fields must be filled!</string>
+    <string name="error_select_template">Please select a build template!</string>
+    <string name="error_fill_keystore">Please fill in all custom keystore fields!</string>
+    <string name="error_fill_generation">Please fill in all fields to generate a key!</string>
+    <string name="error_key_generation_needed">Please generate and save your key using the button above first!</string>
+    <string name="fetching_templates">Fetching templates list...</string>
+    <string name="error_fetch_templates">Failed to load templates (network error).</string>
+    <string name="error_no_arch">Please select at least one processor architecture!</string>
+
     <string name="notification_moderation_channel">Project Moderation Status</string>
     <string name="notification_moderation_approved_title">Project Approved!</string>
     <string name="notification_moderation_approved_body">Your project \"%1$s\" has successfully passed moderation and is now published!</string>
@@ -2584,7 +2685,7 @@
     <string formatted="false" name="brick_scene_id">Start scene with id</string>
     <string formatted="false" name="brick_file_url">Save file (Downloads)</string>
     <string formatted="false" name="brick_file_url2">with name</string>
-    <string formatted="false" name="build_apk">Save APK</string>
+    <string formatted="false" name="build_apk">Build APK</string>
     <string formatted="false" name="save_apk_button">Build APK</string>
     <string formatted="false" name="change_icon_button">Change icon</string>
     <string formatted="false" name="change_orientation_button">Change orientation</string>

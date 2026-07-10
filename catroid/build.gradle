@@ -252,7 +252,7 @@ android {
                     'lib/mips/*', 'lib/armeabi/*', 'classes.dex',
                     'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/NOTICE',
                     'META-INF/NOTICE.txt', 'META-INF/DEPENDENCIES', 'META-INF/ASL2.0',
-                    '**/*.properties', '**/*.proto', 'about.html'
+                    '**/*.proto', 'about.html'
             ]
         }
         pickFirst 'META-INF/io.netty.versions.properties'
