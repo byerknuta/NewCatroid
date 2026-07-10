@@ -592,7 +592,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_media_duration,
             R.string.formula_image_width,
             R.string.formula_image_height,
-            R.string.formula_file_last_modified
+            R.string.formula_file_last_modified,
+            R.string.formula_file_to_base64
     );
 
     private static final List<Integer> FILE_PARAMS = asList(
@@ -604,7 +605,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_media_duration_param,
             R.string.formula_image_width_param,
             R.string.formula_image_height_param,
-            R.string.formula_file_last_modified_param
+            R.string.formula_file_last_modified_param,
+            R.string.formula_file_to_base64_param
     );
 
     private static final List<Integer> TABLE_AND_VARS_FUNCTIONS = asList(
@@ -1383,7 +1385,6 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
         return dp0[len2];
     }
 
-    // Класс для сортировки результатов по релевантности
     private static class SearchResult implements Comparable<SearchResult> {
         CategoryListItem item;
         int score;

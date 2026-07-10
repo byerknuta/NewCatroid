@@ -671,6 +671,8 @@ public class InternFormulaKeyboardAdapter {
                 return buildSingleParameterFunction(Functions.FILE_LAST_MODIFIED, STRING, "data.txt");
             case R.string.formula_notification_reply:
                 return buildSingleParameterFunction(Functions.NOTIFICATION_REPLY, STRING, "my_action_id");
+            case R.string.formula_file_to_base64:
+                return buildSingleParameterFunction(Functions.FILE_TO_BASE64, STRING, "image.png");
 			case R.string.formula_editor_phiro_sensor_side_right:
 				return buildSensor(Sensors.PHIRO_SIDE_RIGHT);
 			case R.string.formula_editor_phiro_sensor_bottom_left:

@@ -5290,4 +5290,14 @@ public class ActionFactory extends Actions {
         action.setEndFormula(end);
         return action;
     }
+
+    public Action createBase64ToFileAction(Sprite sprite, SequenceAction sequence,
+                                           Formula base64String, Formula destinationFileName) {
+        Base64ToFileAction action = action(Base64ToFileAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setBase64String(base64String);
+        action.setDestinationFileName(destinationFileName);
+        return action;
+    }
 }

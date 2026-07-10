@@ -69,6 +69,7 @@ import org.catrobat.catroid.content.bricks.AttachSOBrick
 import org.catrobat.catroid.content.bricks.AttachToCameraBrick
 import org.catrobat.catroid.content.bricks.BackgroundRequestBrick
 import org.catrobat.catroid.content.bricks.BakeByPrefixBrick
+import org.catrobat.catroid.content.bricks.Base64ToFileBrick
 import org.catrobat.catroid.content.bricks.BigAskBrick
 import org.catrobat.catroid.content.bricks.BindVmOutputBrick
 import org.catrobat.catroid.content.bricks.Brick
@@ -2592,6 +2593,8 @@ void main() {
         fileBrickList.add(LoadPythonLibraryBrick("telebot.whl"))
         fileBrickList.add(RunVm2Brick("-kernel \"%PROJECT_FILES%/bzImage\" -initrd \"%PROJECT_FILES%/core.gz\" -append \"console=ttyS0 quiet\""))
         fileBrickList.add(RunVMBrick("1024", "2", "myDisk.qcow2", "flash.iso"))
+
+        fileBrickList.add(Base64ToFileBrick("", "image.png"))
 
         fileBrickList.add(GenerateKeyBrick("keystore.jks", "123456", "alias", "KEBAB_337"))
         fileBrickList.add(SignApkBrick("input.apk", "output.apk", "keystore.jks", "123456", "alias"))

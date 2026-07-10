@@ -242,6 +242,8 @@ class ProjectFilesFragment : Fragment() {
 
         val destinationFile = File(currentDirectory, fileName)
 
+        destinationFile.parentFile?.mkdirs()
+
         try {
             val inputStream = requireContext().contentResolver.openInputStream(uri)
             if (inputStream == null) {

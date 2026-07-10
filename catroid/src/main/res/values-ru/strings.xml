@@ -23,6 +23,13 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string formatted="false" name="brick_base64_to_file_title">Сохранить Base64 в файл</string>
+    <string formatted="false" name="brick_base64_to_file_string">Строка Base64</string>
+    <string formatted="false" name="brick_base64_to_file_dest">Имя файла в проекте</string>
+
+    <string formatted="false" name="formula_file_to_base64">файл_в_base64</string>
+    <string formatted="false" name="formula_file_to_base64_param">(\'имя_файла\')</string>
+
     <string formatted="false" name="brick_when_cloned_with_name_title">Когда начинает как клон</string>
 
     <string formatted="false" name="fast2d_set_gravity">Задать гравитацию</string>

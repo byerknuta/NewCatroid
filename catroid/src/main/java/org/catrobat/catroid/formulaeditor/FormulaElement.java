@@ -812,6 +812,22 @@ public class FormulaElement implements Serializable {
                 }
                 return 0.0;
             }
+            case FILE_TO_BASE64: {
+                String fileName = String.valueOf(arg0);
+                try {
+                    java.io.File file = org.catrobat.catroid.ProjectManager.getInstance().getCurrentProject().getFile(fileName);
+                    if (file != null && file.exists()) {
+                        byte[] bytes = new byte[(int) file.length()];
+                        try (java.io.FileInputStream fis = new java.io.FileInputStream(file)) {
+                            fis.read(bytes);
+                        }
+                        return android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return "";
+            }
             case HTTP_RESPONSE_TEXT: {
                 String id = String.valueOf(arg0);
                 return org.catrobat.catroid.common.NewCatroidHttpManager.INSTANCE.getResponseText(id);
