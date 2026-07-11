@@ -5309,4 +5309,57 @@ public class ActionFactory extends Actions {
         action.setContentFormula(contentFormula);
         return action;
     }
+
+    public Action createSetCornerOffsetsAction(Sprite sprite, SequenceAction sequence,
+                                               Formula tlx, Formula tly, Formula trx, Formula tryFormula,
+                                               Formula brx, Formula bry, Formula blx, Formula bly) {
+        SetCornerOffsetsAction action = action(SetCornerOffsetsAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setTlx(tlx);
+        action.setTly(tly);
+        action.setTrx(trx);
+        action.setTryFormula(tryFormula);
+        action.setBrx(brx);
+        action.setBry(bry);
+        action.setBlx(blx);
+        action.setBly(bly);
+        return action;
+    }
+
+    public Action createPlayGifAction(Sprite sprite, SequenceAction sequence,
+                                      Formula gifFileName) {
+        PlayGifAction action = action(PlayGifAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setGifFileName(gifFileName);
+        return action;
+    }
+
+    public Action createStopGifAction(Sprite sprite, SequenceAction sequence) {
+        StopGifAction action = action(StopGifAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
+
+    public Action createPlaySpritesheetAction(Sprite sprite, SequenceAction sequence,
+                                              Formula rows, Formula cols, Formula selectedRow, Formula framesCount, Formula speed) {
+        PlaySpritesheetAction action = action(PlaySpritesheetAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setRows(rows);
+        action.setCols(cols);
+        action.setSelectedRow(selectedRow);
+        action.setFramesCount(framesCount);
+        action.setSpeed(speed);
+        return action;
+    }
+
+    public Action createStopSpritesheetAction(Sprite sprite, SequenceAction sequence) {
+        StopSpritesheetAction action = action(StopSpritesheetAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
 }

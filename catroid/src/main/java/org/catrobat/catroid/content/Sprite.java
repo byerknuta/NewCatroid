@@ -475,6 +475,11 @@ public class Sprite implements Nameable, Serializable {
 		if (script.isCommentedOut()) {
 			return;
 		}
+        if (this.isClone) {
+            if (script instanceof StartScript) {
+                return;
+            }
+        }
 		idToEventThreadMap.put(script.createEventId(this), createSequenceAction(script));
 	}
 

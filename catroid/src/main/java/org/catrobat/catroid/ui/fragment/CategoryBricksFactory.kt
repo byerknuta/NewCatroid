@@ -322,12 +322,14 @@ import org.catrobat.catroid.content.bricks.PinToCameraBrick
 import org.catrobat.catroid.content.bricks.PlaceAtBrick
 import org.catrobat.catroid.content.bricks.PlayAnimationBrick
 import org.catrobat.catroid.content.bricks.PlayDrumForBeatsBrick
+import org.catrobat.catroid.content.bricks.PlayGifBrick
 import org.catrobat.catroid.content.bricks.PlayNoteForBeatsBrick
 import org.catrobat.catroid.content.bricks.PlayPreparedSoundBrick
 import org.catrobat.catroid.content.bricks.PlaySoundAndWaitBrick
 import org.catrobat.catroid.content.bricks.PlaySoundAtBrick
 import org.catrobat.catroid.content.bricks.PlaySoundAtPositionBrick
 import org.catrobat.catroid.content.bricks.PlaySoundBrick
+import org.catrobat.catroid.content.bricks.PlaySpritesheetBrick
 import org.catrobat.catroid.content.bricks.PlayVideoBrick
 import org.catrobat.catroid.content.bricks.PointInDirectionBrick
 import org.catrobat.catroid.content.bricks.PointToBrick
@@ -431,6 +433,7 @@ import org.catrobat.catroid.content.bricks.SetCameraRotation2Brick
 import org.catrobat.catroid.content.bricks.SetCameraRotationBrick
 import org.catrobat.catroid.content.bricks.SetCameraZoomBrick
 import org.catrobat.catroid.content.bricks.SetColorBrick
+import org.catrobat.catroid.content.bricks.SetCornerOffsetsBrick
 import org.catrobat.catroid.content.bricks.SetDampingBrick
 import org.catrobat.catroid.content.bricks.SetDirectionalLight2Brick
 import org.catrobat.catroid.content.bricks.SetDirectionalLightBrick
@@ -540,6 +543,7 @@ import org.catrobat.catroid.content.bricks.StitchBrick
 import org.catrobat.catroid.content.bricks.StopAllSoundsBrick
 import org.catrobat.catroid.content.bricks.StopAnimationBrick
 import org.catrobat.catroid.content.bricks.StopBufferRecordingBrick
+import org.catrobat.catroid.content.bricks.StopGifBrick
 import org.catrobat.catroid.content.bricks.StopPlotBrick
 import org.catrobat.catroid.content.bricks.StopRecordingBrick
 import org.catrobat.catroid.content.bricks.StopRunningStitchBrick
@@ -547,6 +551,7 @@ import org.catrobat.catroid.content.bricks.StopScriptBrick
 import org.catrobat.catroid.content.bricks.StopServerBrick
 import org.catrobat.catroid.content.bricks.StopSoundBrick
 import org.catrobat.catroid.content.bricks.StopSoundBrick2
+import org.catrobat.catroid.content.bricks.StopSpritesheetBrick
 import org.catrobat.catroid.content.bricks.StopThreadBrick
 import org.catrobat.catroid.content.bricks.StopVMBrick
 import org.catrobat.catroid.content.bricks.StoreCSVIntoUserListBrick
@@ -1281,6 +1286,10 @@ open class CategoryBricksFactory {
                 looksBrickList.add(ChangeHeightBrick(BrickValues.CHANGE_SIZE_BY))
                 looksBrickList.add(NextLookBrick())
                 looksBrickList.add(PreviousLookBrick())
+                looksBrickList.add(PlayGifBrick("cat.gif"))
+                looksBrickList.add(StopGifBrick())
+                looksBrickList.add(PlaySpritesheetBrick(Formula(4), Formula(8), Formula(1), Formula(8), Formula(0.1)))
+                looksBrickList.add(StopSpritesheetBrick())
                 looksBrickList.add(SetSizeToBrick(BrickValues.SET_SIZE_TO))
                 looksBrickList.add(ChangeSizeByNBrick(BrickValues.CHANGE_SIZE_BY))
                 looksBrickList.add(HideBrick())
@@ -1301,6 +1310,7 @@ open class CategoryBricksFactory {
                 looksBrickList.add(ChangeBrightnessByNBrick(BrickValues.CHANGE_BRIGHTNESS_BY))
                 looksBrickList.add(SetColorBrick(BrickValues.SET_COLOR_TO))
                 looksBrickList.add(ChangeColorByNBrick(BrickValues.CHANGE_COLOR_BY))
+                looksBrickList.add(SetCornerOffsetsBrick(Formula(0), Formula(0), Formula(50), Formula(100), Formula(0), Formula(0), Formula(0), Formula(0)))
                 looksBrickList.add(EasePropertyBrick(0, 0, 100f, 250f, 1f))
                 looksBrickList.add(FadeParticleEffectBrick())
                 looksBrickList.add(ParticleEffectAdditivityBrick())
@@ -1418,6 +1428,10 @@ void main() {
             looksBrickList.add(NextLookBrick())
             looksBrickList.add(PreviousLookBrick())
         }
+        looksBrickList.add(PlayGifBrick("cat.gif"))
+        looksBrickList.add(StopGifBrick())
+        looksBrickList.add(PlaySpritesheetBrick(Formula(4), Formula(8), Formula(1), Formula(8), Formula(0.1)))
+        looksBrickList.add(StopSpritesheetBrick())
         looksBrickList.add(WhenBackgroundChangesBrick())
         looksBrickList.add(SetBackgroundBrick())
         looksBrickList.add(SetBackgroundByIndexBrick(BrickValues.SET_LOOK_BY_INDEX))
@@ -1446,6 +1460,7 @@ void main() {
         looksBrickList.add(ChangeBrightnessByNBrick(BrickValues.CHANGE_BRIGHTNESS_BY))
         looksBrickList.add(SetColorBrick(BrickValues.SET_COLOR_TO))
         looksBrickList.add(ChangeColorByNBrick(BrickValues.CHANGE_COLOR_BY))
+        looksBrickList.add(SetCornerOffsetsBrick(Formula(0), Formula(0), Formula(50), Formula(100), Formula(0), Formula(0), Formula(0), Formula(0)))
         looksBrickList.add(FadeParticleEffectBrick())
         looksBrickList.add(ParticleEffectAdditivityBrick())
         looksBrickList.add(SetParticleColorBrick(BrickValues.PARTICLE_COLOR))

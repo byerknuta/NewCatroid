@@ -27,6 +27,7 @@ import android.graphics.PointF;
 import android.util.Log;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -142,6 +143,22 @@ public class Look extends Image {
     public int maskMode = 0; // 0: Stretch, 1: Screen
     private static ShaderProgram maskShader = null;
 
+    private float topLeftOffsetX = 0f, topLeftOffsetY = 0f;
+    private float topRightOffsetX = 0f, topRightOffsetY = 0f;
+    private float bottomRightOffsetX = 0f, bottomRightOffsetY = 0f;
+    private float bottomLeftOffsetX = 0f, bottomLeftOffsetY = 0f;
+    private boolean hasCornerOffsets = false;
+
+    private transient final float[] cornerOffsetsVerts = new float[20];
+
+    private transient com.badlogic.gdx.graphics.g2d.Animation<TextureRegion> activeGifAnimation = null;
+    private float gifStateTime = 0f;
+
+    private transient com.badlogic.gdx.graphics.g2d.Animation<TextureRegion> activeSheetAnimation = null;
+    private float sheetStateTime = 0f;
+    private transient String cachedSheetKey = "";
+    private transient TextureRegion[][] cachedSplitRegions = null;
+
 	public Look(final Sprite sprite) {
 		this.sprite = sprite;
 		globalFrameTicker++;
@@ -155,6 +172,18 @@ public class Look extends Image {
 		setAssumesConvexPolygons(false);
 		addListeners();
 	}
+
+    public void setCornerOffsets(float tlX, float tlY, float trX, float trY, float brX, float brY, float blX, float blY) {
+        this.topLeftOffsetX = tlX;
+        this.topLeftOffsetY = tlY;
+        this.topRightOffsetX = trX;
+        this.topRightOffsetY = trY;
+        this.bottomRightOffsetX = brX;
+        this.bottomRightOffsetY = brY;
+        this.bottomLeftOffsetX = blX;
+        this.bottomLeftOffsetY = blY;
+        this.hasCornerOffsets = (tlX != 0 || tlY != 0 || trX != 0 || trY != 0 || brX != 0 || brY != 0 || blX != 0 || blY != 0);
+    }
 
 	protected void addListeners() {
 		this.addListener(new InputListener() {
@@ -285,6 +314,125 @@ public class Look extends Image {
         }
     }
 
+    public void playGif(final String filename) {
+        stopGif();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    java.io.File file = org.catrobat.catroid.ProjectManager.getInstance().getCurrentProject().getFile(filename);
+                    if (file != null && file.exists()) {
+                        com.badlogic.gdx.files.FileHandle handle = Gdx.files.absolute(file.getAbsolutePath());
+
+                        final org.catrobat.catroid.utils.GifDecoder decoder = new org.catrobat.catroid.utils.GifDecoder();
+                        int err = decoder.read(handle.read());
+
+                        if (err == 0 && decoder.getFrameCount() > 0) {
+                            Gdx.app.postRunnable(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        Array<TextureRegion> keyFrames = new Array<>();
+                                        float totalDelay = 0;
+                                        int frameCount = decoder.getFrameCount();
+
+                                        for (int i = 0; i < frameCount; i++) {
+                                            Pixmap pixmap = decoder.getFrame(i);
+                                            if (pixmap != null) {
+                                                Texture texture = new Texture(pixmap);
+                                                TextureRegion region = new TextureRegion(texture);
+                                                keyFrames.add(region);
+                                                totalDelay += decoder.getDelay(i) / 1000f;
+
+                                                pixmap.dispose();
+                                            }
+                                        }
+
+                                        float frameDuration = totalDelay / frameCount;
+                                        if (frameDuration <= 0) frameDuration = 0.1f;
+
+                                        activeGifAnimation = new com.badlogic.gdx.graphics.g2d.Animation<>(
+                                                frameDuration,
+                                                keyFrames,
+                                                com.badlogic.gdx.graphics.g2d.Animation.PlayMode.LOOP
+                                        );
+                                        gifStateTime = 0f;
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    public void stopGif() {
+        activeSheetAnimation = null;
+        if (activeGifAnimation != null) {
+            Object[] frames = activeGifAnimation.getKeyFrames();
+            for (int i = 0; i < frames.length; i++) {
+                if (frames[i] instanceof TextureRegion) {
+                    TextureRegion frame = (TextureRegion) frames[i];
+                    if (frame.getTexture() != null) {
+                        frame.getTexture().dispose();
+                    }
+                }
+            }
+            activeGifAnimation = null;
+        }
+        gifStateTime = 0f;
+        refreshTextures(true);
+    }
+
+    public void playSpritesheet(int totalRows, int totalCols, int selectedRow, int frameCount, float frameDuration) {
+        stopGif();
+        activeSheetAnimation = null;
+        sheetStateTime = 0f;
+
+        if (lookData == null) return;
+        TextureRegion originalRegion = lookData.getTextureRegion();
+        if (originalRegion == null) return;
+        Texture texture = originalRegion.getTexture();
+        if (texture == null) return;
+
+        try {
+            String key = texture.getTextureObjectHandle() + "_" + totalRows + "x" + totalCols;
+            if (!key.equals(cachedSheetKey) || cachedSplitRegions == null) {
+                cachedSheetKey = key;
+                int frameWidth = texture.getWidth() / totalCols;
+                int frameHeight = texture.getHeight() / totalRows;
+                cachedSplitRegions = TextureRegion.split(texture, frameWidth, frameHeight);
+            }
+
+            int row = Math.max(0, Math.min(selectedRow, totalRows - 1));
+            int maxFrames = Math.min(frameCount, totalCols);
+
+            Array<TextureRegion> keyFrames = new Array<>();
+            for (int i = 0; i < maxFrames; i++) {
+                keyFrames.add(cachedSplitRegions[row][i]);
+            }
+
+            activeSheetAnimation = new com.badlogic.gdx.graphics.g2d.Animation<>(
+                    frameDuration,
+                    keyFrames,
+                    com.badlogic.gdx.graphics.g2d.Animation.PlayMode.LOOP
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stopSpritesheet() {
+        activeSheetAnimation = null;
+        sheetStateTime = 0f;
+        refreshTextures(true);
+    }
+
 	public void setRenderingContext(OrthographicCamera gameCamera, Viewport gameViewport, Stage uiStage) {
 		this.gameCamera = gameCamera;
 		this.gameViewport = gameViewport;
@@ -327,6 +475,8 @@ public class Look extends Image {
     public void destroy() {
         notifyAllWaiters();
         setLookVisible(false);
+        stopGif();
+        stopSpritesheet();
 
         for (EventListener listener : getListeners()) {
             removeListener(listener);
@@ -530,7 +680,70 @@ public class Look extends Image {
         }
 
         if (isLookVisible() && this.getDrawable() != null) {
-            super.draw(batch, this.alpha);
+            if (hasCornerOffsets && getDrawable() instanceof TextureRegionDrawable) {
+                TextureRegion region = ((TextureRegionDrawable) getDrawable()).getRegion();
+                Texture texture = region.getTexture();
+
+                float x = getX();
+                float y = getY();
+                float width = getWidth() * getScaleX();
+                float height = getHeight() * getScaleY();
+
+                float ox = getOriginX();
+                float oy = getOriginY();
+
+                float x0 = x + bottomLeftOffsetX;
+                float y0 = y + bottomLeftOffsetY;
+
+                float x1 = x + topLeftOffsetX;
+                float y1 = y + height + topLeftOffsetY;
+
+                float x2 = x + width + topRightOffsetX;
+                float y2 = y + height + topRightOffsetY;
+
+                float x3 = x + width + bottomRightOffsetX;
+                float y3 = y + bottomRightOffsetY;
+
+                if (getRotation() != 0) {
+                    float cos = com.badlogic.gdx.math.MathUtils.cosDeg(getRotation());
+                    float sin = com.badlogic.gdx.math.MathUtils.sinDeg(getRotation());
+                    float centerX = x + ox;
+                    float centerY = y + oy;
+
+                    // BL
+                    float rx0 = x0 - centerX; float ry0 = y0 - centerY;
+                    x0 = (rx0 * cos - ry0 * sin) + centerX;
+                    y0 = (rx0 * sin + ry0 * cos) + centerY;
+                    // TL
+                    float rx1 = x1 - centerX; float ry1 = y1 - centerY;
+                    x1 = (rx1 * cos - ry1 * sin) + centerX;
+                    y1 = (rx1 * sin + ry1 * cos) + centerY;
+                    // TR
+                    float rx2 = x2 - centerX; float ry2 = y2 - centerY;
+                    x2 = (rx2 * cos - ry2 * sin) + centerX;
+                    y2 = (rx2 * sin + ry2 * cos) + centerY;
+                    // BR
+                    float rx3 = x3 - centerX; float ry3 = y3 - centerY;
+                    x3 = (rx3 * cos - ry3 * sin) + centerX;
+                    y3 = (rx3 * sin + ry3 * cos) + centerY;
+                }
+
+                float u = region.getU();
+                float v = region.getV2();
+                float u2 = region.getU2();
+                float v2 = region.getV();
+
+                float color = batch.getPackedColor();
+
+                cornerOffsetsVerts[0] = x0;  cornerOffsetsVerts[1] = y0;  cornerOffsetsVerts[2] = color;  cornerOffsetsVerts[3] = u;   cornerOffsetsVerts[4] = v;
+                cornerOffsetsVerts[5] = x1;  cornerOffsetsVerts[6] = y1;  cornerOffsetsVerts[7] = color;  cornerOffsetsVerts[8] = u;   cornerOffsetsVerts[9] = v2;
+                cornerOffsetsVerts[10] = x2; cornerOffsetsVerts[11] = y2; cornerOffsetsVerts[12] = color; cornerOffsetsVerts[13] = u2;  cornerOffsetsVerts[14] = v2;
+                cornerOffsetsVerts[15] = x3; cornerOffsetsVerts[16] = y3; cornerOffsetsVerts[17] = color; cornerOffsetsVerts[18] = u2;  cornerOffsetsVerts[19] = v;
+
+                batch.draw(texture, cornerOffsetsVerts, 0, 20);
+            } else {
+                super.draw(batch, this.alpha);
+            }
         }
 
         batch.setShader(null);
@@ -543,6 +756,15 @@ public class Look extends Image {
 	@Override
 	public void act(float delta) {
 		scheduler.tick(delta);
+        if (activeGifAnimation != null) {
+            gifStateTime += delta;
+            TextureRegion currentFrame = activeGifAnimation.getKeyFrame(gifStateTime, true);
+            setDrawable(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(currentFrame));
+        } else if (activeSheetAnimation != null) {
+            sheetStateTime += delta;
+            TextureRegion currentFrame = activeSheetAnimation.getKeyFrame(sheetStateTime, true);
+            setDrawable(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(currentFrame));
+        }
 		if (sprite != null) {
 			if (myUpdateBucket == globalFrameTicker % UPDATE_BUCKETS) {
 				sprite.runningStitch.update();

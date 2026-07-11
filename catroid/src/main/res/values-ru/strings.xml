@@ -23,6 +23,22 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string formatted="false" name="brick_play_spritesheet_title">Анимация из атласа</string>
+    <string formatted="false" name="brick_play_spritesheet_grid">Сетка (строк х колонок):</string>
+    <string formatted="false" name="brick_play_spritesheet_row">Индекс строки (от 0)</string>
+    <string formatted="false" name="brick_play_spritesheet_frames">Количество кадров</string>
+    <string formatted="false" name="brick_play_spritesheet_speed">Длительность кадра (сек)</string>
+
+    <string formatted="false" name="brick_stop_spritesheet_title">Образы: Остановить атлас</string>
+
+    <string formatted="false" name="brick_play_gif_title">Запустить GIF (файл проекта)</string>
+    <string formatted="false" name="brick_stop_gif_title">Остановить GIF</string>
+    <string name="brick_set_corner_offsets_title">Смещение углов</string>
+    <string name="brick_set_corner_offsets_top_left">Верхний левый (X, Y)</string>
+    <string name="brick_set_corner_offsets_top_right">Верхний правый (X, Y)</string>
+    <string name="brick_set_corner_offsets_bottom_right">Нижний правый (X, Y)</string>
+    <string name="brick_set_corner_offsets_bottom_left">Нижний левый (X, Y)</string>
+
     <string name="analysis_unused_broadcast_sent">Сигнал «%1$s» отправляется, но ни один скрипт его не принимает. Возможно, вы ошиблись в названии или забыли создать обработчик «Когда получен сигнал».</string>
 
     <string name="analysis_too_many_commented_bricks">В этом скрипте отключено слишком много блоков (%1$d). Рекомендуется удалить их, чтобы не засорять проект.</string>

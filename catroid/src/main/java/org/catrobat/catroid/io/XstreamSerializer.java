@@ -843,7 +843,10 @@ public final class XstreamSerializer {
         xstream.alias("brick", MqttDisconnectBrick.class);
         xstream.alias("brick", Ease3DPropertyBrick.class);
         xstream.alias("brick", Base64ToFileBrick.class);
-        xstream.alias("ShareBrick", ShareBrick.class);
+        xstream.alias("brick", ShareBrick.class);
+        xstream.alias("brick", SetCornerOffsetsBrick.class);
+        xstream.alias("brick", PlayGifBrick.class);
+        xstream.alias("brick", StopGifBrick.class);
 
 
         xstream.alias("brick", org.catrobat.catroid.content.bricks.UnknownBrick.class);

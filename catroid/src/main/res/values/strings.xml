@@ -23,6 +23,22 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string formatted="false" name="brick_play_spritesheet_title">Play spritesheet</string>
+    <string formatted="false" name="brick_play_spritesheet_grid">Grid (rows x cols)</string>
+    <string formatted="false" name="brick_play_spritesheet_row">Row index (from 0)</string>
+    <string formatted="false" name="brick_play_spritesheet_frames">Frame count</string>
+    <string formatted="false" name="brick_play_spritesheet_speed">Frame duration (sec)</string>
+
+    <string formatted="false" name="brick_stop_spritesheet_title">Stop spritesheet</string>
+
+    <string formatted="false" name="brick_play_gif_title">Play GIF (project file)</string>
+    <string formatted="false" name="brick_stop_gif_title">Stop GIF</string>
+    <string name="brick_set_corner_offsets_title">Set corner offsets</string>
+    <string name="brick_set_corner_offsets_top_left">Top left (X, Y)</string>
+    <string name="brick_set_corner_offsets_top_right">Top right (X, Y)</string>
+    <string name="brick_set_corner_offsets_bottom_right">Bottom right (X, Y)</string>
+    <string name="brick_set_corner_offsets_bottom_left">Bottom left (X, Y)</string>
+
     <string name="analysis_unused_broadcast_sent">The message \"%1$s\" is broadcast, but no script receives it. You may have a typo or forgot to create a \"When receive\" block.</string>
     <string name="analysis_too_many_commented_bricks">Too many blocks are commented out in this script (%1$d). It is recommended to delete them to keep the project clean.</string>
 

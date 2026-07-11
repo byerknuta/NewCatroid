@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_play_spritesheet_layout"
+        style="@style/BrickContainer.Look.Big">
+
+        <include layout="@layout/icon_brick_category_look" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_play_spritesheet_title" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_play_spritesheet_grid"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_play_spritesheet_rows"
+            style="@style/BrickEditText" />
+        <TextView
+            android:id="@+id/brick_play_spritesheet_cols"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_play_spritesheet_row"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_play_spritesheet_selected_row"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_play_spritesheet_frames"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_play_spritesheet_frames_count"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_play_spritesheet_speed"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_play_spritesheet_speed_val"
+            style="@style/BrickEditText" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>
