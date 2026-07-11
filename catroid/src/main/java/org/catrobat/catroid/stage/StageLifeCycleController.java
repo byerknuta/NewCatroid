@@ -134,146 +134,157 @@ public final class StageLifeCycleController {
 		}
 	}
 
-	static void stagePause(final StageActivity stageActivity) {
-		if (checkPermission(stageActivity, getProjectsRuntimePermissionList())) {
-			if (stageActivity.nfcAdapter != null) {
-				try {
-					stageActivity.nfcAdapter.disableForegroundDispatch(stageActivity);
-				} catch (IllegalStateException illegalStateException) {
-					Log.e(TAG, "Disabling NFC foreground dispatching went wrong!", illegalStateException);
-				} catch (Exception e) {
+    static void stagePause(final StageActivity stageActivity) {
+        if (checkPermission(stageActivity, getProjectsRuntimePermissionList())) {
+            if (stageActivity.nfcAdapter != null) {
+                try {
+                    stageActivity.nfcAdapter.disableForegroundDispatch(stageActivity);
+                } catch (IllegalStateException illegalStateException) {
+                    Log.e(TAG, "Disabling NFC foreground dispatching went wrong!", illegalStateException);
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-			}
+            }
 
-			List<Sprite> sprites = ((StageListener) stageActivity.getApplicationListener()).getSpritesFromStage();
+            List<Sprite> sprites = ((StageListener) stageActivity.getApplicationListener()).getSpritesFromStage();
 
-			if (sprites != null) {
-				for (Sprite sprite : sprites) {
-					sprite.look.pauseParticleEffect();
-				}
-			}
+            if (sprites != null) {
+                for (int i = 0; i < sprites.size(); i++) {
+                    try {
+                        Sprite sprite = sprites.get(i);
+                        if (sprite != null && sprite.look != null) {
+                            sprite.look.pauseParticleEffect();
+                        }
+                    } catch (IndexOutOfBoundsException | NullPointerException e) {
+                        break;
+                    }
+                }
+            }
 
-			get(SpeechRecognitionHolderFactory.class).getInstance().destroy();
+            get(SpeechRecognitionHolderFactory.class).getInstance().destroy();
 
-			SensorHandler.timerPauseValue = SystemClock.uptimeMillis();
+            SensorHandler.timerPauseValue = SystemClock.uptimeMillis();
 
-			SensorHandler.stopSensorListeners();
-			SoundManager.getInstance().pause();
-			MidiSoundManager.getInstance().pause();
-			StageActivity.getActiveStageListener().menuPause();
-			stageActivity.stageAudioFocus.releaseAudioFocus();
-			if (stageActivity.cameraManager != null) {
-				stageActivity.cameraManager.pause();
-			}
-			BluetoothDeviceService bluetoothDeviceService =
-					ServiceProvider.getService(CatroidService.BLUETOOTH_DEVICE_SERVICE);
-			if (bluetoothDeviceService != null) {
-				bluetoothDeviceService.pause();
-			}
-			if (stageActivity.vibrationManager != null) {
-				stageActivity.vibrationManager.pause();
-			}
-			if (ProjectManager.getInstance().getCurrentProject().isCastProject()) {
-				CastManager.getInstance().setRemoteLayoutToPauseScreen(stageActivity);
-			}
-		}
-	}
+            SensorHandler.stopSensorListeners();
+            SoundManager.getInstance().pause();
+            MidiSoundManager.getInstance().pause();
+            StageActivity.getActiveStageListener().menuPause();
+            stageActivity.stageAudioFocus.releaseAudioFocus();
+            if (stageActivity.cameraManager != null) {
+                stageActivity.cameraManager.pause();
+            }
+            BluetoothDeviceService bluetoothDeviceService =
+                    ServiceProvider.getService(CatroidService.BLUETOOTH_DEVICE_SERVICE);
+            if (bluetoothDeviceService != null) {
+                bluetoothDeviceService.pause();
+            }
+            if (stageActivity.vibrationManager != null) {
+                stageActivity.vibrationManager.pause();
+            }
+            if (ProjectManager.getInstance().getCurrentProject().isCastProject()) {
+                CastManager.getInstance().setRemoteLayoutToPauseScreen(stageActivity);
+            }
+        }
+    }
 
-	public static void stageResume(final StageActivity stageActivity) {
-		if (stageActivity.dialogIsShowing()) {
-			return;
-		}
+    public static void stageResume(final StageActivity stageActivity) {
+        if (stageActivity.dialogIsShowing()) {
+            return;
+        }
 
-		if (checkPermission(stageActivity, getProjectsRuntimePermissionList())) {
-			Brick.ResourcesSet resourcesSet = ProjectManager.getInstance().getCurrentProject().getRequiredResources();
-			List<Sprite> spriteList = ProjectManager.getInstance().getCurrentlyPlayingScene().getSpriteList();
+        if (checkPermission(stageActivity, getProjectsRuntimePermissionList())) {
+            Brick.ResourcesSet resourcesSet = ProjectManager.getInstance().getCurrentProject().getRequiredResources();
+            List<Sprite> spriteList = ProjectManager.getInstance().getCurrentlyPlayingScene().getSpriteList();
 
-			SensorHandler.startSensorListener(stageActivity);
+            SensorHandler.startSensorListener(stageActivity);
 
-			for (Sprite sprite : spriteList) {
-				if (sprite.getPlaySoundBricks().size() > 0) {
-					stageActivity.stageAudioFocus.requestAudioFocus();
-					break;
-				}
-			}
-			List<Sprite> sprites = null;
+            for (Sprite sprite : spriteList) {
+                if (sprite.getPlaySoundBricks().size() > 0) {
+                    stageActivity.stageAudioFocus.requestAudioFocus();
+                    break;
+                }
+            }
+            List<Sprite> sprites = null;
 
-			try {
-				sprites =
-						((StageListener) stageActivity.getApplicationListener()).getSpritesFromStage();
-			} catch (Exception e) {
-				sprites = null;
-			}
-			if (sprites != null) {
-				for (Sprite sprite : sprites) {
-					sprite.look.resumeParticleEffect();
-				}
-			}
+            try {
+                sprites =
+                        ((StageListener) stageActivity.getApplicationListener()).getSpritesFromStage();
+            } catch (Exception e) {
+                sprites = null;
+            }
 
-			if (stageActivity.vibrationManager != null) {
-				stageActivity.vibrationManager.resume();
-			}
+            if (sprites != null) {
+                for (int i = 0; i < sprites.size(); i++) {
+                    try {
+                        Sprite sprite = sprites.get(i);
+                        if (sprite != null && sprite.look != null) {
+                            sprite.look.resumeParticleEffect();
+                        }
+                    } catch (IndexOutOfBoundsException | NullPointerException e) {
+                        break;
+                    }
+                }
+            }
 
-			if (resourcesSet.contains(Brick.BLUETOOTH_LEGO_NXT)
-					|| resourcesSet.contains(Brick.BLUETOOTH_PHIRO)
-					|| resourcesSet.contains(Brick.BLUETOOTH_SENSORS_ARDUINO)
-					|| ProjectManager.getInstance().getCurrentProject().hasMultiplayerVariables()) {
-				try {
-					ServiceProvider.getService(CatroidService.BLUETOOTH_DEVICE_SERVICE).start();
-				} catch (MindstormsException e) {
-					Log.e(TAG, e.getMessage());
-				}
-			}
+            if (stageActivity.vibrationManager != null) {
+                stageActivity.vibrationManager.resume();
+            }
 
-			if (stageActivity.cameraManager != null) {
-				stageActivity.cameraManager.resume();
-			}
+            if (resourcesSet.contains(Brick.BLUETOOTH_LEGO_NXT)
+                    || resourcesSet.contains(Brick.BLUETOOTH_PHIRO)
+                    || resourcesSet.contains(Brick.BLUETOOTH_SENSORS_ARDUINO)
+                    || ProjectManager.getInstance().getCurrentProject().hasMultiplayerVariables()) {
+                try {
+                    ServiceProvider.getService(CatroidService.BLUETOOTH_DEVICE_SERVICE).start();
+                } catch (MindstormsException e) {
+                    Log.e(TAG, e.getMessage());
+                }
+            }
 
-			if (resourcesSet.contains(Brick.TEXT_TO_SPEECH)) {
-				stageActivity.stageAudioFocus.requestAudioFocus();
-			}
+            if (stageActivity.cameraManager != null) {
+                stageActivity.cameraManager.resume();
+            }
 
-			if (resourcesSet.contains(Brick.NFC_ADAPTER)) {
-				// 1. Получаем адаптер. Он может быть null, если NFC не поддерживается.
-				stageActivity.nfcAdapter = NfcAdapter.getDefaultAdapter(stageActivity);
+            if (resourcesSet.contains(Brick.TEXT_TO_SPEECH)) {
+                stageActivity.stageAudioFocus.requestAudioFocus();
+            }
 
-				if (stageActivity.nfcAdapter != null) {
-					// 2. Создаем PendingIntent ТОЛЬКО если адаптер существует.
-					// Этот Intent будет перезапускать нашу же StageActivity, когда будет обнаружена метка.
-					int pendingIntentFlags;
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-						pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE;
-					} else {
-						pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT;
-					}
+            if (resourcesSet.contains(Brick.NFC_ADAPTER)) {
+                stageActivity.nfcAdapter = NfcAdapter.getDefaultAdapter(stageActivity);
 
-					Intent intent = new Intent(stageActivity, stageActivity.getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-					stageActivity.pendingIntent = PendingIntent.getActivity(stageActivity, 0, intent, pendingIntentFlags);
+                if (stageActivity.nfcAdapter != null) {
+                    int pendingIntentFlags;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE;
+                    } else {
+                        pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT;
+                    }
 
-					// 3. Вызываем enableForegroundDispatch только если и адаптер, и intent существуют.
-					stageActivity.nfcAdapter.enableForegroundDispatch(stageActivity, stageActivity.pendingIntent, null, null);
-					Log.d(TAG, "NFC foreground dispatch enabled.");
-				} else {
-					Log.w(TAG, "NFC is required by the project, but the device does not support it.");
-				}
-			}
+                    Intent intent = new Intent(stageActivity, stageActivity.getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    stageActivity.pendingIntent = PendingIntent.getActivity(stageActivity, 0, intent, pendingIntentFlags);
 
-			if (ProjectManager.getInstance().getCurrentProject().isCastProject()) {
-				CastManager.getInstance().resumeRemoteLayoutFromPauseScreen();
-			}
+                    stageActivity.nfcAdapter.enableForegroundDispatch(stageActivity, stageActivity.pendingIntent, null, null);
+                    Log.d(TAG, "NFC foreground dispatch enabled.");
+                } else {
+                    Log.w(TAG, "NFC is required by the project, but the device does not support it.");
+                }
+            }
 
-			SoundManager.getInstance().resume();
-			MidiSoundManager.getInstance().resume();
-			if (stageActivity.stageResourceHolder.initFinished()) {
-				try {
-					StageActivity.getActiveStageListener().menuResume();
-				} catch(Exception e) {
-					//anything
-				}
-			}
-		}
-	}
+            if (ProjectManager.getInstance().getCurrentProject().isCastProject()) {
+                CastManager.getInstance().resumeRemoteLayoutFromPauseScreen();
+            }
+
+            SoundManager.getInstance().resume();
+            MidiSoundManager.getInstance().resume();
+            if (stageActivity.stageResourceHolder.initFinished()) {
+                try {
+                    StageActivity.getActiveStageListener().menuResume();
+                } catch(Exception e) {
+                    //anything
+                }
+            }
+        }
+    }
 
 	static void stageDestroy(StageActivity stageActivity) {
 		if (checkPermission(stageActivity, getProjectsRuntimePermissionList())) {

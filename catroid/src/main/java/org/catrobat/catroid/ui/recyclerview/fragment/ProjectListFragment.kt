@@ -132,6 +132,8 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     }*/
 
     private fun onImportProjectFinished(result: org.catrobat.catroid.io.asynctask.ImportResult) {
+        val currentContext = context ?: return
+
         dismissImportProgressDialog()
         filesForUnzipAndImportTask?.clear()
         setShowProgressBar(false)
@@ -143,16 +145,21 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             }
 
             is org.catrobat.catroid.io.asynctask.ImportResult.Failure -> {
-
-                ToastUtil.showError(requireContext(), R.string.error_import_project)
+                ToastUtil.showError(currentContext, R.string.error_import_project)
             }
 
             is org.catrobat.catroid.io.asynctask.ImportResult.BakedProject -> {
-
-                ToastUtil.showSuccess(requireContext(), "Запуск запеченного проекта...")
-                launchBakedProject(result.projectDir)
+                ToastUtil.showSuccess(currentContext, "Запуск запеченного проекта...")
+                launchBakedProject(currentContext, result.projectDir)
             }
         }
+    }
+
+    private fun launchBakedProject(context: android.content.Context, projectDir: File) {
+        val intent = Intent(context, StageActivity::class.java)
+        intent.putExtra(StageActivity.EXTRA_PROJECT_PATH, projectDir.absolutePath)
+        intent.putExtra("IS_BAKED_LAUNCH", true)
+        startActivity(intent)
     }
 
     private fun showImportProgressDialog() {
@@ -201,15 +208,6 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     override fun onDestroy() {
         dismissImportProgressDialog()
         super.onDestroy()
-    }
-
-    private fun launchBakedProject(projectDir: File) {
-        val intent = Intent(requireContext(), StageActivity::class.java)
-
-        intent.putExtra(StageActivity.EXTRA_PROJECT_PATH, projectDir.absolutePath)
-
-        intent.putExtra("IS_BAKED_LAUNCH", true)
-        startActivity(intent)
     }
 
     private fun showReadmeForProject(projectName: String) {
@@ -273,17 +271,18 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     }
 
     private fun onRenameFinished(success: Boolean) {
+        val currentContext = context ?: return
         if (success) {
             if (hasUnzipAndImportTaskFinished) {
                 ToastUtil.showSuccess(
-                    requireContext(),
-                    getString(R.string.renamed_project)
+                    currentContext,
+                    currentContext.getString(R.string.renamed_project)
                 )
                 filesForUnzipAndImportTask?.clear()
             }
             setAdapterItems(adapter.projectsSorted)
         } else {
-            ToastUtil.showError(requireContext(), R.string.error_rename_incompatible_project)
+            ToastUtil.showError(currentContext, R.string.error_rename_incompatible_project)
         }
         setShowProgressBar(false)
     }
@@ -430,9 +429,10 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     }
 
     private fun onImportError() {
+        val currentContext = context ?: return
         dismissImportProgressDialog()
         setShowProgressBar(false)
-        ToastUtil.showError(requireContext(), R.string.error_import_project)
+        ToastUtil.showError(currentContext, R.string.error_import_project)
     }
 
     private fun extractAllUris(data: Intent, uris: ArrayList<Uri>) {
@@ -620,9 +620,10 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     }
 
     override fun onLoadFinished(success: Boolean) {
+        val currentContext = context ?: return
         try {
             if (success) {
-                val intent = Intent(requireContext(), ProjectActivity::class.java)
+                val intent = Intent(currentContext, ProjectActivity::class.java)
                 intent.putExtra(
                     ProjectActivity.EXTRA_FRAGMENT_POSITION,
                     ProjectActivity.FRAGMENT_SCENES
@@ -630,13 +631,12 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                 startActivity(intent)
             } else {
                 setShowProgressBar(false)
-                ToastUtil.showError(requireContext(), R.string.error_load_project)
+                ToastUtil.showError(currentContext, R.string.error_load_project)
             }
         } catch (e: Exception) {
             ToastUtil.showError(CatroidApplication.getAppContext(), "Something went wrong")
             e.printStackTrace()
         }
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: android.view.MenuInflater) {
@@ -646,10 +646,11 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     }
 
     private fun onCopyProjectComplete(success: Boolean) {
+        val currentContext = context ?: return
         if (success) {
             setAdapterItems(adapter.projectsSorted)
         } else {
-            ToastUtil.showError(requireContext(), R.string.error_copy_project)
+            ToastUtil.showError(currentContext, R.string.error_copy_project)
         }
         setShowProgressBar(false)
     }
@@ -904,6 +905,9 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                 list
             }
 
+            val currentContext = context ?: return@launch
+            val currentActivity = activity ?: return@launch
+
             adapter.setItems(finalItems)
             adapter.notifyDataSetChanged()
 
@@ -911,8 +915,8 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                 if (projectManager.initializeDefaultProject()) {
                     updateAdapterAsync()
                 } else {
-                    ToastUtil.showError(requireContext(), R.string.wtf_error)
-                    requireActivity().finish()
+                    ToastUtil.showError(currentContext, R.string.wtf_error)
+                    currentActivity.finish()
                 }
             } else {
                 setShowProgressBar(false)

@@ -1413,16 +1413,20 @@ public class ScriptFragment extends ListFragment implements
 		}
 	}
 
-	@Override
-	public void onLoadFinished(boolean success) {
-		ProjectManager.getInstance().setCurrentSceneAndSprite(currentSceneName, currentSpriteName);
-		if (checkVariables()) {
-			loadVariables();
-		}
-		refreshFragmentAfterUndo();
+    @Override
+    public void onLoadFinished(boolean success) {
+        if (!success || !isAdded() || getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) {
+            return;
+        }
+
+        ProjectManager.getInstance().setCurrentSceneAndSprite(currentSceneName, currentSpriteName);
+        if (checkVariables()) {
+            loadVariables();
+        }
+        refreshFragmentAfterUndo();
 
         refreshFastScroll();
-	}
+    }
 
 	private void saveVariables() {
 		ProjectManager projectManager = ProjectManager.getInstance();
@@ -1460,16 +1464,31 @@ public class ScriptFragment extends ListFragment implements
 		currentSprite.restoreUserDataValues(currentSprite.getUserLists(), savedLocalLists);
 	}
 
-	private void refreshFragmentAfterUndo() {
-		Fragment scriptFragment = getActivity().getSupportFragmentManager().findFragmentByTag(TAG);
-		final FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
-		fragmentTransaction.detach(scriptFragment);
-		fragmentTransaction.attach(scriptFragment);
-		fragmentTransaction.commit();
-		if (undoBrickPosition < listView.getFirstVisiblePosition() || undoBrickPosition > listView.getLastVisiblePosition()) {
-			listView.post(() -> listView.setSelection(undoBrickPosition));
-		}
-	}
+    private void refreshFragmentAfterUndo() {
+        if (!isAdded() || getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) {
+            return;
+        }
+
+        androidx.fragment.app.FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        Fragment scriptFragment = fragmentManager.findFragmentByTag(TAG);
+        if (scriptFragment == null) {
+            return;
+        }
+
+        final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.detach(scriptFragment);
+        fragmentTransaction.attach(scriptFragment);
+
+        fragmentTransaction.commitAllowingStateLoss();
+
+        if (listView != null && (undoBrickPosition < listView.getFirstVisiblePosition() || undoBrickPosition > listView.getLastVisiblePosition())) {
+            listView.post(() -> {
+                if (listView != null) {
+                    listView.setSelection(undoBrickPosition);
+                }
+            });
+        }
+    }
 
     public void showUndo(boolean visible) {
         if (getActivity() instanceof SpriteActivity) {

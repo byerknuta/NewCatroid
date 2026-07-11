@@ -1111,23 +1111,24 @@ public class SpriteActivity extends BaseActivity {
 		alertDialog.show();
 	}
 
-	public void handlePlayButton(View view) {
-		Fragment currentFragment = getCurrentFragment();
-		if (currentFragment instanceof ScriptFragment) {
-			if (((ScriptFragment) currentFragment).isCurrentlyHighlighted()) {
-				((ScriptFragment) currentFragment).cancelHighlighting();
-			}
-			if (((ScriptFragment) currentFragment).isCurrentlyMoving()) {
-				((ScriptFragment) getCurrentFragment()).highlightMovingItem();
-				return;
-			}
-		}
+    public void handlePlayButton(View view) {
+        Fragment currentFragment = getCurrentFragment();
+        if (currentFragment instanceof ScriptFragment) {
+            if (((ScriptFragment) currentFragment).isCurrentlyHighlighted()) {
+                ((ScriptFragment) currentFragment).cancelHighlighting();
+            }
+            if (((ScriptFragment) currentFragment).isCurrentlyMoving()) {
+                ((ScriptFragment) getCurrentFragment()).highlightMovingItem();
+                return;
+            }
+        }
 
-		while (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-			getSupportFragmentManager().popBackStack();
-		}
-		StageActivity.handlePlayButton(projectManager, this);
-	}
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportFragmentManager().popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        }
+
+        StageActivity.handlePlayButton(projectManager, this);
+    }
 
 	@Nullable
 	@Override

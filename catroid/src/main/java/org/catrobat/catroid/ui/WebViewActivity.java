@@ -38,6 +38,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.webkit.CookieManager;
 import android.webkit.URLUtil;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -184,41 +185,75 @@ public class WebViewActivity extends AppCompatActivity {
 			}
 		}
 
-		@Override
-		public boolean shouldOverrideUrlLoading(WebView view, String url) {
-			if (url != null && url.startsWith(Constants.WHATSAPP_URI)) {
-				if (isWhatsappInstalled()) {
-					Uri uri = Uri.parse(url);
-					Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-					startActivity(intent);
-				} else {
-					ToastUtil.showError(getBaseContext(), R.string.error_no_whatsapp);
-				}
-				return true;
-			} else if (!forceOpenInApp && checkIfWebViewVisitExternalWebsite(url)) {
-				Uri uri = Uri.parse(url);
-				Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+            if (request != null && request.getUrl() != null) {
+                return shouldOverrideUrlLoading(view, request.getUrl().toString());
+            }
+            return false;
+        }
+
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            if (url == null) {
+                return false;
+            }
+
+            if (url.startsWith(Constants.WHATSAPP_URI)) {
+                try {
+                    Uri uri = Uri.parse(url);
+                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    startActivity(intent);
+                } catch (android.content.ActivityNotFoundException e) {
+                    ToastUtil.showError(getBaseContext(), R.string.error_no_whatsapp);
+                }
+                return true;
+            }
+
+            else if (!forceOpenInApp && checkIfWebViewVisitExternalWebsite(url)) {
+                Uri uri = Uri.parse(url);
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 try {
                     startActivity(intent);
                 } catch (android.content.ActivityNotFoundException e) {
-                    if (url.startsWith("tg://resolve?domain=")) {
-                        String fallbackUrl = url.replace("tg://resolve?domain=", "https://t.me/");
-                        try {
-                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(fallbackUrl)));
-                        } catch (Exception ex) {
+                    if (url.startsWith("tg://")) {
+                        String fallbackUrl = getTelegramFallbackUrl(url);
+                        if (fallbackUrl != null) {
+                            try {
+                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(fallbackUrl)));
+                            } catch (android.content.ActivityNotFoundException ex) {
+                                ToastUtil.showError(getBaseContext(), R.string.error_unknown_error);
+                            }
+                        } else {
                             ToastUtil.showError(getBaseContext(), R.string.error_unknown_error);
                         }
                     } else {
                         ToastUtil.showError(getBaseContext(), R.string.error_unknown_error);
                     }
                 }
-				return true;
-			}
-			return false;
-		}
+                return true;
+            }
+            return false;
+        }
 
-		@Override
+        private String getTelegramFallbackUrl(String tgUrl) {
+            if (tgUrl == null) {
+                return null;
+            }
+            if (tgUrl.startsWith("tg://resolve?domain=")) {
+                return tgUrl.replace("tg://resolve?domain=", "https://t.me/");
+            } else if (tgUrl.startsWith("tg://resolve/?domain=")) {
+                return tgUrl.replace("tg://resolve/?domain=", "https://t.me/");
+            } else if (tgUrl.startsWith("tg://join?invite=")) {
+                return tgUrl.replace("tg://join?invite=", "https://t.me/joinchat/");
+            } else if (tgUrl.startsWith("tg://join/?invite=")) {
+                return tgUrl.replace("tg://join/?invite=", "https://t.me/joinchat/");
+            }
+            return null;
+        }
+
+        @Override
 		public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
 			if (Utils.checkIsNetworkAvailableAndShowErrorMessage(WebViewActivity.this)) {
 				ToastUtil.showError(getBaseContext(), R.string.error_unknown_error);
