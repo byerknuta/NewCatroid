@@ -23,6 +23,9 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="analysis_unused_broadcast_sent">The message \"%1$s\" is broadcast, but no script receives it. You may have a typo or forgot to create a \"When receive\" block.</string>
+    <string name="analysis_too_many_commented_bricks">Too many blocks are commented out in this script (%1$d). It is recommended to delete them to keep the project clean.</string>
+
     <string formatted="false" name="brick_share_title">Share</string>
 
     <string formatted="false" name="formula_md5">md5</string>

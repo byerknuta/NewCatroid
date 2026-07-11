@@ -7,7 +7,7 @@ import org.catrobat.catroid.content.bricks.Brick
 import org.catrobat.catroid.content.bricks.DeleteThisCloneBrick
 
 class InvalidCloneUsageRule(private val context: Context) : AnalysisRule {
-    override fun analyze(brick: Brick): AnalysisResult? {
+    override fun analyze(brick: Brick, context2: GlobalAnalysisContext): AnalysisResult? {
         if (brick is DeleteThisCloneBrick) {
             val parentScript = brick.script
             if (parentScript != null && parentScript !is WhenClonedScript) {

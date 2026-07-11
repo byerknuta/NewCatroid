@@ -5,7 +5,7 @@ import org.catrobat.catroid.R
 import org.catrobat.catroid.content.bricks.*
 
 class ParameterValidationRule(private val context: Context) : AnalysisRule {
-    override fun analyze(brick: Brick): AnalysisResult? {
+    override fun analyze(brick: Brick, context2: GlobalAnalysisContext): AnalysisResult? {
         if (brick is WaitBrick) {
             var currentParent = brick.parent
             while (currentParent != null) {

@@ -3,35 +3,37 @@ package org.catrobat.catroid.codeanalysis
 import android.content.Context
 import org.catrobat.catroid.R
 import org.catrobat.catroid.content.bricks.*
-import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.FormulaElement
 import org.catrobat.catroid.formulaeditor.UserData
 
-class RedundantBlockRule(private val context: Context) : AnalysisRule {
-    override fun analyze(brick: Brick): AnalysisResult? {
+class RedundantBlockRule(private val context2: Context) : AnalysisRule {
+    override fun analyze(brick: Brick, context: GlobalAnalysisContext): AnalysisResult? {
         if (brick is CompositeBrick || brick is NoteBrick) {
             return null
         }
 
         val parent = brick.parent ?: return null
         val siblingBricks = parent.dragAndDropTargetList ?: return null
-        val brickIndex = siblingBricks.indexOf(brick)
 
-        if (brickIndex < siblingBricks.size - 1) {
-            if (isBrickActionOverwrittenBeforeUse(brick, brickIndex + 1, siblingBricks)) {
+        val activeSiblings = siblingBricks.filter { !CodeAnalyzer.isBrickCommented(it) }
+        val brickIndex = activeSiblings.indexOf(brick)
+        if (brickIndex == -1) return null
+
+        if (brickIndex < activeSiblings.size - 1) {
+            if (isBrickActionOverwrittenBeforeUse(brick, brickIndex + 1, activeSiblings)) {
                 return AnalysisResult(
                     Severity.WARNING,
-                    context.getString(R.string.analysis_redundant_overwritten)
+                    context2.getString(R.string.analysis_redundant_overwritten)
                 )
             }
         }
 
         if (brickIndex > 0) {
-            val previousBrick = siblingBricks[brickIndex - 1]
+            val previousBrick = activeSiblings[brickIndex - 1]
             if (brick.javaClass == previousBrick.javaClass && areBricksEffectivelyEqual(brick, previousBrick)) {
                 return AnalysisResult(
                     Severity.WARNING,
-                    context.getString(R.string.analysis_redundant_same_action)
+                    context2.getString(R.string.analysis_redundant_same_action)
                 )
             }
         }
@@ -148,7 +150,8 @@ class RedundantBlockRule(private val context: Context) : AnalysisRule {
     }
 
     private fun hasVariableReference(element: FormulaElement, varName: String): Boolean {
-        if (element.type == org.catrobat.catroid.formulaeditor.FormulaElement.ElementType.USER_VARIABLE) {
+        val typeName = element.type.name
+        if (typeName.contains("VAR")) {
             if (element.value?.toString() == varName) return true
         }
         val left = element.leftChild?.let { hasVariableReference(it, varName) } ?: false
@@ -177,6 +180,39 @@ class RedundantBlockRule(private val context: Context) : AnalysisRule {
 
     private fun areBricksEffectivelyEqual(brick1: Brick, brick2: Brick): Boolean {
         if (brick1 is NoteBrick || brick2 is NoteBrick) return false
+        if (brick1.javaClass != brick2.javaClass) return false
+
+        try {
+            val getVar1 = brick1.javaClass.getMethod("getUserVariable")
+            val getVar2 = brick2.javaClass.getMethod("getUserVariable")
+            val var1 = getVar1.invoke(brick1)
+            val var2 = getVar2.invoke(brick2)
+            if (var1 != var2) return false
+        } catch (_: Exception) {}
+
+        try {
+            val getList1 = brick1.javaClass.getMethod("getUserList")
+            val getList2 = brick2.javaClass.getMethod("getUserList")
+            val list1 = getList1.invoke(brick1)
+            val list2 = getList2.invoke(brick2)
+            if (list1 != list2) return false
+        } catch (_: Exception) {}
+
+        try {
+            val getLook1 = brick1.javaClass.getMethod("getLook")
+            val getLook2 = brick2.javaClass.getMethod("getLook")
+            val look1 = getLook1.invoke(brick1)
+            val look2 = getLook2.invoke(brick2)
+            if (look1 != look2) return false
+        } catch (_: Exception) {}
+
+        try {
+            val getSound1 = brick1.javaClass.getMethod("getSound")
+            val getSound2 = brick2.javaClass.getMethod("getSound")
+            val sound1 = getSound1.invoke(brick1)
+            val sound2 = getSound2.invoke(brick2)
+            if (sound1 != sound2) return false
+        } catch (_: Exception) {}
 
         if (brick1 is FormulaBrick && brick2 is FormulaBrick) {
             val formulas1 = brick1.allFormulaFieldsWithFormulas
@@ -185,7 +221,7 @@ class RedundantBlockRule(private val context: Context) : AnalysisRule {
             if (formulas1.isEmpty()) return true
             return formulas1.all { (field, formula1) ->
                 val formula2 = formulas2[field]
-                formula2 != null && formula1.getTrimmedFormulaString(context) == formula2.getTrimmedFormulaString(context)
+                formula2 != null && formula1.getTrimmedFormulaString(context2) == formula2.getTrimmedFormulaString(context2)
             }
         }
 
@@ -206,6 +242,6 @@ class RedundantBlockRule(private val context: Context) : AnalysisRule {
             return brick1.look?.name == brick2.look?.name
         }
 
-        return false
+        return true
     }
 }

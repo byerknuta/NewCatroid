@@ -8,7 +8,7 @@ import org.catrobat.catroid.content.bricks.BroadcastReceiverBrick
 import org.catrobat.catroid.content.bricks.BroadcastWaitBrick
 
 class EventCascadeRule(private val context: Context) : AnalysisRule {
-    override fun analyze(brick: Brick): AnalysisResult? {
+    override fun analyze(brick: Brick, context2: GlobalAnalysisContext): AnalysisResult? {
         if (brick !is BroadcastBrick && brick !is BroadcastWaitBrick) return null
 
         val message = when (brick) {

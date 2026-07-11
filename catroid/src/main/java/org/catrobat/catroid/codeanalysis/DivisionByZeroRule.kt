@@ -7,76 +7,56 @@ import org.catrobat.catroid.content.bricks.FormulaBrick
 import org.catrobat.catroid.formulaeditor.FormulaElement
 import org.catrobat.catroid.formulaeditor.Operators
 
-class DivisionByZeroRule(private val context: Context) : AnalysisRule {
-    override fun analyze(brick: Brick): AnalysisResult? {
+class DivisionByZeroRule(private val context2: Context) : AnalysisRule {
+    override fun analyze(brick: Brick, context: GlobalAnalysisContext): AnalysisResult? {
         if (brick !is FormulaBrick) return null
 
-        for (formula in brick.allFormulaFieldsWithFormulas.values) {
-            val root = formula.root ?: continue
-            val hasDivByZero = scanForDivisionByZero(root)
-            if (hasDivByZero) {
-                return AnalysisResult(
-                    Severity.ERROR,
-                    context.getString(R.string.analysis_division_by_zero)
-                )
+        try {
+            for (formula in brick.allFormulaFieldsWithFormulas.values) {
+                val root = formula.root ?: continue
+                val hasDivByZero = scanForDivisionByZero(root, context)
+                if (hasDivByZero) {
+                    return AnalysisResult(
+                        Severity.ERROR,
+                        context2.getString(R.string.analysis_division_by_zero)
+                    )
+                }
             }
-        }
+        } catch (_: Exception) {}
         return null
     }
 
-    private fun scanForDivisionByZero(element: FormulaElement): Boolean {
+    private fun scanForDivisionByZero(element: FormulaElement, context: GlobalAnalysisContext, depth: Int = 0): Boolean {
+        if (depth > 50) return false
+
         if (element.type == FormulaElement.ElementType.OPERATOR) {
-            val opValue = element.value?.toString() ?: ""
-            if (opValue == Operators.DIVIDE.toString() || opValue == Operators.MOD.toString()) {
+            val v: Any? = element.value
+            val opStr = when (v) {
+                is Operators -> v.name
+                is Enum<*> -> v.name
+                else -> v?.toString()?.uppercase() ?: ""
+            }
+            if (opStr == "DIVIDE" || opStr == "MOD") {
                 val rightChild = element.rightChild
-                if (rightChild != null && isElementConstantZero(rightChild)) {
+                if (rightChild != null && isElementConstantZero(rightChild, context)) {
                     return true
                 }
             }
         }
 
-        val left = element.leftChild?.let { scanForDivisionByZero(it) } ?: false
-        val right = element.rightChild?.let { scanForDivisionByZero(it) } ?: false
-        val additionals = element.additionalChildren.any { scanForDivisionByZero(it) }
+        val left = element.leftChild?.let { scanForDivisionByZero(it, context, depth + 1) } ?: false
+        val right = element.rightChild?.let { scanForDivisionByZero(it, context, depth + 1) } ?: false
+        val additionals = element.additionalChildren.any { scanForDivisionByZero(it, context, depth + 1) }
 
         return left || right || additionals
     }
 
-    private fun isElementConstantZero(element: FormulaElement): Boolean {
-        if (element.type == FormulaElement.ElementType.NUMBER) {
-            val value = element.value?.toString()?.toDoubleOrNull()
-            if (value == 0.0) return true
-        }
-        if (checkElementIsConstant(element)) {
-            try {
-                val dummyFormula = org.catrobat.catroid.formulaeditor.Formula(element)
-                val scope = org.catrobat.catroid.content.Scope(
-                    org.catrobat.catroid.ProjectManager.getInstance().currentProject,
-                    org.catrobat.catroid.ProjectManager.getInstance().currentSprite,
-                    com.badlogic.gdx.scenes.scene2d.actions.SequenceAction()
-                )
-                val value = dummyFormula.interpretDouble(scope)
-                if (value == 0.0) return true
-            } catch (_: Exception) {
-            }
+    private fun isElementConstantZero(element: FormulaElement, context: GlobalAnalysisContext): Boolean {
+        val dummyFormula = org.catrobat.catroid.formulaeditor.Formula(element)
+        val staticEval = context.evaluateFormula(dummyFormula, emptyMap())
+        if (staticEval is StaticValue.Number && staticEval.value == 0.0) {
+            return true
         }
         return false
-    }
-
-    private fun checkElementIsConstant(element: FormulaElement?): Boolean {
-        if (element == null) return true
-        when (element.type) {
-            FormulaElement.ElementType.SENSOR,
-            FormulaElement.ElementType.USER_VARIABLE,
-            FormulaElement.ElementType.USER_LIST,
-            FormulaElement.ElementType.COLLISION_FORMULA -> return false
-            FormulaElement.ElementType.FUNCTION -> {
-                if (element.value == "RAND") return false
-            }
-            else -> {}
-        }
-        return checkElementIsConstant(element.leftChild) &&
-                checkElementIsConstant(element.rightChild) &&
-                element.additionalChildren.all { checkElementIsConstant(it) }
     }
 }

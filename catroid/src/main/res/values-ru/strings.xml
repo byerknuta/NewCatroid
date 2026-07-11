@@ -23,6 +23,10 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="analysis_unused_broadcast_sent">Сигнал «%1$s» отправляется, но ни один скрипт его не принимает. Возможно, вы ошиблись в названии или забыли создать обработчик «Когда получен сигнал».</string>
+
+    <string name="analysis_too_many_commented_bricks">В этом скрипте отключено слишком много блоков (%1$d). Рекомендуется удалить их, чтобы не засорять проект.</string>
+
     <string formatted="false" name="brick_share_title">Поделиться</string>
 
     <string formatted="false" name="formula_md5">md5</string>

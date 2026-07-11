@@ -6,5 +6,5 @@ interface AnalysisRule {
     /**
      * @return AnalysisResult, если проблема найдена, иначе null.
      */
-    fun analyze(brick: Brick): AnalysisResult?
+    fun analyze(brick: Brick, context: GlobalAnalysisContext): AnalysisResult?
 }

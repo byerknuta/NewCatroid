@@ -5,7 +5,7 @@ import org.catrobat.catroid.R
 import org.catrobat.catroid.content.bricks.*
 
 class ResourceLeakRule(private val context: Context) : AnalysisRule {
-    override fun analyze(brick: Brick): AnalysisResult? {
+    override fun analyze(brick: Brick, context2: GlobalAnalysisContext): AnalysisResult? {
         val sprite = org.catrobat.catroid.ProjectManager.getInstance().currentSprite ?: return null
 
         val allSpriteBricks = mutableListOf<Brick>()

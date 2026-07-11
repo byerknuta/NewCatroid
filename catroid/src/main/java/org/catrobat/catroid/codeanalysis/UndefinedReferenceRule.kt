@@ -8,7 +8,7 @@ import org.catrobat.catroid.content.bricks.FormulaBrick
 import org.catrobat.catroid.formulaeditor.FormulaElement
 
 class UndefinedReferenceRule(private val context: Context) : AnalysisRule {
-    override fun analyze(brick: Brick): AnalysisResult? {
+    override fun analyze(brick: Brick, context2: GlobalAnalysisContext): AnalysisResult? {
         if (brick !is FormulaBrick) return null
 
         val project = ProjectManager.getInstance().currentProject ?: return null
