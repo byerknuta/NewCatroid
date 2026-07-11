@@ -445,6 +445,10 @@ public class InternToExternGenerator {
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.MQTT_MESSAGE.name(), R.string.formula_mqtt_message);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_ANGULAR_VELOCITY.name(), R.string.formula_editor_object_angular_velocity);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_TO_BASE64.name(), R.string.formula_file_to_base64);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.MD5.name(), R.string.formula_md5);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SHA256.name(), R.string.formula_sha256);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_MD5.name(), R.string.formula_file_md5);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_SHA256.name(), R.string.formula_file_sha256);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_LOOK_NUMBER.name(), R.string
 				.formula_editor_object_look_number);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_LOOK_WIDTH.name(), R.string

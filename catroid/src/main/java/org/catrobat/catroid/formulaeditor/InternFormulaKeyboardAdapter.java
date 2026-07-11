@@ -848,6 +848,15 @@ public class InternFormulaKeyboardAdapter {
 			case R.string.formula_editor_function_touched:
 				return buildObject(Sensors.COLLIDES_WITH_FINGER);
 
+            case R.string.formula_md5:
+                return buildSingleParameterFunction(Functions.MD5, STRING, "text");
+            case R.string.formula_sha256:
+                return buildSingleParameterFunction(Functions.SHA256, STRING, "text");
+            case R.string.formula_file_md5:
+                return buildSingleParameterFunction(Functions.FILE_MD5, STRING, "image.png");
+            case R.string.formula_file_sha256:
+                return buildSingleParameterFunction(Functions.FILE_SHA256, STRING, "image.png");
+
 			case R.string.formula_editor_sensor_text_from_camera:
 				return buildObject(Sensors.TEXT_FROM_CAMERA);
 			case R.string.formula_editor_sensor_text_blocks_number:

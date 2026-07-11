@@ -158,7 +158,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_regex_assistant,
 			R.string.formula_editor_function_flatten, R.string.formula_editor_function_connect,
 			R.string.formula_editor_function_lua,
-			R.string.formula_editor_function_json_get, R.string.formula_editor_function_json_set, R.string.formula_editor_function_json_is_valid);
+			R.string.formula_editor_function_json_get, R.string.formula_editor_function_json_set, R.string.formula_editor_function_json_is_valid,
+            R.string.formula_md5, R.string.formula_sha256);
 	private static final List<Integer> STRING_PARAMS = asList(R.string.formula_editor_function_length_parameter,
 			R.string.formula_editor_function_letter_parameter,
 			R.string.formula_editor_function_subtext_parameter,
@@ -178,7 +179,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_flatten_parameter,
 			R.string.formula_editor_function_connect_parameter,
 			R.string.formula_editor_function_lua_parameter,
-            R.string.formula_editor_function_json_get_parameter, R.string.formula_editor_function_json_set_parameter, R.string.formula_editor_function_json_is_valid_parameter);
+            R.string.formula_editor_function_json_get_parameter, R.string.formula_editor_function_json_set_parameter, R.string.formula_editor_function_json_is_valid_parameter,
+            R.string.formula_md5_param, R.string.formula_sha256_param);
 	private static final List<Integer> LIST_FUNCTIONS = asList(R.string.formula_editor_function_number_of_items,
 			R.string.formula_editor_function_list_item, R.string.formula_editor_function_contains,
 			R.string.formula_editor_function_index_of_item, R.string.formula_editor_function_flatten, R.string.formula_editor_function_connect, R.string.formula_editor_function_find);
@@ -593,7 +595,9 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_image_width,
             R.string.formula_image_height,
             R.string.formula_file_last_modified,
-            R.string.formula_file_to_base64
+            R.string.formula_file_to_base64,
+            R.string.formula_file_md5,
+            R.string.formula_file_sha256
     );
 
     private static final List<Integer> FILE_PARAMS = asList(
@@ -606,7 +610,9 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_image_width_param,
             R.string.formula_image_height_param,
             R.string.formula_file_last_modified_param,
-            R.string.formula_file_to_base64_param
+            R.string.formula_file_to_base64_param,
+            R.string.formula_file_md5_param,
+            R.string.formula_file_sha256_param
     );
 
     private static final List<Integer> TABLE_AND_VARS_FUNCTIONS = asList(

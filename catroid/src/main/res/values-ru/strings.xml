@@ -23,6 +23,20 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string formatted="false" name="brick_share_title">Поделиться</string>
+
+    <string formatted="false" name="formula_md5">md5</string>
+    <string formatted="false" name="formula_md5_param">(\'текст\')</string>
+
+    <string formatted="false" name="formula_sha256">sha256</string>
+    <string formatted="false" name="formula_sha256_param">(\'текст\')</string>
+
+    <string formatted="false" name="formula_file_md5">файл_md5</string>
+    <string formatted="false" name="formula_file_md5_param">(\'имя_файла\')</string>
+
+    <string formatted="false" name="formula_file_sha256">файл_sha256</string>
+    <string formatted="false" name="formula_file_sha256_param">(\'имя_файла\')</string>
+
     <string formatted="false" name="brick_base64_to_file_title">Сохранить Base64 в файл</string>
     <string formatted="false" name="brick_base64_to_file_string">Строка Base64</string>
     <string formatted="false" name="brick_base64_to_file_dest">Имя файла в проекте</string>

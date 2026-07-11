@@ -1043,6 +1043,30 @@ public class FormulaElement implements Serializable {
                 return interpretFunctionJoin(scope, leftChild, rightChild);
             case JOIN3:
                 return interpretFunctionJoin3(scope, leftChild, rightChild, additionalChildren);
+            case MD5: {
+                String text = String.valueOf(arg0);
+                return org.catrobat.catroid.utils.HashUtils.hashString(text, "MD5");
+            }
+            case SHA256: {
+                String text = String.valueOf(arg0);
+                return org.catrobat.catroid.utils.HashUtils.hashString(text, "SHA-256");
+            }
+            case FILE_MD5: {
+                String fileName = String.valueOf(arg0);
+                java.io.File file = org.catrobat.catroid.ProjectManager.getInstance().getCurrentProject().getFile(fileName);
+                if (file != null && file.exists()) {
+                    return org.catrobat.catroid.utils.HashUtils.hashFile(file, "MD5");
+                }
+                return "";
+            }
+            case FILE_SHA256: {
+                String fileName = String.valueOf(arg0);
+                java.io.File file = org.catrobat.catroid.ProjectManager.getInstance().getCurrentProject().getFile(fileName);
+                if (file != null && file.exists()) {
+                    return org.catrobat.catroid.utils.HashUtils.hashFile(file, "SHA-256");
+                }
+                return "";
+            }
             case DISTANCE:
                 return interpretFunctionDistance(scope, arg0, arg1);
             case NOTIFICATION_REPLY: {

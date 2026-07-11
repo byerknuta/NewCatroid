@@ -5300,4 +5300,13 @@ public class ActionFactory extends Actions {
         action.setDestinationFileName(destinationFileName);
         return action;
     }
+
+    public Action createShareAction(Sprite sprite, SequenceAction sequence,
+                                    Formula contentFormula) {
+        ShareAction action = action(ShareAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setContentFormula(contentFormula);
+        return action;
+    }
 }

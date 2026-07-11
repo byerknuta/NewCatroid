@@ -511,6 +511,7 @@ import org.catrobat.catroid.content.bricks.SetXBrick
 import org.catrobat.catroid.content.bricks.SetYBrick
 import org.catrobat.catroid.content.bricks.SewUpBrick
 import org.catrobat.catroid.content.bricks.ShaderBrick
+import org.catrobat.catroid.content.bricks.ShareBrick
 import org.catrobat.catroid.content.bricks.ShowBrick
 import org.catrobat.catroid.content.bricks.ShowDialogBrick
 import org.catrobat.catroid.content.bricks.ShowNotificationBrick
@@ -1934,6 +1935,7 @@ print("Bot has stopped.")""", "myVar"))
                 deviceBrickList.add(HideStatusBarBrick())
                 deviceBrickList.add(ChooseFileBrick())
                 deviceBrickList.add(ExportProjectFileBrick("file.txt"))
+                deviceBrickList.add(ShareBrick("Привет из NewCatroid!"));
                 deviceBrickList.add(SaveToInternalStorageBrick("file.txt", "myAwesomeApp/file.txt"))
                 deviceBrickList.add(LoadFromInternalStorageBrick("myAwesomeApp/file.txt"))
                 deviceBrickList.add(ApplyShaderToImageBrick("image.png", """attribute vec4 a_position;
@@ -2168,6 +2170,7 @@ bot.polling()""", "myVar"))
         deviceBrickList.add(MoveDownloadsBrick("variable.txt"))
         deviceBrickList.add(CopyProjectFileBrick("variable.txt", "copy_variable.txt"))
         deviceBrickList.add(ExportProjectFileBrick("file.txt"))
+        deviceBrickList.add(ShareBrick("Привет из NewCatroid!"));
         deviceBrickList.add(SaveToInternalStorageBrick("file.txt", "myAwesomeApp/file.txt"))
         deviceBrickList.add(LoadFromInternalStorageBrick("myAwesomeApp/file.txt"))
         deviceBrickList.add(WriteVariableOnDeviceBrick())
@@ -2547,6 +2550,7 @@ void main() {
         fileBrickList.add(CopyProjectFileBrick("variable.txt", "copy_variable.txt"))
         fileBrickList.add(ChooseFileBrick())
         fileBrickList.add(ExportProjectFileBrick("file.txt"))
+        fileBrickList.add(ShareBrick("Привет из NewCatroid!"));
         fileBrickList.add(SaveToInternalStorageBrick("file.txt", "myAwesomeApp/file.txt"))
         fileBrickList.add(LoadFromInternalStorageBrick("myAwesomeApp/file.txt"))
         fileBrickList.add(SaveLookBrick("my_actor.png"))
