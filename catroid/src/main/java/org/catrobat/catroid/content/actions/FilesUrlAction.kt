@@ -121,6 +121,7 @@ class FilesUrlAction() : TemporalAction() {
 
                 val inputStream = connection.inputStream
                 val downloadsFolder = proj.filesDir
+                downloadsFolder.mkdirs()
                 val destFile = File(downloadsFolder, newFileName)
 
                 val fileOutputStream = FileOutputStream(destFile)

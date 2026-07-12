@@ -25,40 +25,48 @@ class GlobalAnalysisContext {
             val context = GlobalAnalysisContext()
             val project = ProjectManager.getInstance().currentProject ?: return context
 
-            for (scene in project.sceneList) {
-                for (sprite in scene.spriteList) {
-                    val allBricks = mutableListOf<Brick>()
-                    for (script in sprite.scriptList) {
-                        script.addToFlatList(allBricks)
-                    }
-
-                    for (brick in allBricks) {
-                        if (CodeAnalyzer.isBrickCommented(brick)) continue
-
-                        if (brick is EnablePbrRenderBrick) {
-                            context.isPbrEnabledInProject = true
-                        }
-                        if (brick is BroadcastReceiverBrick) {
-                            brick.broadcastMessage?.let { context.allBroadcastsReceived.add(it) }
-                        }
-                        if (brick is BroadcastBrick) {
-                            brick.broadcastMessage?.let { context.allBroadcastsSent.add(it) }
-                        }
-                        if (brick is BroadcastWaitBrick) {
-                            brick.broadcastMessage?.let { context.allBroadcastsSent.add(it) }
+            try {
+                val sceneList = project.sceneList ?: return context
+                for (scene in sceneList) {
+                    val spriteList = scene.spriteList ?: continue
+                    for (sprite in spriteList) {
+                        val scriptList = sprite.scriptList ?: continue
+                        val allBricks = mutableListOf<Brick>()
+                        for (script in scriptList) {
+                            script.addToFlatList(allBricks)
                         }
 
-                        context.collectVariableReads(brick)
-                    }
-                }
-            }
+                        for (brick in allBricks) {
+                            if (CodeAnalyzer.isBrickCommented(brick)) continue
 
-            for (scene in project.sceneList) {
-                for (sprite in scene.spriteList) {
-                    for (script in sprite.scriptList) {
-                        context.propagateConstantsInScript(script)
+                            if (brick is EnablePbrRenderBrick) {
+                                context.isPbrEnabledInProject = true
+                            }
+                            if (brick is BroadcastReceiverBrick) {
+                                brick.broadcastMessage?.let { context.allBroadcastsReceived.add(it) }
+                            }
+                            if (brick is BroadcastBrick) {
+                                brick.broadcastMessage?.let { context.allBroadcastsSent.add(it) }
+                            }
+                            if (brick is BroadcastWaitBrick) {
+                                brick.broadcastMessage?.let { context.allBroadcastsSent.add(it) }
+                            }
+
+                            context.collectVariableReads(brick)
+                        }
                     }
                 }
+
+                for (scene in sceneList) {
+                    val spriteList = scene.spriteList ?: continue
+                    for (sprite in spriteList) {
+                        val scriptList = sprite.scriptList ?: continue
+                        for (script in scriptList) {
+                            context.propagateConstantsInScript(script)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
             }
 
             return context

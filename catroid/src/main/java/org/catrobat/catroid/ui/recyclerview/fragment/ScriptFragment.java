@@ -103,6 +103,7 @@ import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -613,6 +614,11 @@ public class ScriptFragment extends ListFragment implements
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
         boolean isAnalysisEnabled = prefs.getBoolean("pref_code_analysis_enabled", true);
 
+        if (codeAnalysisJob != null) {
+            codeAnalysisJob.cancel(null);
+            codeAnalysisJob = null;
+        }
+
         AnalysisManager.INSTANCE.clearResults();
 
         if (!isAnalysisEnabled) {
@@ -625,24 +631,39 @@ public class ScriptFragment extends ListFragment implements
         Sprite currentSprite = ProjectManager.getInstance().getCurrentSprite();
         if (currentSprite == null) return;
 
-        codeAnalysisJob = BuildersKt.launch(GlobalScope.INSTANCE, Dispatchers.getIO(), CoroutineStart.DEFAULT, (scope, continuation) -> {
+        final List<Script> scriptsCopy = new ArrayList<>(currentSprite.getScriptList());
+
+        codeAnalysisJob = BuildersKt.launch(LifecycleOwnerKt.getLifecycleScope(this), Dispatchers.getIO(), CoroutineStart.DEFAULT, (scope, continuation) -> {
             final Map<Brick, AnalysisResult> allResults = new HashMap<>();
 
-            for (Script script : currentSprite.getScriptList()) {
-                Map<Brick, AnalysisResult> scriptResults = codeAnalyzer.analyzeScript(script);
-                allResults.putAll(scriptResults);
-            }
+            try {
+                final org.catrobat.catroid.codeanalysis.GlobalAnalysisContext globalContext =
+                        org.catrobat.catroid.codeanalysis.GlobalAnalysisContext.Companion.build();
 
-            AnalysisManager.INSTANCE.updateResults(allResults);
-
-
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    if (adapter != null) {
-                        adapter.notifyDataSetChanged();
+                for (Script script : scriptsCopy) {
+                    Map<Brick, AnalysisResult> scriptResults = codeAnalyzer.analyzeScript(script, globalContext);
+                    if (scriptResults != null) {
+                        allResults.putAll(scriptResults);
                     }
-                    updateAnalysisIndicator();
-                });
+                }
+
+                AnalysisManager.INSTANCE.updateResults(allResults);
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        if (ProjectManager.getInstance().getCurrentProject() == null) {
+                            Log.d(TAG, "Project already closed, skipping UI update");
+                            return;
+                        }
+
+                        if (adapter != null) {
+                            adapter.notifyDataSetChanged();
+                        }
+                        updateAnalysisIndicator();
+                    });
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error in analysis background job", e);
             }
             return kotlin.Unit.INSTANCE;
         });

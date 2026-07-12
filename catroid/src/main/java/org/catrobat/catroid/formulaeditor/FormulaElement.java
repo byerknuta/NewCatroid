@@ -113,6 +113,8 @@ public class FormulaElement implements Serializable {
     private transient Double cachedDoubleValue = null;
 
     private static org.luaj.vm2.Globals luaGlobals = null;
+    private static final java.util.Map<String, org.luaj.vm2.LuaValue> compiledLuaCache =
+            new java.util.concurrent.ConcurrentHashMap<>();
 
     public enum ElementType {
         OPERATOR, FUNCTION, NUMBER, SENSOR, USER_VARIABLE, USER_LIST, USER_DEFINED_BRICK_INPUT, BRACKET, STRING, COLLISION_FORMULA
@@ -555,11 +557,23 @@ public class FormulaElement implements Serializable {
             case ALL_FILES:
                 return ProjectManager.getInstance().getCurrentProject().getFilesDir().getAbsolutePath();
             case LUA: {
-                if (luaGlobals == null) {
-                    luaGlobals = org.luaj.vm2.lib.jse.JsePlatform.standardGlobals();
+                try {
+                    if (luaGlobals == null) {
+                        luaGlobals = org.luaj.vm2.lib.jse.JsePlatform.standardGlobals();
+                    }
+                    String luaScript = String.valueOf(arg0);
+
+                    org.luaj.vm2.LuaValue chunk = compiledLuaCache.get(luaScript);
+                    if (chunk == null) {
+                        chunk = luaGlobals.load(luaScript);
+                        compiledLuaCache.put(luaScript, chunk);
+                    }
+
+                    return chunk.call().tojstring();
+                } catch (Throwable t) {
+                    android.util.Log.e("FormulaEvaluator", "Error during Lua formula execution", t);
+                    return "0";
                 }
-                String luaScript = String.valueOf(arg0);
-                return luaGlobals.load(luaScript).call().tojstring();
             }
             case FILE_SIZE:
                 return (int) getFileSize(ProjectManager.getInstance().getCurrentProject().getFile(String.valueOf(arg0)));

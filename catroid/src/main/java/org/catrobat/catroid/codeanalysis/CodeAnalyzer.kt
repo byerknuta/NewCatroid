@@ -25,11 +25,12 @@ class CodeAnalyzer(private val context: Context) {
         DivisionByZeroRule(context)
     )
 
-    fun analyzeScript(script: Script): Map<Brick, AnalysisResult> {
+    fun analyzeScript(
+        script: Script,
+        globalContext: GlobalAnalysisContext = GlobalAnalysisContext.build()
+    ): Map<Brick, AnalysisResult> {
         val results = mutableMapOf<Brick, AnalysisResult>()
         try {
-            val globalContext = GlobalAnalysisContext.build()
-
             analyzeBrickList(script.brickList, globalContext, results, isParentCommented = false)
 
             val allBricks = mutableListOf<Brick>()
@@ -47,7 +48,6 @@ class CodeAnalyzer(private val context: Context) {
                 }
             }
         } catch (t: Throwable) {
-            t.printStackTrace()
         }
         return results
     }
