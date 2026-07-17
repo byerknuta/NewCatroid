@@ -44,8 +44,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -676,6 +679,171 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
         toggleFormulaEditorSpace(isVisible);
     }
 
+    private void showBeautifulFilePickerDialog() {
+        Context context = getContext();
+        if (context == null) return;
+
+        Project currentProject = ProjectManager.getInstance().getCurrentProject();
+        if (currentProject == null) return;
+
+        File filesDir = currentProject.getFilesDir();
+        if (filesDir == null || !filesDir.exists()) {
+            ToastUtil.showError(context, "Files directory not found");
+            return;
+        }
+
+        File[] allFiles = filesDir.listFiles(new java.io.FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return file.isFile();
+            }
+        });
+
+        if (allFiles == null || allFiles.length == 0) {
+            ToastUtil.showInfoLong(context, getString(R.string.no_files_found));
+            return;
+        }
+
+        View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_project_file_picker, null);
+        EditText searchInput = dialogView.findViewById(R.id.search_file_input);
+        ListView listView = dialogView.findViewById(R.id.project_files_list);
+
+        List<File> fileList = new ArrayList<>();
+        for (File f : allFiles) {
+            fileList.add(f);
+        }
+
+        java.util.Collections.sort(fileList, new java.util.Comparator<File>() {
+            @Override
+            public int compare(File f1, File f2) {
+                return f1.getName().compareToIgnoreCase(f2.getName());
+            }
+        });
+
+        FileAdapter adapter = new FileAdapter(context, fileList);
+        listView.setAdapter(adapter);
+
+        AlertDialog alertDialog = new AlertDialog.Builder(context, R.style.Theme_NewCatroid_Dialog)
+                .setTitle(R.string.dialog_project_files_title)
+                .setView(dialogView)
+                .setNegativeButton(R.string.cancel, null)
+                .create();
+
+        searchInput.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                adapter.filter(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            File selectedFile = adapter.getItem(position);
+            addString(selectedFile.getName());
+            alertDialog.dismiss();
+        });
+
+        alertDialog.show();
+    }
+
+    private class FileAdapter extends android.widget.ArrayAdapter<File> {
+        private final List<File> originalList;
+        private final List<File> filteredList;
+
+        public FileAdapter(Context context, List<File> files) {
+            super(context, 0, files);
+            this.originalList = new ArrayList<>(files);
+            this.filteredList = new ArrayList<>(files);
+        }
+
+        @Override
+        public int getCount() {
+            return filteredList.size();
+        }
+
+        @Override
+        public File getItem(int position) {
+            return filteredList.get(position);
+        }
+
+        public void filter(String text) {
+            filteredList.clear();
+            if (text.isEmpty()) {
+                filteredList.addAll(originalList);
+            } else {
+                String query = text.toLowerCase();
+                for (File file : originalList) {
+                    if (file.getName().toLowerCase().contains(query)) {
+                        filteredList.add(file);
+                    }
+                }
+            }
+            notifyDataSetChanged();
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_project_file_picker, parent, false);
+            }
+
+            ImageView iconView = convertView.findViewById(R.id.file_icon);
+            TextView nameView = convertView.findViewById(R.id.file_name);
+            TextView infoView = convertView.findViewById(R.id.file_info);
+
+            File file = getItem(position);
+            nameView.setText(file.getName());
+
+            long sizeInBytes = file.length();
+            String sizeStr;
+            if (sizeInBytes < 1024) {
+                sizeStr = sizeInBytes + " B";
+            } else if (sizeInBytes < 1024 * 1024) {
+                sizeStr = String.format("%.1f KB", sizeInBytes / 1024.0);
+            } else {
+                sizeStr = String.format("%.1f MB", sizeInBytes / (1024.0 * 1024.0));
+            }
+
+            String ext = getFileExtension(file.getName()).toLowerCase();
+            int iconResId = R.drawable.file_present_24px;
+            String typeStr = "File";
+
+            if (ext.equals("png") || ext.equals("jpg") || ext.equals("jpeg") || ext.equals("webp") || ext.equals("gif")) {
+                iconResId = R.drawable.ic_draw_image;
+                typeStr = "Image";
+            } else if (ext.equals("mp3") || ext.equals("wav") || ext.equals("ogg") || ext.equals("m4a")) {
+                iconResId = R.drawable.ic_music_library;
+                typeStr = "Audio";
+            } else if (ext.equals("xml") || ext.equals("json") || ext.equals("txt") || ext.equals("py") || ext.equals("lua") || ext.equals("js") || ext.equals("java") || ext.equals("kt") || ext.equals("md")) {
+                iconResId = R.drawable.code_24px;
+                typeStr = "Text";
+            } else if(ext.equals("rscene") || ext.equals("glb") || ext.equals("obj")) {
+                iconResId =  R.drawable.deployed_code_24px;
+                typeStr = "Model";
+            }
+
+            iconView.setImageResource(iconResId);
+            iconView.setColorFilter(ContextCompat.getColor(getContext(), R.color.accent));
+
+            infoView.setText(typeStr + " • " + sizeStr);
+
+            return convertView;
+        }
+
+        private String getFileExtension(String fileName) {
+            int lastDot = fileName.lastIndexOf('.');
+            if (lastDot == -1) {
+                return "";
+            }
+            return fileName.substring(lastDot + 1);
+        }
+    }
+
 	private void toggleFormulaEditorSpace(boolean isVisible) {
 		View keyboard = getActivity().findViewById(R.id.formula_editor_keyboardview);
 		View brickAndFormula = getActivity().findViewById(R.id.formula_editor_brick_and_formula);
@@ -938,6 +1106,7 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 
 		menu.findItem(R.id.menu_undo).setVisible(true);
 		menu.findItem(R.id.menu_redo).setVisible(true);
+        menu.findItem(R.id.menu_files).setVisible(true);
 
 		super.onPrepareOptionsMenu(menu);
 		updateButtonsOnKeyboard();
@@ -958,6 +1127,9 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 			case R.id.menu_redo:
 				formulaEditorEditText.redo();
 				break;
+            case R.id.menu_files:
+                showBeautifulFilePickerDialog();
+                break;
 		}
 		updateButtonsOnKeyboardAndInvalidateOptionsMenu();
 		return super.onOptionsItemSelected(item);

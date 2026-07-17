@@ -269,8 +269,11 @@ class ProjectOptionsFragment : Fragment() {
         val etKeystorePass = dialogView.findViewById<TextInputEditText>(R.id.etKeystorePass)
 
         etAppName.setText(project!!.name)
-        val cleanProjName = project!!.name.lowercase().replace(Regex("[^a-z0-9]"), "").ifEmpty { "game" }
-        etPackageName.setText("org.danvexteam.newcatroid.project.$cleanProjName")
+        var cleanProjName = project!!.name.lowercase().replace(Regex("[^a-z0-9]"), "").ifEmpty { "game" }
+        if (cleanProjName.isNotEmpty() && cleanProjName[0].isDigit()) {
+            cleanProjName = "project_$cleanProjName"
+        }
+        etPackageName.setText("com.newcatroid.$cleanProjName")
         etVersionName.setText("1.0.0")
         etVersionCode.setText("1")
 
@@ -551,6 +554,15 @@ class ProjectOptionsFragment : Fragment() {
                         ToastUtil.showError(context, getString(R.string.error_fill_required))
                         return@setOnClickListener
                     }
+
+                    if (!isValidPackageName(packageName)) {
+                        ToastUtil.showError(
+                            context,
+                            getString(R.string.apk_build_error_invalide_package)
+                        )
+                        return@setOnClickListener
+                    }
+
                     currentStep = 2
                     updateStepUI()
                 }
@@ -681,6 +693,30 @@ class ProjectOptionsFragment : Fragment() {
         }
 
         dialog.show()
+    }
+
+    private fun isValidPackageName(packageName: String): Boolean {
+        val regex = "^[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z][a-zA-Z0-9_]*)+$".toRegex()
+        if (!packageName.matches(regex)) {
+            return false
+        }
+
+        val javaKeywords = setOf(
+            "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const",
+            "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float",
+            "for", "goto", "if", "implements", "import", "instanceof", "int", "interface", "long", "native",
+            "new", "package", "private", "protected", "public", "return", "short", "static", "strictfp",
+            "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "void",
+            "volatile", "while", "true", "false", "null"
+        )
+
+        val segments = packageName.split(".")
+        for (segment in segments) {
+            if (javaKeywords.contains(segment)) {
+                return false
+            }
+        }
+        return true
     }
 
     private var tvSelectedKeystorePathTag: TextView? = null

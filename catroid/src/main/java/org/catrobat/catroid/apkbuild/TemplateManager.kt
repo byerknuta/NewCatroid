@@ -9,10 +9,17 @@ import org.json.JSONArray
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 object TemplateManager {
 
-    private val client = OkHttpClient()
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .followRedirects(true)
+        .followSslRedirects(true)
+        .build()
 
     data class TemplateRelease(
         val tagName: String,
@@ -23,6 +30,8 @@ object TemplateManager {
     suspend fun fetchAvailableTemplates(): List<TemplateRelease> = withContext(Dispatchers.IO) {
         val request = Request.Builder()
             .url("https://raw.githubusercontent.com/Danveyd/NewCatroid-Templates/main/releases.json")
+            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+            .header("Accept", "application/json")
             .build()
 
         val list = mutableListOf<TemplateRelease>()
@@ -63,7 +72,11 @@ object TemplateManager {
         }
         destFile.parentFile?.mkdirs()
 
-        val request = Request.Builder().url(downloadUrl).build()
+        val request = Request.Builder()
+            .url(downloadUrl)
+            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+            .header("Accept", "*/*")
+            .build()
         try {
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return@withContext null

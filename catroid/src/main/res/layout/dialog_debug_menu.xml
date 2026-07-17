@@ -25,6 +25,16 @@
             android:textStyle="bold" />
 
         <ImageButton
+            android:id="@+id/btn_record_logs"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="8dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_debug_record"
+            app:tint="@color/accent"
+            android:contentDescription="@null" />
+
+        <ImageButton
             android:id="@+id/close_button"
             android:layout_width="32dp"
             android:layout_height="32dp"

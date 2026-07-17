@@ -2145,12 +2145,21 @@ public class StageListener implements ApplicationListener {
 		finished = true;
 	}
 
-	public void requestTakingScreenshot(@NonNull String screenshotName,
-										@NonNull ScreenshotSaverCallback screenshotCallback) {
-		this.screenshotName = screenshotName;
-		this.screenshotSaverCallback = screenshotCallback;
-		makeScreenshot = true;
-	}
+    public void requestTakingScreenshot(@NonNull String screenshotName,
+                                        @NonNull ScreenshotSaverCallback screenshotCallback) {
+        this.screenshotName = screenshotName;
+        this.screenshotSaverCallback = screenshotCallback;
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            StageActivity activity = StageActivity.activeStageActivity.get();
+            if (activity != null) {
+                activity.captureScreenWithNativeViews(getScreenshotPath(), screenshotName, screenshotCallback);
+                return;
+            }
+        }
+
+        makeScreenshot = true;
+    }
 
 	private void notifyScreenshotCallbackAndCleanup(Boolean success) {
 		if (screenshotSaverCallback != null) {

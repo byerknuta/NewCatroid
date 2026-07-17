@@ -1,26 +1,3 @@
-/*
- * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2022 The Catrobat Team
- * (<http://developer.catrobat.org/credits>)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * An additional term exception under section 7 of the GNU Affero
- * General Public License, version 3, is available at
- * http://developer.catrobat.org/license_additional_term
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package org.catrobat.catroid.sensing;
 
 import android.graphics.Bitmap;
@@ -39,6 +16,7 @@ import org.catrobat.catroid.common.LookData;
 import org.catrobat.catroid.utils.ImageEditing;
 import org.catrobat.catroid.utils.PolygonDecomposer;
 
+import java.io.File;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,6 +47,8 @@ public class CollisionInformation {
 
     private Pair<Integer, Integer> leftBubblePos;
     private Pair<Integer, Integer> rightBubblePos;
+
+    private long lastLoadedTime = 0;
 
     public CollisionInformation(LookData lookData) {
         this.lookData = lookData;
@@ -134,15 +114,18 @@ public class CollisionInformation {
     }
 
     public synchronized void loadCollisionPolygon() {
-        if (this.collisionPolygons != null) {
+        long currentModified = lookData.getFile().lastModified();
+        if (this.collisionPolygons != null && this.lastLoadedTime == currentModified) {
             return;
         }
 
         isCalculationThreadCancelled = false;
         String path = lookData.getFile().getAbsolutePath();
+        String cacheKey = path + "@" + currentModified;
 
-        if (ramCache.containsKey(path)) {
-            this.collisionPolygons = ramCache.get(path);
+        if (ramCache.containsKey(cacheKey)) {
+            this.collisionPolygons = ramCache.get(cacheKey);
+            this.lastLoadedTime = currentModified;
             Log.i(TAG, "Successfully loaded collision polygons for " + lookData.getName() + " from RAM cache.");
             return;
         }
@@ -150,37 +133,47 @@ public class CollisionInformation {
         Polygon[] cachedPolygons = getCollisionPolygonFromPNGMeta(path);
         if (cachedPolygons.length > 0) {
             this.collisionPolygons = cachedPolygons;
-            ramCache.put(path, cachedPolygons);
+            this.lastLoadedTime = currentModified;
+            ramCache.put(cacheKey, cachedPolygons);
             Log.i(TAG, "Successfully loaded " + collisionPolygons.length + " polygons from PNG cache.");
             return;
         }
 
-        createCollisionPolygon(path);
+        createCollisionPolygon(path, currentModified);
 
         if (isCalculationThreadCancelled) {
             this.collisionPolygons = null;
         } else if (this.collisionPolygons != null) {
-            ramCache.put(path, this.collisionPolygons);
+            this.lastLoadedTime = currentModified;
+            ramCache.put(cacheKey, this.collisionPolygons);
         }
     }
 
     public synchronized boolean forceRecalculateAndSave() {
         isCalculationThreadCancelled = false;
         String path = lookData.getFile().getAbsolutePath();
+        long currentModified = lookData.getFile().lastModified();
 
-        createCollisionPolygon(path);
+        createCollisionPolygon(path, currentModified);
 
         return this.collisionPolygons != null && this.collisionPolygons.length > 0;
     }
 
     private synchronized void createCollisionPolygon(String path) {
+        createCollisionPolygon(path, lookData.getFile().lastModified());
+    }
+
+    private synchronized void createCollisionPolygon(String path, long currentModified) {
         Log.i(TAG, "No Collision information from PNG file, creating new one.");
         if (isCalculationThreadCancelled) {
             return;
         }
 
-        if (ramCache.containsKey(path)) {
-            this.collisionPolygons = ramCache.get(path);
+        String cacheKey = path + "@" + currentModified;
+
+        if (ramCache.containsKey(cacheKey)) {
+            this.collisionPolygons = ramCache.get(cacheKey);
+            this.lastLoadedTime = currentModified;
             return;
         }
 
@@ -290,7 +283,8 @@ public class CollisionInformation {
         }
 
         if (this.collisionPolygons != null) {
-            ramCache.put(path, this.collisionPolygons);
+            this.lastLoadedTime = currentModified;
+            ramCache.put(cacheKey, this.collisionPolygons);
         }
 
         try {

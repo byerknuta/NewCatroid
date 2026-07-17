@@ -32,6 +32,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Typeface;
@@ -1775,7 +1776,83 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 	}
 
+    public void captureScreenWithNativeViews(final String screenshotPath, final String filename, final ScreenshotSaverCallback callback) {
+        if (!(gameView instanceof SurfaceView)) {
+            if (callback != null) callback.screenshotSaved(false);
+            return;
+        }
 
+        final SurfaceView surfaceView = (SurfaceView) gameView;
+        int width = surfaceView.getWidth();
+        int height = surfaceView.getHeight();
+
+        if (width <= 0 || height <= 0) {
+            if (callback != null) callback.screenshotSaved(false);
+            return;
+        }
+
+        final Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            android.os.HandlerThread handlerThread = new android.os.HandlerThread("PixelCopyThread");
+            handlerThread.start();
+
+            android.view.PixelCopy.request(surfaceView, bitmap, copyResult -> {
+                handlerThread.quitSafely();
+                if (copyResult == android.view.PixelCopy.SUCCESS) {
+                    runOnUiThread(() -> {
+                        android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
+
+                        if (backgroundLayout != null) {
+                            backgroundLayout.draw(canvas);
+                        }
+                        if (foregroundLayout != null) {
+                            foregroundLayout.draw(canvas);
+                        }
+
+                        new Thread(() -> {
+                            boolean success = saveBitmapToPng(bitmap, new File(screenshotPath, filename));
+                            bitmap.recycle();
+                            if (callback != null) {
+                                runOnUiThread(() -> callback.screenshotSaved(success));
+                            }
+                        }).start();
+                    });
+                } else {
+                    bitmap.recycle();
+                    Log.e("StageActivity", "PixelCopy failed with error code: " + copyResult);
+                    if (callback != null) {
+                        runOnUiThread(() -> callback.screenshotSaved(false));
+                    }
+                }
+            }, new android.os.Handler(handlerThread.getLooper()));
+        } else {
+            if (stageListener != null) {
+                stageListener.requestTakingScreenshot(filename, callback);
+            } else if (callback != null) {
+                callback.screenshotSaved(false);
+            }
+        }
+    }
+
+    private boolean saveBitmapToPng(Bitmap bitmap, File destFile) {
+        try {
+            if (destFile.exists()) {
+                destFile.delete();
+            }
+            File parent = destFile.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
+            }
+            try (java.io.FileOutputStream out = new java.io.FileOutputStream(destFile)) {
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+                return true;
+            }
+        } catch (Exception e) {
+            Log.e("StageActivity", "Failed to save bitmap to PNG", e);
+            return false;
+        }
+    }
 
 
 	public static StageListener getActiveStageListener() {

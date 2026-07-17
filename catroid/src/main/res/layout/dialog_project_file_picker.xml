@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/search_file_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/search_files_hint"
+        android:textColor="@color/solid_white"
+        android:textColorHint="@color/spinner_icon_and_inactive_elements"
+        android:background="@drawable/bg_formula_input"
+        android:padding="12dp"
+        android:layout_marginBottom="12dp"
+        android:singleLine="true" />
+
+    <ListView
+        android:id="@+id/project_files_list"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="4dp" />
+</LinearLayout>

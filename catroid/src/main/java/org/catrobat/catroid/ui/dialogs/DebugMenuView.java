@@ -6,6 +6,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -30,6 +31,7 @@ import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.formulaeditor.UserList;
 import org.catrobat.catroid.formulaeditor.UserVariable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -80,6 +82,7 @@ public class DebugMenuView extends FrameLayout {
         setupWindowControls();
         setupResizer();
         buildInitialLayout();
+        setupLogcatButton();
     }
 
     @SuppressLint("DefaultLocale")
@@ -622,6 +625,177 @@ public class DebugMenuView extends FrameLayout {
             this.isExpanded = isExpanded;
             this.childViews = childViews;
             this.moreView = null;
+        }
+    }
+
+    private void setupLogcatButton() {
+        // Находим нашу кнопку как ImageButton
+        android.widget.ImageButton btnRecord = findViewById(R.id.btn_record_logs);
+        if (btnRecord == null) return;
+
+        LogcatRecorder recorder = LogcatRecorder.getInstance();
+        updateRecordButtonUI(btnRecord, recorder.isRecording());
+
+        btnRecord.setOnClickListener(v -> {
+            boolean currentlyRecording = recorder.isRecording();
+            if (!currentlyRecording) {
+                recorder.startRecording();
+                Toast.makeText(getContext(), R.string.log_recording_started, Toast.LENGTH_SHORT).show();
+                updateRecordButtonUI(btnRecord, true);
+            } else {
+                recorder.stopAndExport(getContext());
+                updateRecordButtonUI(btnRecord, false);
+            }
+        });
+    }
+
+    private void updateRecordButtonUI(android.widget.ImageButton btn, boolean isRecording) {
+        if (isRecording) {
+            btn.setImageResource(R.drawable.ic_debug_stop);
+            btn.setColorFilter(Color.parseColor("#FF5252"));
+        } else {
+            btn.setImageResource(R.drawable.ic_debug_record);
+            btn.setColorFilter(COLOR_ACCENT);
+        }
+    }
+
+    public static class LogcatRecorder {
+        private static LogcatRecorder instance;
+        private boolean isRecording = false;
+        private long startTime = 0;
+
+        private LogcatRecorder() {}
+
+        public static synchronized LogcatRecorder getInstance() {
+            if (instance == null) {
+                instance = new LogcatRecorder();
+            }
+            return instance;
+        }
+
+        public boolean isRecording() {
+            return isRecording;
+        }
+
+        public void startRecording() {
+            isRecording = true;
+            startTime = System.currentTimeMillis();
+        }
+
+        public void stopAndExport(Context context) {
+            isRecording = false;
+
+            new Thread(() -> {
+                String report = generateReport(context);
+                File file = saveReportToCache(context, report);
+                if (file != null) {
+                    new android.os.Handler(context.getMainLooper()).post(() -> shareReportFile(context, file));
+                }
+            }).start();
+        }
+
+        private String generateReport(Context context) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("=========================================\n");
+            sb.append("         NEWCATROID DEBUG REPORT         \n");
+            sb.append("=========================================\n\n");
+
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
+            sb.append("Report Generated: ").append(sdf.format(new java.util.Date())).append("\n");
+            sb.append("Recording Started: ").append(sdf.format(new java.util.Date(startTime))).append("\n");
+            sb.append("-----------------------------------------\n\n");
+
+            sb.append("--- DEVICE INFORMATION ---\n");
+            sb.append("Manufacturer: ").append(android.os.Build.MANUFACTURER).append("\n");
+            sb.append("Model: ").append(android.os.Build.MODEL).append("\n");
+            sb.append("Brand: ").append(android.os.Build.BRAND).append("\n");
+            sb.append("Device: ").append(android.os.Build.DEVICE).append("\n");
+            sb.append("OS Version: ").append(android.os.Build.VERSION.RELEASE)
+                    .append(" (API ").append(android.os.Build.VERSION.SDK_INT).append(")\n");
+            sb.append("CPU ABI: ").append(android.os.Build.SUPPORTED_ABIS[0]).append("\n");
+
+            try {
+                android.app.ActivityManager.MemoryInfo mi = new android.app.ActivityManager.MemoryInfo();
+                android.app.ActivityManager activityManager = (android.app.ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+                if (activityManager != null) {
+                    activityManager.getMemoryInfo(mi);
+                    sb.append("Total RAM: ").append(mi.totalMem / (1024 * 1024)).append(" MB\n");
+                    sb.append("Available RAM: ").append(mi.availMem / (1024 * 1024)).append(" MB\n");
+                }
+            } catch (Exception ignored) {}
+
+            try {
+                android.util.DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+                sb.append("Screen Resolution: ").append(metrics.widthPixels).append("x").append(metrics.heightPixels).append("\n");
+                sb.append("Screen Density: ").append(metrics.densityDpi).append(" DPI\n");
+            } catch (Exception ignored) {}
+
+            sb.append("\n--- APPLICATION INFORMATION ---\n");
+            sb.append("Package Name: ").append(context.getPackageName()).append("\n");
+
+            Project currentProject = ProjectManager.getInstance().getCurrentProject();
+            if (currentProject != null) {
+                sb.append("\n--- ACTIVE PROJECT INFORMATION ---\n");
+                sb.append("Project Name: ").append(currentProject.getName()).append("\n");
+                sb.append("Language Version: ").append(currentProject.getCatrobatLanguageVersion()).append("\n");
+            }
+
+            sb.append("\n=========================================\n");
+            sb.append("               LOGCAT LOGS               \n");
+            sb.append("=========================================\n\n");
+
+            try {
+                Process process = Runtime.getRuntime().exec("logcat -d -v time");
+                java.io.BufferedReader bufferedReader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(process.getInputStream())
+                );
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    sb.append(line).append("\n");
+                }
+                bufferedReader.close();
+            } catch (Exception e) {
+                sb.append("ERROR CAPTURING LOGS: ").append(e.getMessage()).append("\n");
+            }
+
+            return sb.toString();
+        }
+
+        private File saveReportToCache(Context context, String reportText) {
+            try {
+                File cacheFile = new File(context.getCacheDir(), "newcatroid_debug_report.txt");
+                if (cacheFile.exists()) cacheFile.delete();
+
+                java.io.FileOutputStream fos = new java.io.FileOutputStream(cacheFile);
+                fos.write(reportText.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                fos.close();
+                return cacheFile;
+            } catch (Exception e) {
+                android.util.Log.e("LogcatRecorder", "Failed to write debug report to cache", e);
+                return null;
+            }
+        }
+
+        private void shareReportFile(Context context, File file) {
+            try {
+                Uri uri = androidx.core.content.FileProvider.getUriForFile(
+                        context,
+                        context.getPackageName() + ".fileProvider",
+                        file
+                );
+
+                android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_SEND);
+                intent.setType("text/plain");
+                intent.putExtra(android.content.Intent.EXTRA_STREAM, uri);
+                intent.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                intent.putExtra(android.content.Intent.EXTRA_SUBJECT, "NewCatroid Debug Report");
+
+                android.content.Intent chooser = android.content.Intent.createChooser(intent, context.getString(R.string.share_report_title));
+                chooser.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(chooser);
+            } catch (Exception e) {
+                Toast.makeText(context, "Error sharing file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }

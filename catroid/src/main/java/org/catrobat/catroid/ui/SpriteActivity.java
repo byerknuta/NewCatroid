@@ -178,6 +178,8 @@ public class SpriteActivity extends BaseActivity {
 
     private WorkspaceLayout workspaceLayout;
 
+    private boolean areTabsAdded = false;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -238,6 +240,7 @@ public class SpriteActivity extends BaseActivity {
             }
             loadFragment(this, fragmentPosition);
             addTabLayout(this, fragmentPosition);
+            areTabsAdded = true;
         }
 		MyActivityManager.Companion.setSprite_activity(this);
 	}
@@ -1135,7 +1138,7 @@ public class SpriteActivity extends BaseActivity {
 	public ActionMode startActionMode(ActionMode.Callback callback) {
 		Fragment fragment = getCurrentFragment();
 		if (isFragmentWithTablayout(fragment)) {
-			removeTabLayout(this);
+            removeTabs();
 		}
 		return super.startActionMode(callback);
 	}
@@ -1144,7 +1147,7 @@ public class SpriteActivity extends BaseActivity {
 	public void onActionModeFinished(ActionMode mode) {
 		Fragment fragment = getCurrentFragment();
 		if (isFragmentWithTablayout(fragment) && (!(fragment instanceof ScriptFragment) || !((ScriptFragment) fragment).isFinderOpen())) {
-			addTabLayout(this, getTabPositionInSpriteActivity(fragment));
+            addTabs();
 		}
 		super.onActionModeFinished(mode);
 	}
@@ -1158,11 +1161,17 @@ public class SpriteActivity extends BaseActivity {
 		this.currentSprite = sprite;
 	}
 
-	public void removeTabs() {
-		removeTabLayout(this);
-	}
+    public void removeTabs() {
+        if (areTabsAdded) {
+            removeTabLayout(this);
+            areTabsAdded = false;
+        }
+    }
 
-	public void addTabs() {
-		addTabLayout(this, getTabPositionInSpriteActivity(getCurrentFragment()));
-	}
+    public void addTabs() {
+        if (!areTabsAdded) {
+            addTabLayout(this, getTabPositionInSpriteActivity(getCurrentFragment()));
+            areTabsAdded = true;
+        }
+    }
 }

@@ -201,7 +201,7 @@ public class Project implements Serializable {
     public void removeScene(Scene scene) {
         if (scene != null) {
             for (int i = 0; i < sceneList.size(); i++) {
-                if (sceneList.get(i) == scene) {
+                if (sceneList.get(i).equals(scene)) {
                     sceneList.remove(i);
                     break;
                 }

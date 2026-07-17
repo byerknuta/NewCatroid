@@ -205,6 +205,9 @@ public class ThreeDManager implements Disposable {
     public ModelBatch getWireframeBatch() { return wireframeBatch; }
 
     public void resize(int width, int height) {
+        this.lastScreenWidth = width;
+        this.lastScreenHeight = height;
+
         camera.viewportWidth = width;
         camera.viewportHeight = height;
         camera.update();
@@ -3518,29 +3521,32 @@ public class ThreeDManager implements Disposable {
     }
 
     private void drawFinalTextureToScreen(Texture texture) {
-        Gdx.gl.glViewport(0, 0, lastScreenWidth, lastScreenHeight);
+        int width = lastScreenWidth > 0 ? lastScreenWidth : Gdx.graphics.getWidth();
+        int height = lastScreenHeight > 0 ? lastScreenHeight : Gdx.graphics.getHeight();
+
+        Gdx.gl.glViewport(0, 0, width, height);
 
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        blitCamera.setToOrtho(false, lastScreenWidth, lastScreenHeight);
+        blitCamera.setToOrtho(false, width, height);
         blitCamera.update();
         blitBatch.setProjectionMatrix(blitCamera.combined);
 
-        float screenAspect = (float) lastScreenWidth / lastScreenHeight;
+        float screenAspect = (float) width / height;
         float targetAspect = (float) renderWidth / renderHeight;
 
-        float drawWidth = lastScreenWidth;
-        float drawHeight = lastScreenHeight;
+        float drawWidth = width;
+        float drawHeight = height;
 
         if (screenAspect > targetAspect) {
-            drawWidth = lastScreenHeight * targetAspect;
+            drawWidth = height * targetAspect;
         } else {
-            drawHeight = lastScreenWidth / targetAspect;
+            drawHeight = width / targetAspect;
         }
 
-        float drawX = (lastScreenWidth - drawWidth) / 2f;
-        float drawY = (lastScreenHeight - drawHeight) / 2f;
+        float drawX = (width - drawWidth) / 2f;
+        float drawY = (height - drawHeight) / 2f;
 
         blitBatch.begin();
         blitBatch.draw(texture, drawX, drawY, drawWidth, drawHeight, 0, 0, texture.getWidth(), texture.getHeight(), false, true);
@@ -3815,8 +3821,22 @@ public class ThreeDManager implements Disposable {
                     }
                 }
             } else {
+                boolean useFbo = (targetFps > 0) || (renderScale < 1.0f) || (aspectMode != 0);
+
                 if (shouldRender) {
+                    if (useFbo) {
+                        sceneFbo2.begin();
+                    }
+
                     camera.update();
+
+                    if (realisticMode && sceneManager != null) {
+                        if (useFbo) {
+                            sceneManager.updateViewport(renderWidth, renderHeight);
+                        } else {
+                            sceneManager.updateViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+                        }
+                    }
 
                     if (realisticMode) {
                         if (skyColor.a != 0) {
@@ -3825,7 +3845,7 @@ public class ThreeDManager implements Disposable {
                         }
                         sceneManager.render();
                     } else {
-                        Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+                        Gdx.gl.glViewport(0, 0, useFbo ? renderWidth : Gdx.graphics.getWidth(), useFbo ? renderHeight : Gdx.graphics.getHeight());
 
                         if (skyColor.a != 0) {
                             Gdx.gl.glClearColor(skyColor.r, skyColor.g, skyColor.b, skyColor.a);
@@ -3882,10 +3902,13 @@ public class ThreeDManager implements Disposable {
                         debugDrawer.end();
                     }
 
-                    lastRenderedTexture = sceneFbo2.getColorBufferTexture();
+                    if (useFbo) {
+                        sceneFbo2.end();
+                        lastRenderedTexture = sceneFbo2.getColorBufferTexture();
+                    }
                 }
 
-                if (renderScale < 1.0f || aspectMode != 0) {
+                if (useFbo) {
                     if (lastRenderedTexture != null) {
                         drawFinalTextureToScreen(lastRenderedTexture);
                     }

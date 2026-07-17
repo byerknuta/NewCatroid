@@ -1,27 +1,7 @@
-/*
- * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2022 The Catrobat Team
- * (<http://developer.catrobat.org/credits>)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * An additional term exception under section 7 of the GNU Affero
- * General Public License, version 3, is available at
- * http://developer.catrobat.org/license_additional_term
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 package org.catrobat.catroid.content.actions
 
+import android.graphics.Bitmap
+import android.os.Build
 import android.util.Log
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
@@ -32,6 +12,8 @@ import org.catrobat.catroid.content.MyActivityManager
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.io.StorageOperations
 import org.catrobat.catroid.stage.ScreenshotSaver
+import org.catrobat.catroid.stage.ScreenshotSaverCallback
+import org.catrobat.catroid.stage.StageActivity
 import java.io.File
 import java.io.InputStream
 
@@ -40,62 +22,93 @@ open class ScreenShotAction : TemporalAction() {
     var scope: Scope? = null
     var name: String? = null
 
+    private var isDone = false
+    private var started = false
+
     companion object {
         private const val TAG = "ScreenShotAction"
         private const val DEFAULT_FILENAME = "screenshot"
         private const val FILE_EXTENSION = ".png"
     }
 
+    override fun act(delta: Float): Boolean {
+        if (isDone) return true
+
+        if (!started) {
+            started = true
+            captureAndSetLookAsync()
+        }
+
+        return false
+    }
+
     override fun update(percent: Float) {
-        Gdx.app.postRunnable {
-            captureAndSetLook()
-        }
     }
 
-    private fun captureAndSetLook() {
-        val activity = MyActivityManager.stage_activity ?: run {
+    override fun restart() {
+        super.restart()
+        isDone = false
+        started = false
+    }
+
+    override fun reset() {
+        super.reset()
+        isDone = false
+        started = false
+    }
+
+    private fun captureAndSetLookAsync() {
+        val activity = StageActivity.activeStageActivity.get() ?: run {
             Log.e(TAG, "StageActivity is null, cannot take screenshot.")
+            isDone = true
             return
         }
 
-        val view = activity.window.decorView
-        val width = view.measuredWidth
-        val height = view.measuredHeight
+        val filesDir = getScreenshotPath()
 
-        if (width <= 0 || height <= 0) {
-            Log.e(TAG, "Invalid view dimensions, skipping screenshot.")
-            return
+        activity.runOnUiThread {
+            activity.captureScreenWithNativeViews(filesDir, "$DEFAULT_FILENAME$FILE_EXTENSION", object : ScreenshotSaverCallback {
+                override fun screenshotSaved(success: Boolean) {
+                    if (success) {
+                        val savedFile = File(filesDir, "$DEFAULT_FILENAME$FILE_EXTENSION")
+                        Thread {
+                            try {
+                                val finalFileName = name ?: DEFAULT_FILENAME
+                                val tempFile = File.createTempFile(finalFileName, FILE_EXTENSION)
+                                tempFile.deleteOnExit()
+
+                                savedFile.inputStream().use { input ->
+                                    tempFile.outputStream().use { output ->
+                                        input.copyTo(output)
+                                    }
+                                }
+                                savedFile.delete()
+
+                                val lookData = LookData(finalFileName, tempFile).apply {
+                                    collisionInformation.calculate()
+                                }
+
+                                Gdx.app.postRunnable {
+                                    setLook(lookData)
+                                    isDone = true
+                                }
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Failed to build LookData from file", e)
+                                Gdx.app.postRunnable { isDone = true }
+                            }
+                        }.start()
+                    } else {
+                        Log.e(TAG, "Failed to capture hybrid screenshot")
+                        Gdx.app.postRunnable { isDone = true }
+                    }
+                }
+            })
         }
-
-        val pixels = ScreenUtils.getFrameBufferPixels(0, 0, width, height, true)
-        Log.d(TAG, "Screenshot data size: ${pixels.size}")
-
-        val screenshotInputStream = getScreenshotStream(pixels, width, height)
-
-        val lookData = createLookDataFromFile(screenshotInputStream)
-
-        setLook(lookData)
-    }
-
-    private fun getScreenshotStream(pixels: ByteArray, width: Int, height: Int): InputStream {
-        val screenshotPath = getScreenshotPath()
-        val screenshotSaver = ScreenshotSaver(Gdx.files, screenshotPath, width, height)
-        return screenshotSaver.getScreenshot(pixels)
     }
 
     private fun getScreenshotPath(): String {
-        val scene = ProjectManager. getInstance().currentlyPlayingScene
+        val scene = ProjectManager.getInstance().currentlyPlayingScene
         return scene.directory.absolutePath + "/"
-    }
-
-    private fun createLookDataFromFile(fileStream: InputStream): LookData {
-        val finalFileName = name ?: DEFAULT_FILENAME
-        val tempFile = File.createTempFile(finalFileName, FILE_EXTENSION)
-        StorageOperations.copyStreamToFile(fileStream, tempFile)
-
-        return LookData(finalFileName, tempFile).apply {
-            collisionInformation.calculate()
-        }
     }
 
     private fun setLook(lookData: LookData) {
@@ -105,7 +118,6 @@ open class ScreenShotAction : TemporalAction() {
             updateLookListIndex()
             sprite.look.lookData = this
             collisionInformation?.collisionPolygonCalculationThread?.join()
-            file?.delete()
             isWebRequest = true
         }
     }

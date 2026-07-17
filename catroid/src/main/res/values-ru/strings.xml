@@ -23,6 +23,14 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="debug_menu_start_record">Запустить запись логов</string>
+    <string name="debug_menu_stop_record">Остановить и экспортировать отчет</string>
+    <string name="share_report_title">Поделиться отчетом отладки</string>
+    <string name="log_recording_started">Запись логов успешно запущена в фоне</string>
+    <string name="search_files_hint">Поиск файлов...</string>
+    <string name="no_files_found">Файлы в проекте не найдены</string>
+    <string name="dialog_project_files_title">Файлы проекта</string>
+    <string name="apk_build_error_invalide_package">Некорректное имя пакета. Оно должно состоять минимум из двух сегментов, разделенных точкой (например, com.example.app). Каждый сегмент должен начинаться с латинской буквы и не совпадать с ключевыми словами Java.</string>
     <string formatted="false" name="brick_play_spritesheet_title">Анимация из атласа</string>
     <string formatted="false" name="brick_play_spritesheet_grid">Сетка (строк х колонок):</string>
     <string formatted="false" name="brick_play_spritesheet_row">Индекс строки (от 0)</string>

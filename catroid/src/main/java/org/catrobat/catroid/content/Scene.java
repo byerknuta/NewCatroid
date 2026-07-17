@@ -82,28 +82,29 @@ public class Scene implements Nameable, Serializable {
 		this.sceneId = UUID.randomUUID().toString();
 	}
 
-	public String getSceneId() {
-		return sceneId;
-	}
+    public String getSceneId() {
+        if (sceneId == null) {
+            sceneId = UUID.randomUUID().toString();
+        }
+        return sceneId;
+    }
 
-	public void setSceneId(String sceneId) {
-		this.sceneId = sceneId;
-	}
+    public void setSceneId(String sceneId) {
+        this.sceneId = sceneId;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		Scene scene = (Scene) o;
-		// Две сцены считаются ОДНОЙ И ТОЙ ЖЕ, только если у них одинаковый ID. Имена могут совпадать.
-		return Objects.equals(sceneId, scene.sceneId);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Scene scene = (Scene) o;
+        return Objects.equals(getSceneId(), scene.getSceneId());
+    }
 
-	@Override
-	public int hashCode() {
-		// Хеш-код всегда должен быть основан на тех же полях, что и equals.
-		return Objects.hash(sceneId);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(getSceneId());
+    }
 
 	public String getName() {
 		return name;

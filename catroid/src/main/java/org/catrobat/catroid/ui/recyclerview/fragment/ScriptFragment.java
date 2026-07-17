@@ -1490,17 +1490,14 @@ public class ScriptFragment extends ListFragment implements
             return;
         }
 
-        androidx.fragment.app.FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        Fragment scriptFragment = fragmentManager.findFragmentByTag(TAG);
-        if (scriptFragment == null) {
-            return;
+        this.currentSprite = ProjectManager.getInstance().getCurrentSprite();
+
+        if (adapter != null && this.currentSprite != null) {
+            adapter.updateItems(this.currentSprite);
+            adapter.notifyDataSetChanged();
         }
 
-        final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.detach(scriptFragment);
-        fragmentTransaction.attach(scriptFragment);
-
-        fragmentTransaction.commitAllowingStateLoss();
+        runCodeAnalysis();
 
         if (listView != null && (undoBrickPosition < listView.getFirstVisiblePosition() || undoBrickPosition > listView.getLastVisiblePosition())) {
             listView.post(() -> {
