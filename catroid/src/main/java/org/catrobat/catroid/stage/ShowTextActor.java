@@ -188,30 +188,61 @@ public class ShowTextActor extends Actor {
 
         if (maxWidth <= 0 || totalHeight <= 0) return;
 
-        Bitmap bitmap = Bitmap.createBitmap((int) Math.ceil(maxWidth), (int) Math.ceil(totalHeight), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
+        final int MAX_TEXTURE_SIZE = 2048;
+        int bitmapWidth = (int) Math.ceil(maxWidth);
+        int bitmapHeight = (int) Math.ceil(totalHeight);
 
-        float y = -fm.ascent;
-        for (String line : lines) {
-            float xOffset = 0;
-            float lineWidth = paint.measureText(line);
-            if (alignment == ShowTextUtils.ALIGNMENT_STYLE_CENTERED) xOffset = (maxWidth - lineWidth) / 2f;
-            else if (alignment == ShowTextUtils.ALIGNMENT_STYLE_RIGHT) xOffset = maxWidth - lineWidth;
-
-            canvas.drawText(line, xOffset, y, paint);
-            y += lineHeight;
+        if (bitmapWidth > MAX_TEXTURE_SIZE) {
+            bitmapWidth = MAX_TEXTURE_SIZE;
+        }
+        if (bitmapHeight > MAX_TEXTURE_SIZE) {
+            bitmapHeight = MAX_TEXTURE_SIZE;
         }
 
-        cachedTexture = new Texture(bitmap.getWidth(), bitmap.getHeight(), Pixmap.Format.RGBA8888);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, cachedTexture.getTextureObjectHandle());
-        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-        bitmap.recycle();
+        try {
+            Bitmap bitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
 
-        drawX = 0;
-        if (alignment == ShowTextUtils.ALIGNMENT_STYLE_CENTERED) drawX = -maxWidth / 2f;
-        else if (alignment == ShowTextUtils.ALIGNMENT_STYLE_RIGHT) drawX = -maxWidth;
-        drawY = -totalHeight / 2f;
+            float y = -fm.ascent;
+            for (String line : lines) {
+                float xOffset = 0;
+                float lineWidth = paint.measureText(line);
+
+                if (alignment == ShowTextUtils.ALIGNMENT_STYLE_CENTERED) {
+                    xOffset = (bitmapWidth - lineWidth) / 2f;
+                } else if (alignment == ShowTextUtils.ALIGNMENT_STYLE_RIGHT) {
+                    xOffset = bitmapWidth - lineWidth;
+                }
+
+                canvas.drawText(line, xOffset, y, paint);
+                y += lineHeight;
+            }
+
+            cachedTexture = new Texture(bitmap.getWidth(), bitmap.getHeight(), Pixmap.Format.RGBA8888);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, cachedTexture.getTextureObjectHandle());
+            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+            bitmap.recycle();
+
+            drawX = 0;
+            if (alignment == ShowTextUtils.ALIGNMENT_STYLE_CENTERED) {
+                drawX = -bitmapWidth / 2f;
+            } else if (alignment == ShowTextUtils.ALIGNMENT_STYLE_RIGHT) {
+                drawX = -bitmapWidth;
+            }
+            drawY = -bitmapHeight / 2f;
+
+        } catch (Throwable t) {
+            android.util.Log.e("ShowTextActor", "Failed to generate text texture safely: size="
+                    + bitmapWidth + "x" + bitmapHeight, t);
+
+            if (cachedTexture != null) {
+                try {
+                    cachedTexture.dispose();
+                } catch (Exception ignored) {}
+                cachedTexture = null;
+            }
+        }
     }
 
     @Override

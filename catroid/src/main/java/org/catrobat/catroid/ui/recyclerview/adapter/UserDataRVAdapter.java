@@ -51,19 +51,25 @@ public class UserDataRVAdapter<T extends UserData> extends RVAdapter<T> {
 		return new VariableViewHolder(view);
 	}
 
-	@Override
-	public void onBindViewHolder(CheckableViewHolder holder, int position) {
-		super.onBindViewHolder(holder, position);
+    @Override
+    public void onBindViewHolder(CheckableViewHolder holder, int position) {
+        super.onBindViewHolder(holder, position);
 
-		UserData item = items.get(position);
-		VariableViewHolder variableViewHolder = (VariableViewHolder) holder;
-		variableViewHolder.title.setText(item.getName());
-		variableViewHolder.value.setText(convertObjectToString(item.getValue()));
-		ImageButton settings = holder.itemView.findViewById(R.id.settings_button);
-		if (settings != null && showSettings) {
-			settings.setVisibility(View.VISIBLE);
-		} else if (settings != null && !showSettings) {
-			settings.setVisibility(View.GONE);
-		}
-	}
+        UserData item = items.get(position);
+        VariableViewHolder variableViewHolder = (VariableViewHolder) holder;
+        variableViewHolder.title.setText(item.getName());
+
+        String rawValue = convertObjectToString(item.getValue());
+        if (rawValue != null && rawValue.length() > 150) {
+            rawValue = rawValue.substring(0, 150) + "...";
+        }
+        variableViewHolder.value.setText(rawValue);
+
+        ImageButton settings = holder.itemView.findViewById(R.id.settings_button);
+        if (settings != null && showSettings) {
+            settings.setVisibility(View.VISIBLE);
+        } else if (settings != null && !showSettings) {
+            settings.setVisibility(View.GONE);
+        }
+    }
 }

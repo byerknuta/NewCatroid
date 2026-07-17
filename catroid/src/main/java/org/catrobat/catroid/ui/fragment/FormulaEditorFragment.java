@@ -481,8 +481,11 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
                             clipboardLongClickAction = new Runnable() {
                                 @Override
                                 public void run() {
-                                    isPasteLongClick = true;
-                                    FormulaEditorClipboard.INSTANCE.showClipboardHistoryDialog(getContext(), formulaEditorEditText);
+                                    Context context = getContext();
+                                    if (context != null && isAdded()) {
+                                        isPasteLongClick = true;
+                                        FormulaEditorClipboard.INSTANCE.showClipboardHistoryDialog(context, formulaEditorEditText);
+                                    }
                                 }
                             };
                             clipboardHandler.postDelayed(clipboardLongClickAction, 500);

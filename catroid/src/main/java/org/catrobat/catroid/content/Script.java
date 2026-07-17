@@ -132,17 +132,17 @@ public abstract class Script implements Serializable, Cloneable {
 		this.scriptBrick = scriptBrick;
 	}
 
-	public void run(Sprite sprite, ScriptSequenceAction sequence) {
-		if (commentedOut) {
-			return;
-		}
+    public void run(Sprite sprite, ScriptSequenceAction sequence) {
+        if (commentedOut) {
+            return;
+        }
 
-		for (Brick brick : brickList) {
-			if (!brick.isCommentedOut()) {
-				brick.addActionToSequence(sprite, sequence);
-			}
-		}
-	}
+        for (Brick brick : brickList) {
+            if (brick != null && !brick.isCommentedOut()) {
+                brick.addActionToSequence(sprite, sequence);
+            }
+        }
+    }
 
 	public boolean addBrick(Brick brick) {
 		return brickList.add(brick);
@@ -152,28 +152,33 @@ public abstract class Script implements Serializable, Cloneable {
 		brickList.add(position, brick);
 	}
 
-	public void addToFlatList(List<Brick> bricks) {
-		bricks.add(getScriptBrick());
-		for (Brick brick : brickList) {
-			brick.addToFlatList(bricks);
-		}
-	}
+    public void addToFlatList(List<Brick> bricks) {
+        Brick scriptBrick = getScriptBrick();
+        if (scriptBrick != null) {
+            bricks.add(scriptBrick);
+        }
+        for (Brick brick : brickList) {
+            if (brick != null) {
+                brick.addToFlatList(bricks);
+            }
+        }
+    }
 
 	public Brick getBrick(int index) {
 		return brickList.get(index);
 	}
 
-	public boolean removeBrick(Brick brick) {
-		if (brickList.remove(brick)) {
-			return true;
-		}
-		for (Brick brickInList : brickList) {
-			if (brickInList.removeChild(brick)) {
-				return true;
-			}
-		}
-		return false;
-	}
+    public boolean removeBrick(Brick brick) {
+        if (brickList.remove(brick)) {
+            return true;
+        }
+        for (Brick brickInList : brickList) {
+            if (brickInList != null && brickInList.removeChild(brick)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 	public void removeAllOccurrencesOfUserDefinedBrick(List<Brick> brickList, UserDefinedBrick userDefinedBrick) {
 		for (int brickIndex = 0; brickIndex < brickList.size(); brickIndex++) {
@@ -191,13 +196,13 @@ public abstract class Script implements Serializable, Cloneable {
 		}
 	}
 
-	public void addRequiredResources(final Brick.ResourcesSet resourcesSet) {
-		for (Brick brick : brickList) {
-			if (!brick.isCommentedOut()) {
-				brick.addRequiredResources(resourcesSet);
-			}
-		}
-	}
+    public void addRequiredResources(final Brick.ResourcesSet resourcesSet) {
+        for (Brick brick : brickList) {
+            if (brick != null && !brick.isCommentedOut()) {
+                brick.addRequiredResources(resourcesSet);
+            }
+        }
+    }
 
 	public void updateUserDataReferences(String oldName, String newName, UserData<?> item) {
 		List<Brick> flatList = new ArrayList<>();
@@ -229,29 +234,35 @@ public abstract class Script implements Serializable, Cloneable {
 		}
 	}
 
-	public List<Brick> findBricksInScript(List<UUID> brickIds) {
-		List<Brick> bricks = new ArrayList<>();
+    public List<Brick> findBricksInScript(List<UUID> brickIds) {
+        if (brickIds == null) {
+            return null;
+        }
+        List<Brick> bricks = new ArrayList<>();
 
-		for (Brick brick : brickList) {
-			if (brickIds.contains(brick.getBrickID())) {
-				bricks.add(brick);
-			} else if (brick instanceof CompositeBrick) {
-				List<Brick> tmpBricks = brick.findBricksInNestedBricks(brickIds);
-				if (tmpBricks != null) {
-					return tmpBricks;
-				}
-			}
+        for (Brick brick : brickList) {
+            if (brick == null) {
+                continue;
+            }
+            if (brickIds.contains(brick.getBrickID())) {
+                bricks.add(brick);
+            } else if (brick instanceof CompositeBrick) {
+                List<Brick> tmpBricks = brick.findBricksInNestedBricks(brickIds);
+                if (tmpBricks != null) {
+                    return tmpBricks;
+                }
+            }
 
-			if (bricks.size() == brickIds.size()) {
-				return bricks;
-			}
-		}
+            if (bricks.size() == brickIds.size()) {
+                return bricks;
+            }
+        }
 
-		if (bricks.size() > 0) {
-			return bricks;
-		}
-		return null;
-	}
+        if (bricks.size() > 0) {
+            return bricks;
+        }
+        return null;
+    }
 
 	public List<Brick> removeBricksFromScript(List<UUID> brickIds) {
 		List<Brick> bricks = findBricksInScript(brickIds);
@@ -288,11 +299,11 @@ public abstract class Script implements Serializable, Cloneable {
 			}
 		}
 
-		for (Brick brick : brickList) {
-			if (brick.addBrickInNestedBrick(parentId, subStackIndex, bricksToAdd)) {
-				return true;
-			}
-		}
+        for (Brick brick : brickList) {
+            if (brick != null && brick.addBrickInNestedBrick(parentId, subStackIndex, bricksToAdd)) {
+                return true;
+            }
+        }
 		return false;
 	}
 }

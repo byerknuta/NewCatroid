@@ -48,18 +48,36 @@ public class ListRVAdapter extends RVAdapter<UserList> {
 		return new ListViewHolder(view);
 	}
 
-	@Override
-	public void onBindViewHolder(CheckableViewHolder holder, int position) {
-		super.onBindViewHolder(holder, position);
+    @Override
+    public void onBindViewHolder(CheckableViewHolder holder, int position) {
+        super.onBindViewHolder(holder, position);
 
-		UserList item = items.get(position);
-		ListViewHolder listViewHolder = (ListViewHolder) holder;
-		listViewHolder.title.setText(item.getName());
+        UserList item = items.get(position);
+        ListViewHolder listViewHolder = (ListViewHolder) holder;
+        listViewHolder.title.setText(item.getName());
 
-		List<String> userList = new ArrayList<>();
-		for (Object userListItem : item.getValue()) {
-			userList.add(ShowTextUtils.convertObjectToString(userListItem));
-		}
-		listViewHolder.spinner.setAdapter(new UserListValuesAdapter(holder.itemView.getContext(), userList));
-	}
+        List<String> userList = new ArrayList<>();
+        List<Object> originalList = item.getValue();
+
+        if (originalList != null) {
+            int size = originalList.size();
+            int limit = Math.min(size, 100);
+            for (int i = 0; i < limit; i++) {
+                try {
+                    String itemStr = ShowTextUtils.convertObjectToString(originalList.get(i));
+                    if (itemStr != null && itemStr.length() > 100) {
+                        itemStr = itemStr.substring(0, 100) + "...";
+                    }
+                    userList.add(itemStr);
+                } catch (Exception ignored) {
+                    break;
+                }
+            }
+            if (size > 100) {
+                userList.add("... (" + (size - 100) + " more items)");
+            }
+        }
+
+        listViewHolder.spinner.setAdapter(new UserListValuesAdapter(holder.itemView.getContext(), userList));
+    }
 }

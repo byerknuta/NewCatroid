@@ -5,7 +5,6 @@
         android:key="plugins_installed_category"
         android:title="Установленные плагины">
 
-        <!-- Сюда мы будем динамически добавлять плагины из кода -->
 
     </PreferenceCategory>
 

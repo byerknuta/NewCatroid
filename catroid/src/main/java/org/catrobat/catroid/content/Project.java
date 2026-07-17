@@ -405,15 +405,17 @@ public class Project implements Serializable {
 		}
 	}
 
-	public List<Sprite> getSpriteListWithClones() {
-		if (StageActivity.activeStageActivity != null) {
-			StageActivity currentStage = StageActivity.activeStageActivity.get();
+    public List<Sprite> getSpriteListWithClones() {
+        if (StageActivity.activeStageActivity != null) {
+            StageActivity currentStage = StageActivity.activeStageActivity.get();
 
-			if (currentStage != null && currentStage.stageListener != null) {
-
-				return currentStage.stageListener.getSpritesFromStage();
-			}
-		}
+            if (currentStage != null && currentStage.stageListener != null) {
+                List<Sprite> stageSprites = currentStage.stageListener.getSpritesFromStage();
+                if (stageSprites != null) {
+                    return stageSprites;
+                }
+            }
+        }
 
         Scene defaultScene = getDefaultScene();
         if (defaultScene != null && defaultScene.getSpriteList() != null) {
@@ -421,7 +423,7 @@ public class Project implements Serializable {
         }
 
         return new ArrayList<>();
-	}
+    }
 
 	public void fireToAllSprites(EventWrapper event) {
 		for (Sprite sprite : getSpriteListWithClones()) {
@@ -704,18 +706,26 @@ public class Project implements Serializable {
 		return spriteNames;
 	}
 
-	public void checkIfSpriteNameEqualBackground(Context context) {
-		List<Sprite> spriteList =
-				new ArrayList<>(this.getSpriteListWithClones());
-		List<String> spriteNames = getSpriteNames(spriteList);
-		for (int sprite = 1; sprite < spriteList.size(); ++sprite) {
-			if (spriteList.get(sprite).getName().matches("[\\s]*" + context.getString(R.string.background)
-					+ "[\\s]*")) {
-				UniqueNameProvider name = new UniqueNameProvider();
-				String newSpriteName = name.getUniqueName(context.getString(R.string.background), spriteNames);
-				spriteList.get(sprite).setName(newSpriteName);
-				return;
-			}
-		}
-	}
+    public void checkIfSpriteNameEqualBackground(Context context) {
+        if (context == null) {
+            return;
+        }
+        List<Sprite> clones = this.getSpriteListWithClones();
+        if (clones == null) {
+            return;
+        }
+        List<Sprite> spriteList = new ArrayList<>(clones);
+        List<String> spriteNames = getSpriteNames(spriteList);
+        for (int sprite = 1; sprite < spriteList.size(); ++sprite) {
+            if (spriteList.get(sprite) != null && spriteList.get(sprite).getName() != null) {
+                if (spriteList.get(sprite).getName().matches("[\\s]*" + context.getString(R.string.background)
+                        + "[\\s]*")) {
+                    UniqueNameProvider name = new UniqueNameProvider();
+                    String newSpriteName = name.getUniqueName(context.getString(R.string.background), spriteNames);
+                    spriteList.get(sprite).setName(newSpriteName);
+                    return;
+                }
+            }
+        }
+    }
 }

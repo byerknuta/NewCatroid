@@ -252,8 +252,21 @@ public class DebugMenuView extends FrameLayout {
 
     @SuppressLint("DefaultLocale")
     private void refreshListItems(UserList listData, ListState state, ViewGroup container, TextView headerView) {
+        List<Object> listCopy = new ArrayList<>();
+        List<Object> originalList = listData.getValue();
+        if (originalList != null) {
+            int size = originalList.size();
+            for (int j = 0; j < size; j++) {
+                try {
+                    listCopy.add(originalList.get(j));
+                } catch (Exception ignored) {
+                    break;
+                }
+            }
+        }
+
         int headerIndex = container.indexOfChild(headerView);
-        int itemsCount = listData.getValue().size();
+        int itemsCount = listCopy.size();
         int displayLimit = Math.min(itemsCount, MAX_LIST_ITEMS_DISPLAY);
 
         if (state.moreView != null) {
@@ -267,7 +280,7 @@ public class DebugMenuView extends FrameLayout {
         }
 
         for (int i = 0; i < displayLimit; i++) {
-            Object item = listData.getValue().get(i);
+            Object item = listCopy.get(i);
             String rawVal = String.valueOf(item);
             String displayVal = rawVal.length() > MAX_TEXT_DISPLAY_LENGTH ? rawVal.substring(0, MAX_TEXT_DISPLAY_LENGTH) + "…" : rawVal;
             String newText = String.format("      [%d] %s", i + 1, displayVal);

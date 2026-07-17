@@ -136,6 +136,17 @@ class ProjectActivity : BaseCastActivity() {
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (projectManager.currentProject == null) {
+            Log.e("ProjectActivity", "Project is null during onCreate. Redirecting to ProjectListActivity.")
+            val intent = Intent(this, ProjectListActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+            finish()
+            return
+        }
+
         binding = ActivityRecyclerBinding.inflate(layoutInflater)
         if (isFinishing) {
             return

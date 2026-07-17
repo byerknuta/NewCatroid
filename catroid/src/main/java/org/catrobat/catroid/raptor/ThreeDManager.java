@@ -2013,6 +2013,8 @@ public class ThreeDManager implements Disposable {
     private com.crashinvaders.vfx.effects.LevelsEffect cachedLevelsEffect;
     public PostProcessingComponent currentConfig = new PostProcessingComponent();
 
+    private boolean isVfxCapturing = false;
+
     public void configureVfx(com.crashinvaders.vfx.VfxManager vfx, PostProcessingComponent config) {
         configureVfx(vfx, config, this.camera);
     }
@@ -3740,6 +3742,7 @@ public class ThreeDManager implements Disposable {
 
                     vfxManager.cleanUpBuffers();
                     vfxManager.beginInputCapture();
+                    isVfxCapturing = true;
 
                     blitCamera.update();
                     blitBatch.setProjectionMatrix(blitCamera.combined);
@@ -3749,6 +3752,7 @@ public class ThreeDManager implements Disposable {
                     blitBatch.end();
 
                     vfxManager.endInputCapture();
+                    isVfxCapturing = false;
                     vfxManager.applyEffects();
 
                     applyUniformsToScreenShader();
@@ -3890,6 +3894,13 @@ public class ThreeDManager implements Disposable {
         } catch (Exception e) {
             Log.e("ThreeDManager", "FATAL 3D RENDER ERROR", e);
             e.printStackTrace();
+
+            if (isVfxCapturing && vfxManager != null) {
+                try {
+                    vfxManager.endInputCapture();
+                } catch (Exception ignored) {}
+                isVfxCapturing = false;
+            }
 
             try { depthFbo.end(); } catch (Exception ignored) {}
             try { depthBatch.end(); } catch (Exception ignored) {}
@@ -6086,6 +6097,13 @@ public class ThreeDManager implements Disposable {
             if (pipeline != null) pipeline.dispose();
         }
         bufferPipelines.clear();
+
+        if (isVfxCapturing && vfxManager != null) {
+            try {
+                vfxManager.endInputCapture();
+            } catch (Exception ignored) {}
+            isVfxCapturing = false;
+        }
 
         if (ssaoEffect != null) { ssaoEffect.dispose(); ssaoEffect = null; }
         if (rayTracingEffect != null) { rayTracingEffect.dispose(); rayTracingEffect = null; }

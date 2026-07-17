@@ -117,6 +117,7 @@ public abstract class RecyclerViewFragment<T extends Nameable> extends Fragment 
 
 	@Override
 	public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+        actionMode = mode;
 		mode.getMenuInflater().inflate(R.menu.context_menu, menu);
 
 		switch (actionModeType) {
@@ -170,12 +171,14 @@ public abstract class RecyclerViewFragment<T extends Nameable> extends Fragment 
 
 	@Override
 	public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+        actionMode = mode;
 		updateSelectionToggle(menu);
 		return true;
 	}
 
 	@Override
 	public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+        actionMode = mode;
 		switch (item.getItemId()) {
 			case R.id.confirm:
 				handleContextualAction();
@@ -201,10 +204,12 @@ public abstract class RecyclerViewFragment<T extends Nameable> extends Fragment 
 	}
 
 	private void handleContextualAction() {
-		if (adapter.getSelectedItems().isEmpty()) {
-			actionMode.finish();
-			return;
-		}
+        if (adapter.getSelectedItems().isEmpty()) {
+            if (actionMode != null) {
+                actionMode.finish();
+            }
+            return;
+        }
 
 		switch (actionModeType) {
 			case BACKPACK:
@@ -395,29 +400,39 @@ public abstract class RecyclerViewFragment<T extends Nameable> extends Fragment 
 		}
 	}
 
-	@Override
-	public void onSelectionChanged(int selectedItemCnt) {
-		updateSelectionToggle(actionMode.getMenu());
-		switch (actionModeType) {
-			case BACKPACK:
-				actionMode.setTitle(getString(R.string.am_backpack) + " " + selectedItemCnt);
-				break;
-			case COPY:
-				actionMode.setTitle(getString(R.string.am_copy) + " " + selectedItemCnt);
-				break;
-			case DELETE:
-				actionMode.setTitle(getString(R.string.am_delete) + " " + selectedItemCnt);
-				break;
-			case MERGE:
-				actionMode.setTitle(getString(R.string.am_merge) + " " + selectedItemCnt);
-				break;
-			case RENAME:
-			case IMPORT_LOCAL:
-				return;
-			case NONE:
-				throw new IllegalStateException("ActionModeType not set Correctly");
-		}
-	}
+    @Override
+    public void onSelectionChanged(int selectedItemCnt) {
+        if (actionMode != null && actionMode.getMenu() != null) {
+            updateSelectionToggle(actionMode.getMenu());
+        }
+        switch (actionModeType) {
+            case BACKPACK:
+                if (actionMode != null) {
+                    actionMode.setTitle(getString(R.string.am_backpack) + " " + selectedItemCnt);
+                }
+                break;
+            case COPY:
+                if (actionMode != null) {
+                    actionMode.setTitle(getString(R.string.am_copy) + " " + selectedItemCnt);
+                }
+                break;
+            case DELETE:
+                if (actionMode != null) {
+                    actionMode.setTitle(getString(R.string.am_delete) + " " + selectedItemCnt);
+                }
+                break;
+            case MERGE:
+                if (actionMode != null) {
+                    actionMode.setTitle(getString(R.string.am_merge) + " " + selectedItemCnt);
+                }
+                break;
+            case RENAME:
+            case IMPORT_LOCAL:
+                return;
+            case NONE:
+                throw new IllegalStateException("ActionModeType not set Correctly");
+        }
+    }
 
 	protected void updateSelectionToggle(Menu menu) {
 		if (adapter.selectionMode == RVAdapter.MULTIPLE) {
@@ -433,13 +448,15 @@ public abstract class RecyclerViewFragment<T extends Nameable> extends Fragment 
 		}
 	}
 
-	protected void finishActionMode() {
-		adapter.clearSelection();
-		setShowProgressBar(false);
-		if (actionModeType != NONE && actionModeType != IMPORT_LOCAL) {
-			actionMode.finish();
-		}
-	}
+    protected void finishActionMode() {
+        adapter.clearSelection();
+        setShowProgressBar(false);
+        if (actionModeType != NONE && actionModeType != IMPORT_LOCAL) {
+            if (actionMode != null) {
+                actionMode.finish();
+            }
+        }
+    }
 
 	public void setShowProgressBar(boolean show) {
 		parentView.findViewById(R.id.progress_bar).setVisibility(show ? View.VISIBLE : View.GONE);

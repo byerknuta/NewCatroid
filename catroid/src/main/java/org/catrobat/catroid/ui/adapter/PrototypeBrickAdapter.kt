@@ -50,7 +50,10 @@ class PrototypeBrickAdapter(private var brickList: List<Brick>) : BaseAdapter() 
                 viewCache[cacheKey] = cachedView
             }
         } else {
-            (cachedView.parent as? ViewGroup)?.removeView(cachedView)
+            val viewParent = cachedView.parent as? ViewGroup
+            if (viewParent != null && viewParent !is android.widget.AdapterView<*>) {
+                viewParent.removeView(cachedView)
+            }
         }
 
         if (cachedView != null) {
@@ -90,7 +93,10 @@ class PrototypeBrickAdapter(private var brickList: List<Brick>) : BaseAdapter() 
                     existingParent.setDepth(depth)
                     return existingParent
                 } else {
-                    (existingParent as? ViewGroup)?.removeView(cachedView)
+                    val parentGroup = existingParent as? ViewGroup
+                    if (parentGroup != null && parentGroup !is android.widget.AdapterView<*>) {
+                        parentGroup.removeView(cachedView)
+                    }
 
                     val indentedLayout = IndentedBrickLayout(context, depth)
                     indentedLayout.layoutParams = ViewGroup.LayoutParams(

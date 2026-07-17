@@ -1023,8 +1023,9 @@
     <!-- Physics States & Colliders -->
     <string-array name="editor_3d_physics_states">
         <item>Static</item>
-        <item>Kinematic</item>
         <item>Dynamic</item>
+        <item>Mesh static</item>
+        <item>Kinematic</item>
     </string-array>
 
     <!-- Light Types -->

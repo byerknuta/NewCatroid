@@ -72,21 +72,22 @@
     <!-- gps -->
     <uses-feature
         android:name="android.hardware.location.gps"
-        android:required="true" />
+        android:required="false" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <!-- nfc -->
     <uses-feature
         android:name="android.hardware.nfc"
-        android:required="true" />
+        android:required="false" />
     <uses-permission android:name="android.permission.NFC" />
 
     <uses-feature
         android:glEsVersion="0x00020000"
-        android:required="true" /><uses-feature
-    android:name="android.hardware.camera"
-    android:required="true" />
+        android:required="true" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <!-- foreground services -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -94,14 +95,6 @@
 
     <uses-permission
         android:name="android.permission.NEARBY_WIFI_DEVICES" />
-
-    <permission
-        android:name="newcatroid.permission.USE_COFFEE_MACHINE"
-        android:protectionLevel="normal"
-        android:label="Разрешение на автоматическое заваривание кофе разработчику" />
-    <permission
-        android:name="newcatroid.permission.EAT_WATERMELON_AT_3_AM"
-        android:protectionLevel="normal" />
 
 
     <queries>
