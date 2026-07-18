@@ -23,6 +23,11 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="brick_replace_3d_model_title">Replace 3D model</string>
+    <string name="brick_replace_3d_model_object">Object ID</string>
+    <string name="brick_replace_3d_model_model">Model file</string>
+
+    <string name="project_options_disable_scientific_notation">Disable scientific notation for numbers</string>
     <string name="debug_menu_start_record">Start Recording Logs</string>
     <string name="debug_menu_stop_record">Stop &amp; Export Report</string>
     <string name="share_report_title">Share Debug Report</string>

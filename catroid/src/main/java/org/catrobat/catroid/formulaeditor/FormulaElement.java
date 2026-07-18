@@ -1353,15 +1353,32 @@ public class FormulaElement implements Serializable {
         String parameterInterpretation = "";
         if (child != null) {
             Object objectInterpretation = child.interpretRecursive(scope);
+            Project project = (scope != null) ? scope.getProject() : null;
+            if (project == null && ProjectManager.getInstance() != null) {
+                project = ProjectManager.getInstance().getCurrentProject();
+            }
+
             switch (child.getElementType()) {
                 case STRING:
                     parameterInterpretation = child.getValue();
                     break;
                 case NUMBER:
-                    parameterInterpretation = formatNumberString((String) objectInterpretation);
+                    if (project != null) {
+                        try {
+                            parameterInterpretation = project.formatValue(Double.valueOf(child.getValue()));
+                        } catch (Exception e) {
+                            parameterInterpretation = formatNumberString((String) objectInterpretation);
+                        }
+                    } else {
+                        parameterInterpretation = formatNumberString((String) objectInterpretation);
+                    }
                     break;
                 default:
-                    parameterInterpretation += objectInterpretation;
+                    if (project != null) {
+                        parameterInterpretation = project.formatValue(objectInterpretation);
+                    } else {
+                        parameterInterpretation += objectInterpretation;
+                    }
                     parameterInterpretation = trimTrailingCharacters(parameterInterpretation);
             }
         }

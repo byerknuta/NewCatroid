@@ -26,6 +26,7 @@ import android.content.Context;
 
 import org.catrobat.catroid.CatroidApplication;
 import org.catrobat.catroid.ProjectManager;
+import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.content.Scope;
 import org.catrobat.catroid.formulaeditor.FormulaElement.ElementType;
 import org.catrobat.catroid.utils.PerformanceTracker;
@@ -225,13 +226,24 @@ public class Formula implements Serializable {
 
         Object interpretation = formulaTree.interpretRecursive(scope);
 
-		if (interpretation instanceof Double && ((Double) interpretation).isNaN()) {
-			throw new InterpretationException("NaN in interpretString()");
-		}
+        if (interpretation instanceof Double && ((Double) interpretation).isNaN()) {
+            throw new InterpretationException("NaN in interpretString()");
+        }
 
-		String value = String.valueOf(interpretation);
-		return trimTrailingCharacters(value);
-	}
+        String value;
+        Project project = (scope != null) ? scope.getProject() : null;
+        if (project == null && ProjectManager.getInstance() != null) {
+            project = ProjectManager.getInstance().getCurrentProject();
+        }
+
+        if (project != null) {
+            value = project.formatValue(interpretation);
+        } else {
+            value = String.valueOf(interpretation);
+        }
+
+        return trimTrailingCharacters(value);
+    }
 
 	public Object interpretObject(Scope scope) {
 		return formulaTree.interpretRecursive(scope);

@@ -472,6 +472,9 @@ public class ThreeDManager implements Disposable {
     private ModelBatch materialBatch;
 
     private final Map<String, AIComponent> activeAIs = new HashMap<>();
+    private final Map<String, Vector3> aiLastKnownPositions = new HashMap<>();
+    private final Map<String, Boolean> aiHasLostTarget = new HashMap<>();
+    private final Map<String, Vector3> aiSmoothedDirection = new HashMap<>();
 
     private float shakeIntensity = 0f;
     private float shakeDuration = 0f;
@@ -516,6 +519,12 @@ public class ThreeDManager implements Disposable {
     private final Map<String, net.mgsx.gltf.scene3d.scene.SceneAsset> loadedGltfAssets = new HashMap<>();
 
     private net.mgsx.gltf.scene3d.scene.Scene gridScene;
+
+    private boolean disposed = false;
+
+    public boolean isDisposed() {
+        return disposed;
+    }
 
     public void init() {
         init(new SceneSettings());
@@ -1309,30 +1318,58 @@ public class ThreeDManager implements Disposable {
                 if (tInst == null) continue;
                 tInst.transform.getTranslation(aiRealTargetPos);
 
-                aiDesiredDir.set(aiRealTargetPos).sub(aiCurrentPos);
-                castRay(aiCurrentPos, aiDesiredDir, aiRayResult);
+                float distToRealTarget = aiCurrentPos.dst(aiRealTargetPos);
+                boolean withinVision = distToRealTarget <= ai.detectionRange;
+                boolean hasLOS = false;
 
-                boolean hasLOS = aiRayResult.hasHit && aiRayResult.hitObjectId.equals(ai.targetId);
+                if (withinVision && ai.detectionRange > 0.1f) {
+                    aiDesiredDir.set(aiRealTargetPos).sub(aiCurrentPos).nor();
+                    castRay(aiCurrentPos, aiDesiredDir, aiRayResult);
+                    hasLOS = aiRayResult.hasHit && aiRayResult.hitObjectId.equals(ai.targetId);
+                }
 
                 if (hasLOS) {
                     aiFinalMoveTarget.set(aiRealTargetPos);
+                    aiLastKnownPositions.put(id, new Vector3(aiRealTargetPos));
+                    aiHasLostTarget.put(id, false);
                 } else {
-                    Array<Vector3> trail = targetTrails.get(ai.targetId);
-                    boolean pointFound = false;
-                    if (trail != null) {
-                        for (int i = trail.size - 1; i >= 0; i--) {
-                            Vector3 breadcrumb = trail.get(i);
-                            aiDesiredDir.set(breadcrumb).sub(aiCurrentPos);
-                            castRay(aiCurrentPos, aiDesiredDir, aiRayResult);
+                    Vector3 lastKnown = aiLastKnownPositions.get(id);
+                    boolean headingToLastKnown = false;
 
-                            if (aiRayResult.hasHit && aiRayResult.hitDistance >= aiCurrentPos.dst(breadcrumb) - 0.5f) {
-                                aiFinalMoveTarget.set(breadcrumb);
-                                pointFound = true;
-                                break;
-                            }
+                    if (lastKnown != null) {
+                        float distToLastKnown = aiCurrentPos.dst(lastKnown);
+                        if (distToLastKnown > ai.stopDistance + 0.5f) {
+                            aiFinalMoveTarget.set(lastKnown);
+                            headingToLastKnown = true;
+                        } else {
+                            aiHasLostTarget.put(id, true);
                         }
                     }
-                    if (!pointFound) aiFinalMoveTarget.set(aiRealTargetPos);
+
+                    if (!headingToLastKnown || aiHasLostTarget.getOrDefault(id, false)) {
+                        Array<Vector3> trail = targetTrails.get(ai.targetId);
+                        boolean pointFound = false;
+                        if (trail != null) {
+                            for (int i = trail.size - 1; i >= 0; i--) {
+                                Vector3 breadcrumb = trail.get(i);
+                                if (aiCurrentPos.dst(breadcrumb) <= ai.detectionRange) {
+                                    aiDesiredDir.set(breadcrumb).sub(aiCurrentPos).nor();
+                                    castRay(aiCurrentPos, aiDesiredDir, aiRayResult);
+
+                                    if (aiRayResult.hasHit && aiRayResult.hitDistance >= aiCurrentPos.dst(breadcrumb) - 0.5f) {
+                                        aiFinalMoveTarget.set(breadcrumb);
+                                        pointFound = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (!pointFound) {
+                            ai.currentVelocity.lerp(Vector3.Zero, delta * 5f);
+                            stopPhysicsVelocity(id);
+                            continue;
+                        }
+                    }
                 }
             } else {
                 aiFinalMoveTarget.set(ai.targetPos);
@@ -1352,35 +1389,54 @@ public class ThreeDManager implements Disposable {
             aiDesiredDir.set(aiFinalMoveTarget).sub(aiCurrentPos).nor();
 
             if (ai.stuckTimer > 0.7f) {
-                aiDesiredDir.rotate(Vector3.Y, 45);
+                aiDesiredDir.rotate(Vector3.Y, 90f);
+            }
+
+            Vector3 currentHeading = new Vector3(ai.currentVelocity).nor();
+            if (currentHeading.isZero()) {
+                currentHeading.set(aiDesiredDir);
             }
 
             aiBestMoveDir.set(aiDesiredDir);
             float bestScore = -1000f;
 
-            for (int i = 0; i < 12; i++) {
+            float safeRange = Math.max(0.5f, ai.detectionRange);
+
+            for (int i = 0; i < 13; i++) {
                 float angle = (i - 6) * 15f;
                 aiRayDir.set(aiDesiredDir).rotate(Vector3.Y, angle);
 
-                float obstacleDist = ai.detectionRange;
-                aiStepPos.set(aiRayDir).scl(ai.detectionRange);
-                castRay(aiCurrentPos, aiStepPos, aiRayResult);
+                float obstacleDist = safeRange;
+                if (ai.avoidObstacles) {
+                    aiStepPos.set(aiRayDir).scl(safeRange);
+                    castRay(aiCurrentPos, aiStepPos, aiRayResult);
 
-                if (aiRayResult.hasHit) {
-                    String hitId = aiRayResult.hitObjectId;
-                    if (!hitId.equals(ai.targetId) && !hitId.equals(id)) {
-                        obstacleDist = aiRayResult.hitDistance;
+                    if (aiRayResult.hasHit) {
+                        String hitId = aiRayResult.hitObjectId;
+                        if (!hitId.equals(ai.targetId) && !hitId.equals(id)) {
+                            obstacleDist = aiRayResult.hitDistance;
+                        }
                     }
                 }
 
-                float score = aiRayDir.dot(aiDesiredDir) + (obstacleDist / ai.detectionRange) * 2.5f;
+                float targetDot = aiRayDir.dot(aiDesiredDir);
+
+                float obstacleWeight = (obstacleDist / safeRange);
+
+                float headingBonus = aiRayDir.dot(currentHeading) * 0.4f;
+
+                float score = targetDot + (obstacleWeight * 3.0f) + headingBonus;
+
                 if (score > bestScore) {
                     bestScore = score;
                     aiBestMoveDir.set(aiRayDir);
                 }
             }
 
-            ai.currentVelocity.lerp(aiBestMoveDir.scl(ai.speed), delta * 4f);
+            Vector3 smoothedDir = aiSmoothedDirection.computeIfAbsent(id, k -> new Vector3(aiBestMoveDir));
+            smoothedDir.lerp(aiBestMoveDir, delta * 6f).nor();
+
+            ai.currentVelocity.lerp(new Vector3(smoothedDir).scl(ai.speed), delta * 4f);
 
             aiStepPos.set(ai.currentVelocity).nor().scl(0.6f);
             aiStepPos.add(aiCurrentPos).add(0, ai.stepHeight, 0);
@@ -2504,7 +2560,11 @@ public class ThreeDManager implements Disposable {
             body.setDamping(0.5f, 0.5f);
         }
 
-        dynamicsWorld.addRigidBody(body);
+        if (dynamicsWorld != null && !disposed) {
+            dynamicsWorld.addRigidBody(body);
+        } else {
+            Log.w("ThreeDManager", "Aborted adding rigid body: dynamicsWorld is null or disposed.");
+        }
         physicsBodies.put(objectId, body);
 
         body.userData = disposables;
@@ -4899,35 +4959,120 @@ public class ThreeDManager implements Disposable {
     }
 
     public boolean removeObject(String objectId) {
-        manager.removeGameObject(manager.findGameObject(objectId));
         ModelInstance instance = sceneObjects.remove(objectId);
 
+        if (manager != null) {
+            GameObject go = manager.findGameObject(objectId);
+            if (go != null) {
+                manager.removeGameObject(go);
+            }
+        }
+
+        removePhysicsBody(objectId);
+        animationControllers.remove(objectId);
+        removeParticleEffect3D(objectId);
+        gltfObjectIds.remove(objectId);
+        inactiveRenderObjects.remove(objectId);
+        inactivePbrScenes.remove(objectId);
+        aiLastKnownPositions.remove(objectId);
+        aiHasLostTarget.remove(objectId);
+        aiSmoothedDirection.remove(objectId);
+
         if (instance != null) {
-            removePhysicsBody(objectId);
-            animationControllers.remove(objectId);
-            removeParticleEffect3D(objectId);
-            gltfObjectIds.remove(objectId);
-
-            com.badlogic.gdx.utils.Array<com.badlogic.gdx.graphics.g3d.RenderableProvider> providers = sceneManager.getRenderableProviders();
-
-            for (com.badlogic.gdx.graphics.g3d.RenderableProvider provider : providers) {
-
-                if (provider instanceof net.mgsx.gltf.scene3d.scene.Scene) {
-                    net.mgsx.gltf.scene3d.scene.Scene scene = (net.mgsx.gltf.scene3d.scene.Scene) provider;
-
-
-                    if (scene.modelInstance == instance) {
-
-                        sceneManager.removeScene(scene);
-
-                        break;
+            if (realisticMode && sceneManager != null) {
+                com.badlogic.gdx.utils.Array<com.badlogic.gdx.graphics.g3d.RenderableProvider> providers = sceneManager.getRenderableProviders();
+                for (com.badlogic.gdx.graphics.g3d.RenderableProvider provider : providers) {
+                    if (provider instanceof net.mgsx.gltf.scene3d.scene.Scene) {
+                        net.mgsx.gltf.scene3d.scene.Scene scene = (net.mgsx.gltf.scene3d.scene.Scene) provider;
+                        if (scene.modelInstance == instance) {
+                            sceneManager.removeScene(scene);
+                            break;
+                        }
                     }
                 }
             }
-
             return true;
         }
         return false;
+    }
+
+    public boolean removeModelOnly(String objectId) {
+        ModelInstance instance = sceneObjects.remove(objectId);
+        animationControllers.remove(objectId);
+        gltfObjectIds.remove(objectId);
+        inactiveRenderObjects.remove(objectId);
+        inactivePbrScenes.remove(objectId);
+
+        if (instance != null) {
+            if (realisticMode && sceneManager != null) {
+                com.badlogic.gdx.utils.Array<com.badlogic.gdx.graphics.g3d.RenderableProvider> providers = sceneManager.getRenderableProviders();
+                for (com.badlogic.gdx.graphics.g3d.RenderableProvider provider : providers) {
+                    if (provider instanceof net.mgsx.gltf.scene3d.scene.Scene) {
+                        net.mgsx.gltf.scene3d.scene.Scene scene = (net.mgsx.gltf.scene3d.scene.Scene) provider;
+                        if (scene.modelInstance == instance) {
+                            sceneManager.removeScene(scene);
+                            break;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public void replaceModel(final String objectId, final String modelFileName) {
+        Gdx.app.postRunnable(new Runnable() {
+            @Override
+            public void run() {
+                if (manager != null) {
+                    GameObject go = manager.findGameObject(objectId);
+                    if (go != null) {
+                        RenderComponent render = go.getComponent(RenderComponent.class);
+                        if (render == null) {
+                            render = new RenderComponent();
+                            go.addComponent(render);
+                        }
+                        render.modelFileName = modelFileName;
+                    }
+                }
+
+                removeModelOnly(objectId);
+
+                String absolutePath;
+                if (modelFileName.startsWith("assets://")) {
+                    absolutePath = modelFileName.substring("assets://".length());
+                } else {
+                    File modelFile = ProjectManager.getInstance().getCurrentProject().getFile(modelFileName);
+                    if (modelFile != null && modelFile.exists()) {
+                        absolutePath = modelFile.getAbsolutePath();
+                    } else {
+                        Gdx.app.error("ThreeDManager", "replaceModel failed: Model file not found: " + modelFileName);
+                        return;
+                    }
+                }
+
+                createObject(objectId, absolutePath);
+
+                if (manager != null) {
+                    GameObject go = manager.findGameObject(objectId);
+                    if (go != null) {
+                        manager.updateWorldTransforms();
+                        setWorldTransform(go.id, go.transform.worldTransform);
+
+                        MaterialComponent material = go.getComponent(MaterialComponent.class);
+                        if (material != null) {
+                            applyPBRMaterial(go.id, material);
+                        }
+
+                        PhysicsComponent physics = go.getComponent(PhysicsComponent.class);
+                        if (physics != null) {
+                            setPhysicsStateFromComponent(go.id, physics, go.transform.worldTransform);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     public boolean removeLight(String id) {
@@ -6065,6 +6210,9 @@ public class ThreeDManager implements Disposable {
             }
         }
 
+        aiLastKnownPositions.clear();
+        aiHasLostTarget.clear();
+        aiSmoothedDirection.clear();
         animationControllers.clear();
         gltfObjectIds.clear();
         rayCastResults.clear();
@@ -6100,6 +6248,9 @@ public class ThreeDManager implements Disposable {
 
     @Override
     public void dispose() {
+        if (disposed) return;
+        disposed = true;
+
         clearScene();
         physicsConstraints.clear();
 
@@ -6160,7 +6311,6 @@ public class ThreeDManager implements Disposable {
         if (brdfLUT != null) brdfLUT.dispose();
         if (panoramicConverter != null) panoramicConverter.dispose();
         if (debugDrawer != null) debugDrawer.dispose();
-        if (dynamicsWorld != null) dynamicsWorld.dispose();
         if (solver != null) solver.dispose();
         if (broadphase != null) broadphase.dispose();
         if (dispatcher != null) dispatcher.dispose();
@@ -6178,6 +6328,11 @@ public class ThreeDManager implements Disposable {
         if (cachedVignetteEffect != null) { cachedVignetteEffect.dispose(); cachedVignetteEffect = null; }
         if (cachedLevelsEffect != null) { cachedLevelsEffect.dispose(); cachedLevelsEffect = null; }
         if (ssgiEffect != null) { ssgiEffect.dispose(); ssgiEffect = null; }
+
+        if (dynamicsWorld != null) {
+            dynamicsWorld.dispose();
+            dynamicsWorld = null;
+        }
 
         for (ParticleSystem3DRuntime rt : activeParticleRuntimes3D.values()) rt.dispose();
         activeParticleRuntimes3D.clear();
@@ -6201,6 +6356,9 @@ public class ThreeDManager implements Disposable {
         loadedTextures.clear();
         active3DSounds.clear();
         loadedAudioAssets.clear();
+        aiLastKnownPositions.clear();
+        aiHasLostTarget.clear();
+        aiSmoothedDirection.clear();
 
         modelBatch = null;
         dynamicsWorld = null;

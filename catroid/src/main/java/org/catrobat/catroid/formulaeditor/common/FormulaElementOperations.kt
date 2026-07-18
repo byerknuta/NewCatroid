@@ -237,8 +237,9 @@ object FormulaElementOperations {
     }
 
     private fun interpretMultipleItemsUserList(userListValues: List<Any>): Any {
+        val project = org.catrobat.catroid.ProjectManager.getInstance()?.currentProject
         val userListStringValues = userListValues.map {
-            trimTrailingCharacters(
+            val formatted = if (project != null) project.formatValue(it) else {
                 when (it) {
                     is Int -> it.toString()
                     is Double -> it.toString()
@@ -246,7 +247,8 @@ object FormulaElementOperations {
                     is Char -> it.toString()
                     else -> it as String
                 }
-            )
+            }
+            trimTrailingCharacters(formatted)
         }
         val stringBuilder = StringBuilder(userListStringValues.size)
         val separator = if (listConsistsOfSingleCharacters(userListStringValues)) "" else " "

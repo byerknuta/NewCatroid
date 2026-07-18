@@ -205,6 +205,19 @@ public final class ProjectManager {
 				}
 			}
 		}
+        if (project.getCatrobatLanguageVersion() < 1.18) {
+            boolean wasMigrated = migrateProjectToV1_18(project);
+            if (wasMigrated) {
+                try {
+                    XstreamSerializer.getInstance().saveProject(project);
+                    Log.i(TAG, "Project '" + project.getName() + "' was migrated to language version 1.18.");
+                } catch (Exception e) {
+                    throw new LoadingProjectException("Failed to save project after migration to 1.18: " + e.getMessage());
+                }
+            }
+        }
+
+        project.setCatrobatLanguageVersion(CURRENT_CATROBAT_LANGUAGE_VERSION);
 
 		project.setCatrobatLanguageVersion(CURRENT_CATROBAT_LANGUAGE_VERSION);
 
@@ -258,6 +271,15 @@ public final class ProjectManager {
 			currentlyPlayingScene = project.getDefaultScene();
 		}
 	}
+
+    private boolean migrateProjectToV1_18(Project project) {
+        if (project == null) {
+            return false;
+        }
+        project.setDisableScientificNotation(false);
+        project.setCatrobatLanguageVersion(1.18);
+        return true;
+    }
 
 	private boolean migrateProjectToV1_17(Project project) {
 		boolean changesMade = false;

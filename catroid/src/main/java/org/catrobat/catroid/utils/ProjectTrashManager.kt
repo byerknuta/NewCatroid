@@ -67,8 +67,10 @@ object ProjectTrashManager {
             var targetDir = File(projectsDir, originalName)
 
             var counter = 1
+            var restoredName = originalName
             while (targetDir.exists()) {
-                targetDir = File(projectsDir, "$originalName ($counter)")
+                restoredName = "$originalName ($counter)"
+                targetDir = File(projectsDir, restoredName)
                 counter++
             }
 
@@ -79,6 +81,21 @@ object ProjectTrashManager {
                 StorageOperations.deleteDir(trashProjectDir)
                 success = true
             }
+
+            if (success) {
+                val codeXmlFile = File(targetDir, "code.xml")
+                if (codeXmlFile.exists()) {
+                    try {
+                        var content = codeXmlFile.readText(Charsets.UTF_8)
+                        content = content.replace(Regex("<projectName>.*?</projectName>"), "<projectName>$restoredName</projectName>")
+                        codeXmlFile.writeText(content, Charsets.UTF_8)
+                        Log.i(TAG, "Successfully updated internal project name in XML to: $restoredName")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to update internal project name in XML", e)
+                    }
+                }
+            }
+
             success
         } catch (e: Exception) {
             Log.e(TAG, "Failed to restore project from trash: ${trashProjectDir.name}", e)

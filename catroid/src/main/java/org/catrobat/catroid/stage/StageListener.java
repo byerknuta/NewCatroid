@@ -350,6 +350,9 @@ public class StageListener implements ApplicationListener {
             threeDManager.dispose();
             threeDManager = null;
         }
+        if (sceneManager != null) {
+            sceneManager.clearScene();
+        }
         if (axes != null) {
             axes.dispose();
             axes = null;
@@ -1329,6 +1332,10 @@ public class StageListener implements ApplicationListener {
 		}
 		threeDManager = null;
 
+        if (sceneManager != null) {
+            sceneManager.clearScene();
+        }
+
         if (fastTwoDManager != null) {
             fastTwoDManager.clearScene();
         }
@@ -1567,7 +1574,7 @@ public class StageListener implements ApplicationListener {
 				if (threeDManager != null) {
 					threeDManager.dispose();
 				}
-
+                if (sceneManager != null) sceneManager.clearScene();
 
 				threeDManager = new ThreeDManager();
 				threeDManager.init();
@@ -2078,6 +2085,7 @@ public class StageListener implements ApplicationListener {
 		if (threeDManager != null) {
 			threeDManager.dispose();
 		}
+        if (sceneManager != null) sceneManager.clearScene();
 
 		if (postProcessShader != null) {
 			postProcessShader.dispose();

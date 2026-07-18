@@ -447,6 +447,7 @@ public final class BrickInfo {
         add(StopGifBrick.class, "Остановить воспроизведение GIF-анимации и вернуться к обычному образу.");
         add(PlaySpritesheetBrick.class, "Запустить циклическое воспроизведение анимации из текстурной сетки (спрайтшита) текущего образа.");
         add(StopSpritesheetBrick.class, "Остановить анимацию спрайтшита и вернуться к статическому отображению образа.");
+        add(Replace3DModelBrick.class, "Заменяет 3D модель объекта (по ID)");
     }
 
     private static <T extends Brick> void add(Class<T> brickClass, String description) {

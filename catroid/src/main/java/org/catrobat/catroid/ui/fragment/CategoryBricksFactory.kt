@@ -366,6 +366,7 @@ import org.catrobat.catroid.content.bricks.RemoveParentBrick
 import org.catrobat.catroid.content.bricks.RemovePbrLightBrick
 import org.catrobat.catroid.content.bricks.RepeatBrick
 import org.catrobat.catroid.content.bricks.RepeatUntilBrick
+import org.catrobat.catroid.content.bricks.Replace3DModelBrick
 import org.catrobat.catroid.content.bricks.ReplaceItemInUserListBrick
 import org.catrobat.catroid.content.bricks.ReportBrick
 import org.catrobat.catroid.content.bricks.ResetTimerBrick
@@ -2636,6 +2637,7 @@ void main() {
         threedBrickList.add(CreateCubeBrick("myObject"))
         threedBrickList.add(CreateSphereBrick("myObject"))
         threedBrickList.add(ThreedCreateCylinderBrick("myObject"))
+        threedBrickList.add(Replace3DModelBrick("myObject", "weapon.glb"));
         threedBrickList.add(Remove3dObjectBrick("myObject"))
         threedBrickList.add(RemoveObjectsByPrefixBrick("wall_"))
         threedBrickList.add(CloneObjectBrick("myObject", "clonedObject"))

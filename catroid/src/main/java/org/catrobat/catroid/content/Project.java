@@ -52,6 +52,7 @@ import org.catrobat.catroid.utils.Utils;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +68,8 @@ import static org.catrobat.catroid.utils.Utils.SPEECH_RECOGNITION_SUPPORTED_LANG
 		"scenes",
 		"programVariableList",
 		"programListOfLists",
-		"programMultiplayerVariableList"
+		"programMultiplayerVariableList",
+        "disableScientificNotation"
 })
 @LunoClass
 public class Project implements Serializable {
@@ -86,8 +88,10 @@ public class Project implements Serializable {
 	private List<UserList> userLists = new ArrayList<>();
 	@XStreamAlias("scenes")
 	private List<Scene> sceneList = new ArrayList<>();
+    @XStreamAlias("disableScientificNotation")
+    private boolean disableScientificNotation = false;
 
-	private transient File directory;
+    private transient File directory;
 
 	private transient BroadcastMessageContainer broadcastMessageContainer = new BroadcastMessageContainer();
 
@@ -220,6 +224,47 @@ public class Project implements Serializable {
 			return null;
 		}
 	}
+
+    public boolean isDisableScientificNotation() {
+        return disableScientificNotation;
+    }
+
+    public void setDisableScientificNotation(boolean disableScientificNotation) {
+        this.disableScientificNotation = disableScientificNotation;
+    }
+
+    public String formatValue(Object value) {
+        if (value == null) {
+            return "";
+        }
+
+        if (disableScientificNotation) {
+            if (value instanceof Number) {
+                double d = ((Number) value).doubleValue();
+                if (Double.isNaN(d) || Double.isInfinite(d)) {
+                    return value.toString();
+                }
+                try {
+                    return BigDecimal.valueOf(d).stripTrailingZeros().toPlainString();
+                } catch (NumberFormatException | ArithmeticException e) {
+                    return value.toString();
+                }
+            } else if (value instanceof String) {
+                String strVal = (String) value;
+                if (strVal.contains("e") || strVal.contains("E")) {
+                    try {
+                        double d = Double.parseDouble(strVal);
+                        if (!Double.isNaN(d) && !Double.isInfinite(d)) {
+                            return BigDecimal.valueOf(d).stripTrailingZeros().toPlainString();
+                        }
+                    } catch (NumberFormatException e) {
+                    }
+                }
+            }
+        }
+
+        return value.toString();
+    }
 
 	public <T> boolean hasUserDataChanged(List<T> newUserData, List<T> oldUserData) {
 		if (newUserData.size() != oldUserData.size()) {

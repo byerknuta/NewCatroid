@@ -169,6 +169,7 @@ class ProjectOptionsFragment : Fragment() {
         addTags()
         setupProjectAspectRatio()
         setupCustomResolution()
+        setupDisableScientificNotation()
 
         binding.projectOptionsUpload.visibility = View.VISIBLE
         binding.projectOptionsUpload.text = getString(R.string.community_publish_btn)
@@ -200,6 +201,15 @@ class ProjectOptionsFragment : Fragment() {
         activeDialogView = null
         _binding = null
         super.onDestroyView()
+    }
+
+    private fun setupDisableScientificNotation() {
+        binding.projectOptionsDisableScientificNotation.apply {
+            isChecked = project?.isDisableScientificNotation ?: false
+            setOnCheckedChangeListener { _, isChecked ->
+                project?.setDisableScientificNotation(isChecked)
+            }
+        }
     }
 
     private fun showBuildDialog() {

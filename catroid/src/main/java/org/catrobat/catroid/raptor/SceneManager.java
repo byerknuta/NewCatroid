@@ -21,7 +21,7 @@ import com.badlogic.gdx.utils.JsonWriter;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.editor.EditorActivity;
-import org.catrobat.catroid.pocketmusic.note.Project;
+import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.raptor.GameObject;
 import org.catrobat.catroid.raptor.LightComponent;
 import org.catrobat.catroid.raptor.PhysicsComponent;
@@ -226,10 +226,28 @@ public class SceneManager {
                 child.transform.worldTransform.set(parentModel.transform);
                 child.transform.worldTransform.mul(bone.globalTransform);
                 child.transform.worldTransform.translate(att.localPosOffset);
+                child.transform.worldTransform.scl(child.transform.scale);
 
                 engine.setWorldTransform(child.id, child.transform.worldTransform);
-                child.transform.worldTransform.getTranslation(child.transform.position);
-                child.transform.worldTransform.getRotation(child.transform.rotation, true);
+
+                if (child.parentId != null) {
+                    GameObject parent = findGameObject(child.parentId);
+                    if (parent != null) {
+                        Matrix4 parentInv = new Matrix4(parent.transform.worldTransform).inv();
+                        Matrix4 localMat = parentInv.mul(child.transform.worldTransform);
+                        localMat.getTranslation(child.transform.position);
+                        localMat.getRotation(child.transform.rotation, true);
+                    } else {
+                        child.transform.worldTransform.getTranslation(child.transform.position);
+                        child.transform.worldTransform.getRotation(child.transform.rotation, true);
+                    }
+                } else {
+                    child.transform.worldTransform.getTranslation(child.transform.position);
+                    child.transform.worldTransform.getRotation(child.transform.rotation, true);
+                }
+
+                updateTransformRecursive(child, findGameObject(child.parentId));
+                applyTransformToEngineRecursive(child);
             } else {
                 Log.e("SceneManager", "ОШИБКА ПРИВЯЗКИ: Кость '" + att.boneName + "' не найдена в модели!");
             }
@@ -535,6 +553,11 @@ public class SceneManager {
                 gameObjects.put(go.id, go);
             }
 
+
+            if (engine == null || engine.isDisposed()) {
+                Log.i("SceneManager", "Aborted scene rebuilding: ThreeDManager is disposed.");
+                return;
+            }
 
             for (GameObject go : sceneData.gameObjects) {
                 rebuildGameObject_internal(go);
@@ -901,10 +924,22 @@ public class SceneManager {
 
     public void removeGameObject(GameObject go) {
         if (go == null) return;
+        if (Gdx.app != null) {
+            Gdx.app.postRunnable(() -> removeGameObjectInternal(go));
+        } else {
+            removeGameObjectInternal(go);
+        }
+    }
+
+    private void removeGameObjectInternal(GameObject go) {
+        if (go == null) return;
 
         List<String> childrenIdsCopy = new ArrayList<>(go.childrenIds);
         for (String childId : childrenIdsCopy) {
-            removeGameObject(findGameObject(childId));
+            GameObject child = findGameObject(childId);
+            if (child != null) {
+                removeGameObjectInternal(child);
+            }
         }
 
         if (go.parentId != null) {
@@ -916,6 +951,7 @@ public class SceneManager {
 
         gameObjects.remove(go.id);
         engine.removeObject(go.id);
+
         if (go.hasComponent(LightComponent.class)) {
             engine.removePBRLight(go.id);
             engine.removeEditorProxy(go.id);
@@ -932,17 +968,6 @@ public class SceneManager {
         }
     }
 
-    public GameObject findGameObject(String id) {
-        return gameObjects.get(id);
-    }
-
-    public Map<String, GameObject> getAllGameObjects() {
-        return gameObjects;
-    }
-
-
-
-
     public void setRenderComponent(GameObject go, String modelFileName) {
         Gdx.app.postRunnable(() -> {
             RenderComponent render = go.getComponent(RenderComponent.class);
@@ -953,11 +978,19 @@ public class SceneManager {
             render.modelFileName = modelFileName;
 
             if (engine.objectExists(go.id)) {
-                engine.removeObject(go.id);
+                engine.removeModelOnly(go.id);
             }
 
             rebuildGameObject_internal(go);
         });
+    }
+
+    public GameObject findGameObject(String id) {
+        return gameObjects.get(id);
+    }
+
+    public Map<String, GameObject> getAllGameObjects() {
+        return gameObjects;
     }
 
     public void setAnimationComponent(GameObject go, AnimationComponent animComponent) {
@@ -1169,42 +1202,50 @@ public class SceneManager {
 
 
     public void loadScene(FileHandle fileHandle) {
-        if (fileHandle == null || !fileHandle.exists()) {
-            Gdx.app.error("SceneManager", "Scene file handle is null or does not exist.");
-            return;
-        }
+        Gdx.app.postRunnable(() -> {
+            if (fileHandle == null || !fileHandle.exists()) {
+                Gdx.app.error("SceneManager", "Scene file handle is null or does not exist.");
+                return;
+            }
 
-        String sceneJson = fileHandle.readString();
-        json.setUsePrototypes(false);
-        json.setIgnoreUnknownFields(true);
-        SceneData sceneData = json.fromJson(SceneData.class, sceneJson);
+            String sceneJson = fileHandle.readString();
+            json.setUsePrototypes(false);
+            json.setIgnoreUnknownFields(true);
+            SceneData sceneData = json.fromJson(SceneData.class, sceneJson);
 
 
-        setBackgroundLightIntensity(sceneData.ambientIntensity);
-        setSkyColor(sceneData.skyR, sceneData.skyG, sceneData.skyB);
-        float size = (sceneData.shadowSize > 0) ? sceneData.shadowSize : 100f;
-        float res = (sceneData.shadowResolution > 0) ? sceneData.shadowResolution : 2048f;
-        float csmFactor = (sceneData.csmSplitFactor >= 1f) ? sceneData.csmSplitFactor : 4f;
+            setBackgroundLightIntensity(sceneData.ambientIntensity);
+            setSkyColor(sceneData.skyR, sceneData.skyG, sceneData.skyB);
+            float size = (sceneData.shadowSize > 0) ? sceneData.shadowSize : 100f;
+            float res = (sceneData.shadowResolution > 0) ? sceneData.shadowResolution : 2048f;
+            float csmFactor = (sceneData.csmSplitFactor >= 1f) ? sceneData.csmSplitFactor : 4f;
 
-        engine.setShadowSettings(size, (int) res, sceneData.useCSM, csmFactor);
+            engine.setShadowSettings(size, (int) res, sceneData.useCSM, csmFactor);
 
-        if (sceneData.gameObjects == null) { return; }
+            if (sceneData.gameObjects == null) {
+                return;
+            }
 
-        for (GameObject go : sceneData.gameObjects) {
-            gameObjects.put(go.id, go);
-            rebuildGameObject(go);
-        }
+            for (GameObject go : sceneData.gameObjects) {
+                gameObjects.put(go.id, go);
+                rebuildGameObject(go);
+            }
 
-        findAndSetMainCamera();
+            findAndSetMainCamera();
 
-        Gdx.app.log("SceneManager", "Scene build commands issued.");
+            Gdx.app.log("SceneManager", "Scene build commands issued.");
 
-        Gdx.app.log("SceneManager", "Applying loaded skybox: " + this.skyboxPath);
-        this.skyboxPath = sceneData.skyboxPath;
-        setSkybox(this.skyboxPath);
+            Gdx.app.log("SceneManager", "Applying loaded skybox: " + this.skyboxPath);
+            this.skyboxPath = sceneData.skyboxPath;
+            setSkybox(this.skyboxPath);
+        });
     }
 
     private void rebuildGameObject_internal(GameObject go) {
+        if (engine == null || engine.isDisposed()) {
+            return;
+        }
+
         Log.d("PhysicsDebug", "============================================================");
         Log.d("PhysicsDebug", "=== Rebuilding GameObject: '" + go.name + "' (ID: " + go.id + ")");
         Log.d("PhysicsDebug", "============================================================");
@@ -1454,6 +1495,8 @@ public class SceneManager {
         engine.clearScene();
         gameObjects.clear();
         cameraAttachments.clear();
+        activeAttachments.clear();
+        loadingQueue.clear();
         this.skyboxPath = null;
         this.cachedFogComponent = null;
     }

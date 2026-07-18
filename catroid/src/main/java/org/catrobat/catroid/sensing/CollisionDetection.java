@@ -36,40 +36,42 @@ public final class CollisionDetection {
 	private CollisionDetection() {
 	}
 
-	public static boolean checkCollisionBetweenLooks(Look firstLook, Look secondLook) {
-		if (!NativeLookOptimizer.isWorking) return false;
+    public static boolean checkCollisionBetweenLooks(Look firstLook, Look secondLook) {
+        if (firstLook == null || secondLook == null ||
+                !firstLook.isVisible() || !firstLook.isLookVisible() ||
+                !secondLook.isVisible() || !secondLook.isLookVisible()) {
+            return false;
+        }
 
-		if (firstLook == null || secondLook == null ||
-				!firstLook.isVisible() || !firstLook.isLookVisible() ||
-				!secondLook.isVisible() || !secondLook.isLookVisible()) {
-			return false;
-		}
+        Rectangle firstHitbox = firstLook.getHitbox();
+        Rectangle secondHitbox = secondLook.getHitbox();
+        if (firstHitbox == null || secondHitbox == null || !firstHitbox.overlaps(secondHitbox)) {
+            return false;
+        }
 
-		Rectangle firstHitbox = firstLook.getHitbox();
-		Rectangle secondHitbox = secondLook.getHitbox();
-		if (firstHitbox == null || secondHitbox == null || !firstHitbox.overlaps(secondHitbox)) {
-			return false;
-		}
+        Polygon[] firstPolygons = firstLook.getCurrentCollisionPolygon();
+        Polygon[] secondPolygons = secondLook.getCurrentCollisionPolygon();
 
-		Polygon[] firstPolygons = firstLook.getCurrentCollisionPolygon();
-		Polygon[] secondPolygons = secondLook.getCurrentCollisionPolygon();
+        if (firstPolygons == null || secondPolygons == null || firstPolygons.length == 0 || secondPolygons.length == 0) {
+            return false;
+        }
 
-		if (firstPolygons == null || secondPolygons == null || firstPolygons.length == 0 || secondPolygons.length == 0) {
-			return false;
-		}
+        if (NativeLookOptimizer.isWorking) {
+            float[][] firstPreparedPolys = new float[firstPolygons.length][];
+            for (int i = 0; i < firstPolygons.length; i++) {
+                firstPreparedPolys[i] = (firstPolygons[i] != null) ? firstPolygons[i].getTransformedVertices() : new float[0];
+            }
 
-		float[][] firstPreparedPolys = new float[firstPolygons.length][];
-		for (int i = 0; i < firstPolygons.length; i++) {
-			firstPreparedPolys[i] = (firstPolygons[i] != null) ? firstPolygons[i].getTransformedVertices() : new float[0];
-		}
+            float[][] secondPreparedPolys = new float[secondPolygons.length][];
+            for (int i = 0; i < secondPolygons.length; i++) {
+                secondPreparedPolys[i] = (secondPolygons[i] != null) ? secondPolygons[i].getTransformedVertices() : new float[0];
+            }
 
-		float[][] secondPreparedPolys = new float[secondPolygons.length][];
-		for (int i = 0; i < secondPolygons.length; i++) {
-			secondPreparedPolys[i] = (secondPolygons[i] != null) ? secondPolygons[i].getTransformedVertices() : new float[0];
-		}
-
-		return NativeLookOptimizer.checkSingleCollision(firstPreparedPolys, secondPreparedPolys);
-	}
+            return NativeLookOptimizer.checkSingleCollision(firstPreparedPolys, secondPreparedPolys);
+        } else {
+            return checkCollisionBetweenPolygonArrays(firstPolygons, secondPolygons);
+        }
+    }
 
 
 	private static boolean checkCollisionBetweenPolygonArrays(Polygon[] first, Polygon[] second) {

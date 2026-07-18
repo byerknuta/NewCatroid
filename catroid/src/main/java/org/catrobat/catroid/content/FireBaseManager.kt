@@ -1,25 +1,3 @@
-/*
- * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2022 The Catrobat Team
- * (<http://developer.catrobat.org/credits>)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * An additional term exception under section 7 of the GNU Affero
- * General Public License, version 3, is available at
- * http://developer.catrobat.org/license_additional_term
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 package org.catrobat.catroid.content
 
 import android.util.Log
@@ -58,8 +36,13 @@ object FireBaseManager {
                     FirebaseApp.initializeApp(context, options)
                     Log.i("Firebase", "Firebase initialized dynamically with explicit options successfully!")
                 } else {
-                    FirebaseApp.initializeApp(context)
-                    Log.w("Firebase", "Fallback to default Firebase initialization.")
+                    val dummyOptions = FirebaseOptions.Builder()
+                        .setApplicationId("1:1234567890:android:abcdef12345678")
+                        .setApiKey("AIzaSyDummyApiKeyPlaceholder123456789")
+                        .setProjectId("dummy-project-id")
+                        .build()
+                    FirebaseApp.initializeApp(context, dummyOptions)
+                    Log.w("Firebase", "Firebase initialized dynamically with dummy options (no resources found).")
                 }
             } catch (e: Exception) {
                 Log.e("Firebase", "Failed to initialize Firebase dynamically", e)
@@ -71,35 +54,60 @@ object FireBaseManager {
         true
     }
 
-    private fun getDbRef(url: String, key: String): DatabaseReference {
+    private fun getDbRef(urlOrId: String, key: String): DatabaseReference {
         val init = isInitialized
-        return FirebaseDatabase.getInstance(url).reference.child(key)
+
+        val trimmedInput = urlOrId.trim()
+        if (trimmedInput.isEmpty()) {
+            throw IllegalArgumentException("Database ID or URL cannot be empty")
+        }
+
+        val formattedUrl = if (trimmedInput.startsWith("http://") || trimmedInput.startsWith("https://")) {
+            trimmedInput
+        } else {
+            "https://$trimmedInput-default-rtdb.firebaseio.com/"
+        }
+
+        return FirebaseDatabase.getInstance(formattedUrl).reference.child(key)
     }
 
     fun readFromDatabase(databaseUrl: String, key: String, callback: (String?) -> Unit) {
-        getDbRef(databaseUrl, key).addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                callback(snapshot.value?.toString() ?: "No data")
-            }
+        try {
+            getDbRef(databaseUrl, key).addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    callback(snapshot.value?.toString() ?: "No data")
+                }
 
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("Firebase", "Error reading data: ${error.message}", error.toException())
-                callback(null)
-            }
-        })
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("Firebase", "Error reading data: ${error.message}", error.toException())
+                    callback(null)
+                }
+            })
+        } catch (e: Exception) {
+            Log.e("Firebase", "Database read execution failed", e)
+            callback(null)
+        }
     }
 
     fun writeToDatabase(databaseUrl: String, key: String, value: String) {
-        getDbRef(databaseUrl, key).setValue(value)
-            .addOnFailureListener { error ->
-                Log.e("Firebase", "Error writing data: ${error.message}", error)
-            }
+        try {
+            getDbRef(databaseUrl, key).setValue(value)
+                .addOnFailureListener { error ->
+                    Log.e("Firebase", "Error writing data: ${error.message}", error)
+                }
+        } catch (e: Exception) {
+            Log.e("Firebase", "Database write execution failed", e)
+        }
     }
 
     fun deleteFromDatabase(databaseUrl: String, key: String) {
-        getDbRef(databaseUrl, key).removeValue()
-            .addOnFailureListener { error ->
-                Log.e("Firebase", "Error deleting data: ${error.message}", error)
-            }
+        try {
+            getDbRef(databaseUrl, key).removeValue()
+                .addOnFailureListener { error ->
+                    Log.e("Firebase", "Error deleting data: ${error.message}", error)
+                }
+        } catch (e: Exception) {
+            Log.e("Firebase", "Database delete execution failed", e)
+        }
     }
 }

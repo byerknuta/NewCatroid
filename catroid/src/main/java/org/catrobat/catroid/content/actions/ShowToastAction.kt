@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2024 The Catrobat Team
+ * Copyright (C) 2010-2026 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,33 +23,39 @@
 
 package org.catrobat.catroid.content.actions
 
+import android.os.Handler
+import android.os.Looper
 import android.widget.Toast
-import android.content.Context
-import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
-import android.app.Activity
-import org.catrobat.catroid.stage.StageActivity
-import org.catrobat.catroid.stage.StageActivity.IntentListener
-import android.util.Log
+import com.badlogic.gdx.scenes.scene2d.Action
 import org.catrobat.catroid.CatroidApplication
-import org.catrobat.catroid.R
-
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
-import java.util.ArrayList
+import org.catrobat.catroid.formulaeditor.InterpretationException
 
-class ShowToastAction() : TemporalAction() {
-    private var contextt: Context? = null
-    var scope: Scope? = null
-    var toast: Formula? = null
+class ShowToastAction : Action() {
+    lateinit var scope: Scope
+    lateinit var toast: Formula
 
-    override fun update(percent: Float) {
-        val value = toast?.interpretObject(scope) ?: ""
-        val gval = value.toString()
-        Log.d("ShowToastAction", "Showing toast with value: $gval")
-        Log.d("ShowToastAction", "Update method called with percent: $percent")
+    override fun act(delta: Float): Boolean {
+        val message = try {
+            toast.interpretString(scope) ?: ""
+        } catch (_: InterpretationException) {
+            ""
+        }
 
-        val params = ArrayList<Any>(listOf(gval))
-        StageActivity.messageHandler.obtainMessage(StageActivity.SHOW_TOAST, params).sendToTarget()
+        uiHandler.post {
+            currentToast?.cancel()
 
+            val newToast = Toast.makeText(CatroidApplication.getAppContext(), message, Toast.LENGTH_SHORT)
+            newToast.show()
+            currentToast = newToast
+        }
+
+        return true
+    }
+
+    companion object {
+        private val uiHandler = Handler(Looper.getMainLooper())
+        private var currentToast: Toast? = null
     }
 }

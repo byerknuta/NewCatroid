@@ -213,6 +213,16 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+    public Action createReplace3DModelAction(Sprite sprite, SequenceAction sequence,
+                                             Formula objectId, Formula modelPath) {
+        Replace3DModelAction action = action(Replace3DModelAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectId(objectId);
+        action.setModelPath(modelPath);
+        return action;
+    }
+
 	public Action createApplyImpulseAction(Sprite sprite, SequenceAction sequence, Formula impulseX, Formula impulseY) {
 		ApplyImpulseAction action = action(ApplyImpulseAction.class);
 		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));

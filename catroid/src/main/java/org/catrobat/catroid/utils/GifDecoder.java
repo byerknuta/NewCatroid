@@ -29,10 +29,13 @@ public class GifDecoder {
 
         for (int i = 0; i < frameCount; i++) {
             Pixmap pixmap = decoder.getFrame(i);
-            Texture texture = new Texture(pixmap);
-            TextureRegion region = new TextureRegion(texture);
-            frames.add(region);
-            totalDelay += decoder.getDelay(i) / 1000f;
+            if (pixmap != null) {
+                Texture texture = new Texture(pixmap);
+                TextureRegion region = new TextureRegion(texture);
+                frames.add(region);
+                totalDelay += decoder.getDelay(i) / 1000f;
+                pixmap.dispose();
+            }
         }
 
         float frameDuration = totalDelay / frameCount;
@@ -366,6 +369,19 @@ public class GifDecoder {
 
     private void setPixmapFrame() {
         Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+
+        if (frames.size() > 0) {
+            Pixmap.Blending bgBlend = pixmap.getBlending();
+            pixmap.setBlending(Pixmap.Blending.None);
+
+            Pixmap prev = frames.elementAt(frames.size() - 1).image;
+            if (prev != null) {
+                pixmap.drawPixmap(prev, 0, 0);
+            }
+
+            pixmap.setBlending(bgBlend);
+        }
+
         int destX = ix;
         int destY = iy;
         int destW = iw;
@@ -375,6 +391,11 @@ public class GifDecoder {
         for (int y = 0; y < destH; y++) {
             for (int x = 0; x < destW; x++) {
                 int index = pixels[i++] & 0xff;
+
+                if (transColor && index == transIndex) {
+                    continue;
+                }
+
                 int color = act[index];
                 pixmap.setColor(
                         ((color >> 16) & 0xff) / 255f,

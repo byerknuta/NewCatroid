@@ -20,7 +20,6 @@ public class NativeLookOptimizer {
             float originX, float originY
     );
 
-    // В NativeLookOptimizer.java
     public static native float[] getTransformedBoundingBox(
             float x, float y,
             float width, float height,
