@@ -1856,19 +1856,15 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 
 	public static StageListener getActiveStageListener() {
-
 		if (activeStageActivity == null) {
 			return null;
 		}
 
-
 		StageActivity currentStage = activeStageActivity.get();
-
 
 		if (currentStage != null && currentStage.stageListener != null) {
 			return currentStage.stageListener;
 		}
-
 
 		return null;
 	}

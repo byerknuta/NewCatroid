@@ -631,7 +631,10 @@ public class ScriptFragment extends ListFragment implements
         Sprite currentSprite = ProjectManager.getInstance().getCurrentSprite();
         if (currentSprite == null) return;
 
-        final List<Script> scriptsCopy = new ArrayList<>(currentSprite.getScriptList());
+        final List<Script> scriptsCopy;
+        synchronized (currentSprite) {
+            scriptsCopy = new ArrayList<>(currentSprite.getScriptList());
+        }
 
         codeAnalysisJob = BuildersKt.launch(LifecycleOwnerKt.getLifecycleScope(this), Dispatchers.getIO(), CoroutineStart.DEFAULT, (scope, continuation) -> {
             final Map<Brick, AnalysisResult> allResults = new HashMap<>();
@@ -640,7 +643,15 @@ public class ScriptFragment extends ListFragment implements
                 final org.catrobat.catroid.codeanalysis.GlobalAnalysisContext globalContext =
                         org.catrobat.catroid.codeanalysis.GlobalAnalysisContext.Companion.build();
 
-                for (Script script : scriptsCopy) {
+                int size = scriptsCopy.size();
+                for (int i = 0; i < size; i++) {
+                    if (i >= scriptsCopy.size()) {
+                        break;
+                    }
+                    Script script = scriptsCopy.get(i);
+                    if (script == null) {
+                        continue;
+                    }
                     Map<Brick, AnalysisResult> scriptResults = codeAnalyzer.analyzeScript(script, globalContext);
                     if (scriptResults != null) {
                         allResults.putAll(scriptResults);
@@ -662,8 +673,8 @@ public class ScriptFragment extends ListFragment implements
                         updateAnalysisIndicator();
                     });
                 }
-            } catch (Exception e) {
-                Log.e(TAG, "Error in analysis background job", e);
+            } catch (Throwable t) {
+                Log.e(TAG, "Error in analysis background job", t);
             }
             return kotlin.Unit.INSTANCE;
         });

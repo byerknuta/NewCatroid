@@ -38,6 +38,7 @@ import org.catrobat.catroid.content.bricks.brickspinner.NewOption;
 import org.catrobat.catroid.content.bricks.brickspinner.UserVariableBrickTextInputDialogBuilder;
 import org.catrobat.catroid.formulaeditor.UserVariable;
 import org.catrobat.catroid.ui.UiUtils;
+import org.catrobat.catroid.visualplacement.VisualPlacementActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -138,25 +139,27 @@ public abstract class UserVariableBrickWithVisualPlacement extends VisualPlaceme
 		return BrickField.Y_POSITION;
 	}
 
-	@Override
-	public Intent generateIntentForVisualPlacement(BrickField brickFieldX, BrickField brickFieldY) {
-		Intent intent = super.generateIntentForVisualPlacement(brickFieldX, brickFieldY);
+    @Override
+    public Intent generateIntentForVisualPlacement(BrickField brickFieldX, BrickField brickFieldY) {
+        Intent intent = super.generateIntentForVisualPlacement(brickFieldX, brickFieldY);
 
-		Object variableValue = 0;
-		if (userVariable != null) {
-			variableValue = userVariable.getValue();
-		}
+        Object variableValue = 0;
+        if (userVariable != null) {
+            variableValue = userVariable.getValue();
+        }
 
-		String text = variableValue.toString();
-		if (isNumberAndInteger(text)) {
-			text = getStringAsInteger(text);
-		}
+        String text = variableValue.toString();
+        if (isNumberAndInteger(text)) {
+            text = getStringAsInteger(text);
+        }
 
-		intent.putExtra(EXTRA_TEXT, text);
-		intent.putExtra(EXTRA_TEXT_COLOR, convertColorToString(Color.BLACK));
-		intent.putExtra(EXTRA_TEXT_SIZE, 1.0f);
-		intent.putExtra(EXTRA_TEXT_ALIGNMENT, ALIGNMENT_STYLE_CENTERED);
+        intent.putExtra(EXTRA_TEXT, text);
+        intent.putExtra(EXTRA_TEXT_COLOR, convertColorToString(Color.BLACK));
+        intent.putExtra(EXTRA_TEXT_SIZE, 1.0f);
+        intent.putExtra(EXTRA_TEXT_ALIGNMENT, ALIGNMENT_STYLE_CENTERED);
 
-		return intent;
-	}
+        intent.putExtra(VisualPlacementActivity.EXTRA_IS_VARIABLE, true);
+
+        return intent;
+    }
 }

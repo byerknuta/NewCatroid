@@ -200,6 +200,9 @@ class MainMenuFragment : Fragment(),
 
     override fun onResume() {
         super.onResume()
+
+        (activity as? androidx.appcompat.app.AppCompatActivity)?.supportActionBar?.setTitle(R.string.app_name)
+
         viewModel.registerNetworkCallback()
         viewModel.setIsLoading(false)
         viewModel.update()

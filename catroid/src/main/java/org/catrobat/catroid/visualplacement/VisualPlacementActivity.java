@@ -111,12 +111,16 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 	public static final String ROTATION_ANGLE_BUNDLE_ARGUMENT = "rotationAngle";
 
 	public static final String SIZE_PERCENT_BUNDLE_ARGUMENT = "sizePercentage";
+    public static final String EXTRA_IS_VARIABLE = "isVariable";
+    public static final String EXTRA_ROTATION_CHANGED = "rotationChanged";
+    public static final String EXTRA_SIZE_CHANGED = "sizeChanged";
 
 	private ProjectManager projectManager;
 	private FrameLayout frameLayout;
 	private BitmapFactory.Options bitmapOptions;
 	private ImageView imageView;
 	private float rotationAngle = 0.0f;
+    private boolean isVariable = false;
 
 	private float xCoord;
 	private float yCoord;
@@ -188,6 +192,7 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
         translateX = extras.getInt(EXTRA_X_TRANSFORM);
         translateY = extras.getInt(EXTRA_Y_TRANSFORM);
         rotationAngle = extras.getFloat(EXTRA_ROTATION);
+        isVariable = extras.getBoolean(EXTRA_IS_VARIABLE, false);
         if (extras.containsKey(EXTRA_TEXT)) {
             isText = true;
             text = extras.getString(EXTRA_TEXT);
@@ -489,29 +494,36 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		}
 	}
 
-	private void finishWithResult() {
-		Intent returnIntent = new Intent();
-		Bundle extras = new Bundle();
-		extras.putInt(EXTRA_BRICK_HASH, getIntent().getIntExtra(EXTRA_BRICK_HASH, -1));
-		int xCoordinate = Math.round(xCoord / layoutWidthRatio);
-		int yCoordinate = Math.round(yCoord / layoutHeightRatio);
+    private void finishWithResult() {
+        Intent returnIntent = new Intent();
+        Bundle extras = new Bundle();
+        extras.putInt(EXTRA_BRICK_HASH, getIntent().getIntExtra(EXTRA_BRICK_HASH, -1));
+        int xCoordinate = Math.round(xCoord / layoutWidthRatio);
+        int yCoordinate = Math.round(yCoord / layoutHeightRatio);
 
-		float sizePercentage = (imageView.getScaleX() / scaleX) * 100f;
+        float sizePercentage = (imageView.getScaleX() / scaleX) * 100f;
 
-		boolean hasChanges = (initialX != xCoordinate || initialY != yCoordinate
-				|| Math.abs(initialRotation - imageView.getRotation()) > 0.1
-				|| Math.abs(initialScale - imageView.getScaleX()) > 0.01);
+        boolean rotationChanged = Math.abs(initialRotation - imageView.getRotation()) > 0.1f;
+        boolean sizeChanged = Math.abs(initialScale - imageView.getScaleX()) > 0.01f;
 
-		extras.putInt(X_COORDINATE_BUNDLE_ARGUMENT, xCoordinate);
-		extras.putInt(Y_COORDINATE_BUNDLE_ARGUMENT, yCoordinate);
-		extras.putFloat(ROTATION_ANGLE_BUNDLE_ARGUMENT, imageView.getRotation());
-		extras.putFloat(SIZE_PERCENT_BUNDLE_ARGUMENT, sizePercentage);
-		extras.putBoolean(CHANGED_COORDINATES, hasChanges);
+        boolean hasChanges = (initialX != xCoordinate || initialY != yCoordinate
+                || rotationChanged
+                || sizeChanged);
 
-		returnIntent.putExtras(extras);
-		setResult(Activity.RESULT_OK, returnIntent);
-		finish();
-	}
+        extras.putInt(X_COORDINATE_BUNDLE_ARGUMENT, xCoordinate);
+        extras.putInt(Y_COORDINATE_BUNDLE_ARGUMENT, yCoordinate);
+        extras.putFloat(ROTATION_ANGLE_BUNDLE_ARGUMENT, imageView.getRotation());
+        extras.putFloat(SIZE_PERCENT_BUNDLE_ARGUMENT, sizePercentage);
+        extras.putBoolean(CHANGED_COORDINATES, hasChanges);
+
+        extras.putBoolean(EXTRA_IS_VARIABLE, isVariable);
+        extras.putBoolean(EXTRA_ROTATION_CHANGED, rotationChanged);
+        extras.putBoolean(EXTRA_SIZE_CHANGED, sizeChanged);
+
+        returnIntent.putExtras(extras);
+        setResult(Activity.RESULT_OK, returnIntent);
+        finish();
+    }
 
 	private void showSaveChangesDialog(Context context) {
 		new AlertDialog.Builder(
@@ -543,35 +555,40 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
         }
 	}
 
-	private class MyScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-		private float lastAngle;
+    private class MyScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        private float lastAngle;
 
-		@Override
-		public boolean onScaleBegin(ScaleGestureDetector detector) {
-			lastAngle = getAngle(detector.getCurrentSpanX(), detector.getCurrentSpanY());
-			return true;
-		}
+        @Override
+        public boolean onScaleBegin(ScaleGestureDetector detector) {
+            lastAngle = getAngle(detector.getCurrentSpanX(), detector.getCurrentSpanY());
+            return true;
+        }
 
-		@Override
-		public boolean onScale(ScaleGestureDetector detector) {
-			float scaleFactor = detector.getScaleFactor();
-			imageView.setScaleX(imageView.getScaleX() * scaleFactor);
-			imageView.setScaleY(imageView.getScaleY() * scaleFactor);
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            float scaleFactor = detector.getScaleFactor();
 
-			if (detector.getCurrentSpan() > 0) {
-				float angle = getAngle(detector.getCurrentSpanX(), detector.getCurrentSpanY());
-				float deltaAngle = angle - lastAngle;
+            if (!isVariable) {
+                imageView.setScaleX(imageView.getScaleX() * scaleFactor);
+                imageView.setScaleY(imageView.getScaleY() * scaleFactor);
+            }
 
-				if (Math.abs(deltaAngle) < 10) {
-					imageView.setRotation(imageView.getRotation() + deltaAngle);
-				}
-				lastAngle = angle;
-			}
-			return true;
-		}
+            if (detector.getCurrentSpan() > 0) {
+                float angle = getAngle(detector.getCurrentSpanX(), detector.getCurrentSpanY());
+                float deltaAngle = angle - lastAngle;
 
-		private float getAngle(float dx, float dy) {
-			return (float) Math.toDegrees(Math.atan2(dy, dx));
-		}
-	}
+                if (Math.abs(deltaAngle) < 10) {
+                    if (!isText) {
+                        imageView.setRotation(imageView.getRotation() + deltaAngle);
+                    }
+                }
+                lastAngle = angle;
+            }
+            return true;
+        }
+
+        private float getAngle(float dx, float dy) {
+            return (float) Math.toDegrees(Math.atan2(dy, dx));
+        }
+    }
 }

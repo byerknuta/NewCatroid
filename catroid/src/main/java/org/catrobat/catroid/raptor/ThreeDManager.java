@@ -1258,16 +1258,15 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    private final Vector3[] chosenDirections = new Vector3[8];
+    private final Map<String, Quaternion> modelRotationOffsets = new HashMap<>();
+
     private final Map<String, Array<Vector3>> targetTrails = new HashMap<>();
     private float trailTimer = 0;
-    private static final float TRAIL_DROP_INTERVAL = 0.5f;
-    private static final int MAX_TRAIL_POINTS = 30;
-    private final Vector3 aiTmpTarget = new Vector3();
 
     public void setAI(String objectId, AIComponent settings) {
         if (settings == null || settings.mode == AIComponent.Mode.OFF) {
             activeAIs.remove(objectId);
+            modelRotationOffsets.remove(objectId);
             return;
         }
         activeAIs.put(objectId, settings);
@@ -1280,7 +1279,24 @@ public class ThreeDManager implements Disposable {
     private final Vector3 aiBestMoveDir = new Vector3();
     private final Vector3 aiRayDir = new Vector3();
     private final Vector3 aiStepPos = new Vector3();
-    private final RayCastResult aiRayResult = new RayCastResult();
+
+    private static class DeadEndZone {
+        public final Vector3 position;
+        public final float radius;
+
+        public DeadEndZone(Vector3 position, float radius) {
+            this.position = position;
+            this.radius = radius;
+        }
+    }
+
+    private final Map<String, Array<Vector3>> aiPathHistory = new HashMap<>();
+    private final Map<String, Array<DeadEndZone>> aiDeadEnds = new HashMap<>();
+    private final Map<String, Vector3> aiLastTargetPos = new HashMap<>();
+    private final Map<String, Vector3> aiBacktrackTarget = new HashMap<>();
+    private final Map<String, Integer> aiSlideDirs = new HashMap<>();
+
+    private final Map<String, Float> aiCurrentYaws = new HashMap<>();
 
     private void updateAIProcessing(float delta) {
         if (editorMode) return;
@@ -1315,6 +1331,7 @@ public class ThreeDManager implements Disposable {
 
             if (ai.mode == AIComponent.Mode.FOLLOW && !ai.targetId.isEmpty()) {
                 ModelInstance tInst = sceneObjects.get(ai.targetId);
+                if (tInst == null) tInst = editorProxies.get(ai.targetId);
                 if (tInst == null) continue;
                 tInst.transform.getTranslation(aiRealTargetPos);
 
@@ -1324,8 +1341,35 @@ public class ThreeDManager implements Disposable {
 
                 if (withinVision && ai.detectionRange > 0.1f) {
                     aiDesiredDir.set(aiRealTargetPos).sub(aiCurrentPos).nor();
-                    castRay(aiCurrentPos, aiDesiredDir, aiRayResult);
-                    hasLOS = aiRayResult.hasHit && aiRayResult.hitObjectId.equals(ai.targetId);
+
+                    Vector3 rayEnd = new Vector3(aiCurrentPos).add(aiDesiredDir.x * distToRealTarget, aiDesiredDir.y * distToRealTarget, aiDesiredDir.z * distToRealTarget);
+                    com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback losCallback =
+                            new com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback(aiCurrentPos, rayEnd);
+
+                    dynamicsWorld.rayTest(aiCurrentPos, rayEnd, losCallback);
+
+                    if (losCallback.hasHit()) {
+                        com.badlogic.gdx.physics.bullet.collision.btCollisionObject hitObject = losCallback.getCollisionObject();
+                        String hitId = "";
+                        for (Map.Entry<String, btRigidBody> pbEntry : physicsBodies.entrySet()) {
+                            if (pbEntry.getValue().equals(hitObject)) {
+                                hitId = pbEntry.getKey();
+                                break;
+                            }
+                        }
+                        if (hitId.equals(ai.targetId)) {
+                            hasLOS = true;
+                        } else {
+                            Vector3 hitPoint = new Vector3();
+                            losCallback.getHitPointWorld(hitPoint);
+                            if (aiCurrentPos.dst(hitPoint) > distToRealTarget - 0.5f) {
+                                hasLOS = true;
+                            }
+                        }
+                    } else {
+                        hasLOS = true;
+                    }
+                    losCallback.dispose();
                 }
 
                 if (hasLOS) {
@@ -1352,11 +1396,27 @@ public class ThreeDManager implements Disposable {
                         if (trail != null) {
                             for (int i = trail.size - 1; i >= 0; i--) {
                                 Vector3 breadcrumb = trail.get(i);
-                                if (aiCurrentPos.dst(breadcrumb) <= ai.detectionRange) {
+                                float distToBreadcrumb = aiCurrentPos.dst(breadcrumb);
+                                if (distToBreadcrumb <= ai.detectionRange) {
                                     aiDesiredDir.set(breadcrumb).sub(aiCurrentPos).nor();
-                                    castRay(aiCurrentPos, aiDesiredDir, aiRayResult);
 
-                                    if (aiRayResult.hasHit && aiRayResult.hitDistance >= aiCurrentPos.dst(breadcrumb) - 0.5f) {
+                                    Vector3 rayEnd = new Vector3(aiCurrentPos).add(aiDesiredDir.x * distToBreadcrumb, aiDesiredDir.y * distToBreadcrumb, aiDesiredDir.z * distToBreadcrumb);
+                                    com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback breadcrumbCallback =
+                                            new com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback(aiCurrentPos, rayEnd);
+
+                                    dynamicsWorld.rayTest(aiCurrentPos, rayEnd, breadcrumbCallback);
+
+                                    boolean pathClear = true;
+                                    if (breadcrumbCallback.hasHit()) {
+                                        Vector3 hitPoint = new Vector3();
+                                        breadcrumbCallback.getHitPointWorld(hitPoint);
+                                        if (aiCurrentPos.dst(hitPoint) < distToBreadcrumb - 0.5f) {
+                                            pathClear = false;
+                                        }
+                                    }
+                                    breadcrumbCallback.dispose();
+
+                                    if (pathClear) {
                                         aiFinalMoveTarget.set(breadcrumb);
                                         pointFound = true;
                                         break;
@@ -1372,7 +1432,102 @@ public class ThreeDManager implements Disposable {
                     }
                 }
             } else {
+                if (!ai.targetId.isEmpty()) {
+                    ModelInstance tInst = sceneObjects.get(ai.targetId);
+                    if (tInst == null) tInst = editorProxies.get(ai.targetId);
+
+                    if (tInst != null) {
+                        tInst.transform.getTranslation(ai.targetPos);
+                    } else {
+                        String trimmed = ai.targetId.trim();
+                        String[] parts = trimmed.split("[,;\\s]+");
+                        if (parts.length >= 3) {
+                            try {
+                                float x = Float.parseFloat(parts[0]);
+                                float y = Float.parseFloat(parts[1]);
+                                float z = Float.parseFloat(parts[2]);
+                                ai.targetPos.set(x, y, z);
+                            } catch (NumberFormatException ignored) {}
+                        }
+                    }
+                }
                 aiFinalMoveTarget.set(ai.targetPos);
+            }
+
+            Vector3 lastTarget = aiLastTargetPos.get(id);
+            if (lastTarget == null) {
+                aiLastTargetPos.put(id, new Vector3(aiFinalMoveTarget));
+            } else if (lastTarget.dst(aiFinalMoveTarget) > 15.0f) {
+                aiDeadEnds.remove(id);
+                aiPathHistory.remove(id);
+                aiBacktrackTarget.remove(id);
+                aiLastTargetPos.put(id, new Vector3(aiFinalMoveTarget));
+            }
+
+            if (aiCurrentPos.dst(ai.lastPosition) < 0.02f) {
+                ai.stuckTimer += delta;
+            } else {
+                ai.stuckTimer = 0;
+            }
+            ai.lastPosition.set(aiCurrentPos);
+
+            if (ai.stuckTimer > 0.8f) {
+                Array<Vector3> history = aiPathHistory.get(id);
+                Vector3 backtrackPoint = null;
+                int backtrackIndex = -1;
+
+                if (history != null && history.size > 1) {
+                    for (int i = history.size - 1; i >= 0; i--) {
+                        Vector3 pt = history.get(i);
+                        if (pt.dst(aiCurrentPos) >= 6.0f) {
+                            backtrackIndex = i;
+                            backtrackPoint = pt;
+                            break;
+                        }
+                    }
+
+                    if (backtrackIndex != -1) {
+                        Array<DeadEndZone> deadEnds = aiDeadEnds.computeIfAbsent(id, k -> new Array<>());
+
+                        for (int j = backtrackIndex + 1; j < history.size; j++) {
+                            Vector3 deadPt = history.get(j);
+                            boolean duplicate = false;
+                            for (DeadEndZone zone : deadEnds) {
+                                if (zone.position.dst(deadPt) < 1.5f) {
+                                    duplicate = true;
+                                    break;
+                                }
+                            }
+                            if (!duplicate) {
+                                deadEnds.add(new DeadEndZone(new Vector3(deadPt), 3.0f));
+                            }
+                        }
+
+                        if (deadEnds.size > 30) {
+                            deadEnds.removeRange(0, deadEnds.size - 30);
+                        }
+
+                        history.truncate(backtrackIndex + 1);
+                        aiBacktrackTarget.put(id, new Vector3(backtrackPoint));
+                    }
+                }
+
+                if (backtrackPoint == null) {
+                    Array<DeadEndZone> deadEnds = aiDeadEnds.computeIfAbsent(id, k -> new Array<>());
+                    deadEnds.add(new DeadEndZone(new Vector3(aiCurrentPos), 4.5f));
+                    aiDesiredDir.scl(-1f);
+                }
+
+                ai.stuckTimer = 0;
+            }
+
+            Vector3 btTarget = aiBacktrackTarget.get(id);
+            if (btTarget != null) {
+                if (aiCurrentPos.dst(btTarget) < 1.2f) {
+                    aiBacktrackTarget.remove(id);
+                } else {
+                    aiFinalMoveTarget.set(btTarget);
+                }
             }
 
             float distToTarget = aiCurrentPos.dst(aiFinalMoveTarget);
@@ -1382,14 +1537,19 @@ public class ThreeDManager implements Disposable {
                 continue;
             }
 
-            if (aiCurrentPos.dst(ai.lastPosition) < 0.02f) ai.stuckTimer += delta;
-            else ai.stuckTimer = 0;
-            ai.lastPosition.set(aiCurrentPos);
+            aiDesiredDir.set(aiFinalMoveTarget).sub(aiCurrentPos);
+            float horizontalDist = (float) Math.sqrt(aiDesiredDir.x * aiDesiredDir.x + aiDesiredDir.z * aiDesiredDir.z);
 
-            aiDesiredDir.set(aiFinalMoveTarget).sub(aiCurrentPos).nor();
-
-            if (ai.stuckTimer > 0.7f) {
-                aiDesiredDir.rotate(Vector3.Y, 90f);
+            if (horizontalDist < 1.3f && Math.abs(aiFinalMoveTarget.y - aiCurrentPos.y) > 1.5f) {
+                if (!ai.currentVelocity.isZero(0.01f)) {
+                    aiDesiredDir.set(ai.currentVelocity).nor();
+                } else {
+                    aiDesiredDir.y = 0;
+                    aiDesiredDir.nor();
+                }
+            } else {
+                aiDesiredDir.y = 0;
+                aiDesiredDir.nor();
             }
 
             Vector3 currentHeading = new Vector3(ai.currentVelocity).nor();
@@ -1397,77 +1557,211 @@ public class ThreeDManager implements Disposable {
                 currentHeading.set(aiDesiredDir);
             }
 
-            aiBestMoveDir.set(aiDesiredDir);
-            float bestScore = -1000f;
+            float safeRange = Math.min(3.0f, Math.max(1.2f, ai.detectionRange));
 
-            float safeRange = Math.max(0.5f, ai.detectionRange);
+            boolean pathBlocked = false;
+            if (ai.avoidObstacles) {
+                Vector3 forwardRayEnd = new Vector3(aiCurrentPos).add(aiDesiredDir.x * safeRange, 0, aiDesiredDir.z * safeRange);
+                com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback forwardCallback =
+                        new com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback(aiCurrentPos, forwardRayEnd);
 
-            for (int i = 0; i < 13; i++) {
-                float angle = (i - 6) * 15f;
-                aiRayDir.set(aiDesiredDir).rotate(Vector3.Y, angle);
+                dynamicsWorld.rayTest(aiCurrentPos, forwardRayEnd, forwardCallback);
 
-                float obstacleDist = safeRange;
-                if (ai.avoidObstacles) {
-                    aiStepPos.set(aiRayDir).scl(safeRange);
-                    castRay(aiCurrentPos, aiStepPos, aiRayResult);
-
-                    if (aiRayResult.hasHit) {
-                        String hitId = aiRayResult.hitObjectId;
-                        if (!hitId.equals(ai.targetId) && !hitId.equals(id)) {
-                            obstacleDist = aiRayResult.hitDistance;
+                if (forwardCallback.hasHit()) {
+                    com.badlogic.gdx.physics.bullet.collision.btCollisionObject hitObject = forwardCallback.getCollisionObject();
+                    String hitId = "";
+                    for (Map.Entry<String, btRigidBody> pbEntry : physicsBodies.entrySet()) {
+                        if (pbEntry.getValue().equals(hitObject)) {
+                            hitId = pbEntry.getKey();
+                            break;
+                        }
+                    }
+                    if (!hitId.equals(ai.targetId) && !hitId.equals(id)) {
+                        Vector3 hitPoint = new Vector3();
+                        forwardCallback.getHitPointWorld(hitPoint);
+                        if (aiCurrentPos.dst(hitPoint) < safeRange * 0.85f) {
+                            pathBlocked = true;
                         }
                     }
                 }
+                forwardCallback.dispose();
+            }
 
-                float targetDot = aiRayDir.dot(aiDesiredDir);
+            aiBestMoveDir.set(aiDesiredDir);
 
-                float obstacleWeight = (obstacleDist / safeRange);
+            if (!pathBlocked) {
+                aiBestMoveDir.set(aiDesiredDir);
+                aiSlideDirs.put(id, 0);
+            } else {
+                int currentSlide = aiSlideDirs.getOrDefault(id, 0);
 
-                float headingBonus = aiRayDir.dot(currentHeading) * 0.4f;
+                float bestScore = -1000f;
+                int chosenRayIndex = 5;
 
-                float score = targetDot + (obstacleWeight * 3.0f) + headingBonus;
+                for (int i = 0; i < 11; i++) {
+                    if (currentSlide == -1 && i > 5) continue;
+                    if (currentSlide == 1 && i < 5) continue;
 
-                if (score > bestScore) {
-                    bestScore = score;
-                    aiBestMoveDir.set(aiRayDir);
+                    float angle = (i - 5) * 15f;
+                    aiRayDir.set(aiDesiredDir).rotate(Vector3.Y, angle);
+
+                    float obstacleDist = safeRange;
+
+                    if (ai.avoidObstacles) {
+                        Vector3 rayEnd = new Vector3(aiCurrentPos).add(aiRayDir.x * safeRange, 0, aiRayDir.z * safeRange);
+                        com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback callback =
+                                new com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback(aiCurrentPos, rayEnd);
+
+                        dynamicsWorld.rayTest(aiCurrentPos, rayEnd, callback);
+
+                        if (callback.hasHit()) {
+                            com.badlogic.gdx.physics.bullet.collision.btCollisionObject hitObject = callback.getCollisionObject();
+                            String hitId = "";
+                            for (Map.Entry<String, btRigidBody> pbEntry : physicsBodies.entrySet()) {
+                                if (pbEntry.getValue().equals(hitObject)) {
+                                    hitId = pbEntry.getKey();
+                                    break;
+                                }
+                            }
+                            if (!hitId.equals(ai.targetId) && !hitId.equals(id)) {
+                                Vector3 hitPoint = new Vector3();
+                                callback.getHitPointWorld(hitPoint);
+                                obstacleDist = aiCurrentPos.dst(hitPoint);
+                            }
+                        }
+                        callback.dispose();
+                    }
+
+                    Array<DeadEndZone> deadEnds = aiDeadEnds.get(id);
+                    if (deadEnds != null) {
+                        for (DeadEndZone zone : deadEnds) {
+                            float distToZone = aiCurrentPos.dst(zone.position);
+                            if (distToZone < safeRange * 1.5f) {
+                                tmpVec.set(zone.position).sub(aiCurrentPos);
+                                float projection = tmpVec.dot(aiRayDir);
+
+                                if (projection > 0) {
+                                    float distSq = tmpVec.len2() - (projection * projection);
+                                    float radiusSq = zone.radius * zone.radius;
+
+                                    if (distSq < radiusSq) {
+                                        float intersectionDist = projection - (float) Math.sqrt(radiusSq - distSq);
+                                        if (intersectionDist > 0 && intersectionDist < obstacleDist) {
+                                            obstacleDist = intersectionDist;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    float targetDot = aiRayDir.dot(aiDesiredDir);
+                    float obstacleWeight = (obstacleDist / safeRange);
+                    float headingBonus = aiRayDir.dot(currentHeading) * 0.4f;
+
+                    float score = targetDot + (obstacleWeight * 2.5f) + headingBonus;
+
+                    if (score > bestScore) {
+                        bestScore = score;
+                        aiBestMoveDir.set(aiRayDir);
+                        chosenRayIndex = i;
+                    }
+                }
+
+                if (currentSlide == 0) {
+                    if (chosenRayIndex < 5) {
+                        aiSlideDirs.put(id, -1);
+                    } else if (chosenRayIndex > 5) {
+                        aiSlideDirs.put(id, 1);
+                    }
                 }
             }
 
             Vector3 smoothedDir = aiSmoothedDirection.computeIfAbsent(id, k -> new Vector3(aiBestMoveDir));
-            smoothedDir.lerp(aiBestMoveDir, delta * 6f).nor();
+            smoothedDir.lerp(aiBestMoveDir, delta * 3.0f).nor();
 
             ai.currentVelocity.lerp(new Vector3(smoothedDir).scl(ai.speed), delta * 4f);
 
             aiStepPos.set(ai.currentVelocity).nor().scl(0.6f);
             aiStepPos.add(aiCurrentPos).add(0, ai.stepHeight, 0);
 
-            aiRayDir.set(0, -ai.stepHeight * 2.5f, 0);
-            castRay(aiStepPos, aiRayDir, aiRayResult);
+            float rayLength = ai.stepHeight * 2.5f;
+            Vector3 rayEnd = new Vector3(aiStepPos).add(0, -rayLength, 0);
+
+            com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback floorCallback =
+                    new com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback(aiStepPos, rayEnd);
+
+            dynamicsWorld.rayTest(aiStepPos, rayEnd, floorCallback);
 
             float jumpVel = 0;
-            if (aiRayResult.hasHit) {
-                float floorY = aiRayResult.hitPoint.y;
-                if (floorY > aiCurrentPos.y + 0.1f) jumpVel = 5f;
-                else if (floorY < aiCurrentPos.y - 0.2f) jumpVel = -5f;
+            if (floorCallback.hasHit()) {
+                Vector3 hitPoint = new Vector3();
+                floorCallback.getHitPointWorld(hitPoint);
+                float floorY = hitPoint.y;
+                if (floorY > aiCurrentPos.y + 0.1f) {
+                    jumpVel = 5f;
+                } else if (floorY < aiCurrentPos.y - 0.2f) {
+                    jumpVel = -5f;
+                }
             }
+            floorCallback.dispose();
 
-            float targetYaw = (float) Math.toDegrees(Math.atan2(ai.currentVelocity.x, ai.currentVelocity.z));
-            instance.transform.getRotation(tmpRot, true);
-            float lerpYaw = MathUtils.lerpAngleDeg(tmpRot.getYaw(), targetYaw, delta * 6f);
-            Quaternion finalRot = new Quaternion().setEulerAngles(lerpYaw, 0, 0);
+            float speedSq = ai.currentVelocity.len2();
+            Quaternion finalRot = new Quaternion();
+            if (speedSq > 0.01f) {
+                float targetYaw = (float) Math.toDegrees(Math.atan2(ai.currentVelocity.x, ai.currentVelocity.z));
+                float currentYaw = aiCurrentYaws.getOrDefault(id, targetYaw);
+                float lerpYaw = MathUtils.lerpAngleDeg(currentYaw, targetYaw, delta * 3.5f);
+                aiCurrentYaws.put(id, lerpYaw);
+                finalRot.setEulerAngles(lerpYaw, 0, 0);
+            } else {
+                float lastYaw = aiCurrentYaws.getOrDefault(id, 0f);
+                finalRot.setEulerAngles(lastYaw, 0, 0);
+            }
 
             btRigidBody body = physicsBodies.get(id);
             if (body != null && body.getInvMass() > 0) {
                 body.activate();
                 body.setLinearVelocity(new Vector3(ai.currentVelocity.x, jumpVel != 0 ? jumpVel : body.getLinearVelocity().y, ai.currentVelocity.z));
+
                 Matrix4 m = body.getWorldTransform();
-                m.set(aiCurrentPos, finalRot);
+                Vector3 currentPhysicsPos = new Vector3();
+                m.getTranslation(currentPhysicsPos);
+                m.set(currentPhysicsPos, finalRot);
                 body.setWorldTransform(m);
+
+                if (instance != null) {
+                    Quaternion visualRot = new Quaternion(finalRot);
+                    Quaternion offset = modelRotationOffsets.get(id);
+                    if (offset != null) {
+                        visualRot.mul(offset);
+                    }
+                    instance.transform.getScale(tmpScale);
+                    instance.transform.set(currentPhysicsPos, visualRot, tmpScale);
+                }
             } else {
                 aiCurrentPos.add(ai.currentVelocity.x * delta, jumpVel * delta, ai.currentVelocity.z * delta);
-                instance.transform.set(aiCurrentPos, finalRot, instance.transform.getScale(tmpScale));
+
+                Quaternion visualRot = new Quaternion(finalRot);
+                Quaternion offset = modelRotationOffsets.get(id);
+                if (offset != null) {
+                    visualRot.mul(offset);
+                }
+                instance.transform.set(aiCurrentPos, visualRot, instance.transform.getScale(tmpScale));
+            }
+
+            if (!aiBacktrackTarget.containsKey(id)) {
+                Array<Vector3> history = aiPathHistory.computeIfAbsent(id, k -> new Array<>());
+                if (history.size == 0 || history.peek().dst(aiCurrentPos) > 1.5f) {
+                    history.add(new Vector3(aiCurrentPos));
+                    if (history.size > 50) history.removeIndex(0);
+                }
             }
         }
+    }
+
+    public boolean hasActiveAI(String objectId) {
+        return activeAIs.containsKey(objectId);
     }
 
 
@@ -3058,14 +3352,16 @@ public class ThreeDManager implements Disposable {
                 if (!isManagedBySceneManager) {
                     ModelInstance instance = sceneObjects.get(objectId);
                     if (instance != null && !body.isStaticObject() && body.isActive()) {
-
                         Matrix4 bodyTransform = body.getWorldTransform();
-
                         bodyTransform.getTranslation(tmpPos);
                         bodyTransform.getRotation(tmpRot, true);
 
-                        instance.transform.getScale(tmpScale);
+                        Quaternion offset = modelRotationOffsets.get(objectId);
+                        if (offset != null) {
+                            tmpRot.mul(offset);
+                        }
 
+                        instance.transform.getScale(tmpScale);
                         instance.transform.set(tmpPos, tmpRot, tmpScale);
                     }
                 }
@@ -4221,6 +4517,33 @@ public class ThreeDManager implements Disposable {
         return (result != null) ? result.hitDistance : -1.0f;
     }
 
+    public void setModelRotationOffset(String objectId, float yaw, float pitch, float roll) {
+        modelRotationOffsets.put(objectId, new Quaternion().setEulerAngles(yaw, pitch, roll));
+
+        ModelInstance instance = sceneObjects.get(objectId);
+        if (instance != null) {
+            Vector3 pos = new Vector3();
+            Quaternion rot = new Quaternion();
+            Vector3 scale = new Vector3();
+            instance.transform.getTranslation(pos);
+            instance.transform.getScale(scale);
+
+            btRigidBody body = physicsBodies.get(objectId);
+            if (body != null) {
+                body.getWorldTransform().getRotation(rot, true);
+            } else {
+                instance.transform.getRotation(rot, true);
+            }
+
+            Quaternion offset = modelRotationOffsets.get(objectId);
+            if (offset != null) {
+                rot.mul(offset);
+            }
+            instance.transform.set(pos, rot, scale);
+            instance.calculateTransforms();
+        }
+    }
+
     public void setRotation(String objectId, Quaternion newRotation) {
         ModelInstance instance = sceneObjects.get(objectId);
         if (instance == null) return;
@@ -4229,7 +4552,13 @@ public class ThreeDManager implements Disposable {
         instance.transform.getTranslation(position);
         Vector3 scale = new Vector3();
         instance.transform.getScale(scale);
-        instance.transform.set(position, newRotation, scale);
+
+        Quaternion visualRotation = new Quaternion(newRotation);
+        Quaternion offset = modelRotationOffsets.get(objectId);
+        if (offset != null) {
+            visualRotation.mul(offset);
+        }
+        instance.transform.set(position, visualRotation, scale);
 
         btRigidBody body = physicsBodies.get(objectId);
         if (body != null && !editorMode) {
@@ -6057,15 +6386,19 @@ public class ThreeDManager implements Disposable {
         }
 
         if (instance != null) {
-            instance.transform.set(worldTransform);
-            instance.calculateTransforms();
-            if (LOG_THREED_MANAGER_DEBUG) {
-                Vector3 modelPos = new Vector3();
-                instance.transform.getTranslation(modelPos);
-                Log.d("TDM_DEBUG", "    [SetWorldTrans] ModelInstance '" + objectId + "' set to Pos: " + modelPos);
+            Vector3 position = new Vector3();
+            Quaternion rotation = new Quaternion();
+            Vector3 scale = new Vector3();
+            worldTransform.getTranslation(position);
+            worldTransform.getRotation(rotation, true);
+            worldTransform.getScale(scale);
+
+            Quaternion offset = modelRotationOffsets.get(objectId);
+            if (offset != null) {
+                rotation.mul(offset);
             }
-        } else {
-            if (LOG_THREED_MANAGER_DEBUG) Log.w("TDM_DEBUG", "    [SetWorldTrans] ModelInstance for '" + objectId + "' not found. Skipping model update.");
+            instance.transform.set(position, rotation, scale);
+            instance.calculateTransforms();
         }
 
         btRigidBody body = physicsBodies.get(objectId);
@@ -6086,14 +6419,6 @@ public class ThreeDManager implements Disposable {
             if (body.isStaticObject() || body.isKinematicObject()) {
                 dynamicsWorld.updateSingleAabb(body);
             }
-            if (LOG_THREED_MANAGER_DEBUG) {
-                Vector3 physicsPos = new Vector3();
-                body.getWorldTransform().getTranslation(physicsPos);
-                Log.d("TDM_DEBUG", "    [SetWorldTrans] Physics body '" + objectId + "' set to Pos: " + physicsPos);
-            }
-        } else {
-            if (LOG_THREED_MANAGER_DEBUG && body == null) Log.w("TDM_DEBUG", "    [SetWorldTrans] Physics body for '" + objectId + "' not found. Skipping physics update.");
-            else if (LOG_THREED_MANAGER_DEBUG && editorMode) Log.d("TDM_DEBUG", "    [SetWorldTrans] In editor mode, skipping physics update for '" + objectId + "'.");
         }
     }
 
@@ -6217,6 +6542,13 @@ public class ThreeDManager implements Disposable {
         gltfObjectIds.clear();
         rayCastResults.clear();
         cameraAttachments.clear();
+        aiPathHistory.clear();
+        aiDeadEnds.clear();
+        aiLastTargetPos.clear();
+        aiBacktrackTarget.clear();
+        modelRotationOffsets.clear();
+        aiSlideDirs.clear();
+        aiCurrentYaws.clear();
 
         cameraTargetId = null;
         cameraYaw = 0f;

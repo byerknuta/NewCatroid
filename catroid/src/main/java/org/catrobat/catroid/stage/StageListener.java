@@ -101,6 +101,8 @@ import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.content.Script;
 import org.catrobat.catroid.content.SoundBackup;
 import org.catrobat.catroid.content.Sprite;
+import org.catrobat.catroid.content.SquareActor;
+import org.catrobat.catroid.content.SquareController;
 import org.catrobat.catroid.content.VmMonitorActor;
 import org.catrobat.catroid.content.WhenNotificationActionTriggeredScript;
 import org.catrobat.catroid.content.WhenNotificationClickedScript;
@@ -357,6 +359,9 @@ public class StageListener implements ApplicationListener {
             axes.dispose();
             axes = null;
         }
+
+        SquareController.getInstance().clearSquares();
+        SquareActor.disposeShared();
 
         brightnessContrastHueShader = new Look.BrightnessContrastHueShader();
         shapeRenderer = new ShapeRenderer();
@@ -1331,6 +1336,8 @@ public class StageListener implements ApplicationListener {
 			threeDManager.dispose();
 		}
 		threeDManager = null;
+        SquareController.getInstance().clearSquares();
+        SquareActor.disposeShared();
 
         if (sceneManager != null) {
             sceneManager.clearScene();
@@ -2090,6 +2097,9 @@ public class StageListener implements ApplicationListener {
 		if (postProcessShader != null) {
 			postProcessShader.dispose();
 		}
+
+        SquareController.getInstance().clearSquares();
+        SquareActor.disposeShared();
 
 		StageActivity stageActivity = StageActivity.activeStageActivity.get();
 		if (stageActivity != null) {

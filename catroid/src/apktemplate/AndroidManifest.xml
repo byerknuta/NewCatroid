@@ -7,6 +7,13 @@
             android:name="org.catrobat.catroid.ui.MainMenuActivity"
             android:theme="@style/AppTheme.ApkTemplate.Splash"
             tools:replace="android:theme" />
+
+        <activity
+            android:name="org.catrobat.catroid.ui.ProjectListActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustNothing"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            tools:node="replace" />
     </application>
 
 </manifest>

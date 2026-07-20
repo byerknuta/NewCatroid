@@ -84,6 +84,7 @@ import org.catrobat.catroid.ui.workspace.WorkspaceLayout;
 import org.catrobat.catroid.utils.SnackbarUtil;
 import org.catrobat.catroid.utils.ToastUtil;
 import org.catrobat.catroid.utils.Utils;
+import org.catrobat.catroid.visualplacement.VisualPlacementActivity;
 
 import java.io.File;
 import java.io.IOException;
@@ -519,27 +520,47 @@ public class SpriteActivity extends BaseActivity {
             Sprite currentSprite = ProjectManager.getInstance().getCurrentSprite();
             boolean isNotBackground = !currentSprite.equals(currentScene.getBackgroundSprite());
 
-            if (isNotBackground) {
-                boolean hasDirectionBrick = false;
-                boolean hasSizeBrick = false;
+            if (isNotBackground && parentScript != null) {
+                boolean isVariable = extras.getBoolean(VisualPlacementActivity.EXTRA_IS_VARIABLE, false);
+                boolean rotationChanged = extras.getBoolean(VisualPlacementActivity.EXTRA_ROTATION_CHANGED, false);
+                boolean sizeChanged = extras.getBoolean(VisualPlacementActivity.EXTRA_SIZE_CHANGED, false);
 
-                for (Brick b : parentScript.getBrickList()) {
-                    if (b instanceof PointInDirectionBrick) {
-                        hasDirectionBrick = true;
+                if (!isVariable) {
+                    PointInDirectionBrick existingDirectionBrick = null;
+                    SetSizeToBrick existingSizeBrick = null;
+
+                    for (Brick b : parentScript.getBrickList()) {
+                        if (b instanceof PointInDirectionBrick) {
+                            existingDirectionBrick = (PointInDirectionBrick) b;
+                        }
+                        if (b instanceof SetSizeToBrick) {
+                            existingSizeBrick = (SetSizeToBrick) b;
+                        }
                     }
-                    if (b instanceof SetSizeToBrick) {
-                        hasSizeBrick = true;
+
+                    int insertionPoint = parentScript.getBrickList().indexOf(visualBrick) + 1;
+
+                    if (existingDirectionBrick != null) {
+                        if (rotationChanged) {
+                            int index = parentScript.getBrickList().indexOf(existingDirectionBrick);
+                            parentScript.getBrickList().set(index, new PointInDirectionBrick(rotation + 90));
+                        }
+                    } else {
+                        if (rotationChanged) {
+                            parentScript.addBrick(insertionPoint++, new PointInDirectionBrick(rotation + 90));
+                        }
                     }
-                }
 
-                int insertionPoint = parentScript.getBrickList().indexOf(visualBrick) + 1;
-
-                if (!hasDirectionBrick) {
-                    parentScript.addBrick(insertionPoint++, new PointInDirectionBrick(rotation + 90));
-                }
-
-                if (!hasSizeBrick) {
-                    parentScript.addBrick(insertionPoint, new SetSizeToBrick(size));
+                    if (existingSizeBrick != null) {
+                        if (sizeChanged) {
+                            int index = parentScript.getBrickList().indexOf(existingSizeBrick);
+                            parentScript.getBrickList().set(index, new SetSizeToBrick(size));
+                        }
+                    } else {
+                        if (sizeChanged) {
+                            parentScript.addBrick(insertionPoint, new SetSizeToBrick(size));
+                        }
+                    }
                 }
             }
 

@@ -29,6 +29,12 @@ class SquareActor(
             }
             return sharedShapeRenderer!!
         }
+
+        @JvmStatic
+        fun disposeShared() {
+            sharedShapeRenderer?.dispose()
+            sharedShapeRenderer = null
+        }
     }
 
     init {

@@ -1039,6 +1039,7 @@
 
     <!-- Physics States & Colliders -->
     <string-array name="editor_3d_physics_states">
+        <item>Без физики</item>
         <item>Статическое (Неподвижное)</item>
         <item>Динамическое (Физическое)</item>
         <item>Сложное статическое (повторяет форму)</item>
@@ -1776,7 +1777,7 @@
         <item>Перейти ко времени</item>
     </string-array>
     <!-- New Objects -->
-    <string formatted="false" name="brick_square">Создать квадрат</string>
+    <string formatted="false" name="brick_square">Создать квадрат / прямоугольник</string>
     <string formatted="false" name="brick_square_name">Название</string>
     <string formatted="false" name="brick_square_pos">Позиция (X, Y)</string>
     <string formatted="false" name="brick_square_size">Ширина, Высота</string>

@@ -406,6 +406,104 @@ public class Sprite implements Nameable, Serializable {
 		runningStitch = null;
 	}
 
+    public static void resolveSpriteReferences(Sprite sprite, Project project) {
+        if (sprite == null || project == null) {
+            return;
+        }
+        java.util.Set<Object> visited = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+
+        for (Script script : sprite.getScriptList()) {
+            if (script == null) continue;
+            List<Brick> bricks = new ArrayList<>();
+            script.addToFlatList(bricks);
+            if (script.getScriptBrick() != null) {
+                bricks.add(script.getScriptBrick());
+            }
+            for (Brick brick : bricks) {
+                resolveReferencesRecursive(brick, sprite, project, visited);
+            }
+        }
+    }
+
+    private static void resolveReferencesRecursive(Object obj, Sprite sprite, Project project, java.util.Set<Object> visited) {
+        if (obj == null || visited.contains(obj)) return;
+        visited.add(obj);
+
+        Class<?> clazz = obj.getClass();
+        while (clazz != null && !clazz.getName().startsWith("java.") && !clazz.getName().startsWith("android.")) {
+            java.lang.reflect.Field[] fields = clazz.getDeclaredFields();
+            for (java.lang.reflect.Field field : fields) {
+                try {
+                    field.setAccessible(true);
+                    Object val = field.get(obj);
+                    if (val == null) continue;
+
+                    if (val instanceof UserVariable) {
+                        UserVariable oldVar = (UserVariable) val;
+                        UserVariable activeVar = findOrCreateUserVariable(oldVar, sprite, project);
+                        field.set(obj, activeVar);
+                    } else if (val instanceof UserList) {
+                        UserList oldList = (UserList) val;
+                        UserList activeList = findOrCreateUserList(oldList, sprite, project);
+                        field.set(obj, activeList);
+                    } else if (val instanceof Iterable) {
+                        for (Object item : (Iterable<?>) val) {
+                            if (item != null) {
+                                if (item instanceof UserVariable || item instanceof UserList) {
+                                    resolveReferencesRecursive(obj, sprite, project, visited);
+                                } else {
+                                    resolveReferencesRecursive(item, sprite, project, visited);
+                                }
+                            }
+                        }
+                    } else {
+                        String className = val.getClass().getName();
+                        if (className.startsWith("org.catrobat.catroid")) {
+                            resolveReferencesRecursive(val, sprite, project, visited);
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+            clazz = clazz.getSuperclass();
+        }
+    }
+
+    private static UserVariable findOrCreateUserVariable(UserVariable oldVar, Sprite sprite, Project project) {
+        for (UserVariable v : sprite.getUserVariables()) {
+            if (v.getName().equals(oldVar.getName())) {
+                return v;
+            }
+        }
+        for (UserVariable v : project.getUserVariables()) {
+            if (v.getName().equals(oldVar.getName())) {
+                return v;
+            }
+        }
+        for (UserVariable v : project.getMultiplayerVariables()) {
+            if (v.getName().equals(oldVar.getName())) {
+                return v;
+            }
+        }
+        sprite.addUserVariable(oldVar);
+        return oldVar;
+    }
+
+    private static UserList findOrCreateUserList(UserList oldList, Sprite sprite, Project project) {
+        for (UserList l : sprite.getUserLists()) {
+            if (l.getName().equals(oldList.getName())) {
+                return l;
+            }
+        }
+        for (UserList l : project.getUserLists()) {
+            if (l.getName().equals(oldList.getName())) {
+                return l;
+            }
+        }
+        sprite.addUserList(oldList);
+        return oldList;
+    }
+
     public void initConditionScriptTriggers() {
         conditionScriptTriggers.clear();
         for (Script script : scriptList) {
@@ -806,22 +904,24 @@ public class Sprite implements Nameable, Serializable {
 		return this.embroideryThreadColor;
 	}
 
-	public Sprite(Sprite sprite, Scene destinationScene) throws IOException {
-		try {
-			copyLooksAndSounds(sprite, destinationScene, false);
-		} catch (IOException e) {
-			Log.e(TAG, Log.getStackTraceString(e));
-			throw e;
-		}
-		this.scriptList.addAll(sprite.scriptList);
-		this.nfcTagList.addAll(sprite.nfcTagList);
-		this.userVariables.addAll(sprite.userVariables);
-		this.userLists.addAll(sprite.userLists);
-		this.userDefinedBrickList.addAll(sprite.userDefinedBrickList);
-		sprite.look.copyTo(this.look);
-		this.myOriginal = sprite;
-		this.name = sprite.getName();
-	}
+    public Sprite(Sprite sprite, Scene destinationScene) throws IOException {
+        try {
+            copyLooksAndSounds(sprite, destinationScene, false);
+        } catch (IOException e) {
+            Log.e(TAG, Log.getStackTraceString(e));
+            throw e;
+        }
+        this.scriptList.addAll(sprite.scriptList);
+        this.nfcTagList.addAll(sprite.nfcTagList);
+        this.userVariables.addAll(sprite.userVariables);
+        this.userLists.addAll(sprite.userLists);
+        this.userDefinedBrickList.addAll(sprite.userDefinedBrickList);
+        sprite.look.copyTo(this.look);
+        this.myOriginal = sprite;
+        this.name = sprite.getName();
+
+        resolveSpriteReferences(this, destinationScene.getProject());
+    }
 
 	private void copyLooksAndSounds(Sprite sprite, Scene destinationScene,
 			boolean setUniqueName) throws IOException {
@@ -863,29 +963,30 @@ public class Sprite implements Nameable, Serializable {
 		}
 	}
 
-	public void mergeSprites(Sprite sprite, Scene destinationScene) throws IOException {
-		try {
-			copyLooksAndSounds(sprite, destinationScene, true);
-		} catch (IOException e) {
-			Log.e(TAG, Log.getStackTraceString(e));
-			throw e;
-		}
-		this.scriptList.addAll(sprite.scriptList);
-		this.nfcTagList.addAll(sprite.nfcTagList);
+    public void mergeSprites(Sprite sprite, Scene destinationScene) throws IOException {
+        try {
+            copyLooksAndSounds(sprite, destinationScene, true);
+        } catch (IOException e) {
+            Log.e(TAG, Log.getStackTraceString(e));
+            throw e;
+        }
+        this.scriptList.addAll(sprite.scriptList);
+        this.nfcTagList.addAll(sprite.nfcTagList);
 
-		for (UserVariable userVariable: sprite.userVariables) {
-			if (!this.userVariables.contains(userVariable)) {
-				this.userVariables.add(userVariable);
-			}
-		}
-		for (UserList userlist: sprite.userLists) {
-			if (!this.userLists.contains(userlist)) {
-				this.userLists.add(userlist);
-			}
-		}
+        for (UserVariable userVariable: sprite.userVariables) {
+            if (!this.userVariables.contains(userVariable)) {
+                this.userVariables.add(userVariable);
+            }
+        }
+        for (UserList userlist: sprite.userLists) {
+            if (!this.userLists.contains(userlist)) {
+                this.userLists.add(userlist);
+            }
+        }
 
-		this.userDefinedBrickList.addAll(sprite.userDefinedBrickList);
-	}
+        this.userDefinedBrickList.addAll(sprite.userDefinedBrickList);
+        resolveSpriteReferences(this, destinationScene.getProject());
+    }
 
 	public UserDefinedScript getUserDefinedScript(UUID userDefinedBrickId) {
 		for (Script script : scriptList) {

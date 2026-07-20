@@ -66,7 +66,7 @@ class GlobalAnalysisContext {
                         }
                     }
                 }
-            } catch (e: Exception) {
+            } catch (t: Throwable) {
             }
 
             return context

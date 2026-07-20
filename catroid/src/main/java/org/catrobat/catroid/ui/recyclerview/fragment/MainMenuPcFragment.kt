@@ -68,6 +68,8 @@ class MainMenuPcFragment : Fragment(), View.OnClickListener, ProjectLoadListener
     override fun onResume() {
         super.onResume()
 
+        (activity as? androidx.appcompat.app.AppCompatActivity)?.supportActionBar?.setTitle(R.string.app_name)
+
         loadCurrentProjectData()
     }
 

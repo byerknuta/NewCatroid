@@ -18,14 +18,17 @@ public class Set3dRotationAction extends TemporalAction {
         if (threeDManager == null) return;
 
         try {
-
             String id = objectId.interpretString(scope);
 
             float yAngle = yaw.interpretFloat(scope);
             float pAngle = pitch.interpretFloat(scope);
             float rAngle = roll.interpretFloat(scope);
 
-            threeDManager.setRotation(id, yAngle, pAngle, rAngle);
+            if (threeDManager.hasActiveAI(id)) {
+                threeDManager.setModelRotationOffset(id, yAngle, pAngle, rAngle);
+            } else {
+                threeDManager.setRotation(id, yAngle, pAngle, rAngle);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

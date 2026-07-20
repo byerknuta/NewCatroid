@@ -402,25 +402,46 @@ class ProjectActivity : BaseCastActivity() {
             val isNotBackground = currentSprite != projectManager.currentlyEditedScene.backgroundSprite
 
             if (isNotBackground && parentScript != null) {
-                var hasDirectionBrick = false
-                var hasSizeBrick = false
+                val isVariable = extras.getBoolean(VisualPlacementActivity.EXTRA_IS_VARIABLE, false)
+                val rotationChanged = extras.getBoolean(VisualPlacementActivity.EXTRA_ROTATION_CHANGED, false)
+                val sizeChanged = extras.getBoolean(VisualPlacementActivity.EXTRA_SIZE_CHANGED, false)
 
-                for (b in parentScript.brickList) {
-                    if (b is org.catrobat.catroid.content.bricks.PointInDirectionBrick) {
-                        hasDirectionBrick = true
+                if (!isVariable) {
+                    var existingDirectionBrick: PointInDirectionBrick? = null
+                    var existingSizeBrick: SetSizeToBrick? = null
+
+                    for (b in parentScript.brickList) {
+                        if (b is PointInDirectionBrick) {
+                            existingDirectionBrick = b
+                        }
+                        if (b is SetSizeToBrick) {
+                            existingSizeBrick = b
+                        }
                     }
-                    if (b is org.catrobat.catroid.content.bricks.SetSizeToBrick) {
-                        hasSizeBrick = true
+
+                    var insertionPoint = parentScript.brickList.indexOf(visualBrick) + 1
+
+                    if (existingDirectionBrick != null) {
+                        if (rotationChanged) {
+                            val index = parentScript.brickList.indexOf(existingDirectionBrick)
+                            parentScript.brickList.set(index, PointInDirectionBrick(Formula(rotation + 90)))
+                        }
+                    } else {
+                        if (rotationChanged) {
+                            parentScript.addBrick(insertionPoint++, PointInDirectionBrick(Formula(rotation + 90)))
+                        }
                     }
-                }
 
-                var insertionPoint = parentScript.brickList.indexOf(visualBrick) + 1
-
-                if (!hasDirectionBrick) {
-                    parentScript.addBrick(insertionPoint++, PointInDirectionBrick(Formula(rotation + 90)))
-                }
-                if (!hasSizeBrick) {
-                    parentScript.addBrick(insertionPoint, SetSizeToBrick(Formula(size)))
+                    if (existingSizeBrick != null) {
+                        if (sizeChanged) {
+                            val index = parentScript.brickList.indexOf(existingSizeBrick)
+                            parentScript.brickList.set(index, SetSizeToBrick(Formula(size)))
+                        }
+                    } else {
+                        if (sizeChanged) {
+                            parentScript.addBrick(insertionPoint, SetSizeToBrick(Formula(size)))
+                        }
+                    }
                 }
             }
 
