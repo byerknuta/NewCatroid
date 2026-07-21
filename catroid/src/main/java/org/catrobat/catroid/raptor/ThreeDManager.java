@@ -4552,13 +4552,7 @@ public class ThreeDManager implements Disposable {
         instance.transform.getTranslation(position);
         Vector3 scale = new Vector3();
         instance.transform.getScale(scale);
-
-        Quaternion visualRotation = new Quaternion(newRotation);
-        Quaternion offset = modelRotationOffsets.get(objectId);
-        if (offset != null) {
-            visualRotation.mul(offset);
-        }
-        instance.transform.set(position, visualRotation, scale);
+        instance.transform.set(position, newRotation, scale);
 
         btRigidBody body = physicsBodies.get(objectId);
         if (body != null && !editorMode) {
@@ -6386,19 +6380,15 @@ public class ThreeDManager implements Disposable {
         }
 
         if (instance != null) {
-            Vector3 position = new Vector3();
-            Quaternion rotation = new Quaternion();
-            Vector3 scale = new Vector3();
-            worldTransform.getTranslation(position);
-            worldTransform.getRotation(rotation, true);
-            worldTransform.getScale(scale);
-
-            Quaternion offset = modelRotationOffsets.get(objectId);
-            if (offset != null) {
-                rotation.mul(offset);
-            }
-            instance.transform.set(position, rotation, scale);
+            instance.transform.set(worldTransform);
             instance.calculateTransforms();
+            if (LOG_THREED_MANAGER_DEBUG) {
+                Vector3 modelPos = new Vector3();
+                instance.transform.getTranslation(modelPos);
+                Log.d("TDM_DEBUG", "    [SetWorldTrans] ModelInstance '" + objectId + "' set to Pos: " + modelPos);
+            }
+        } else {
+            if (LOG_THREED_MANAGER_DEBUG) Log.w("TDM_DEBUG", "    [SetWorldTrans] ModelInstance for '" + objectId + "' not found. Skipping model update.");
         }
 
         btRigidBody body = physicsBodies.get(objectId);
@@ -6419,6 +6409,14 @@ public class ThreeDManager implements Disposable {
             if (body.isStaticObject() || body.isKinematicObject()) {
                 dynamicsWorld.updateSingleAabb(body);
             }
+            if (LOG_THREED_MANAGER_DEBUG) {
+                Vector3 physicsPos = new Vector3();
+                body.getWorldTransform().getTranslation(physicsPos);
+                Log.d("TDM_DEBUG", "    [SetWorldTrans] Physics body '" + objectId + "' set to Pos: " + physicsPos);
+            }
+        } else {
+            if (LOG_THREED_MANAGER_DEBUG && body == null) Log.w("TDM_DEBUG", "    [SetWorldTrans] Physics body for '" + objectId + "' not found. Skipping physics update.");
+            else if (LOG_THREED_MANAGER_DEBUG && editorMode) Log.d("TDM_DEBUG", "    [SetWorldTrans] In editor mode, skipping physics update for '" + objectId + "'.");
         }
     }
 
