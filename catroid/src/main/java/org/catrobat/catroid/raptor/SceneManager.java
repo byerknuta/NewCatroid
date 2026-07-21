@@ -986,6 +986,9 @@ public class SceneManager {
     }
 
     public GameObject findGameObject(String id) {
+        if (id == null) {
+            return null;
+        }
         return gameObjects.get(id);
     }
 
