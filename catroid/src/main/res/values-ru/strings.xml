@@ -1776,6 +1776,7 @@
         <item>Остановить</item>
         <item>Перейти ко времени</item>
     </string-array>
+
     <!-- New Objects -->
     <string formatted="false" name="brick_square">Создать квадрат / прямоугольник</string>
     <string formatted="false" name="brick_square_name">Название</string>

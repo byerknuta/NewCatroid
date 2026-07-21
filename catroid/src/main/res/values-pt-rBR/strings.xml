@@ -22,6 +22,2010 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- 3D Models & Logging -->
+    <string name="brick_replace_3d_model_title">Substituir modelo 3D</string>
+    <string name="brick_replace_3d_model_object">ID do objeto</string>
+    <string name="brick_replace_3d_model_model">Arquivo de modelo</string>
+    <string name="project_options_disable_scientific_notation">Desativar notação científica</string>
+    <string name="debug_menu_start_record">Iniciar gravação de logs</string>
+    <string name="debug_menu_stop_record">Parar e exportar relatório</string>
+    <string name="share_report_title">Compartilhar log de depuração</string>
+    <string name="log_recording_started">Gravação de logs iniciada em segundo plano</string>
+    <string name="search_files_hint">Buscar arquivos...</string>
+    <string name="no_files_found">Nenhum arquivo encontrado no projeto</string>
+    <string name="dialog_project_files_title">Arquivos do projeto</string>
+    <string name="apk_build_error_invalide_package">Nome de pacote inválido. Deve ter pelo menos dois segmentos separados por ponto (ex: com.exemplo.app). Cada segmento deve começar com uma letra latina e não usar palavras-chave do Java.</string>
+
+    <!-- Spritesheet & GIF -->
+    <string formatted="false" name="brick_play_spritesheet_title">Animar spritesheet</string>
+    <string formatted="false" name="brick_play_spritesheet_grid">Grade (linhas x colunas):</string>
+    <string formatted="false" name="brick_play_spritesheet_row">Índice da linha (de 0)</string>
+    <string formatted="false" name="brick_play_spritesheet_frames">Total de quadros</string>
+    <string formatted="false" name="brick_play_spritesheet_speed">Duração do quadro (s)</string>
+    <string formatted="false" name="brick_stop_spritesheet_title">Aparências: Parar spritesheet</string>
+    <string formatted="false" name="brick_play_gif_title">Iniciar GIF (do projeto)</string>
+    <string formatted="false" name="brick_stop_gif_title">Parar GIF</string>
+
+    <!-- Corner Offsets -->
+    <string name="brick_set_corner_offsets_title">Deslocamento de cantos</string>
+    <string name="brick_set_corner_offsets_top_left">Sup. esquerdo (X, Y)</string>
+    <string name="brick_set_corner_offsets_top_right">Sup. direito (X, Y)</string>
+    <string name="brick_set_corner_offsets_bottom_right">Inf. direito (X, Y)</string>
+    <string name="brick_set_corner_offsets_bottom_left">Inf. esquerdo (X, Y)</string>
+
+    <!-- Code Analysis -->
+    <string name="analysis_unused_broadcast_sent">A transmissão «%1$s» é enviada, mas nenhum script a recebe. Verifique o nome ou crie um bloco \"Quando receber transmissão\".</string>
+    <string name="analysis_too_many_commented_bricks">Há blocos desativados demais (%1$d) neste script. Recomendamos removê-los para não poluir o projeto.</string>
+
+    <!-- Formulas & Base64 -->
+    <string formatted="false" name="brick_share_title">Compartilhar</string>
+    <string formatted="false" name="formula_md5">md5</string>
+    <string formatted="false" name="formula_md5_param">(\'texto\')</string>
+    <string formatted="false" name="formula_sha256">sha256</string>
+    <string formatted="false" name="formula_sha256_param">(\'texto\')</string>
+    <string formatted="false" name="formula_file_md5">arquivo_md5</string>
+    <string formatted="false" name="formula_file_md5_param">(\'nome_arquivo\')</string>
+    <string formatted="false" name="formula_file_sha256">arquivo_sha256</string>
+    <string formatted="false" name="formula_file_sha256_param">(\'nome_arquivo\')</string>
+    <string formatted="false" name="brick_base64_to_file_title">Salvar Base64 em arquivo</string>
+    <string formatted="false" name="brick_base64_to_file_string">String Base64</string>
+    <string formatted="false" name="brick_base64_to_file_dest">Nome do arquivo no projeto</string>
+    <string formatted="false" name="formula_file_to_base64">arquivo_para_base64</string>
+    <string formatted="false" name="formula_file_to_base64_param">(\'nome_arquivo\')</string>
+
+    <!-- Cloning & Gravity -->
+    <string formatted="false" name="brick_when_cloned_with_name_title">Quando começar como clone</string>
+    <string formatted="false" name="fast2d_set_gravity">Definir gravidade</string>
+    <string formatted="false" name="fast2d_gravity_x_param">Gravidade X</string>
+    <string formatted="false" name="fast2d_gravity_y_param">Gravidade Y</string>
+
+    <!-- Settings & Interface -->
+    <string name="preference_title_accessibility_interface_scale">Escala da interface</string>
+    <string name="preference_description_accessibility_interface_scale">Altera o tamanho dos blocos, menus e textos</string>
+    <string name="formula_get_object_name" formatted="false">nome_do_objeto</string>
+    <string name="importing_project_dialog_msg">Importando projeto, aguarde...</string>
+    <string name="brick_object_look_at_correct_object">Virar objeto (global)</string>
+    <string name="brick_object_look_at_correct_to">para o ponto</string>
+
+    <!-- Orientations & Permissions -->
+    <string name="orientation_portrait">Retrato</string>
+    <string name="orientation_landscape">Paisagem</string>
+    <string name="orientation_sensor">Auto/Sensor</string>
+    <string name="perm_auto_recommended">Auto (Recomendado)</string>
+    <string name="perm_customize_manually">Ajustar manualmente</string>
+    <string name="perm_internet_short">Internet</string>
+    <string name="perm_storage_short">Armazenamento</string>
+    <string name="perm_camera_short">Câmera</string>
+    <string name="perm_audio_short">Microfone</string>
+    <string name="perm_location_short">Localização</string>
+    <string name="perm_bluetooth_short">Bluetooth</string>
+    <string name="perm_nfc_short">NFC</string>
+    <string name="perm_vibrate_short">Vibração</string>
+    <string name="perm_overlay_short">Sobrepor a outros</string>
+    <string name="perm_background_short">Segundo plano</string>
+
+    <!-- Key & APK Builder -->
+    <string name="success_key_generated">Chave gerada e salva com sucesso!</string>
+    <string name="error_key_failed">Falha ao gerar o arquivo de chave!</string>
+    <string name="apk_builder_title">Configurações do APK Builder</string>
+    <string name="step_format">Passo %1$d de 4: %2$s</string>
+    <string name="step_basic">Básico</string>
+    <string name="step_modules">Módulos e CPU</string>
+    <string name="step_permissions">Permissões</string>
+    <string name="step_signature">Assinatura</string>
+    <string name="build_app_name">Nome do aplicativo</string>
+    <string name="build_package_name">ID do pacote (Package ID)</string>
+    <string name="build_version_name">Versão (Name)</string>
+    <string name="build_version_code">Código da versão (Code)</string>
+    <string name="build_template">Versão do modelo APK</string>
+    <string name="build_orientation">Orientação da tela</string>
+    <string name="build_modules_title">Ativar bibliotecas / módulos</string>
+    <string name="build_cpu_archs">Arquiteturas de CPU</string>
+    <string name="build_permissions_title">Permissões do app</string>
+    <string name="build_signature_title">Assinatura digital</string>
+    <string name="build_auto_debug">Chave de depuração automática</string>
+    <string name="build_custom_keystore">Usar Keystore existente</string>
+    <string name="build_generate_new_title">Gerar nova Keystore</string>
+    <string name="build_gen_alias">Apelido da nova chave (Alias)</string>
+    <string name="build_gen_pass">Senha da nova chave</string>
+    <string name="build_gen_owner">Nome do proprietário (Common Name)</string>
+    <string name="build_btn_generate_save">Gerar e salvar .p12</string>
+    <string name="build_select_keystore">Selecionar Keystore (.jks/.p12)</string>
+    <string name="build_key_alias">Apelido da chave (Alias)</string>
+    <string name="build_key_pass">Senha da Keystore / Chave</string>
+    <string name="btn_back">Voltar</string>
+    <string name="btn_next">Avançar</string>
+    <string name="btn_build">Compilar</string>
+
+    <!-- System Permissions Descriptions -->
+    <string name="perm_internet">Acesso à Internet (INTERNET)</string>
+    <string name="perm_storage">Acesso ao armazenamento (STORAGE)</string>
+    <string name="perm_camera">Uso da câmera (CAMERA)</string>
+    <string name="perm_audio">Gravação de áudio (RECORD_AUDIO)</string>
+    <string name="perm_location">Geolocalização (GPS / LOCATION)</string>
+    <string name="perm_bluetooth">Conexão via Bluetooth</string>
+    <string name="perm_nfc">Conexão via NFC</string>
+    <string name="perm_vibrate">Vibração do dispositivo (VIBRATE)</string>
+    <string name="perm_overlay">Sobrepor a outros apps (SYSTEM_ALERT)</string>
+    <string name="perm_background">Executar em segundo plano (FOREGROUND_SERVICE)</string>
+
+    <!-- Libs & Architectures -->
+    <string name="lib_python_engine">Motor Python</string>
+    <string name="lib_qemu_vm">Máquina Virtual Qemu</string>
+    <string name="lib_compiler">ECJ / D8 (Compilação Java/Python)</string>
+    <string name="lib_ml_kit">ML Kit (Aprendizado de Máquina)</string>
+    <string name="lib_onnx">ONNX Runtime</string>
+    <string name="lib_mnn">Motor MNN</string>
+    <string name="arch_arm64">ARM64 (arm64-v8a)</string>
+    <string name="arch_armv7">ARMv7 (armeabi-v7a)</string>
+
+    <!-- Build Process Status & Errors -->
+    <string name="downloading_template">Baixando modelo de APK...</string>
+    <string name="downloading_template_progress">Baixando modelo... %1$d%%</string>
+    <string name="preparing_project">Limpando dados salvos e preparando projeto...</string>
+    <string name="preparing_apk_structure">Preparando estrutura do APK...</string>
+    <string name="customizing_apk">Personalizando e otimizando o APK...</string>
+    <string name="signing_apk">Assinando digitalmente o APK...</string>
+    <string name="error_download_template">Falha ao baixar o modelo do APK!</string>
+    <string name="error_build_optimization">Erro ao compilar e otimizar o APK!</string>
+    <string name="error_signing_apk">Falha ao assinar o APK compilado!</string>
+    <string name="success_build">Compilação concluída com sucesso!</string>
+    <string name="share_apk_title">Salvar APK compilado: %1$s</string>
+    <string name="no_file_selected">Nenhum arquivo selecionado</string>
+    <string name="keystore_loaded">Arquivo Keystore carregado!</string>
+    <string name="error_load_keystore">Falha ao carregar Keystore: %1$s</string>
+    <string name="error_loading_key">Erro ao carregar chave</string>
+    <string name="generated_path_label">Criado e selecionado</string>
+    <string name="error_fill_required">Todos os campos básicos devem ser preenchidos!</string>
+    <string name="error_select_template">Nenhum modelo selecionado para compilação!</string>
+    <string name="error_fill_keystore">Preencha todos os dados da sua assinatura digital!</string>
+    <string name="error_fill_generation">Preencha todos os campos para gerar a chave!</string>
+    <string name="error_key_generation_needed">Primeiro gere e salve o arquivo de chave usando o botão acima!</string>
+    <string name="fetching_templates">Buscando lista de modelos...</string>
+    <string name="error_fetch_templates">Falha ao carregar modelos (erro de rede).</string>
+    <string name="error_no_arch">Selecione pelo menos uma arquitetura de CPU!</string>
+
+    <!-- Community Moderation -->
+    <string name="notification_moderation_channel">Status de moderação de projetos</string>
+    <string name="notification_moderation_approved_title">Projeto aprovado!</string>
+    <string name="notification_moderation_approved_body">Seu projeto «%1$s» passou na moderação e foi publicado na comunidade!</string>
+    <string name="notification_moderation_rejected_title">Projeto rejeitado</string>
+    <string name="notification_moderation_rejected_body">Seu projeto «%1$s» não passou na moderação. Motivo: %2$s</string>
+
+    <!-- Community Upload & Genres -->
+    <string name="community_download_already_active">Outro download já está em andamento!</string>
+    <string name="community_publish_error_no_cover_title">Capa ausente</string>
+    <string name="community_publish_error_no_cover">Para publicar, o projeto deve ter uma capa! Por favor, defina um print ou ícone usando a opção «Mudar ícone» abaixo.</string>
+    <string name="community_publish_rules_link">Ao publicar o projeto, você concorda com as Regras da Comunidade</string>
+
+    <string name="genre_Action">Ação</string>
+    <string name="genre_Adventure">Aventura</string>
+    <string name="genre_Arcade">Arcade</string>
+    <string name="genre_Casual">Casual</string>
+    <string name="genre_Platformer">Plataforma</string>
+    <string name="genre_Puzzle">Quebra-cabeça</string>
+    <string name="genre_RPG">RPG</string>
+    <string name="genre_Racing">Corrida</string>
+    <string name="genre_Shooter">Tiro</string>
+    <string name="genre_Simulation">Simulação</string>
+    <string name="genre_Sports">Esportes</string>
+    <string name="genre_Strategy">Estratégia</string>
+    <string name="genre_Fighting">Luta</string>
+    <string name="genre_Survival">Sobrevivência</string>
+    <string name="genre_Stealth">Furtividade</string>
+    <string name="genre_Roguelike">Roguelike</string>
+    <string name="genre_Sandbox">Sandbox</string>
+    <string name="genre_Tower_Defense">Tower Defense</string>
+    <string name="genre_MMO">MMO</string>
+    <string name="genre_MOBA">MOBA</string>
+    <string name="genre_Indie">Indie</string>
+    <string name="genre_Retro">Retrô</string>
+    <string name="genre_Pixel_Art">Pixel Art</string>
+    <string name="genre_VR">VR</string>
+    <string name="genre_Multiplayer">Multijogador</string>
+    <string name="genre_Singleplayer">Singleplayer</string>
+    <string name="genre_Co_op">Cooperativo</string>
+    <string name="genre_Educational">Educativo</string>
+    <string name="genre_Music">Música</string>
+    <string name="genre_Card">Cartas</string>
+    <string name="genre_Fantasy">Fantasia</string>
+    <string name="genre_Sci_Fi">Ficção Científica</string>
+    <string name="genre_Horror">Terror</string>
+    <string name="genre_Cyberpunk">Cyberpunk</string>
+    <string name="genre_Post_apocalyptic">Pós-apocalíptico</string>
+    <string name="genre_Steampunk">Steampunk</string>
+    <string name="genre_Anime">Anime</string>
+    <string name="genre_Cartoon">Desenho</string>
+    <string name="genre_Realistic">Realista</string>
+    <string name="genre_Mystery">Mistério</string>
+    <string name="genre_Romance">Romance</string>
+    <string name="genre_Comedy">Comédia</string>
+    <string name="genre_Thriller">Suspense</string>
+    <string name="genre_Historical">Histórico</string>
+    <string name="genre_Drama">Drama</string>
+    <string name="genre_Other">Outro</string>
+
+    <string name="community_publish_btn">Publicar na comunidade</string>
+    <string name="community_publish_title">Publicação do Projeto</string>
+    <string name="community_publish_desc_hint">Descrição do projeto (suporta Markdown)</string>
+    <string name="community_publish_genres">Escolha os gêneros (máx. 5)</string>
+    <string name="community_publish_start">Publicar</string>
+    <string name="community_publish_auth_required">Login necessário</string>
+    <string name="community_publish_auth_desc">Entre na sua conta da comunidade para compartilhar seus projetos.</string>
+
+    <!-- Upload Stages -->
+    <string name="community_stage_zipping">Etapa 1/4: Compactando arquivos do projeto...</string>
+    <string name="community_stage_captcha">Etapa 2/4: Verificação de segurança...</string>
+    <string name="community_stage_uploading">Etapa 3/4: Enviando ao servidor: %1$d%%</string>
+    <string name="community_stage_finishing">Etapa 4/4: Analisando moderação...</string>
+    <string name="community_stage_success">Enviado para moderação</string>
+    <string name="community_stage_success_desc">Projeto enviado com sucesso e aguardando verificação.</string>
+
+    <!-- Download Stages -->
+    <string name="community_download_title">Baixando projeto</string>
+    <string name="community_downloading_files">Baixando arquivos...</string>
+    <string name="community_saving_to_cache">Salvando arquivo no cache...</string>
+    <string name="community_importing_files">Importando arquivos para o NewCatroid...</string>
+    <string name="community_import_completed">Importação concluída</string>
+    <string name="community_project_ready">O projeto está pronto.</string>
+    <string name="community_open_btn">Abrir</string>
+    <string name="community_error_zip_damaged">Erro: Arquivo corrompido ou bloqueado pelo servidor</string>
+    <string name="community_error_unzip">Erro ao descompactar: %1$s</string>
+    <string name="community_error_server_rejected">O servidor rejeitou a solicitação: %1$s</string>
+    <string name="community_error_network">Erro de rede: %1$s</string>
+
+    <!-- Authentication -->
+    <string name="community_login_title">Entrar na Comunidade</string>
+    <string name="community_register_title">Registrar na Comunidade</string>
+    <string name="community_login_hint">Nome de usuário ou E-mail</string>
+    <string name="community_email_hint">E-mail</string>
+    <string name="community_password_hint">Senha</string>
+    <string name="community_login_btn">Entrar</string>
+    <string name="community_register_btn">Cadastrar</string>
+    <string name="community_no_account_hint">Não tem conta? Cadastre-se</string>
+    <string name="community_have_account_hint">Já tem conta? Entrar</string>
+
+    <!-- Community Connection Status & Errors -->
+    <string name="community_error_empty_fields">Preencha todos os campos</string>
+    <string name="community_error_empty_email">Informe o e-mail para registro</string>
+    <string name="community_error_config_failed">Erro ao obter configuração do servidor</string>
+    <string name="community_captcha_cancelled">Você cancelou a verificação do captcha</string>
+    <string name="community_error_template">Erro: %1$s</string>
+    <string name="community_register_success">Registro bem-sucedido! Confirme seu e-mail.</string>
+    <string name="community_login_success">Login bem-sucedido!</string>
+    <string name="community_error_unknown">Erro desconhecido</string>
+    <string name="community_error_server">Erro no servidor</string>
+    <string name="community_error_connection">Erro de conexão</string>
+    <string name="community_downloading">Iniciando download do projeto...</string>
+    <string name="community_import_success">Projeto importado com sucesso!</string>
+    <string name="community_import_failed">Erro ao descompactar o projeto</string>
+    <string name="community_load_project_failed">Não foi possível abrir o projeto</string>
+
+    <!-- Account Details -->
+    <string name="acc_title">Conta NewCatroid</string>
+    <string name="acc_desc">Entre para publicar projetos e escrever comentários</string>
+    <string name="community_title">Comunidade NewCatroid</string>
+
+    <!-- Code Analysis & 3D Easing -->
+    <string name="code_analysis_title">Análise de código em tempo real</string>
+    <string name="code_analysis_desc">Verificar scripts automaticamente em busca de possíveis problemas e erros.</string>
+    <string name="brick_ease_3d_title">Alterar suavemente</string>
+    <string name="brick_ease_3d_object">ID do objeto</string>
+    <string name="brick_ease_3d_start_label">de</string>
+    <string name="brick_ease_3d_end_label">para</string>
+    <string name="brick_ease_3d_duration_label">seg</string>
+
+    <string-array name="brick_ease_3d_properties">
+        <item>Posição X</item>
+        <item>Posição Y</item>
+        <item>Posição Z</item>
+        <item>Rotação Yaw (Y)</item>
+        <item>Rotação Pitch (X)</item>
+        <item>Rotação Roll (Z)</item>
+        <item>Escala X</item>
+        <item>Escala Y</item>
+        <item>Escala Z</item>
+    </string-array>
+
+    <!-- Multiplayer MQTT -->
+    <string formatted="false" name="brick_mqtt_disconnect_title">Multijogador: Desconectar do lobby</string>
+    <string formatted="false" name="brick_when_mqtt_message_title">Mensagem recebida da sala</string>
+    <string formatted="false" name="brick_mqtt_connect_title">Multijogador: Conectar ao lobby</string>
+    <string formatted="false" name="brick_mqtt_connect_id">ID do lobby</string>
+    <string formatted="false" name="brick_mqtt_connect_host">Host do broker</string>
+    <string formatted="false" name="brick_mqtt_connect_port">Porta</string>
+    <string formatted="false" name="brick_mqtt_join_room_title">Multijogador: Entrar na sala</string>
+    <string formatted="false" name="brick_mqtt_join_room_client_id">ID do lobby</string>
+    <string formatted="false" name="brick_mqtt_join_room_id">Nome da sala</string>
+    <string formatted="false" name="brick_mqtt_join_room_salt">Salt (projeto)</string>
+    <string formatted="false" name="brick_mqtt_publish_title">Multijogador: Enviar texto</string>
+    <string formatted="false" name="brick_mqtt_publish_client_id">ID do lobby</string>
+    <string formatted="false" name="brick_mqtt_publish_room_id">Nome da sala</string>
+    <string formatted="false" name="brick_mqtt_publish_salt">Salt (projeto)</string>
+    <string formatted="false" name="brick_mqtt_publish_message">Texto da mensagem</string>
+    <string formatted="false" name="formula_mqtt_message">mensagem_mqtt</string>
+    <string formatted="false" name="formula_mqtt_message_param">(\'nome_da_sala\')</string>
+
+    <!-- 3D Export & Java Integration (DEX) -->
+    <string formatted="false" name="brick_export_3d_glb_title">Exportar objeto para GLB</string>
+    <string formatted="false" name="brick_export_3d_glb_id">ID do objeto</string>
+    <string formatted="false" name="brick_export_3d_glb_file">Nome do arquivo (.glb)</string>
+    <string formatted="false" name="brick_java_download_title">Java: Baixar biblioteca Maven</string>
+    <string formatted="false" name="brick_java_download_id">ID da biblioteca (group:artifact:version)</string>
+    <string formatted="false" name="brick_java_download_repos">Repositórios (separados por vírgula)</string>
+    <string formatted="false" name="brick_java_download_log">Salvar lista de JARs na variável</string>
+    <string formatted="false" name="brick_java_download_recursive">Baixar recursivamente</string>
+    <string formatted="false" name="brick_open_app_title">Abrir app com pacote</string>
+    <string formatted="false" name="brick_open_app_pkg">Nome do pacote</string>
+    <string formatted="false" name="brick_java_compile_title">Java: Compilar arquivos em DEX</string>
+    <string formatted="false" name="brick_java_compile_src">Arquivos Java (separados por vírgula)</string>
+    <string formatted="false" name="brick_java_compile_dest">Nome do DEX de saída</string>
+    <string formatted="false" name="brick_java_compile_log">Salvar erros na variável</string>
+    <string formatted="false" name="brick_java_load_title">Java: Carregar e executar DEX</string>
+    <string formatted="false" name="brick_java_load_path">Caminhos do DEX (separados por vírgula)</string>
+    <string formatted="false" name="brick_java_load_class">Nome da classe (ex: game.Main)</string>
+    <string formatted="false" name="brick_java_load_method">Nome do método</string>
+    <string formatted="false" name="brick_java_load_arg">Argumento (opcional)</string>
+
+    <!-- Sensors & Video Recording -->
+    <string name="formula_keyboard_height" formatted="false">altura_do_teclado</string>
+    <string name="formula_clipboard_text" formatted="false">texto_da_area_de_transferência</string>
+    <string formatted="false" name="brick_start_buffer_recording_title">Gravar buffer em vídeo</string>
+    <string formatted="false" name="brick_start_buffer_recording_buf">Nome do buffer</string>
+    <string formatted="false" name="brick_start_buffer_recording_file">Nome do arquivo de vídeo</string>
+    <string formatted="false" name="brick_start_buffer_recording_fps">Quadros por segundo (FPS)</string>
+    <string formatted="false" name="brick_start_buffer_recording_bitrate">Taxa de bits (Qualidade)</string>
+    <string formatted="false" name="brick_stop_buffer_recording_title">Parar gravação do buffer e salvar</string>
+    <string formatted="false" name="brick_set_text_buffer_only_title">Desenhar texto apenas no buffer</string>
+    <string formatted="false" name="brick_set_text_buffer_only_name_label">Nome do texto/variável</string>
+    <string formatted="false" name="brick_set_text_buffer_only_state_label">Estado (1/0)</string>
+
+    <!-- Particle Configurations -->
+    <string name="brick_http_configure_particles_title" formatted="false">Configurar partículas</string>
+    <string name="brick_http_configure_particles_id" formatted="false">ID das partículas</string>
+    <string name="brick_http_configure_particles_property" formatted="false">Ajuste</string>
+    <string name="brick_http_configure_particles_value" formatted="false">Valor</string>
+    <string-array name="brick_http_configure_particles_types">
+        <item>Taxa de emissão (Emission Rate)</item>
+        <item>Tamanho base (Particle Size)</item>
+        <item>Ângulo do cone (Cone Angle)</item>
+        <item>Máximo de partículas (Max Particles)</item>
+    </string-array>
+
+    <!-- Material Configurations -->
+    <string name="brick_http_configure_material_title" formatted="false">Configurar material</string>
+    <string name="brick_http_configure_material_id" formatted="false">ID do objeto</string>
+    <string name="brick_http_configure_material_property" formatted="false">Propriedade</string>
+    <string name="brick_http_configure_material_value" formatted="false">Valor</string>
+    <string-array name="brick_http_configure_material_types">
+        <item>Cor principal (R, G, B, A por vírgula)</item>
+        <item>Metálico (0.0 ... 1.0)</item>
+        <item>Rugosidade (0.0 ... 1.0)</item>
+        <item>Escala de textura (UV Scale U, V)</item>
+        <item>Cor de emissão (Emissive R, G, B)</item>
+        <item>Intensidade de emissão (Emissive Intensity)</item>
+    </string-array>
+
+    <!-- Light Configurations -->
+    <string name="brick_http_configure_light_title" formatted="false">Configurar luz</string>
+    <string name="brick_http_configure_light_id" formatted="false">ID</string>
+    <string name="brick_http_configure_light_property" formatted="false">Parâmetro</string>
+    <string name="brick_http_configure_light_value" formatted="false">Valor</string>
+    <string-array name="brick_http_configure_light_types">
+        <item>Intensidade (Brilho)</item>
+        <item>Alcance do brilho (Range)</item>
+        <item>Cor (R, G, B por vírgula)</item>
+        <item>Posição (X, Y, Z por vírgula)</item>
+        <item>Direção (X, Y, Z por vírgula)</item>
+        <item>Ângulo do cone (Cone Angle)</item>
+        <item>Suavidade das bordas (0.0 ... 1.0)</item>
+    </string-array>
+
+    <!-- Camera & Interface Categories -->
+    <string name="formula_camera_x" formatted="false">camera_x</string>
+    <string name="formula_camera_y" formatted="false">camera_y</string>
+    <string name="formula_camera_rotation" formatted="false">camera_rotacao</string>
+    <string name="formula_camera_zoom" formatted="false">camera_zoom</string>
+    <string name="native_views">Interface</string>
+    <string name="tables_and_vars">Memória</string>
+    <string name="category_network">Rede</string>
+
+    <!-- Media & File Formulas -->
+    <string name="formula_read_file" formatted="false">ler_arquivo</string>
+    <string name="formula_read_file_param" formatted="false">(\'arquivo.txt\')</string>
+    <string name="formula_media_duration" formatted="false">duracao_da_midia</string>
+    <string name="formula_media_duration_param" formatted="false">(\'audio.mp3\')</string>
+    <string name="formula_image_width" formatted="false">largura_da_imagem</string>
+    <string name="formula_image_width_param" formatted="false">(\'imagem.png\')</string>
+    <string name="formula_image_height" formatted="false">altura_da_imagem</string>
+    <string name="formula_image_height_param" formatted="false">(\'imagem.png\')</string>
+    <string name="formula_file_last_modified" formatted="false">arquivo_modificado</string>
+    <string name="formula_file_last_modified_param" formatted="false">(\'arquivo.txt\')</string>
+
+    <!-- Lifecycle Events & Notifications -->
+    <string name="brick_when_window_resized">Quando a janela for redimensionada</string>
+    <string name="brick_when_app_minimized">Quando o app for minimizado</string>
+    <string name="brick_when_app_restored">Quando o app for restaurado</string>
+    <string name="brick_notification_cancel_title">Remover notificação</string>
+    <string name="brick_notification_cancel_id">ID da notificação</string>
+    <string name="brick_when_notification_action_triggered">Botão de notificação pressionado</string>
+    <string name="brick_when_notification_action_id">Action ID</string>
+    <string name="formula_notification_reply" formatted="false">resposta_da_notificacao</string>
+    <string name="formula_notification_reply_param" formatted="false">(\'action_id\')</string>
+
+    <!-- Advanced Notifications -->
+    <string name="brick_notif_btn_title">Botão de notificação</string>
+    <string name="brick_notif_btn_id">ID da notificação</string>
+    <string name="brick_notif_btn_action">ID da ação</string>
+    <string name="brick_notif_btn_text">Texto</string>
+    <string name="brick_notif_btn_icon">Ícone (arquivo)</string>
+    <string name="brick_notif_btn_hint">Dica de entrada</string>
+    <string name="brick_notif_btn_behavior">Comportamento</string>
+    <string name="brick_notif_btn_has_input">Adicionar campo de entrada</string>
+    <string name="brick_notif_btn_auto_close">Fechar notificação ao clicar</string>
+    <string-array name="brick_notification_behaviors">
+        <item>Silencioso em segundo plano</item>
+        <item>Abrir o jogo</item>
+    </string-array>
+    <string name="brick_system_enable_background_title">Permitir execução em segundo plano</string>
+    <string name="brick_system_enable_background_header">Título da notificação</string>
+    <string name="brick_system_enable_background_text">Texto da notificação</string>
+    <string name="brick_system_disable_background">Parar execução em segundo plano</string>
+    <string name="brick_notification_show_title">Mostrar / Agendar notificação</string>
+    <string name="brick_notification_show_delay">Atraso (em segundos)</string>
+    <string name="brick_notification_create_title">Criar notificação complexa</string>
+    <string name="brick_notification_id">ID da notificação</string>
+    <string name="brick_notification_channel">Canal</string>
+    <string name="brick_notification_header">Título</string>
+    <string name="brick_notification_text">Texto</string>
+    <string name="brick_notification_large_icon">Ícone (arquivo do projeto)</string>
+    <string name="brick_notification_importance">Importância</string>
+    <string name="brick_notification_ongoing">Fixa (não pode ser removida)</string>
+    <string name="brick_when_notification_clicked">Quando a notificação com ID for clicada</string>
+
+    <!-- Signals & Touch Events -->
+    <string name="brick_broadcast_with_params">Transmitir a todos com parâmetros</string>
+    <string name="brick_broadcast_with_params_signal">Sinal</string>
+    <string name="brick_broadcast_with_params_data">Parâmetros</string>
+    <string name="brick_broadcast_with_params_receive">Quando o sinal for recebido</string>
+    <string name="brick_broadcast_with_params_save">salvar parâmetros em</string>
+    <string name="brick_when_sprite_released">Quando o sprite for solto</string>
+    <string name="brick_when_finger_moved_over_sprite">Quando o dedo mover sobre o sprite</string>
+    <string name="brick_when_finger_moved_on_screen">Quando o dedo mover na tela</string>
+
+    <!-- Notification Priorities -->
+    <string name="brick_show_notification_title">Enviar notificação</string>
+    <string name="brick_show_notification_id">ID da notificação</string>
+    <string name="brick_show_notification_channel">Nome do canal</string>
+    <string name="brick_show_notification_header">Título</string>
+    <string name="brick_show_notification_text">Texto</string>
+    <string name="brick_show_notification_large_icon">Ícone (arquivo do projeto)</string>
+    <string name="brick_show_notification_importance">Importância</string>
+    <string name="brick_show_notification_ongoing">Fixar (não pode ser removida)</string>
+    <string-array name="brick_notification_priorities">
+        <item>Baixa (sem som)</item>
+        <item>Média (com som)</item>
+        <item>Alta (pop-up)</item>
+    </string-array>
+
+    <!-- Native View Binding & Animation -->
+    <string formatted="false" name="brick_native_view_bind_title">Vincular View ao sprite</string>
+    <string formatted="false" name="brick_native_view_bind_id">ID da janela</string>
+    <string formatted="false" name="brick_native_view_bind_sprite">Nome do sprite</string>
+    <string formatted="false" name="brick_native_view_bind_offset">Deslocamento X</string>
+    <string formatted="false" name="brick_native_view_bind_align">Modo de vinculação</string>
+
+    <string-array name="align_anchor_array">
+        <item>Cantos superiores esquerdos</item>
+        <item>Centros dos objetos</item>
+    </string-array>
+
+    <string formatted="false" name="brick_native_view_animate_title">Animar janela</string>
+    <string formatted="false" name="brick_native_view_animate_id">ID da janela</string>
+    <string formatted="false" name="brick_native_view_animate_prop">Propriedade</string>
+    <string formatted="false" name="brick_native_view_animate_val">Valor alvo</string>
+    <string formatted="false" name="brick_native_view_animate_duration">Duraçao (ms)</string>
+    <string formatted="false" name="brick_native_view_animate_easing">Suavização (Easing)</string>
+
+    <string-array name="native_view_animate_properties_array">
+        <item>Opacidade (Alpha)</item>
+        <item>Ângulo de rotação (Rotation)</item>
+        <item>Escala X</item>
+        <item>Escala Y</item>
+        <item>Deslocamento X (px)</item>
+        <item>Deslocamento Y (px)</item>
+        <item>Coordenada X (px)</item>
+        <item>Coordenada Y (px)</item>
+    </string-array>
+
+    <!-- UI Elements Creation -->
+    <string formatted="false" name="brick_create_image_view_title">Criar imagem</string>
+    <string formatted="false" name="brick_create_image_view_id">ID da imagem</string>
+    <string formatted="false" name="brick_create_image_view_src">Arquivo ou link URL</string>
+    <string formatted="false" name="brick_create_image_view_radius">Arredondamento de cantos (px)</string>
+    <string formatted="false" name="brick_create_image_view_scale">Dimensionamento</string>
+
+    <string formatted="false" name="brick_create_slider_title">Criar controle deslizante</string>
+    <string formatted="false" name="brick_create_slider_id">ID do slider</string>
+    <string formatted="false" name="brick_create_slider_min">Mínimo</string>
+    <string formatted="false" name="brick_create_slider_max">Máximo</string>
+    <string formatted="false" name="brick_create_slider_val">Valor atual</string>
+
+    <string-array name="scale_modes_array">
+        <item>Centralizar (Manter proporções)</item>
+        <item>Cortar bordas (Preencher área)</item>
+        <item>Esticar para preencher (Fit XY)</item>
+        <item>Sem escala (Tamanho original)</item>
+    </string-array>
+
+    <string formatted="false" name="brick_create_button_title">Criar botão</string>
+    <string formatted="false" name="brick_create_button_id">ID do botão</string>
+    <string formatted="false" name="brick_create_button_text">Texto do botão</string>
+    <string formatted="false" name="brick_create_button_color">Cor do texto (HEX)</string>
+    <string formatted="false" name="brick_create_button_size">Tamanho da fonte</string>
+    <string formatted="false" name="brick_create_button_bg">Cor do botão (HEX)</string>
+    <string formatted="false" name="brick_create_button_radius">Arredondamento de cantos (px)</string>
+
+    <string formatted="false" name="brick_create_switch_title">Criar interruptor</string>
+    <string formatted="false" name="brick_create_switch_id">ID do interruptor</string>
+    <string formatted="false" name="brick_create_switch_text">Texto da legenda</string>
+    <string formatted="false" name="brick_create_switch_state">Estado padrão (verdadeiro/falso)</string>
+
+    <!-- UI View Event Listeners -->
+    <string formatted="false" name="brick_native_view_listener_title">Monitorar evento da janela</string>
+    <string formatted="false" name="brick_native_view_listener_id">ID da janela</string>
+    <string formatted="false" name="brick_native_view_listener_evt">Evento</string>
+    <string formatted="false" name="brick_native_view_listener_var">Salvar na variável</string>
+
+    <string-array name="native_view_events_array">
+        <item>WebView: Mensagem JS (postMessage)</item>
+        <item>WebView: Página começou a carregar (URL)</item>
+        <item>WebView: Página carregada (URL)</item>
+        <item>WebView: Erro ao carregar (Texto)</item>
+        <item>WebView: Progresso do carregamento (0–100)</item>
+        <item>WebView: Título da página recebido</item>
+        <item>Texto/Entrada: Texto alterado (Entrada)</item>
+        <item>Texto/Entrada: Foco recebido (verdadeiro)</item>
+        <item>Texto/Entrada: Foco perdido (falso)</item>
+        <item>Campo de entrada: Concluir / Enter pressionado</item>
+        <item>Vídeo: Reprodução concluída (verdadeiro)</item>
+        <item>Vídeo: Vídeo pronto para exibição (verdadeiro)</item>
+        <item>Vídeo: Erro de reprodução (Texto)</item>
+        <item>Rolagem: Deslocamento Y alterado (px)</item>
+        <item>Rolagem: Deslocamento X alterado (px)</item>
+        <item>Rolagem: Rolar até o fim (verdadeiro)</item>
+        <item>Todas as janelas: Clique na janela (verdadeiro)</item>
+        <item>Slider: Valor alterado</item>
+        <item>Interruptor: Estado alterado (verdadeiro/falso)</item>
+        <item>Campo de entrada: Posição do cursor (índice)</item>
+    </string-array>
+
+    <!-- UI View Commands -->
+    <string formatted="false" name="brick_native_view_control_title">Executar comando na janela</string>
+    <string formatted="false" name="brick_native_view_control_id">ID da janela</string>
+    <string formatted="false" name="brick_native_view_control_cmd">Comando</string>
+    <string formatted="false" name="brick_native_view_control_param">Parâmetro (opcional)</string>
+
+    <string-array name="native_view_commands_array">
+        <item>WebView: Voltar (Go Back)</item>
+        <item>WebView: Avançar (Go Forward)</item>
+        <item>WebView: Atualizar página</item>
+        <item>WebView: Parar carregamento</item>
+        <item>WebView: Limpar cache e Cookies</item>
+        <item>WebView: Ir para o link (URL)</item>
+        <item>WebView: Carregar código HTML</item>
+        <item>Vídeo: Iniciar (Play)</item>
+        <item>Vídeo: Pausar (Pause)</item>
+        <item>Vídeo: Parar (Stop)</item>
+        <item>Vídeo: Avançar/Retroceder (em segundos)</item>
+        <item>Texto/Entrada: Definir texto</item>
+        <item>Texto/Entrada: Adicionar texto ao final</item>
+        <item>Texto/Entrada: Limpar campo</item>
+        <item>Campo de entrada: Selecionar tudo</item>
+        <item>Campo de entrada: Posicionar cursor (índice)</item>
+        <item>Rolagem: Rolar para coordenadas (X,Y)</item>
+        <item>Rolagem: Rolar um passo (DX,DY)</item>
+        <item>Rolagem: Rolar para o topo</item>
+        <item>Rolagem: Rolar para o fim</item>
+        <item>Todas: Focar e abrir teclado</item>
+        <item>Todas: Remover foco e fechar teclado</item>
+    </string-array>
+
+    <!-- UI View Properties Configuration -->
+    <string formatted="false" name="brick_native_view_config_title">Configurar janela</string>
+    <string formatted="false" name="brick_native_view_config_id">ID da janela</string>
+    <string formatted="false" name="brick_native_view_config_prop">Propriedade</string>
+    <string formatted="false" name="brick_native_view_config_val">Valor</string>
+
+    <string-array name="native_view_properties_array">
+        <item>Visibilidade (verdadeiro/falso)</item>
+        <item>Opacidade (0.0 - 1.0)</item>
+        <item>Clicar através (verdadeiro/falso)</item>
+        <item>Camada</item>
+        <item>Ângulo de rotação (0 - 360)</item>
+        <item>Escala X</item>
+        <item>Escala Y</item>
+        <item>WebView: Cookies (verdadeiro/falso)</item>
+        <item>WebView: Botões de zoom (verdadeiro/falso)</item>
+        <item>WebView: Armazenamento DOM (verdadeiro/falso)</item>
+        <item>WebView: User-Agent</item>
+        <item>WebView: Cor de fundo (HEX)</item>
+        <item>Vídeo: Volume (0.0 - 1.0)</item>
+        <item>Vídeo: Repetir (true/false)</item>
+        <item>Texto: Cor do texto (HEX)</item>
+        <item>Texto: Tamanho da fonte</item>
+        <item>Texto: Cor de fundo (HEX)</item>
+        <item>Todas: Arredondamento de cantos (px)</item>
+        <item>Sombra/Elevação (px)</item>
+        <item>Texto: Alinhamento (0=Esq, 1=Centro, 2=Dir)</item>
+        <item>Texto: Caminho da fonte (no projeto)</item>
+        <item>Texto: Espaçamento entre linhas</item>
+        <item>Campo de entrada: Comprimento máx. (caracteres)</item>
+        <item>Campo de entrada: Texto de dica (Hint)</item>
+        <item>Campo de entrada: Cor da dica (HEX)</item>
+        <item>Interruptor: Texto da legenda</item>
+        <item>Interruptor: Estado (verdadeiro/falso)</item>
+        <item>Botão: Tudo em maiúsculo (true/false)</item>
+        <item>Imagem: Modo de escala (0=Centro, 1=Cortar, 2=Esticar, 3=Sem escala)</item>
+        <item>Imagem: Mudar imagem (Arquivo/URL)</item>
+        <item>Slider: Valor mínimo</item>
+        <item>Slider: Valor máximo</item>
+        <item>Slider: Valor atual</item>
+        <item>Rolagem: Barras de rolagem (verdadeiro/falso)</item>
+        <item>Rolagem: Efeito das bordas (0=Sempre, 1=Se rolável, 2=Nunca)</item>
+        <item>Rolagem: Margem interna (px)</item>
+        <item>Todas: Borda/Contorno (Espessura,Cor_HEX)</item>
+        <item>Todas: Margem interna (px)</item>
+        <item>Todas: Desfoque/Blur (px) [Android 12+]</item>
+        <item>Todas: Ponto de ancoragem da rotação (X,Y)</item>
+        <item>Vídeo: Camada (Primeiro Plano / Segundo Plano)</item>
+        <item>Todas: Visibilidade padrão ao criar (verdadeiro/falso)</item>
+        <item>WebView: Escala da página (%)</item>
+        <item>Texto: Realce de letras (Início,Fim,Cor_HEX)</item>
+        <item>Texto: Autorrealce de palavra (Chave,Cor_HEX)</item>
+        <item>Texto: Realce de fundo (Início,Fim,Cor_HEX)</item>
+        <item>Texto: Autorrealce de fundo de palavra (Chave,Cor_HEX)</item>
+        <item>Modo sobreposição (verdadeiro/falso)</item>
+        <item>Modo arrastar (verdadeiro/falso)</item>
+        <item>Sobreposição: Definir como alça de arrasto para (ID pai)</item>
+    </string-array>
+
+    <!-- Scroll Containers & Labels -->
+    <string formatted="false" name="brick_create_scroll_view_title">Criar contêiner de rolagem</string>
+    <string formatted="false" name="brick_create_scroll_view_id">ID do contêiner</string>
+    <string formatted="false" name="brick_create_scroll_view_mode">Modo de rolagem</string>
+    <string formatted="false" name="brick_create_scroll_view_bg">Cor de fundo (HEX)</string>
+    <string formatted="false" name="brick_create_scroll_view_bars">Barras de rolagem</string>
+    <string formatted="false" name="brick_create_scroll_view_padding">Margem interna (px)</string>
+    <string formatted="false" name="brick_create_scroll_view_overscroll">Efeito de esticar bordas</string>
+
+    <string formatted="false" name="brick_create_text_label_title">Criar texto</string>
+    <string formatted="false" name="brick_create_text_label_id">ID do texto</string>
+    <string formatted="false" name="brick_create_text_label_text">Texto / HTML</string>
+    <string formatted="false" name="brick_create_text_label_color">Cor do texto (HEX)</string>
+    <string formatted="false" name="brick_create_text_label_size">Tamanho da fonte</string>
+    <string formatted="false" name="brick_create_text_label_bg">Cor de fundo (HEX)</string>
+    <string formatted="false" name="brick_create_text_label_font">Fonte (projeto)</string>
+    <string formatted="false" name="brick_create_text_label_radius">Raio de arredondamento (px)</string>
+    <string formatted="false" name="brick_create_text_label_spacing">Espaçamento entre linhas</string>
+    <string formatted="false" name="brick_create_text_label_format">Formato</string>
+    <string formatted="false" name="brick_create_text_label_align">Alinhamento</string>
+    <string formatted="false" name="brick_create_text_label_scroll">Rolagem de texto</string>
+
+    <string formatted="false" name="brick_set_native_parent_title">Definir pai da janela nativa</string>
+    <string formatted="false" name="brick_set_native_parent_id">ID da janela</string>
+    <string formatted="false" name="brick_set_native_parent_target">ID do contêiner pai</string>
+
+    <!-- Native UI Helper Arrays -->
+    <string-array name="scroll_modes_array">
+        <item>Nenhum (Desativado)</item>
+        <item>Vertical</item>
+        <item>Horizontal</item>
+        <item>Ambos (Vert. + Horiz.)</item>
+    </string-array>
+
+    <string-array name="text_formats_array">
+        <item>Texto simples</item>
+        <item>Formatação HTML</item>
+    </string-array>
+
+    <string-array name="overscroll_modes_array">
+        <item>Sempre esticar</item>
+        <item>Apenas se houver rolagem</item>
+        <item>Nunca (Bordas rígidas)</item>
+    </string-array>
+
+    <string-array name="align_modes_array">
+        <item>Alinhar à esquerda</item>
+        <item>Centralizar</item>
+        <item>Alinhar à direita</item>
+    </string-array>
+
+    <!-- Buffer Masks & HTTP Formulas -->
+    <string name="brick_buffer_mask_title">Definir máscara de buffer</string>
+    <string name="brick_buffer_mask_mode">Modo</string>
+    <string-array name="brick_buffer_mask_modes">
+        <item>Esticar</item>
+        <item>Ajustar à tela</item>
+    </string-array>
+    <string name="formula_http_response_text" formatted="false">http_texto_resposta</string>
+    <string name="formula_http_response_text_param" formatted="false">(\'id\')</string>
+    <string name="formula_http_response_code" formatted="false">http_codigo_resposta</string>
+    <string name="formula_http_response_code_param" formatted="false">(\'id\')</string>
+    <string name="formula_http_response_header" formatted="false">http_cabecalho_resposta</string>
+    <string name="formula_http_response_header_param" formatted="false">(\'id\', \'nome_cabecalho\')</string>
+
+    <!-- HTTP Request Bricks -->
+    <string formatted="false" name="brick_http_send_title">HTTP: Enviar requisição e aguardar</string>
+    <string formatted="false" name="brick_http_send_id">ID da requisição</string>
+    <string formatted="false" name="brick_http_save_file_title">HTTP: Salvar resposta no arquivo</string>
+    <string formatted="false" name="brick_http_save_file_id">ID da requisição</string>
+    <string formatted="false" name="brick_http_save_file_dest">Nome do arquivo no projeto</string>
+    <string formatted="false" name="brick_http_body_title">HTTP: Definir corpo da requisição</string>
+    <string formatted="false" name="brick_http_body_id">ID da requisição</string>
+    <string formatted="false" name="brick_http_body_text">Corpo (texto)</string>
+    <string formatted="false" name="brick_http_body_content_type">Content-Type</string>
+    <string formatted="false" name="brick_http_attach_file_title">HTTP: Anexar arquivo do projeto</string>
+    <string formatted="false" name="brick_http_attach_file_id">ID da requisição</string>
+    <string formatted="false" name="brick_http_attach_file_name">Nome do arquivo</string>
+    <string formatted="false" name="brick_http_attach_file_parameter">Nome do parâmetro</string>
+    <string formatted="false" name="brick_http_attach_file_mime">Tipo MIME</string>
+    <string formatted="false" name="brick_http_create_title">HTTP: Criar requisição</string>
+    <string formatted="false" name="brick_http_create_id">ID da requisição</string>
+    <string formatted="false" name="brick_http_create_method">Método (GET/POST/PUT…)</string>
+    <string formatted="false" name="brick_http_create_url">Endereço URL</string>
+    <string formatted="false" name="brick_http_config_title">HTTP: Configurar requisição</string>
+    <string formatted="false" name="brick_http_config_id">ID da requisição</string>
+    <string formatted="false" name="brick_http_config_type">Tipo de parâmetro</string>
+    <string formatted="false" name="brick_http_config_key">Chave (Nome)</string>
+    <string formatted="false" name="brick_http_config_value">Valor</string>
+    <string-array name="brick_http_config_types">
+        <item>Cabeçalho (Header)</item>
+        <item>Parâmetro URL (Query)</item>
+        <item>Timeout de conexão (ms)</item>
+        <item>Timeout de leitura (ms)</item>
+        <item>Timeout de escrita (ms)</item>
+        <item>Seguir redirecionamentos (verdadeiro/falso)</item>
+        <item>Ignorar SSL (verdadeiro/falso)</item>
+        <item>Usar cookies (verdadeiro/falso)</item>
+        <item>Host do proxy (Proxy Host)</item>
+        <item>Porta do proxy (Proxy Port)</item>
+    </string-array>
+
+    <!-- Zip & Buffer Shaders -->
+    <string formatted="false" name="brick_zip_project_files_title">Compactar arquivos do projeto em ZIP</string>
+    <string formatted="false" name="brick_zip_project_files_list">Arquivos (separados por vírgula)</string>
+    <string formatted="false" name="brick_zip_project_files_archive_name">Nome do arquivo ZIP</string>
+    <string formatted="false" name="brick_unzip_project_files_title">Descompactar ZIP no projeto</string>
+    <string formatted="false" name="brick_unzip_project_files_archive_name">Nome do arquivo ZIP</string>
+    <string name="brick_add_text_buffer_title">Adicionar texto</string>
+    <string name="brick_add_text_buffer_to">Ao buffer</string>
+    <string name="brick_buffer_shader_title">Definir shader do buffer</string>
+    <string name="brick_buf_uniform_title">Definir uniform</string>
+    <string name="brick_buf_uniform_in_buf">No shader do buffer</string>
+    <string name="brick_render_loops_title">Configuração dos renderizadores: 2D, Fast2D, 3D</string>
+    <string name="brick_buffer_fx_title">Configurar efeitos do buffer</string>
+
+    <!-- Threads & Easing -->
+    <string name="brick_spawn_thread_title">Iniciar thread</string>
+    <string name="brick_wait_thread_title">Aguardar thread</string>
+    <string name="brick_stop_thread_title">Parar thread</string>
+    <string name="brick_ease_title">Alterar suavemente</string>
+    <string name="brick_ease_start_label">de</string>
+    <string name="brick_ease_end_label">para</string>
+    <string name="brick_ease_duration_label">seg</string>
+    <string-array name="brick_ease_properties">
+        <item>Posição X</item>
+        <item>Posição Y</item>
+        <item>Tamanho</item>
+        <item>Transparência</item>
+        <item>Cor</item>
+        <item>Largura</item>
+        <item>Altura</item>
+        <item>Brilho</item>
+    </string-array>
+
+    <!-- Window Lifecycle & Dev Mode -->
+    <string formatted="false" name="brick_when_after_update">Após atualizar a tela</string>
+    <string formatted="false" name="free_window_base">Ativar modo de janelas livres</string>
+    <string formatted="false" name="brick_when_before_update">Antes de atualizar a tela</string>
+    <string name="brick_instant">Executar instantaneamente</string>
+    <string name="pref_developer_mode_title">Modo de desenvolvedor</string>
+    <string name="pref_developer_mode_summary">Ativar recursos experimentais apenas para desenvolvedores.</string>
+    <string name="developer_mode_warning_title">Atenção</string>
+    <string name="developer_mode_warning_message">O modo de desenvolvedor ativa recursos experimentais que podem causar instabilidade ou falhas. Deseja continuar?</string>
+
+    <!-- AI Settings & Models -->
+    <string name="pref_ai_settings_title">Configurações de IA</string>
+    <string name="pref_ai_autocomplete_title">Autocompletar com IA</string>
+    <string name="pref_ai_autocomplete_summary">Geração automática de scripts e fórmulas no dispositivo usando a rede neural Kove.</string>
+    <string name="ai_download_dialog_title">Baixando o modelo Kove</string>
+    <string name="ai_download_dialog_message">Para ativar o autocompletar, é necessário baixar o modelo de rede neural de cerca de 800 MB. Deseja baixá-lo agora?</string>
+    <string name="ai_downloading_progress">Baixando modelo Kove... %1$d%%</string>
+    <string name="ai_unzipping">Descompactando arquivos do modelo...</string>
+    <string name="ai_download_complete">Modelo Kove baixado com sucesso! Reinicie o aplicativo para aplicar as alterações.</string>
+    <string name="ai_download_failed">Falha ao baixar o modelo Kove. Verifique sua conexão com a internet.</string>
+    <string name="button_download">Baixar</string>
+    <string name="button_restart">Reiniciar</string>
+
+    <!-- Physics Compatibility Warnings -->
+    <string name="physics_warning_title">Atualização de compatibilidade</string>
+    <string name="physics_warning_message">Este projeto foi criado em uma versão antiga. Recomendamos atualizar o cache de física agora para evitar travamentos e falhas.</string>
+    <string name="physics_warning_update_now">Atualizar agora</string>
+    <string name="physics_warning_later">Mais tarde</string>
+    <string name="physics_warning_updating">Atualizando cache de física, aguarde...</string>
+    <string name="physics_warning_success">Cache de física atualizado com sucesso!</string>
+    <string name="physics_warning_error">Erro ao atualizar o cache de física.</string>
+
+    <!-- Project Trash Bin -->
+    <string name="delete_project_multiple_message">Tem certeza de que deseja excluir estes %1$d projetos?</string>
+    <string name="delete_permanently">Excluir permanentemente</string>
+    <string name="delete_project_title">Excluir %1$s</string>
+    <string name="delete_project_message">Tem certeza de que deseja excluir este projeto?</string>
+    <string name="trash_bin_title">Lixeira</string>
+    <string name="trash_bin_empty">A lixeira está vazia</string>
+    <string name="trash_bin_item_action">Escolha uma ação para este projeto:</string>
+    <string name="trash_bin_restore">Restaurar</string>
+    <string name="trash_bin_empty_all">Esvaziar lixeira</string>
+    <string name="trash_bin_empty_all_confirm_title">Limpeza da lixeira</string>
+    <string name="trash_bin_empty_all_confirm_message">Tem certeza de que deseja excluir permanentemente todos os projetos da lixeira?</string>
+
+    <!-- Window Layout & Debug Menu -->
+    <string name="menu_enable_indentation">Ativar tabulação</string>
+    <string name="menu_disable_indentation">Desativar tabulação</string>
+    <string name="free_window_mode_stage">Modo janela do player</string>
+    <string name="free_window_mode_stage_sum">Executar a cena em uma janela flutuante redimensionável</string>
+    <string name="free_window_mode_project">Janela única do projeto</string>
+    <string name="free_window_mode_project_sum">Exibir cenas, sprites, scripts e aparências em uma única tela</string>
+    <string name="free_window_mode">Modo janelas livres</string>
+    <string name="free_window_mode_sum">Permite arrastar e mover todas as janelas</string>
+    <string name="debug_menu_global_data">DADOS GLOBAIS</string>
+    <string name="debug_menu_sprite">SPRITE</string>
+    <string name="debug_menu_list_format">%1$s%2$s: [%3$d itens]</string>
+    <string name="debug_menu_more_items">      ... e mais %d itens</string>
+    <string name="debug_menu_edit_variable">Alterar variável: %s</string>
+    <string name="debug_menu_edit_list_item">Alterar item [%d] em %s</string>
+    <string name="debug_menu_copy_full">Copiar tudo</string>
+    <string name="debug_menu_copied">Copiado para a área de transferência</string>
+    <string name="debug_menu_save">Salvar</string>
+    <string name="debug_menu_cancel">Cancelar</string>
+
+    <!-- Context Actions & Shaders -->
+    <string name="brick_run_as_sprite_title">Executar como</string>
+    <string name="brick_context_dialog_cut">Recortar</string>
+    <string name="brick_context_dialog_paste_below">Colar abaixo</string>
+    <string name="brick_context_dialog_clipboard_history">Área de transferência (Histórico)</string>
+    <string formatted="false" name="remove_objects_by_prefix">Excluir objetos 3D por prefixo</string>
+    <string formatted="false" name="remove_objects_prefix_val">Prefixo</string>
+    <string formatted="false" name="set_object_shader">Definir shader do objeto 3D</string>
+    <string formatted="false" name="set_object_shader_uniform">Definir uniform do shader do objeto 3D</string>
+    <string formatted="false" name="object_shader_id">ID do objeto</string>
+    <string formatted="false" name="object_shader_vertex">Código do vértice (Vertex)</string>
+    <string formatted="false" name="object_shader_fragment">Código do fragmento (Fragment)</string>
+    <string formatted="false" name="object_shader_uniform_name">Nome do parâmetro</string>
+    <string formatted="false" name="object_shader_uniform_val1">Valor 1</string>
+    <string formatted="false" name="object_shader_uniform_val2">Valor 2 (opcional)</string>
+    <string formatted="false" name="object_shader_uniform_val3">Valor 3 (opcional)</string>
+
+    <!-- 3D Render & Sound -->
+    <string formatted="false" name="brick_render_res">Escala de renderização 3D</string>
+    <string formatted="false" name="brick_render_aspect">Proporção (0:Auto, 4:3, 16:9, 1:1)</string>
+    <string formatted="false" name="brick_set_fps">Limitar FPS para</string>
+    <string formatted="false" name="brick_set_emissive">Definir emissão do material</string>
+    <string formatted="false" name="param_emissive_intensity">Intensidade da emissão</string>
+    <string formatted="false" name="param_emissive_texture">Textura de emissão</string>
+    <string formatted="false" name="brick_3d_sound_max_distance">Definir distância máx. do som 3D</string>
+    <string formatted="false" name="param_3d_sound_instance">Instância</string>
+    <string formatted="false" name="param_3d_sound_distance">Distância</string>
+
+    <!-- Camera Tracking & Lights -->
+    <string formatted="false" name="brick_screen_shader">Shader de tela (GLSL)</string>
+    <string formatted="false" name="brick_camera_track_title">Vincular câmera a</string>
+    <string formatted="false" name="brick_camera_track_mode">Modo</string>
+    <string formatted="false" name="brick_camera_track_pos_offset">Deslocamento de posição</string>
+    <string formatted="false" name="brick_camera_track_rot_offset">Deslocamento de rotação</string>
+    <string-array name="brick_camera_track_modes">
+        <item>Desvincular</item>
+        <item>Apenas posição</item>
+        <item>Apenas rotação</item>
+        <item>Posição e rotação</item>
+    </string-array>
+    <string formatted="false" name="brick_apply_shader_to_image">Aplicar shader à imagem</string>
+    <string formatted="false" name="brick_apply_shader_image_file">Arquivo do projeto</string>
+    <string formatted="false" name="brick_promote_light">Transformar luz em objeto</string>
+    <string formatted="false" name="brick_attach_to_camera">Vincular objeto à câmera</string>
+    <string formatted="false" name="brick_detach_from_camera">Desvincular objeto da câmera</string>
+    <string formatted="false" name="brick_set_max_point_lights">Limite de luzes pontuais</string>
+    <string formatted="false" name="brick_3d_object_name">ID do objeto</string>
+
+    <!-- Particle Systems Properties -->
+    <string name="particle_lifetime">Tempo de vida</string>
+    <string name="particle_color">Cor</string>
+    <string name="particle_size">Tamanho</string>
+    <string name="particle_mode">Modo de colisão</string>
+    <string name="particle_quality">Qualidade da colisão</string>
+    <string name="particle_collision_planes">Planos de colisão</string>
+    <string name="particle_bursts">Explosões (Bursts)</string>
+    <string name="particle_time">Tempo</string>
+    <string name="particle_count">Qtd.</string>
+    <string name="particle_prob">Chance</string>
+    <string name="particle_angle">Ângulo</string>
+    <string name="particle_radius">Raio</string>
+    <string name="particle_length">Comprimento</string>
+    <string name="particle_arc">Arco</string>
+    <string name="particle_separate_axes">Eixos separados</string>
+    <string name="particle_linear_x">Linear X</string>
+    <string name="particle_linear_y">Linear Y</string>
+    <string name="particle_linear_z">Linear Z</string>
+    <string name="particle_orbital_y">Orbital Y</string>
+    <string name="particle_radial">Radial</string>
+    <string name="particle_speed_modifier">Modificador de velocidade</string>
+    <string name="particle_force_x">Força X</string>
+    <string name="particle_force_y">Força Y</string>
+    <string name="particle_force_z">Força Z</string>
+    <string name="particle_angular_velocity">Velocidade angular</string>
+    <string name="particle_strength">Força</string>
+    <string name="particle_frequency">Frequência</string>
+    <string name="particle_octaves">Oitavas</string>
+    <string name="particle_scroll_speed">Velocidade de rolagem</string>
+    <string name="particle_damping">Amortecimento</string>
+    <string name="particle_bounce">Elasticidade</string>
+    <string name="particle_dampen">Desaceleração</string>
+    <string name="particle_lifetime_loss">Perda de vida</string>
+    <string name="particle_min_kill_speed">Velocidade mín. de eliminação</string>
+    <string name="particle_radius_scale">Escala do raio</string>
+    <string name="particle_trigger">Gatilho</string>
+    <string name="particle_probability">Probabilidade</string>
+    <string name="particle_emit_count">Qtd. emissão (0=auto)</string>
+    <string name="particle_ratio">Proporção (0-1)</string>
+    <string name="particle_min_vertex_dist">Distância mín. de vértices</string>
+    <string name="particle_world_space">Espaço global (World)</string>
+    <string name="particle_die_with_particles">Eliminar com as partículas</string>
+    <string name="particle_inherit_color">Herdar cor</string>
+    <string name="particle_width_over_trail">Largura do rastro</string>
+    <string name="particle_tiles_x">Ladrilhos X</string>
+    <string name="particle_tiles_y">Ladrilhos Y</string>
+    <string name="particle_cycles">Ciclos</string>
+    <string name="particle_frame_over_time">Quadro ao longo do tempo</string>
+    <string name="particle_length_scale">Escala de comprimento</string>
+    <string name="particle_speed_scale">Escala de velocidade</string>
+    <string name="particle_align_to_velocity">Alinhar à velocidade</string>
+    <string name="particle_emission_rate">Partículas/Seg</string>
+    <string name="particle_spread_angle">Ângulo de dispersão (0-180)</string>
+    <string name="particle_gravity_y">Gravidade (Eixo Y)</string>
+    <string name="particle_vortex">Vórtice (Tornado)</string>
+    <string name="particle_turbulence">Turbulência (Caos)</string>
+    <string name="particle_rotation_deg">Rotação (Graus/s)</string>
+    <string name="particle_base_size_mult">Multiplicador de tamanho</string>
+    <string name="particle_base_size">Tamanho base</string>
+    <string name="particle_spawn_shape">Formato de spawn</string>
+    <string name="particle_spawn_on_surface">Spawn apenas na superfície</string>
+
+    <!-- Menu Actions -->
+    <string name="action_save_scene">Salvar cena</string>
+    <string name="action_load_scene">Carregar cena</string>
+    <string name="action_scene_settings">Configurações de cena</string>
+    <string name="action_clear_scene">Limpar cena</string>
+    <string name="action_exit">Sair</string>
+
+    <!-- Physics States & Colliders -->
+    <string-array name="editor_3d_physics_states">
+        <item>Sem física</item>
+        <item>Estático (Fixo)</item>
+        <item>Dinâmico (Físico)</item>
+        <item>Estático complexo (Segue a forma)</item>
+        <item>Cinemático</item>
+    </string-array>
+
+    <!-- Light Types -->
+    <string name="light_type_directional">Direcional (Sol)</string>
+    <string name="light_type_point">Pontual (Lâmpada)</string>
+    <string name="light_type_spot">Spot (Lanterna)</string>
+
+    <!-- Keyframe Easing Types -->
+    <string-array name="editor_3d_easing_types">
+        <item>Linear</item>
+        <item>Aceleração (In)</item>
+        <item>Desaceleração (Out)</item>
+        <item>Aceleração-Desaceleração (In-Out)</item>
+        <item>Elástico no início</item>
+        <item>Elástico no fim</item>
+        <item>Ricochete no fim</item>
+    </string-array>
+
+    <!-- Post Processing Effects -->
+    <string name="pp_effect_bloom">Brilho (Bloom)</string>
+    <string name="pp_effect_vignette">Vinheta (Vignette)</string>
+    <string name="pp_effect_levels">Correção de cor (Levels)</string>
+    <string name="pp_effect_grain">Efeito de filme (Grain)</string>
+    <string name="pp_effect_fxaa">Antialiasing (FXAA)</string>
+    <string name="pp_effect_chromatic">Aberração cromática</string>
+    <string name="pp_effect_radial_blur">Desfoque radial</string>
+    <string name="pp_effect_old_tv">TV antiga</string>
+    <string name="pp_effect_crt">Monitor CRT</string>
+    <string name="pp_effect_fisheye">Olho de peixe (Fisheye)</string>
+    <string name="pp_effect_water">Efeito de água</string>
+    <string name="pp_effect_motion_blur">Desfoque de movimento</string>
+    <string name="pp_effect_lens_flare">Reflexo de lente (Lens Flare)</string>
+    <string name="pp_effect_gaussian">Desfoque Gaussiano</string>
+    <string name="pp_effect_zoom">Desfoque de aproximação (Zoom)</string>
+    <string name="pp_effect_aces">Mapeamento de tons ACES</string>
+    <string name="pp_effect_eye_adaptation">Adaptação ocular (Luz adaptativa)</string>
+    <string name="pp_effect_ssr">Traçado de reflexo (SSR)</string>
+    <string name="pp_effect_ssao">Oclusão de ambiente (SSAO)</string>
+    <string name="pp_effect_height_fog">Névoa de altura</string>
+    <string name="pp_effect_dof">Profundidade de campo (DOF)</string>
+    <string name="pp_effect_god_rays">Raios crepusculares (God Rays)</string>
+    <string name="pp_effect_volumetric_fog">Névoa volumétrica</string>
+    <string name="pp_effect_fsr">Upscaler FSR (Nitidez)</string>
+
+    <!-- Particle Systems (Both 2D & 3D Modules) -->
+    <string name="particle_main">Configurações principais</string>
+    <string name="particle_looping">Repetir</string>
+    <string name="particle_prewarm">Pré-aquecimento</string>
+    <string name="particle_duration">Duração</string>
+    <string name="particle_max_particles">Limite de partículas</string>
+    <string name="particle_start_lifetime">Tempo de vida</string>
+    <string name="particle_start_speed">Velocidade inicial</string>
+    <string name="particle_start_size">Tamanho inicial</string>
+    <string name="particle_gravity_modifier">Influência da gravidade</string>
+    <string name="particle_sim_space">Espaço de simulação</string>
+    <string name="particle_emission">Emissão</string>
+    <string name="particle_rate_over_time">Partículas por segundo</string>
+    <string name="particle_rate_over_distance">Partículas por metro</string>
+    <string name="particle_shape">Formato de spawn (Shape)</string>
+    <string name="particle_shape_type">Tipo de formato</string>
+    <string name="particle_emit_from">Emitir de</string>
+    <string name="particle_velocity_over_lifetime">Velocidade ao longo da vida</string>
+    <string name="particle_force_over_lifetime">Força ao longo da vida</string>
+    <string name="particle_color_over_lifetime">Cor ao longo da vida</string>
+    <string name="particle_size_over_lifetime">Tamanho ao longo da vida</string>
+    <string name="particle_rotation_over_lifetime">Rotação ao longo da vida</string>
+    <string name="particle_noise">Ruído / Turbulência</string>
+    <string name="particle_collision">Colisões</string>
+    <string name="particle_sub_emitters">Subemissores</string>
+    <string name="particle_trails">Rastros (Trails)</string>
+    <string name="particle_tex_animation">Animação de textura</string>
+    <string name="particle_renderer">Renderizador (Renderer)</string>
+    <string name="particle_render_mode">Modo de renderização</string>
+    <string name="particle_mesh_shape">Modelo 3D da partícula</string>
+    <string name="particle_additive_blend">Mesclagem aditiva (Brilho)</string>
+
+    <!-- Prefabs -->
+    <string name="prefab_file_path">Caminho do arquivo prefab</string>
+    <string name="prefab_select_btn">Escolher prefab</string>
+    <string name="prefab_select_title">Escolher arquivo prefab</string>
+
+    <!-- Scene Settings Dialog -->
+    <string name="settings_scene_title">Configurações da cena</string>
+    <string name="settings_sky_color">Cor do céu / fundo</string>
+    <string name="settings_ambient_light">Intensidade da luz ambiente</string>
+    <string name="settings_shadows">Sombras e qualidade</string>
+    <string name="settings_shadow_dist">Distância das sombras</string>
+    <string name="settings_shadow_res">Resolução do mapa de sombras</string>
+    <string name="settings_shadow_csm">Sombras em cascata (CSM)</string>
+    <string name="settings_shadow_csm_factor">Fator de divisão de cascatas</string>
+    <string name="settings_apply_btn">Aplicar configurações de sombras</string>
+    <string name="settings_performance">Limites de desempenho</string>
+    <string name="settings_point_lights">Limite de luzes pontuais</string>
+    <string name="settings_spot_lights">Limite de holofotes (spots)</string>
+    <string name="settings_dir_lights">Limite de luzes direcionais</string>
+    <string name="settings_bones">Limite de ossos do esqueleto</string>
+    <string name="settings_apply_perf_btn">Aplicar e reiniciar motor</string>
+
+    <string name="editor_3d_axis_x">Eixo X</string>
+    <string name="editor_3d_axis_y">Eixo Y</string>
+    <string name="editor_3d_axis_z">Eixo Z</string>
+    <string name="editor_3d_axis_cam_forward">Direção da câmera</string>
+
+    <!-- 3D Editor Toolbar & General -->
+    <string name="editor_3d_title">Editor 3D</string>
+    <string name="editor_3d_hierarchy">Hierarquia</string>
+    <string name="editor_3d_search_hint">Buscar...</string>
+    <string name="editor_3d_add_empty">Adicionar vazio</string>
+    <string name="editor_3d_add_cube">Adicionar cubo</string>
+    <string name="editor_3d_add_sphere">Adicionar esfera</string>
+    <string name="editor_3d_inspector">Inspetor</string>
+
+    <!-- Dialogs & Popups -->
+    <string name="editor_3d_mass_delete_title">Exclusão em massa</string>
+    <string name="editor_3d_mass_delete_msg">Excluir TODOS os objetos contendo \'%1$s\'?</string>
+    <string name="editor_3d_delete_all">Excluir tudo</string>
+    <string name="editor_3d_removed_objects_toast">Objetos removidos: %1$d</string>
+    <string name="editor_3d_aligned_to_cam">Alinhado à câmera</string>
+    <string name="editor_3d_clone">Clonar</string>
+    <string name="editor_3d_created_objects_toast">Objetos criados: %1$d</string>
+    <string name="editor_3d_error_inputs">Erro de entrada de dados</string>
+    <string name="editor_3d_moved_to_view">Objeto movido para a câmera</string>
+    <string name="editor_3d_duplicated">Duplicado</string>
+    <string name="editor_3d_focused_on">Foco em %1$s</string>
+    <string name="editor_3d_clear_scene_title">Limpar cena?</string>
+    <string name="editor_3d_clear_scene_msg">A cena será redefinida e você poderá perder alterações não salvas. Continuar?</string>
+    <string name="editor_3d_clear_btn">Limpar</string>
+    <string name="editor_3d_cleared_toast">Cena limpa</string>
+    <string name="editor_3d_exit_title">Sair do editor</string>
+    <string name="editor_3d_exit_msg">Deseja salvar as alterações antes de sair?</string>
+    <string name="editor_3d_save_exit">Salvar e sair</string>
+    <string name="editor_3d_exit_no_save">Sair sem salvar</string>
+    <string name="editor_3d_save_scene_as">Salvar cena como...</string>
+    <string name="editor_3d_enter_file_name">Digite o nome do arquivo (sem extensão):</string>
+    <string name="editor_3d_file_name_empty">O nome do arquivo não pode ser vazio</string>
+    <string name="editor_3d_scene_saved">Cena salva em %1$s</string>
+    <string name="editor_3d_load_scene">Carregar cena</string>
+    <string name="editor_3d_no_scenes_found">Nenhuma cena salva (.rscene) encontrada.</string>
+    <string name="editor_3d_loading_scene">Carregando cena: %1$s</string>
+    <string name="editor_3d_shadow_applied">Configurações de sombra aplicadas.</string>
+    <string name="editor_3d_invalid_shadow">Valores de sombra inválidos.</string>
+    <string name="editor_3d_restart_engine_title">Reinicialização do motor 3D</string>
+    <string name="editor_3d_restart_engine_msg">É necessário reiniciar o editor 3D para aplicar as configurações. Alterações não salvas poderão ser perdidas. Continuar?</string>
+    <string name="editor_3d_restart_btn">Reiniciar</string>
+    <string name="editor_3d_engine_restarted">Motor 3D reiniciado com novas configurações.</string>
+    <string name="editor_3d_invalid_numbers">Por favor, digite números válidos.</string>
+    <string name="editor_3d_cannot_access_files">Sem acesso aos arquivos do projeto.</string>
+    <string name="editor_3d_no_textures_found">Nenhuma imagem adequada encontrada no projeto.</string>
+    <string name="editor_3d_select_skybox">Escolher textura de skybox</string>
+    <string name="editor_3d_crash_recovery_title">Recuperação após falha</string>
+    <string name="editor_3d_crash_recovery_msg">O editor 3D não foi fechado corretamente na última sessão. Deseja recuperar a cena não salva?</string>
+    <string name="editor_3d_recover_btn">Recuperar</string>
+    <string name="editor_3d_discard_btn">Descartar</string>
+    <string name="editor_3d_recovered_success">Cena recuperada com sucesso!</string>
+    <string name="editor_3d_recovered_failed">Não foi possível recuperar a cena.</string>
+
+    <!-- Inspector Component Names -->
+    <string name="component_transform">Transform (Coordenadas)</string>
+    <string name="component_render">Renderizador do modelo</string>
+    <string name="component_physics">Física (Corpo Rígido)</string>
+    <string name="component_light">Fonte de luz</string>
+    <string name="component_animation">Animação</string>
+    <string name="component_camera">Câmera</string>
+    <string name="component_material">Material (PBR)</string>
+    <string name="component_postprocessing">Pós-processamento</string>
+    <string name="component_particle_legacy">Sist. de partículas (Antigo)</string>
+    <string name="component_particle_3d">Sist. de partículas 3D</string>
+    <string name="component_fog">Parâmetros de névoa</string>
+    <string name="component_keyframe">Animação por keyframes</string>
+    <string name="component_prefab">Componente prefab</string>
+    <string name="component_script">Controlador de script</string>
+
+    <!-- Inspector Base Fields & Buttons -->
+    <string name="editor_3d_object_name_hint">Nome do objeto</string>
+    <string name="editor_3d_duplicate_object">Duplicar objeto</string>
+    <string name="editor_3d_delete_object">Excluir objeto</string>
+    <string name="editor_3d_add_component">Adicionar componente</string>
+    <string name="editor_3d_delete_object_confirm">Tem certeza de que deseja excluir \'%1$s\'?</string>
+
+    <!-- Transform Component -->
+    <string name="editor_3d_position">Posição</string>
+    <string name="editor_3d_rotation">Rotação</string>
+    <string name="editor_3d_scale">Escala</string>
+
+    <!-- Render Component -->
+    <string name="editor_3d_model_file">Arquivo do modelo 3D</string>
+    <string name="editor_3d_no_model_selected">Nenhum modelo selecionado</string>
+    <string name="editor_3d_select_model">Selecionar modelo...</string>
+
+    <!-- Material Component -->
+    <string name="editor_3d_mat_color">Cor principal</string>
+    <string name="editor_3d_mat_metallic">Metálico</string>
+    <string name="editor_3d_mat_roughness">Rugosidade</string>
+    <string name="editor_3d_mat_emissive">Emissão</string>
+    <string name="editor_3d_mat_normal">Mapa de normais</string>
+    <string name="editor_3d_mat_met_rough">Mapa de Metálico/Rugosidade</string>
+    <string name="editor_3d_mat_occlusion">Mapa de oclusão (Occlusion)</string>
+
+    <!-- Physics Component -->
+    <string name="editor_3d_phys_state">Estado</string>
+    <string name="editor_3d_phys_mass">Massa</string>
+    <string name="editor_3d_phys_friction">Atrito</string>
+    <string name="editor_3d_phys_restitution">Elasticidade</string>
+    <string name="editor_3d_phys_add_box">Adicionar colisor cúbico</string>
+    <string name="editor_3d_phys_add_capsule">Adicionar colisor de cápsula</string>
+    <string name="editor_3d_phys_box_collider">Colisor cúbico</string>
+    <string name="editor_3d_phys_sphere_collider">Colisor esférico</string>
+    <string name="editor_3d_phys_capsule_collider">Colisor de cápsula</string>
+    <string name="editor_3d_phys_center">Centro</string>
+    <string name="editor_3d_phys_size">Tamanho</string>
+    <string name="editor_3d_phys_radius">Raio</string>
+
+    <!-- Camera Component -->
+    <string name="editor_3d_cam_main">Câmera principal</string>
+    <string name="editor_3d_cam_fov">Campo de visão (FoV)</string>
+    <string name="editor_3d_cam_clipping">Planos de corte</string>
+    <string name="editor_3d_cam_near">Próximo</string>
+    <string name="editor_3d_cam_far">Longe</string>
+
+    <!-- Light Component -->
+    <string name="editor_3d_light_type">Tipo de fonte</string>
+    <string name="editor_3d_light_intensity">Intensidade</string>
+    <string name="editor_3d_light_range">Alcance do brilho</string>
+    <string name="editor_3d_light_cutoff">Ângulo de corte</string>
+    <string name="editor_3d_light_exponent">Expoente de decaimento</string>
+    <string name="editor_3d_light_color">Cor do brilho</string>
+    <string name="editor_3d_light_select_color">Escolher cor</string>
+
+    <!-- Animation Component -->
+    <string name="editor_3d_anim_clip">Clipe de animação</string>
+    <string name="editor_3d_anim_speed">Velocidade</string>
+    <string name="editor_3d_anim_transition">Tempo de transição (s)</string>
+    <string name="editor_3d_anim_loop">Repetitivo (Loop)</string>
+
+    <!-- Keyframe Component -->
+    <string name="editor_3d_kf_autostart">Início automático</string>
+    <string name="editor_3d_kf_loop">Animação em loop</string>
+    <string name="editor_3d_kf_keyframes">Keyframes:</string>
+    <string name="editor_3d_kf_add_keyframe">+ Criar frame na posição atual</string>
+    <string name="editor_3d_kf_time">Tempo:</string>
+    <string name="editor_3d_kf_ease">Suavização:</string>
+
+    <!-- Post Processing & Formulas Collapse -->
+    <string name="editor_3d_pp_enable">Ativar pós-processamento</string>
+    <string name="editor_3d_pp_quality">Escala de qualidade (0.1 - 1.0)</string>
+    <string name="editor_3d_pp_add_effect">Adicionar efeito</string>
+    <string name="formula_fold">Recolher [－]</string>
+    <string name="formula_unfold">Expandir [＋]</string>
+    <string name="brick_context_dialog_system_info">Informações do sistema</string>
+    <string name="dialog_add_brick_system_info_button">Informações do sistema</string>
+    <string name="dialog_add_brick_system_info_title">Propriedades de sistema do bloco</string>
+
+    <!-- Real-time Code Analysis -->
+    <string name="analysis_event_cascade">Loop de eventos: O script envia a mesma mensagem (\"%1$s\") que o iniciou. Isso causará um spam infinito de threads e travamentos!</string>
+    <string name="analysis_division_by_zero">Divisão por zero: A fórmula contém divisão (ou resto da divisão) por 0.</string>
+    <string name="analysis_3d_primitive_before_pbr">Este primitivo ficará invisível, pois foi criado ANTES de ativar o Render 2.0. Mova-o abaixo do bloco \"Ativar renderização 2.0\".</string>
+    <string name="analysis_3d_render_1_only">Este bloco não funciona no Render 2.0 (PBR) e será ignorado!</string>
+    <string name="analysis_3d_render_2_only">Este bloco requer o Render 2.0 (PBR). Por favor, adicione o bloco \"Ativar renderização 2.0\" antes dele.</string>
+    <string name="analysis_unused_variable">A variável \'%1$s\' é escrita, mas nunca lida. É um código morto que pode ser removido com segurança.</string>
+    <string name="analysis_dead_broadcast">A mensagem \'%1$s\' nunca é enviada em nenhum objeto do projeto. Este script nunca será executado.</string>
+    <string name="analysis_unreachable_both_branches_halt">Este bloco nunca será executado, pois ambas as ramificações da condição Se-Senão anterior param o script.</string>
+    <string name="analysis_error_undefined_variable">A variável \'%1$s\' não foi declarada neste objeto ou projeto. O valor padrão será 0, o que pode causar bugs.</string>
+    <string name="analysis_error_undefined_list">A lista \'%1$s\' não foi declarada neste objeto ou projeto. O uso de uma lista não inicializada causará um erro.</string>
+    <string name="analysis_redundant_overwritten">Esta ação é instantaneamente sobrescrevida pelo bloco seguinte sem nenhum uso intermediário, sendo redundante.</string>
+    <string name="analysis_leak_nn">A rede neural foi carregada, mas nunca descarregada (bloco \"Descarregar .onnx\" ausente). Isso pode causar vazamento de memória!</string>
+    <string name="analysis_leak_vm">A máquina virtual foi iniciada, mas nunca é interrompida (bloco \"Parar VM\" ausente).</string>
+    <string name="analysis_leak_server">O servidor local foi iniciado, mas nunca é interrompido (bloco \"Parar servidor local\" ausente).</string>
+    <string name="analysis_leak_recording">A gravação de áudio foi iniciada, mas nunca é interrompida (bloco \"Salvar gravação\" ausente).</string>
+    <string name="analysis_clone_delete_outside_cloned">O bloco \"Excluir este clone\" é usado fora do script \"Quando um clone for criado\". Ele não funcionará para o sprite original.</string>
+    <string name="analysis_shadow_quality_not_power_of_two">A resolução de sombras (%1$s) deve ser uma potência de dois (ex: 512, 1024, 2048, 4096) para evitar bugs gráficos.</string>
+    <string name="analysis_scale_3d_unequal">As coordenadas da escala 3D (X: %1$s, Y: %2$s, Z: %3$s) são diferentes. Recomendamos usar valores iguais nos eixos X, Y e Z para evitar distorções no modelo.</string>
+    <string name="analysis_wait_inside_async">O bloco \"Aguardar\" é ignorado dentro do loop \"Repetir assincronamente\" e não terá efeito.</string>
+    <string name="analysis_click_to_jump">Toque para ir ao bloco</string>
+    <string name="analysis_dialog_title">Problemas no script</string>
+    <string name="analysis_empty_loop_if_else_empty">O bloco \'Se-Senão\' não contém ações em nenhuma de suas ramificações.</string>
+    <string name="analysis_empty_loop_if_empty_else_not">Otimização: Este bloco pode ser substituído por um bloco \'Se\' simples invertendo a condição.</string>
+    <string name="analysis_empty_loop_if_not_else_empty">Otimização: A ramificação \'Senão\' está vazia. Este bloco pode ser substituído por um \'Se\' simples.</string>
+    <string name="analysis_empty_loop_try_catch_finally_empty">O bloco \'Tentar-Capturar-Finalmente\' está completamente vazio.</string>
+    <string name="analysis_empty_loop_empty_brick">O bloco \'%1$s\' está vazio e não realiza ações.</string>
+    <string name="analysis_unreachable_stop_script">Este bloco nunca será executado, pois está após um bloco que interrompe o script.</string>
+    <string name="analysis_unreachable_after_forever">Este bloco nunca será executado, pois está após um loop infinito sem bloco de parada.</string>
+    <string name="analysis_constant_condition_repeat_until_true">A condição \'%1$s\' é sempre verdadeira. Este loop terminará imediatamente sem executar nenhuma ação.</string>
+    <string name="analysis_constant_condition_if_true">A condição \'%1$s\' é sempre verdadeira. O código na ramificação \'Senão\' (se houver) nunca será executado.</string>
+    <string name="analysis_constant_condition_repeat_until_false">A condição \'%1$s\' é sempre falsa. Este loop será infinito.</string>
+    <string name="analysis_constant_condition_if_false">A condição \'%1$s\' é sempre falsa. O código dentro deste bloco nunca será executado.</string>
+    <string name="analysis_error_firebase_id_invalid">ID do banco de dados Firebase inválido. Deve começar com \'https://\' e terminar com \'firebaseio.com\'. Isso causará um erro em tempo de execução.</string>
+    <string name="analysis_error_firebase_id_empty">O ID do banco de dados Firebase não pode ser vazio.</string>
+    <string name="analysis_redundant_same_action">Este bloco realiza a mesma ação com os mesmos parâmetros que o anterior. Pode ser redundante.</string>
+    <string name="brick_context_dialog_collapse">Recolher bloco</string>
+    <string name="brick_context_dialog_expand">Expandir bloco</string>
+
+    <!-- Subcategories Block Grouping -->
+    <string name="subcategory_device_scripting">Scripts e código</string>
+    <string name="subcategory_device_vm">Máquinas virtuais</string>
+    <string name="subcategory_device_views">Interfaces de usuário</string>
+    <string name="subcategory_device_storage">Arquivos e armazenamento</string>
+    <string name="subcategory_device_hardware">Hardware e câmera</string>
+    <string name="subcategory_device_speech">Fala e interação</string>
+    <string name="subcategory_device_emulation">Emulação e rede</string>
+    <string name="subcategory_device_misc">Diversos</string>
+    <string name="subcategory_neural_llm">IA na nuvem (LLM)</string>
+    <string name="subcategory_neural_local">Modelos locais (ONNX)</string>
+    <string name="subcategory_neural_tensors">Tensores e matrizes</string>
+    <string name="subcategory_neural_vision">Processamento de imagens</string>
+    <string name="subcategory_sound_playback">Reprodução</string>
+    <string name="subcategory_sound_volume">Volume e ajustes</string>
+    <string name="subcategory_sound_files">Arquivos e gravação</string>
+    <string name="subcategory_sound_speech">Fala e microfone</string>
+    <string name="subcategory_sound_music">Música e instrumentos</string>
+    <string name="subcategory_looks_costumes">Aparências e fundos</string>
+    <string name="subcategory_looks_visibility">Visibilidade e tamanho</string>
+    <string name="subcategory_looks_effects">Efeitos gráficos</string>
+    <string name="subcategory_looks_dialogs">Texto e diálogos</string>
+    <string name="subcategory_looks_camera2d">Câmera 2D</string>
+    <string name="subcategory_looks_camera_device">Câmera física e mídia</string>
+    <string name="subcategory_looks_buffers">Buffers</string>
+    <string name="subcategory_looks_primitives">Primitivos</string>
+    <string name="subcategory_data_variables">Variáveis</string>
+    <string name="subcategory_data_lists">Listas e tabelas</string>
+    <string name="subcategory_data_visuals">Exibição de dados</string>
+    <string name="subcategory_data_processing">Processamento de texto</string>
+    <string name="subcategory_data_files">Arquivos e arquivos ZIP</string>
+    <string name="subcategory_data_web">Rede e interação</string>
+    <string name="subcategory_event_touch">Início e toques</string>
+    <string name="subcategory_event_messages">Mensagens</string>
+    <string name="subcategory_event_conditions">Condições e mudanças</string>
+    <string name="subcategory_event_cloning">Clonagem</string>
+    <string name="subcategory_event_sistemas">Sistemas</string>
+    <string name="subcategory_control_waiting">Espera e atrasos</string>
+    <string name="subcategory_control_loops">Loops</string>
+    <string name="subcategory_control_conditions">Condições</string>
+    <string name="subcategory_control_scenes">Cenas e projetos</string>
+    <string name="subcategory_control_stopping">Parada e erros</string>
+    <string name="subcategory_control_cloning">Clonagem</string>
+    <string name="subcategory_control_messages">Eventos e mensagens</string>
+    <string name="subcategory_control_touches">Emulação de toques</string>
+    <string name="subcategory_motion_coordinates">Coordenadas e suavidade</string>
+    <string name="subcategory_motion_rotation">Rotação e direção</string>
+    <string name="subcategory_motion_layers">Camadas e câmera</string>
+    <string name="subcategory_motion_physics_core">Física - Geral</string>
+    <string name="subcategory_motion_physics_forces">Física - Força e velocidade</string>
+    <string name="subcategory_motion_physics_joints">Física - Conexões</string>
+    <string name="subcategory_motion_robots">Robôs e efeitos</string>
+    <string name="subcategory_3d_objects">Objetos e malhas (Meshes)</string>
+    <string name="subcategory_3d_transform">Movimento e vínculos</string>
+    <string name="subcategory_3d_camera">Controle de câmera</string>
+    <string name="subcategory_3d_physics">Física e articulações</string>
+    <string name="subcategory_3d_render">Luz e ambiente</string>
+    <string name="subcategory_3d_shaders">Materiais e shaders</string>
+    <string name="subcategory_3d_animation">Animação e esqueleto</string>
+    <string name="subcategory_3d_voxels">Gráficos voxel</string>
+    <string name="subcategory_3d_sound">Som espacial</string>
+    <string name="subcategory_3d_effects">Efeitos, cenas e IA</string>
+
+    <!-- Block Grouping Settings -->
+    <string name="preference_title_block_grouping">Agrupamento de blocos</string>
+    <string name="preference_description_block_grouping">Recolher categorias de blocos em subcategorias</string>
+    <string name="preference_title_grouping_event">Categoria Eventos</string>
+    <string name="preference_description_grouping_event">Ativar agrupamento de blocos em eventos</string>
+    <string name="preference_title_grouping_control">Categoria Controle</string>
+    <string name="preference_description_grouping_control">Ativar agrupamento de blocos em controle</string>
+    <string name="preference_title_grouping_motion">Categoria Movimento</string>
+    <string name="preference_description_grouping_motion">Ativar agrupamento de blocos em movimento</string>
+    <string name="preference_title_grouping_sound">Categoria Sons</string>
+    <string name="preference_description_grouping_sound">Ativar agrupamento de blocos em sons</string>
+    <string name="preference_title_grouping_looks">Categoria Aparências</string>
+    <string name="preference_description_grouping_looks">Ativar agrupamento de blocos em aparências</string>
+    <string name="preference_title_grouping_data">Categoria Dados</string>
+    <string name="preference_description_grouping_data">Ativar agrupamento de blocos em dados</string>
+    <string name="preference_title_grouping_device">Categoria Dispositivo</string>
+    <string name="preference_description_grouping_device">Ativar agrupamento de blocos em dispositivos</string>
+    <string name="preference_title_grouping_threed">Categoria 3D</string>
+    <string name="preference_description_grouping_threed">Ativar agrupamento de blocos em 3D (Recomendado)</string>
+
+    <!-- Favorites & Voxel World Engine -->
+    <string name="dialog_add_brick_add">Adicionar</string>
+    <string name="dialog_add_brick_cancel">Cancelar</string>
+    <string name="dialog_add_brick_add_to_favorites">Aos favoritos</string>
+    <string name="dialog_add_brick_remove_from_favorites">Dos favoritos</string>
+    <string name="dialog_add_brick_title">Propriedades do bloco</string>
+    <string name="toast_added_to_favorites">Adicionado aos favoritos</string>
+    <string name="toast_removed_from_favorites">Removido dos favoritos</string>
+    <string name="formula_voxel_get_id" formatted="false">Voxel_obter_id</string>
+    <string name="formula_voxel_get_id_param" formatted="false">(\'worldId\', x, y, z)</string>
+    <string name="formula_voxel_get_data" formatted="false">Voxel_obter_dados</string>
+    <string name="formula_voxel_get_data_param" formatted="false">(\'worldId\', x, y, z)</string>
+    <string name="brick_voxel_world_pos">Coordenadas globais (X Y Z):</string>
+    <string name="brick_voxel_transp">Voxel: Transparência do bloco</string>
+    <string name="brick_voxel_transp_id">ID do bloco:</string>
+    <string name="brick_voxel_transp_value">Ativar (1/0):</string>
+    <string name="brick_voxel_delete">Voxel: Excluir mundo</string>
+    <string name="brick_voxel_load_str">Voxel: Carregar de string</string>
+    <string name="brick_voxel_data">Dados (String):</string>
+    <string name="brick_voxel_delim_x">Separador X:</string>
+    <string name="brick_voxel_delim_y">Separador Y:</string>
+    <string name="brick_voxel_delim_z">Separador Z:</string>
+    <string name="world_name">Nome do mundo</string>
+    <string name="brick_voxel_atlas_w">Blocos no atlas (Largura):</string>
+    <string name="brick_voxel_atlas_h">Blocos no atlas (Altura):</string>
+    <string name="brick_voxel_config">Voxel: Configurar tipo de bloco</string>
+    <string name="brick_voxel_config_id">ID do bloco:</string>
+    <string name="brick_voxel_config_shape">Formato (0:Cubo, 1:Cruz, 2-7:Camadas):</string>
+    <string name="brick_voxel_config_atlas_x">Atlas X:</string>
+    <string name="brick_voxel_config_atlas_y">Atlas Y:</string>
+    <string name="brick_voxel_set">Voxel: Definir bloco</string>
+    <string name="brick_voxel_set_id">ID do mundo:</string>
+    <string name="brick_voxel_set_coords">Posição X Y Z:</string>
+    <string name="brick_voxel_set_type">ID do tipo:</string>
+    <string name="brick_voxel_set_data">Dados (0-255):</string>
+    <string name="brick_voxel_create">Voxel: Criar mundo</string>
+    <string name="brick_voxel_size">Tamanho X Y Z</string>
+    <string name="brick_voxel_coords">Coordenadas X Y Z</string>
+    <string name="brick_voxel_type">Tipo de bloco</string>
+    <string name="brick_voxel_build">Voxel: Reconstruir malha</string>
+    <string name="brick_voxel_atlas">Atlas de texturas</string>
+    <string name="brick_voxel_div">Divisão</string>
+
+    <!-- Buffer Rendering & Tablet Mode -->
+    <string name="brick_buffer_mode">Modo de buffer</string>
+    <string name="brick_buffer_cam_3d">Câmera 3D do buffer</string>
+    <string name="brick_buffer_only">Desenhar apenas no buffer (1/0)</string>
+    <string formatted="false" name="buffer_create">Criar buffer</string>
+    <string formatted="false" name="buffer_add">Adicionar ao buffer</string>
+    <string formatted="false" name="buffer_remove">Remover do buffer</string>
+    <string formatted="false" name="buffer_cam">Câmera 2D do buffer</string>
+    <string formatted="false" name="buffer_apply">Definir aparência do buffer</string>
+    <string formatted="false" name="buffer_save">Salvar buffer em arquivo</string>
+    <string formatted="false" name="buffer_auto_update">Autoatualizar buffer</string>
+    <string name="preference_title_pcmode" formatted="false">Ativar interface para telas grandes (tablets)</string>
+
+    <!-- Fast 2D Module -->
+    <string name="fast2d_set_collision_filter" formatted="false">Filtro de colisões</string>
+    <string name="fast2d_is_sensor_param" formatted="false">Sensor (1/0)</string>
+    <string name="fast2d_group_param" formatted="false">Grupo (-1, 0, 1)</string>
+    <string name="fast2d_set_velocity">Velocidade (Simples)</string>
+    <string name="fast2d_set_angular_velocity">Velocidade de rotação</string>
+    <string name="fast2d_vx_param">Vx</string>
+    <string name="fast2d_vy_param">Vy</string>
+    <string name="fast2d_ang_vel_param">Graus/Seg</string>
+    <string name="fast2d_make_physics">Corpo físico</string>
+    <string name="fast2d_apply_force">Aplicar força</string>
+    <string name="fast2d_apply_impulse">Aplicar impulso</string>
+    <string name="fast2d_set_physics_velocity">Velocidade (Física)</string>
+    <string name="fast2d_is_dynamic_param">Dinâmico (1/0)</string>
+    <string name="fast2d_shape_param">Formato (BOX/CIRCLE)</string>
+    <string name="fast2d_density_param">Massa/Densidade</string>
+    <string name="fast2d_friction_param">Atrito</string>
+    <string name="fast2d_bounce_param">Elasticidade</string>
+    <string name="formula_f2d_is_touched_index" formatted="false">F2D_objeto_tocado_pelo_dedo</string>
+    <string name="formula_f2d_is_touched_index_param" formatted="false">(\'id\', 0)</string>
+    <string name="formula_f2d_is_touched" formatted="false">F2D_objeto_tocado</string>
+    <string name="formula_f2d_is_touched_param" formatted="false">(\'id\')</string>
+    <string name="formula_f2d_x" formatted="false">F2D_X</string>
+    <string name="formula_f2d_y" formatted="false">F2D_Y</string>
+    <string name="formula_f2d_rotation" formatted="false">F2D_rotacao</string>
+    <string name="formula_f2d_scale_x" formatted="false">F2D_largura</string>
+    <string name="formula_f2d_scale_y" formatted="false">F2D_altura</string>
+    <string name="formula_f2d_r" formatted="false">F2D_cor_R</string>
+    <string name="formula_f2d_g" formatted="false">F2D_cor_G</string>
+    <string name="formula_f2d_b" formatted="false">F2D_cor_B</string>
+    <string name="formula_f2d_alpha" formatted="false">F2D_alpha</string>
+    <string name="formula_f2d_texture" formatted="false">F2D_textura</string>
+    <string name="formula_f2d_cam_x" formatted="false">F2D_camera_X</string>
+    <string name="formula_f2d_cam_y" formatted="false">F2D_camera_Y</string>
+    <string name="formula_f2d_cam_zoom" formatted="false">F2D_camera_zoom</string>
+    <string name="fast2d_set_color">Cor e Alpha</string>
+    <string name="fast2d_set_camera">Câmera</string>
+    <string name="fast2d_zoom_param">Zoom</string>
+    <string name="fast2d_set_rotation">Rotacionar</string>
+    <string name="fast2d_angle_param">Ângulo</string>
+    <string name="fast2d_set_scale">Tamanho</string>
+    <string name="fast2d_scale_x_param">Largura</string>
+    <string name="fast2d_scale_y_param">Altura</string>
+    <string name="fast2d_set_texture">Textura</string>
+    <string name="fast2d_file_param">Arquivo do projeto</string>
+    <string name="fast2d_set_z">Camada (Z)</string>
+    <string name="fast2d_z_param">Índice Z</string>
+    <string name="fast2d_delete">Excluir objeto</string>
+    <string formatted="false" name="fast2d_create">Criar objeto</string>
+    <string formatted="false" name="fast2d_set_position">Definir posição</string>
+    <string formatted="false" name="fast2d_id_param">ID</string>
+    <string formatted="false" name="fast2d_x_param">X</string>
+    <string formatted="false" name="fast2d_y_param">Y</string>
+
+    <!-- 3D Physics Joints & Motors -->
+    <string formatted="false" name="physics_joint_id">ID da articulação</string>
+    <string formatted="false" name="physics_obj_a">Objeto A</string>
+    <string formatted="false" name="physics_obj_b">Objeto B</string>
+    <string formatted="false" name="physics_pivot_a">Deslocamento A (X Y Z)</string>
+    <string formatted="false" name="physics_pivot_b">Deslocamento B (X Y Z)</string>
+    <string formatted="false" name="threed_hinge_title">Articulação de eixo (Dobradiça/Roda)</string>
+    <string formatted="false" name="threed_hinge_axis_a">Eixo de rotação A (X Y Z)</string>
+    <string formatted="false" name="threed_hinge_axis_b">Eixo de rotação B (X Y Z)</string>
+    <string formatted="false" name="threed_motor_title">Ativar motor da articulação</string>
+    <string formatted="false" name="threed_motor_target">Ângulo alvo</string>
+    <string formatted="false" name="threed_motor_max">Potência do motor</string>
+
+    <!-- Shadows & Advanced Post-Processing Setup -->
+    <string name="brick_set_shadow_quality_prefix">Definir sombras</string>
+    <string name="shadow_area_size">área</string>
+    <string name="shadow_resolution">resolução</string>
+    <string name="brick_set_post_processing_new">Definir efeito</string>
+    <string-array name="pp_new_effect_types">
+        <item>Configurações globais</item>
+        <item>Bloom (Brilho)</item>
+        <item>Vignette (Vinheta)</item>
+        <item>Levels (Correção de cor)</item>
+        <item>Film Grain (Granulação)</item>
+        <item>FXAA (Antialiasing)</item>
+        <item>Aberração Cromática</item>
+        <item>Desfoque Radial</item>
+        <item>Old TV (TV antiga)</item>
+        <item>Monitor CRT</item>
+        <item>Fisheye (Olho de peixe)</item>
+        <item>Distorção de Água</item>
+        <item>Motion Blur (Desfoque)</item>
+        <item>Lens Flare (Reflexos)</item>
+        <item>Desfoque Gaussiano</item>
+        <item>Zoom Blur (Zoom)</item>
+        <item>Mapeamento de tons ACES</item>
+        <item>Adaptação ocular</item>
+        <item>Ray Tracing (SSR)</item>
+        <item>SSAO (Oclusão)</item>
+        <item>Névoa de altura</item>
+        <item>Profundidade de campo (DOF)</item>
+        <item>Raios crepusculares (God Rays)</item>
+        <item>Névoa volumétrica (Névoa 3D)</item>
+        <item>Upscaler FSR (Nitidez)</item>
+        <item>SSGI (Reflexos indiretos)</item>
+    </string-array>
+
+    <!-- Post-Processing Effects Detail Parameters -->
+    <string-array name="pp_params_global">
+        <item>Ativado (1/0)</item>
+        <item>Escala de qualidade</item>
+    </string-array>
+    <string-array name="pp_params_bloom">
+        <item>Ativado</item>
+        <item>Intensidade</item>
+        <item>Limite</item>
+        <item>Força do desfoque</item>
+        <item>Tamanho</item>
+        <item>Passos do desfoque</item>
+    </string-array>
+    <string-array name="pp_params_vignette">
+        <item>Ativado</item>
+        <item>Intensidade</item>
+        <item>Saturação</item>
+    </string-array>
+    <string-array name="pp_params_levels">
+        <item>Ativado</item>
+        <item>Contraste</item>
+        <item>Saturação</item>
+        <item>Gama</item>
+    </string-array>
+    <string-array name="pp_params_grain">
+        <item>Ativado</item>
+        <item>Intensidade</item>
+    </string-array>
+    <string-array name="pp_params_fxaa">
+        <item>Ativado</item>
+    </string-array>
+    <string-array name="pp_params_chromatic">
+        <item>Ativado</item>
+        <item>Força</item>
+        <item>Distorção máx.</item>
+    </string-array>
+    <string-array name="pp_params_radial">
+        <item>Ativado</item>
+        <item>Força</item>
+        <item>Tamanho</item>
+        <item>Passos</item>
+    </string-array>
+    <string-array name="pp_params_oldtv">
+        <item>Ativado</item>
+        <item>Força do efeito</item>
+    </string-array>
+    <string-array name="pp_params_crt">
+        <item>Ativado</item>
+        <item>Distorção</item>
+        <item>Zoom</item>
+    </string-array>
+    <string-array name="pp_params_fisheye">
+        <item>Ativado</item>
+        <item>Intensidade</item>
+    </string-array>
+    <string-array name="pp_params_water">
+        <item>Ativado</item>
+        <item>Força</item>
+        <item>Velocidade</item>
+    </string-array>
+    <string-array name="pp_params_motionblur">
+        <item>Ativado</item>
+        <item>Opacidade do desfoque</item>
+    </string-array>
+    <string-array name="pp_params_lensflare">
+        <item>Ativado</item>
+        <item>Intensidade</item>
+        <item>Limite</item>
+        <item>Dispersão</item>
+        <item>Tamanho</item>
+    </string-array>
+    <string-array name="pp_params_gaussian">
+        <item>Ativado</item>
+        <item>Força</item>
+        <item>Tamanho</item>
+        <item>Passos</item>
+    </string-array>
+    <string-array name="pp_params_zoom">
+        <item>Ativado</item>
+        <item>Força do zoom</item>
+        <item>Centro X</item>
+        <item>Centro Y</item>
+    </string-array>
+    <string-array name="pp_params_aces">
+        <item>Ativado</item>
+    </string-array>
+    <string-array name="pp_params_eyeadapt">
+        <item>Ativado</item>
+        <item>Brilho alvo</item>
+        <item>Velocidade</item>
+        <item>Exposição mín.</item>
+        <item>Exposição máx.</item>
+    </string-array>
+    <string-array name="pp_params_ssr">
+        <item>Ativado</item>
+        <item>Refletividade</item>
+        <item>Passos</item>
+        <item>Espessura</item>
+        <item>Distância</item>
+        <item>Stride (Passo)</item>
+        <item>Jitter (Oscilação)</item>
+        <item>Decaimento das bordas</item>
+    </string-array>
+    <string-array name="pp_params_ssao">
+        <item>Ativado</item>
+        <item>Intensidade</item>
+        <item>Raio</item>
+        <item>Bias (Deslocamento)</item>
+    </string-array>
+    <string-array name="pp_params_heightfog">
+        <item>Ativado</item>
+        <item>Densidade</item>
+        <item>Falloff (Decaimento)</item>
+        <item>Altura</item>
+    </string-array>
+    <string-array name="pp_params_dof">
+        <item>Ativado</item>
+        <item>Distância do foco</item>
+        <item>Alcance</item>
+        <item>Tamanho do desfoque</item>
+        <item>Transição</item>
+        <item>Foco automático (1/0)</item>
+        <item>Velocidade do AF</item>
+    </string-array>
+    <string-array name="pp_params_godrays">
+        <item>Ativado</item>
+        <item>Exposição</item>
+        <item>Decaimento (Decay)</item>
+        <item>Densidade</item>
+        <item>Peso</item>
+    </string-array>
+    <string-array name="pp_params_volfog">
+        <item>Ativado</item>
+        <item>Densidade</item>
+        <item>Dispersão</item>
+        <item>Passos</item>
+        <item>Distância</item>
+    </string-array>
+    <string-array name="pp_params_fsr">
+        <item>Ativado</item>
+        <item>Nitidez</item>
+    </string-array>
+    <string-array name="pp_params_ssgi">
+        <item>Ativado</item>
+        <item>Intensidade</item>
+        <item>Raio</item>
+        <item>Bias (Deslocamento)</item>
+        <item>Força do SSAO</item>
+        <item>Cor base R</item>
+        <item>Cor base G</item>
+        <item>Cor base B</item>
+        <item>Inverter profundidade (1/0)</item>
+    </string-array>
+
+    <!-- 3D Physics Rays, Tiling & Camera settings -->
+    <string name="brick_bake_prefix">Bake de objetos com nome</string>
+    <string name="brick_bake_prefix_hint">Prefixo (ex: wall_)</string>
+    <string name="brick_bake_new_name">Nome do grupo</string>
+    <string name="brick_attach_ray_sensor">Anexar raio-sensor</string>
+    <string name="brick_attach_ray_name">Nome do raio</string>
+    <string name="brick_attach_ray_target">Ao objeto</string>
+    <string name="brick_attach_ray_offset">Deslocamento X Y Z:</string>
+    <string name="brick_attach_ray_direction">Direção X Y Z:</string>
+    <string name="brick_attach_ray_distance">Distância:</string>
+    <string name="brick_particle_emission">Alterar densidade de partículas</string>
+    <string name="brick_particle_rate2">Qtd. (Rate)</string>
+    <string name="brick_animation_speed">Velocidade da animação 3D</string>
+    <string name="brick_anim_speed_val">Velocidade</string>
+    <string name="brick_texture_tiling">Tiling (escala) da textura</string>
+    <string name="brick_tiling_u">Escala X</string>
+    <string name="brick_tiling_v">Escala Y</string>
+    <string name="brick_sound_inst_vol">Definir volume do som</string>
+    <string name="brick_sound_inst_pitch">Definir tom do som</string>
+    <string name="brick_rotate_camera_by">Rotacionar câmera (relativo)</string>
+    <string name="brick_rotate_pitch">Pitch (X)</string>
+    <string name="brick_rotate_yaw">Yaw (Y)</string>
+    <string name="brick_rotate_roll">Roll (Z)</string>
+    <string name="brick_camera_control">Controle de câmera por toque</string>
+    <string name="brick_camera_sens">Sensibilidade</string>
+    <string name="brick_camera_area">Área X Y W H (%)</string>
+    <string name="brick_ai_range">Visão (distância)</string>
+    <string name="brick_camera_fov">Ângulo de visão (FOV)</string>
+    <string name="brick_camera_shake_int">Força do tremor</string>
+    <string name="brick_camera_shake_dur">Duração do tremor</string>
+    <string name="brick_camera_settings">Configurar câmera 3D</string>
+
+    <!-- AI & Chip-8 -->
+    <string name="brick_ai_set">IA para o objeto</string>
+    <string name="brick_ai_mode">Modo (0:Parar, 1:Seguir, 2:Ir)</string>
+    <string name="brick_ai_step">Passo (altura)</string>
+    <string name="brick_ai_avoid">Desviar de paredes (1-Sim, 0-Não)</string>
+    <string name="brick_ai_target">Alvo (Objeto)</string>
+    <string name="brick_ai_speed">Velocidade</string>
+    <string name="brick_ai_stop">Distância de parada</string>
+    <string formatted="false" name="brick_run_chip8">Iniciar jogo CHIP-8: %1$s</string>
+    <string formatted="false" name="dialog_rom_name">arquivo do projeto</string>
+
+    <!-- 3D Fixed Joints, Cylinder & Bone Binding -->
+    <string formatted="false" name="brick_threed_fixed_joint_title">Criar articulação fixa</string>
+    <string formatted="false" name="brick_threed_fixed_joint_id">ID</string>
+    <string formatted="false" name="brick_threed_fixed_joint_obj_a">Objeto A</string>
+    <string formatted="false" name="brick_threed_fixed_joint_obj_b">Objeto B</string>
+    <string formatted="false" name="brick_threed_fixed_joint_mode">Modo</string>
+    <string formatted="false" name="brick_threed_fixed_joint_pivot_a">Ponto A (X, Y, Z)</string>
+    <string formatted="false" name="brick_threed_fixed_joint_pivot_b">Ponto B (X, Y, Z)</string>
+    <string-array name="brick_threed_joint_modes">
+        <item>Auto (Solda)</item>
+        <item>Manual</item>
+    </string-array>
+    <string formatted="false" name="brick_threed_create_cylinder">Criar cilindro com ID</string>
+    <string formatted="false" name="brick_threed_attach_obj_1">Vincular objeto</string>
+    <string formatted="false" name="brick_threed_attach_obj_2">ao modelo</string>
+    <string formatted="false" name="brick_threed_attach_obj_3">ao osso</string>
+    <string formatted="false" name="brick_threed_attach_obj_4">deslocamento X</string>
+    <string formatted="false" name="brick_threed_attach_obj_5">Y</string>
+    <string formatted="false" name="brick_threed_attach_obj_6">Z</string>
+    <string formatted="false" name="brick_threed_bind_bone_1">Vincular osso</string>
+    <string formatted="false" name="brick_threed_bind_bone_2">do modelo</string>
+    <string formatted="false" name="brick_threed_bind_bone_3">ao objeto</string>
+    <string formatted="false" name="brick_align_normal_1">Virar objeto</string>
+    <string formatted="false" name="brick_align_normal_2">pela normal X</string>
+    <string formatted="false" name="brick_align_normal_3">Y</string>
+    <string formatted="false" name="brick_align_normal_4">Z</string>
+
+    <!-- APK Modding & Signature -->
+    <string formatted="false" name="brick_del_apk_title">Excluir do APK</string>
+    <string formatted="false" name="brick_del_apk_path">Caminho do APK</string>
+    <string formatted="false" name="brick_del_apk_pattern">Caminho interno do APK</string>
+    <string formatted="false" name="brick_add_file_apk_title">Adicionar ao APK</string>
+    <string formatted="false" name="brick_add_file_apk_path">Caminho do APK</string>
+    <string formatted="false" name="brick_add_file_apk_src">Origem (Arq/Pasta)</string>
+    <string formatted="false" name="brick_add_file_apk_dest">Caminho interno do APK</string>
+    <string formatted="false" name="brick_extract_title">Extrair do APK</string>
+    <string formatted="false" name="brick_extract_apk">Caminho do APK</string>
+    <string formatted="false" name="brick_extract_inner">Caminho interno do APK</string>
+    <string formatted="false" name="brick_extract_dest">Salvar como</string>
+    <string formatted="false" name="brick_manif_title">Alterar Manifest</string>
+    <string formatted="false" name="brick_manif_apk">Caminho do APK</string>
+    <string formatted="false" name="brick_manif_pkg">Pacote (com.x.y)</string>
+    <string formatted="false" name="brick_manif_name">Nome</string>
+    <string formatted="false" name="brick_manif_vcode">Código da versão</string>
+    <string formatted="false" name="brick_manif_vname">Nome da versão</string>
+    <string formatted="false" name="brick_manif_min">Min SDK</string>
+    <string formatted="false" name="brick_manif_target">Target SDK</string>
+    <string formatted="false" name="brick_manif_debug">Depuração (true/false)</string>
+    <string formatted="false" name="brick_manif_add">Adic. permissões (nova linha)</string>
+    <string formatted="false" name="brick_manif_rem">Remov. permissões (nova linha)</string>
+    <string formatted="false" name="brick_sign_apk_title">Assinar APK</string>
+    <string formatted="false" name="brick_sign_apk_in">APK de entrada</string>
+    <string formatted="false" name="brick_sign_apk_out">APK de saída</string>
+    <string formatted="false" name="brick_sign_apk_key">Chave (.jks)</string>
+    <string formatted="false" name="brick_sign_apk_pass">Senha</string>
+    <string formatted="false" name="brick_sign_apk_alias">Alias</string>
+    <string formatted="false" name="brick_gen_key_title">Criar chave</string>
+    <string formatted="false" name="brick_gen_key_file">Arquivo (.jks)</string>
+    <string formatted="false" name="brick_gen_key_pass">Senha</string>
+    <string formatted="false" name="brick_gen_key_alias">Alias</string>
+    <string formatted="false" name="brick_gen_key_name">Seu nome</string>
+
+    <!-- Machine Learning (PockeTensor) -->
+    <string name="brick_ml_step_adam">Passo inteligente (Adam)</string>
+    <string name="brick_ml_lr">Velocidade</string>
+    <string name="brick_ml_save">Salvar pesos</string>
+    <string name="brick_ml_load">Carregar pesos</string>
+    <string name="brick_ml_file">Arquivo do projeto</string>
+    <string name="pt_set_training">Modo de treinamento</string>
+    <string name="pt_reshape">Alterar formato</string>
+    <string name="pt_reshape_to">para</string>
+    <string name="set_tensor">definir</string>
+    <string name="from_index">por índice</string>
+    <string name="in_tensor">no tensor</string>
+    <string name="from_string">da string</string>
+    <string name="fill_tensor">Preencher tensor</string>
+    <string name="pt_create_tensor">Criar tensor</string>
+    <string name="pt_name">Nome:</string>
+    <string name="pt_value">Valor:</string>
+    <string name="pt_shape">Formato:</string>
+    <string name="pt_trainable">Treinável</string>
+    <string name="pt_operation">Operação</string>
+    <string name="pt_res">Resultado:</string>
+    <string name="pt_op_type">Tipo:</string>
+    <string name="pt_backward">Backward (erro)</string>
+    <string name="pt_step">Passo de treinamento (Step)</string>
+    <string name="pt_lr">Velocidade (LR):</string>
+    <string-array name="pt_ops_array">
+        <item>add</item>
+        <item>sub</item>
+        <item>mul</item>
+        <item>matmul</item>
+        <item>relu</item>
+        <item>sigmoid</item>
+        <item>tanh</item>
+        <item>softmax</item>
+        <item>mse_loss</item>
+        <item>sum</item>
+    </string-array>
+
+    <!-- Project Recovery & IDE plugins -->
+    <string formatted="false" name="brick_shadows_label">Ativar sombras</string>
+    <string formatted="false" name="recovery_desc">Escanear memória para encontrar projetos ausentes no menu</string>
+    <string formatted="false" name="recovery_btn">Buscar projetos perdidos</string>
+    <string formatted="false" name="recovery">Recuperação</string>
+    <string formatted="false" name="plugins_desc">Gerenciar plugins instalados</string>
+    <string formatted="false" name="ide_desc">Ambiente de desenvolvimento NewCatroid</string>
+    <string formatted="false" name="additions">Adições</string>
+    <string formatted="false" name="plugins">Plugins</string>
+
+    <!-- UI Easing & Keys -->
+    <string formatted="false" name="brick_easing_title">Animação (Easing)</string>
+    <string formatted="false" name="brick_easing_type_label">Tipo</string>
+    <string formatted="false" name="brick_easing_time_label">Tempo Atual</string>
+    <string formatted="false" name="brick_easing_duration_label">Duração</string>
+    <string formatted="false" name="brick_easing_start_label">Início</string>
+    <string formatted="false" name="brick_easing_end_label">Fim</string>
+    <string formatted="false" name="brick_rotation_lock_title">Bloquear rotação física</string>
+    <string formatted="false" name="brick_rotation_lock_axes">Eixos:</string>
+    <string formatted="false" name="brick_spawn_invisible_text">Criar objeto oculto</string>
+    <string name="brick_keyframe_anim_title">Animação por keyframe</string>
+    <string name="brick_keyframe_anim_object">ID do objeto</string>
+    <string name="brick_keyframe_anim_action">Ação</string>
+    <string name="brick_keyframe_anim_time">Tempo</string>
+    <string-array name="keyframe_actions">
+        <item>Iniciar</item>
+        <item>Parar</item>
+        <item>Ir para o tempo</item>
+    </string-array>
+
+    <!-- General terms (3D Space, Sound & Parent/Child) -->
+    <string name="brick_set_3d_sound_position">Definir posição do som 3D</string>
+    <string name="brick_load_scene_additive">Carregar cena (adicionar)</string>
+    <string name="brick_load_scene_additive_path">do arquivo</string>
+    <string name="brick_prepare_music">Preparar música (para 3D)</string>
+    <string name="brick_prepare_music_as">com o nome</string>
+    <string name="brick_prepare_sound_as">com o nome</string>
+    <string name="brick_play_sound_3d">Tocar som 3D</string>
+    <string name="brick_sound_instance_name">com o nome da instância</string>
+    <string name="brick_sound_at_position">na posição (X,Y,Z)</string>
+    <string name="brick_sound_volume">Volume (%)</string>
+    <string name="brick_sound_pitch">Tom (%)</string>
+    <string name="brick_sound_loop">Repetir em loop</string>
+    <string-array name="brick_sound_loop_options">
+        <item>Não</item>
+        <item>Sim</item>
+    </string-array>
+    <string name="brick_stop_sound_3d">Parar som 3D (instância)</string>
+    <string name="brick_set_global_sound_volume">Volume geral de sons 3D</string>
+    <string name="brick_percent">%</string>
+    <string name="brick_set_material">Configurar material do objeto</string>
+    <string name="brick_material_color">Cor (R,G,B,A)</string>
+    <string name="brick_material_metallic">Metálico (%)</string>
+    <string name="brick_material_roughness">Rugosidade (%)</string>
+    <string name="brick_material_texture_color">Textura de cor</string>
+    <string name="brick_material_texture_normal">Mapa de normais</string>
+    <string name="brick_material_texture_mr">Mapa de Metálico/Rugosidade</string>
+    <string name="brick_clone_object">Clonar objeto</string>
+    <string name="brick_clone_as">como</string>
+    <string name="brick_set_parent">Definir pai</string>
+    <string name="brick_set_parent_child">para o objeto</string>
+    <string name="brick_set_parent_parent">objeto</string>
+    <string name="brick_create_point_joint">Criar articulação esférica</string>
+    <string name="brick_joint_name">Nome da articulação</string>
+    <string name="brick_joint_object_a">Objeto A</string>
+    <string name="brick_joint_object_b">Objeto B</string>
+    <string name="brick_joint_pivot_a">Ponto no A (x,y,z)</string>
+    <string name="brick_joint_pivot_b">Ponto no B (x,y,z)</string>
+    <string name="brick_remove_parent">Remover pai de</string>
+    <string name="brick_remove_parent_object">objeto</string>
+    <string name="brick_remove_joint">Excluir articulação</string>
+    <string name="brick_set_active">Tornar objeto</string>
+    <string name="brick_set_active_state">ativo</string>
+    <string-array name="brick_set_active_states">
+        <item>sim</item>
+        <item>não</item>
+    </string-array>
+
+    <!-- Post-Processing (Old system) & Particles (2D module) -->
+    <string name="brick_set_pp_effect">Definir efeito (antigo)</string>
+    <string name="brick_set_pp_parameter">Parâmetro</string>
+    <string name="brick_set_pp_value">Valor</string>
+    <string name="brick_create_particles_title" formatted="false">Criar partículas</string>
+    <string name="brick_delete_particles_title" formatted="false">Remover partículas</string>
+    <string name="brick_particle_id" formatted="false">ID</string>
+    <string name="brick_particle_looping" formatted="false">Repetir (1/0)</string>
+    <string name="brick_particle_duration" formatted="false">Duração</string>
+    <string name="brick_particle_lifetime" formatted="false">Tempo de vida</string>
+    <string name="brick_particle_speed" formatted="false">Velocidade</string>
+    <string name="brick_particle_size" formatted="false">Tamanho inicial</string>
+    <string name="brick_particle_end_size" formatted="false">Tamanho final</string>
+    <string name="brick_particle_gravity" formatted="false">Gravidade</string>
+    <string name="brick_particle_max_count" formatted="false">Qtd. máxima</string>
+    <string name="brick_particle_rate" formatted="false">Frequência</string>
+    <string name="brick_particle_angle" formatted="false">Ângulo</string>
+    <string name="brick_particle_radius" formatted="false">Raio</string>
+    <string name="brick_particle_start_color" formatted="false">Cor inicial (Hex)</string>
+    <string name="brick_particle_end_color" formatted="false">Cor final (Hex)</string>
+    <string name="brick_particle_texture" formatted="false">Arquivo de textura</string>
+    <string name="brick_particle_additive" formatted="false">Brilho (1/0)</string>
+    <string name="brick_particle_rotation" formatted="false">Rotação inicial</string>
+    <string name="brick_particle_rotation_speed" formatted="false">Velocidade de rotação</string>
+    <string name="brick_particle_pos_x" formatted="false">Posição X</string>
+    <string name="brick_particle_pos_y" formatted="false">Posição Y</string>
+    <string name="brick_particle_pos_z" formatted="false">Posição Z</string>
+    <string name="brick_particle_rot_pitch" formatted="false">Rotação Pitch (X)</string>
+    <string name="brick_particle_rot_yaw" formatted="false">Rotação Yaw (Y)</string>
+    <string name="brick_particle_rot_roll" formatted="false">Rotação Roll (Z)</string>
+    <string-array name="pp_effect_types">
+        <item>Global (Ativar/Qualidade)</item>
+        <item>Bloom</item>
+        <item>Vignette</item>
+        <item>Levels (Color)</item>
+        <item>Film Grain</item>
+        <item>FXAA</item>
+        <item>Chromatic Aberration</item>
+        <item>Radial Blur</item>
+        <item>Old TV</item>
+        <item>CRT Monitor</item>
+        <item>Fisheye</item>
+        <item>Water Distortion</item>
+        <item>Motion Blur</item>
+        <item>Lens Flare</item>
+        <item>Gaussian Blur</item>
+        <item>Zoom Blur</item>
+        <item>ACES Tonemapping</item>
+        <item>Eye Adaptation</item>
+        <item>Ray Tracing (SSR)</item>
+    </string-array>
+    <string-array name="pp_effect_params">
+        <item>Ativado (1/0)</item>
+        <item>Intensidade / Força / Valor</item>
+        <item>Limite</item>
+        <item>Valor do desfoque</item>
+        <item>Passos do desfoque (Inteiro)</item>
+        <item>Resolução (Global)</item>
+        <item>Contraste</item>
+        <item>Saturação</item>
+        <item>Gama</item>
+        <item>Velocidade</item>
+        <item>Distorção</item>
+        <item>Deslocamento X</item>
+        <item>Deslocamento Y</item>
+        <item>Ruído</item>
+        <item>Valor máximo</item>
+        <item>Valor mínimo</item>
+    </string-array>
+
+    <!-- Virtual Machine (VM) mouse, inputs & variables -->
+    <string name="brick_bind_vm_output">Vincular saída da VM à variável</string>
+    <string name="vm_name">Nome da VM</string>
+    <string name="variable">Variável</string>
+    <string name="brick_send_vm_input">Enviar entrada para a VM</string>
+    <string name="input_text">Texto de entrada</string>
+    <string name="brick_run_vm2">Iniciar VM</string>
+    <string name="brick_vm_arguments">Argumentos</string>
+    <string formatted="false" name="brick_vm_mouse_relative">Evento do mouse (aditivo)</string>
+    <string formatted="false" name="brick_vm_mouse_dx">Posição X</string>
+    <string formatted="false" name="brick_vm_mouse_dy">Posição Y</string>
+    <string formatted="false" name="brick_vm_monitor_size">Definir tamanho do monitor da VM</string>
+    <string formatted="false" name="brick_vm_width">Largura</string>
+    <string formatted="false" name="brick_vm_height">Altura</string>
+
+    <!-- Extensions, Project Dialogs & Categories -->
+    <string name="category_file">Arquivos</string>
+    <string name="category_favorites">Favoritos</string>
+    <string name="brick_prepare_sound2">Preparar som (para 3D)</string>
+    <string name="formula_editor_function_touches_object_by_name">toca_objeto_por_nome</string>
+    <string name="formula_editor_function_touches_object_by_name_parameter">("nome do objeto")</string>
+    <string formatted="false" name="preference_description_pocketensor_bricks">Adiciona o trabalho com tensores e permite criar modelos de IA.</string>
+    <string formatted="false" name="pocketensor">PockeTensor</string>
+    <string formatted="false" name="preference_description_fast2d_bricks">Adiciona blocos para o novo sistema de renderização 2D (mais complexo, mas otimizado)</string>
+    <string formatted="false" name="fast2d">Fast 2D</string>
+    <string formatted="false" name="formula_editor_sensor_micro_freq">frequência do som do microfone</string>
+    <string name="new_project_title">Criar projeto</string>
+    <string name="new_project_dialog_portrait">Retrato</string>
+    <string name="new_project_dialog_landscape">Paisagem</string>
+    <string name="new_project_dialog_cast">Transmitido (Cast)</string>
+    <string formatted="false" name="brick_post_web_request">Enviar requisição web POST</string>
+    <string formatted="false" name="enter_url">Insira a URL</string>
+    <string formatted="false" name="enter_data">Insira os dados</string>
+    <string formatted="false" name="project_id">Project ID</string>
+
     <!-- New Objects -->
     <string name="brick_square" formatted="false">Criar quadrado</string>
     <string name="brick_square_name" formatted="false">Nome</string>
