@@ -5,19 +5,10 @@ import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.FormulaElement.ElementType
 import org.catrobat.catroid.utils.git.Conflict
 
-/**
- * Интерфейс для классов, которые умеют сравнивать и сливать
- * один конкретный тип кирпичиков.
- */
 interface BrickComparator {
     fun compare(mergedBrick: Brick, baseBrick: Brick, remoteBrick: Brick, conflicts: MutableList<Conflict>)
 }
 
-/**
- * Вспомогательная функция для безопасного получения простого значения из формулы.
- * Возвращает значение, только если формула - это простое число или строка.
- * Если это сложная формула (например, "x_pos + 10"), возвращает null.
- */
 fun getLiteralValue(formula: Formula?): String? {
     if (formula == null) return null
     val root = formula.formulaTree

@@ -11,24 +11,18 @@ class MLFileAction(private val isSave: Boolean) : TemporalAction() {
     var fileNameFormula: Formula? = null
 
     override fun update(percent: Float) {
-        Log.d("TEST_123", "called")
         val name = fileNameFormula?.interpretString(scope) ?: return
-        val file = scope?.project?.getFile(name)
-        Log.d("TEST_123", "interpreted")
+        val file = scope?.project?.getFile(name) ?: return
 
-        if (!isSave) {
-            Log.d("TEST_123", "loading")
-            file?.let {
-                if (it.exists()) {
-                    Log.d("TEST_123", "native load")
-                    MLBridge.nativeLoadModel(it.absolutePath)
-                }
-                Log.d("TEST_123", "end loading")
-            }
+        if (isSave) {
+            file.parentFile?.mkdirs()
+            MLBridge.nativeSaveModel(file.absolutePath)
         } else {
-            file?.parentFile?.mkdirs()
-            Log.d("TEST_123", "saving native call: " + file?.absolutePath)
-            MLBridge.nativeSaveModel(file?.absolutePath)
+            if (file.exists()) {
+                MLBridge.nativeLoadModel(file.absolutePath)
+            } else {
+                Log.e("Pocketensor", "Load model failed: File does not exist: ${file.absolutePath}")
+            }
         }
     }
 }

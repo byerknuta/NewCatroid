@@ -30,6 +30,24 @@ public class MLBridge {
 
     public static native void nativeReshape(String name, int[] shape);
 
+    public static native void nativeResetEngine();
+
+    public static native void nativeZeroGrad();
+    public static native void nativeSetTensorArray(String name, float[] data);
+    public static native void nativeSetOneHot(String name, int activeIndex);
+    public static native int nativeSampleCategorical(String name);
+    public static native void nativeCreateNormalTensor(String name, int[] shape, float mean, float stddev, boolean trainable);
+    public static native void nativeSlice(String res, String input, int startCol, int endCol);
+    public static native void nativeLayerEmbedding(String layerName, String input, String output, int vocabSize, int embDim);
+    public static native void nativeLayerAttention(String layerName, String input, String output, int embedDim);
+    public static native void nativeClipGrad(float maxNorm);
+    public static native void nativeLayerConv2D(String layerName, String input, String output, int inChannels, int outChannels, int kernelSize, int stride);
+    public static native void nativeMaxPool2D(String res, String input, int poolSize, int stride);
+    public static native void nativeDropout(String res, String input, float p);
+    public static native void nativeStepAdamW(float lr, float weightDecay);
+    public static native void nativeLayerLstmCell(String layerName, String input, String hIn, String cIn, String hOut, String cOut, int inDim, int hiddenDim);
+    public static native void nativeLayerGruCell(String layerName, String input, String hIn, String hOut, int inDim, int hiddenDim);
+
     //public static native float nativeGetTensorValueByIndex(String name, int index);
 
     public static void test() {

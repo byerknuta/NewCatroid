@@ -22,35 +22,9 @@
  */
 package org.catrobat.catroid.content.actions
 
-import android.app.Activity
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.os.Environment
-import android.util.Log
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
-import com.badlogic.gdx.utils.ScreenUtils
-import kotlinx.coroutines.GlobalScope
-import org.catrobat.catroid.CatroidApplication
-import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.common.LookData
-import org.catrobat.catroid.common.ScreenValues
-import org.catrobat.catroid.content.MyActivityManager
 import org.catrobat.catroid.content.Scope
-import org.catrobat.catroid.formulaeditor.Formula
-import org.catrobat.catroid.io.StorageOperations
-import org.catrobat.catroid.stage.ScreenshotSaver
-import org.catrobat.catroid.stage.ScreenshotSaverCallback
-import org.catrobat.catroid.stage.StageActivity
-import org.catrobat.paintroid.common.PERMISSION_EXTERNAL_STORAGE_SAVE
-import org.catrobat.paintroid.common.PERMISSION_EXTERNAL_STORAGE_SAVE_COPY
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.InputStream
 
 open class SetHitboxAction : TemporalAction() {
     var scope: Scope? = null
@@ -64,7 +38,7 @@ open class SetHitboxAction : TemporalAction() {
 
     fun setHitbox(look: LookData) {
         look.apply {
-            scope?.sprite?.look?.setLookData2(this)
+            scope?.sprite?.look?.setLookDataKeepHitbox(this)
             collisionInformation?.collisionPolygonCalculationThread?.join()
             isWebRequest = false
         }

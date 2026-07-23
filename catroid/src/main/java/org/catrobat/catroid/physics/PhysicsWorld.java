@@ -316,40 +316,48 @@ public class PhysicsWorld {
 		getPhysicsObject(sprite).body.applyAngularImpulse(impulse, true);
 	}
 
-	private class ClosestRayCastCallback implements RayCastCallback {
-		public ClosestRayCastCallback() {
-			super();
-		}
+    private class ClosestRayCastCallback implements RayCastCallback {
+        public ClosestRayCastCallback() {
+            super();
+        }
 
-		@Override
-		public float reportRayFixture(Fixture fixture, Vector2 point, Vector2 normal, float fraction) {
-			if (fraction < currentRayCastResult.hitFraction || !currentRayCastResult.hasHit) {
-				currentRayCastResult.hasHit = true;
-				currentRayCastResult.hitSprite = (Sprite) fixture.getBody().getUserData();
-				currentRayCastResult.hitPoint = PhysicsWorldConverter.convertBox2dToNormalVector(point);
-				currentRayCastResult.hitNormal = normal.cpy();
-				currentRayCastResult.hitFraction = fraction;
-			}
-			return fraction;
-		}
-	}
+        @Override
+        public float reportRayFixture(Fixture fixture, Vector2 point, Vector2 normal, float fraction) {
+            if (fraction < currentRayCastResult.hitFraction || !currentRayCastResult.hasHit) {
+                currentRayCastResult.hasHit = true;
 
-	public void performRayCast(String rayId, Vector2 start, Vector2 end) {
-		currentRayCastResult.hasHit = false;
-		currentRayCastResult.hitFraction = -1f;
+                Object userData = fixture.getBody() != null ? fixture.getBody().getUserData() : null;
+                if (userData instanceof Sprite) {
+                    currentRayCastResult.hitSprite = (Sprite) userData;
+                } else {
+                    currentRayCastResult.hitSprite = null;
+                }
 
-		world.rayCast(closestRayCastCallback, PhysicsWorldConverter.convertCatroidToBox2dVector(start), PhysicsWorldConverter.convertCatroidToBox2dVector(end));
+                currentRayCastResult.hitPoint = PhysicsWorldConverter.convertBox2dToNormalVector(point);
+                currentRayCastResult.hitNormal = normal.cpy();
+                currentRayCastResult.hitFraction = fraction;
+            }
+            return fraction;
+        }
+    }
 
-		RayCastResult finalResult = new RayCastResult();
-		finalResult.hasHit = currentRayCastResult.hasHit;
-		if(finalResult.hasHit) {
-			finalResult.hitSprite = currentRayCastResult.hitSprite;
-			finalResult.hitPoint = currentRayCastResult.hitPoint;
-			finalResult.hitNormal = currentRayCastResult.hitNormal;
-			finalResult.hitFraction = currentRayCastResult.hitFraction;
-		}
-		rayCastResults.put(rayId, finalResult);
-	}
+    public void performRayCast(String rayId, Vector2 start, Vector2 end) {
+        currentRayCastResult.hasHit = false;
+        currentRayCastResult.hitFraction = -1f;
+        currentRayCastResult.hitSprite = null;
+
+        world.rayCast(closestRayCastCallback, PhysicsWorldConverter.convertCatroidToBox2dVector(start), PhysicsWorldConverter.convertCatroidToBox2dVector(end));
+
+        RayCastResult finalResult = new RayCastResult();
+        finalResult.hasHit = currentRayCastResult.hasHit;
+        if(finalResult.hasHit) {
+            finalResult.hitSprite = currentRayCastResult.hitSprite;
+            finalResult.hitPoint = currentRayCastResult.hitPoint;
+            finalResult.hitNormal = currentRayCastResult.hitNormal;
+            finalResult.hitFraction = currentRayCastResult.hitFraction;
+        }
+        rayCastResults.put(rayId, finalResult);
+    }
 
 	public RayCastResult getRayCastResult(String rayId) {
 		return rayCastResults.get(rayId);

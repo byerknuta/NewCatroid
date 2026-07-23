@@ -25,13 +25,15 @@ package org.catrobat.catroid.formulaeditor
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.text.style.ImageSpan
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 
-private const val COLOR_SQUARE_PADDING_LEFT = 15
+private const val COLOR_SQUARE_PADDING_LEFT = 4
 private const val COLOR_SQUARE_PADDING_TOP = 0
-private const val COLOR_STRING_CONVERSION_CONSTANT = 16
 private const val COLOR_SQUARE_ROUNDED_CORNER_DIVIDER = 4
 
 class VisualizeColorString(
@@ -46,16 +48,20 @@ class VisualizeColorString(
 
     init {
         colorValue = getColorValueFromColorString(colorString)
-        val squareBitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565)
-        squareBitmap.setPixel(0, 0, colorValue)
-        drawable = RoundedBitmapDrawableFactory.create(
-            context.resources, Bitmap.createScaledBitmap(
-                squareBitmap,
-                bitmapSize.toInt(),
-                bitmapSize.toInt(),
-                false
-            )
-        )
+
+        val size = bitmapSize.toInt().coerceAtLeast(16)
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        drawCheckerboard(canvas, size)
+
+        val colorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = colorValue
+            style = Paint.Style.FILL
+        }
+        canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), colorPaint)
+
+        drawable = RoundedBitmapDrawableFactory.create(context.resources, bitmap)
         drawable.cornerRadius = bitmapSize / COLOR_SQUARE_ROUNDED_CORNER_DIVIDER
         drawable.setBounds(
             COLOR_SQUARE_PADDING_LEFT, COLOR_SQUARE_PADDING_TOP,
@@ -65,12 +71,56 @@ class VisualizeColorString(
         imageSpan = VisualizeColorImageSpan(drawable, colorValue)
     }
 
+    private fun drawCheckerboard(canvas: Canvas, size: Int) {
+        val paintWhite = Paint().apply { color = 0xFFFFFFFF.toInt() }
+        val paintGray = Paint().apply { color = 0xFFCCCCCC.toInt() }
+
+        val numCells = 4
+        val cellSize = size.toFloat() / numCells
+
+        for (row in 0 until numCells) {
+            for (col in 0 until numCells) {
+                val paint = if ((row + col) % 2 == 0) paintWhite else paintGray
+                canvas.drawRect(
+                    col * cellSize,
+                    row * cellSize,
+                    (col + 1) * cellSize,
+                    (row + 1) * cellSize,
+                    paint
+                )
+            }
+        }
+    }
+
     private fun getColorValueFromColorString(colorString: String): Int {
-        val newString = colorString.replace(Regex("[^A-Za-z0-9]"), "")
+        val clean = colorString.trim('\'', '"', ' ', '\t')
+        if (clean.isEmpty()) return 0
+
         return try {
-            newString.toInt(COLOR_STRING_CONVERSION_CONSTANT)
-        } catch (nfe: NumberFormatException) {
+            if (clean.startsWith("#")) {
+                parseHexColor(clean)
+            } else {
+                val hex = clean.replace(Regex("[^A-Za-z0-9]"), "")
+                parseHexColor("#$hex")
+            }
+        } catch (e: Exception) {
             0
+        }
+    }
+
+    private fun parseHexColor(hexString: String): Int {
+        val hex = hexString.substring(1)
+        return when (hex.length) {
+            6 -> Color.parseColor("#FF$hex")
+            8 -> {
+                try {
+                    Color.parseColor(hexString)
+                } catch (e: IllegalArgumentException) {
+                    val argb = hex.substring(6, 8) + hex.substring(0, 6)
+                    Color.parseColor("#$argb")
+                }
+            }
+            else -> 0
         }
     }
 }

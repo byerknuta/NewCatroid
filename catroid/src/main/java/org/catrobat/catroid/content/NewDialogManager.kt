@@ -2,7 +2,6 @@ package org.catrobat.catroid.content
 
 import androidx.appcompat.app.AlertDialog
 import android.graphics.Color
-import android.view.ContextThemeWrapper
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -51,6 +50,8 @@ class NewDialogManager {
             context.runOnUiThread {
                 val container = LinearLayout(context).apply {
                     orientation = LinearLayout.VERTICAL
+                    val padding = resources.getDimensionPixelSize(R.dimen.dialog_content_area_padding)
+                    setPadding(padding, padding, padding, padding)
                 }
 
                 val editTextFields = mutableListOf<EditText>()
@@ -63,7 +64,10 @@ class NewDialogManager {
                         layoutParams = LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT
-                        )
+                        ).apply {
+                            topMargin = resources.getDimensionPixelSize(R.dimen.material_design_spacing_small)
+                            bottomMargin = resources.getDimensionPixelSize(R.dimen.material_design_spacing_small)
+                        }
                     }
                     editTextFields.add(editText)
                     container.addView(editText)
@@ -76,12 +80,6 @@ class NewDialogManager {
                             ViewGroup.LayoutParams.WRAP_CONTENT
                         )
                         orientation = LinearLayout.VERTICAL
-                        setPadding(
-                            resources.getDimensionPixelSize(R.dimen.dialog_content_area_padding),
-                            resources.getDimensionPixelSize(R.dimen.dialog_content_area_padding),
-                            resources.getDimensionPixelSize(R.dimen.dialog_content_area_padding_input),
-                            resources.getDimensionPixelSize(R.dimen.dialog_content_area_padding_input)
-                        )
                     }
                     for (option in dialogData.radioOptions) {
                         val radioButton = RadioButton(context).apply {
@@ -110,9 +108,7 @@ class NewDialogManager {
                     return sb.toString().trim()
                 }
 
-                val builder = AlertDialog.Builder(
-                    context
-                )
+                val builder = AlertDialog.Builder(context)
                     .setTitle(dialogData.title)
                     .setMessage(dialogData.message)
                     .setCancelable(false)

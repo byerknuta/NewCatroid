@@ -1,108 +1,274 @@
-// Файл: org/catrobat/catroid/utils/PolygonDecomposer.java
 package org.catrobat.catroid.utils;
 
+import com.badlogic.gdx.math.EarClippingTriangulator;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ShortArray;
 
-/**
- * Утилита для разложения вогнутого полигона на массив выпуклых полигонов.
- * Использует алгоритм декомпозиции Bayazit.
- * Адаптировано из различных open-source реализаций для libGDX.
- */
+import java.util.ArrayList;
+import java.util.List;
+
 public final class PolygonDecomposer {
 
     private PolygonDecomposer() {
-        // Статический класс-утилита, конструктор не нужен
     }
 
-    /**
-     * Основной метод. Принимает один (возможно вогнутый) полигон и возвращает массив выпуклых частей.
-     * @param concavePolygon Полигон для декомпозиции.
-     * @return Array из выпуклых полигонов.
-     */
-    public static Array<Polygon> decompose(Polygon concavePolygon) {
-        float[] vertices = concavePolygon.getVertices();
-        Array<Vector2> polygonVertices = new Array<>(vertices.length / 2);
-        for (int i = 0; i < vertices.length; i += 2) {
-            polygonVertices.add(new Vector2(vertices[i], vertices[i + 1]));
+    public static Polygon[] decompose(List<Polygon> inputPolygons) {
+        if (inputPolygons == null || inputPolygons.isEmpty()) {
+            return new Polygon[0];
         }
 
-        Array<Array<Vector2>> convexPolygons = decompose(polygonVertices);
-
-        Array<Polygon> result = new Array<>();
-        for (Array<Vector2> polyVerts : convexPolygons) {
-            float[] polyFloats = new float[polyVerts.size * 2];
-            for (int i = 0; i < polyVerts.size; i++) {
-                polyFloats[i * 2] = polyVerts.get(i).x;
-                polyFloats[i * 2 + 1] = polyVerts.get(i).y;
+        List<Polygon> cleanedInputs = new ArrayList<>();
+        for (Polygon p : inputPolygons) {
+            Polygon cleaned = cleanPolygon(p);
+            if (cleaned != null && cleaned.getVertices().length >= 6) {
+                cleanedInputs.add(cleaned);
             }
-            result.add(new Polygon(polyFloats));
-        }
-        return result;
-    }
-
-
-    private static Array<Array<Vector2>> decompose(Array<Vector2> vertices) {
-        Array<Array<Vector2>> list = new Array<>();
-        float d, dist1, dist2;
-        Vector2 p1, p2, p3;
-        int i, j, l;
-        int i1, i2, i3;
-        int n = vertices.size;
-
-        if (n < 3) {
-            return list;
         }
 
-        for (i = 0; i < n; i++) {
-            i1 = i;
-            i2 = (i + 1) % n;
-            i3 = (i + 2) % n;
-            p1 = vertices.get(i1);
-            p2 = vertices.get(i2);
-            p3 = vertices.get(i3);
-            d = area(p1, p2, p3);
-            if (d > 0) {
-                for (j = 0; j < n; j++) {
-                    if ((j == i1) || (j == i2) || (j == i3)) {
-                        continue;
-                    }
-                    p3 = vertices.get(j);
-                    if (isInside(p1, p2, vertices.get(i3), p3)) {
-                        dist1 = p1.dst2(p3);
-                        dist2 = p1.dst2(vertices.get(j + 1 > n - 1 ? 0 : j + 1));
-                        for (l = 0; l < n; l++) {
-                            Array<Vector2> part1 = copy(vertices, i1, l);
-                            Array<Vector2> part2 = copy(vertices, l, i1);
-                            list.addAll(decompose(part1));
-                            list.addAll(decompose(part2));
-                        }
-                        return list;
-                    }
+        if (cleanedInputs.isEmpty()) {
+            return new Polygon[0];
+        }
+
+        List<Polygon> outerPolygons = new ArrayList<>();
+        List<List<Polygon>> holesForOuter = new ArrayList<>();
+
+        for (Polygon poly : cleanedInputs) {
+            int parentIndex = findParentPolygonIndex(poly, cleanedInputs);
+            if (parentIndex == -1) {
+                outerPolygons.add(poly);
+                holesForOuter.add(new ArrayList<>());
+            } else {
+                Polygon parent = cleanedInputs.get(parentIndex);
+                int outerIdx = outerPolygons.indexOf(parent);
+                if (outerIdx != -1) {
+                    holesForOuter.get(outerIdx).add(poly);
+                } else {
+                    outerPolygons.add(poly);
+                    holesForOuter.add(new ArrayList<>());
                 }
             }
         }
 
-        list.add(vertices);
-        return list;
-    }
+        List<Polygon> resultList = new ArrayList<>();
+        EarClippingTriangulator triangulator = new EarClippingTriangulator();
 
-    private static float area(Vector2 a, Vector2 b, Vector2 c) {
-        return a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y);
-    }
+        for (int i = 0; i < outerPolygons.size(); i++) {
+            Polygon outer = outerPolygons.get(i);
+            List<Polygon> holes = holesForOuter.get(i);
 
-    private static boolean isInside(Vector2 a, Vector2 b, Vector2 c, Vector2 p) {
-        return area(a, b, p) >= 0 && area(b, c, p) >= 0 && area(c, a, p) >= 0;
-    }
+            Polygon merged = outer;
+            for (Polygon hole : holes) {
+                merged = mergeHoleIntoOuter(merged, hole);
+            }
 
-    private static Array<Vector2> copy(Array<Vector2> vertices, int i, int j) {
-        Array<Vector2> p = new Array<>();
-        while (i != j) {
-            p.add(vertices.get(i));
-            i = (i + 1) % vertices.size;
+            merged = cleanPolygon(merged);
+            if (merged == null || merged.getVertices().length < 6) continue;
+
+            try {
+                float[] verts = merged.getVertices();
+                ShortArray indices = triangulator.computeTriangles(verts);
+
+                for (int t = 0; t < indices.size; t += 3) {
+                    int i1 = indices.get(t) * 2;
+                    int i2 = indices.get(t + 1) * 2;
+                    int i3 = indices.get(t + 2) * 2;
+
+                    float[] triVerts = {
+                            verts[i1], verts[i1 + 1],
+                            verts[i2], verts[i2 + 1],
+                            verts[i3], verts[i3 + 1]
+                    };
+                    resultList.add(new Polygon(triVerts));
+                }
+            } catch (Exception e) {
+                resultList.addAll(triangulateByFan(merged));
+            }
         }
-        p.add(vertices.get(j));
-        return p;
+
+        return resultList.toArray(new Polygon[0]);
+    }
+
+    private static List<Polygon> triangulateByFan(Polygon poly) {
+        List<Polygon> tris = new ArrayList<>();
+        float[] verts = poly.getVertices();
+        int numPoints = verts.length / 2;
+        if (numPoints < 3) return tris;
+
+        float x0 = verts[0], y0 = verts[1];
+        for (int i = 1; i < numPoints - 1; i++) {
+            float[] tri = {
+                    x0, y0,
+                    verts[i * 2], verts[i * 2 + 1],
+                    verts[(i + 1) * 2], verts[(i + 1) * 2 + 1]
+            };
+            tris.add(new Polygon(tri));
+        }
+        return tris;
+    }
+
+    private static Polygon cleanPolygon(Polygon poly) {
+        if (poly == null) return null;
+        float[] verts = poly.getVertices();
+        if (verts.length < 6) return null;
+
+        List<Float> cleanList = new ArrayList<>();
+        int numPoints = verts.length / 2;
+
+        for (int i = 0; i < numPoints; i++) {
+            float x1 = verts[i * 2];
+            float y1 = verts[i * 2 + 1];
+
+            int nextIdx = (i + 1) % numPoints;
+            float x2 = verts[nextIdx * 2];
+            float y2 = verts[nextIdx * 2 + 1];
+
+            float dx = x2 - x1;
+            float dy = y2 - y1;
+            if (Math.hypot(dx, dy) > 0.01f) {
+                cleanList.add(x1);
+                cleanList.add(y1);
+            }
+        }
+
+        if (cleanList.size() < 6) return null;
+
+        float[] cleanArray = new float[cleanList.size()];
+        for (int i = 0; i < cleanList.size(); i++) {
+            cleanArray[i] = cleanList.get(i);
+        }
+
+        if (calculateSignedArea(cleanArray) < 0) {
+            reverseVertices(cleanArray);
+        }
+
+        return new Polygon(cleanArray);
+    }
+
+    private static float calculateSignedArea(float[] verts) {
+        float area = 0f;
+        int numPoints = verts.length / 2;
+        for (int i = 0; i < numPoints; i++) {
+            int j = (i + 1) % numPoints;
+            area += verts[i * 2] * verts[j * 2 + 1];
+            area -= verts[j * 2] * verts[i * 2 + 1];
+        }
+        return area * 0.5f;
+    }
+
+    private static void reverseVertices(float[] verts) {
+        int numPoints = verts.length / 2;
+        for (int i = 0; i < numPoints / 2; i++) {
+            int opposite = numPoints - 1 - i;
+
+            float tempX = verts[i * 2];
+            float tempY = verts[i * 2 + 1];
+
+            verts[i * 2] = verts[opposite * 2];
+            verts[i * 2 + 1] = verts[opposite * 2 + 1];
+
+            verts[opposite * 2] = tempX;
+            verts[opposite * 2 + 1] = tempY;
+        }
+    }
+
+    private static int findParentPolygonIndex(Polygon candidateHole, List<Polygon> allPolygons) {
+        float[] verts = candidateHole.getVertices();
+        if (verts.length < 2) return -1;
+
+        float testX = verts[0];
+        float testY = verts[1];
+
+        int parentIdx = -1;
+
+        for (int i = 0; i < allPolygons.size(); i++) {
+            Polygon other = allPolygons.get(i);
+            if (other == candidateHole) continue;
+
+            if (other.contains(testX, testY)) {
+                parentIdx = i;
+            }
+        }
+        return parentIdx;
+    }
+
+    private static Polygon mergeHoleIntoOuter(Polygon outer, Polygon hole) {
+        float[] outerVerts = outer.getVertices();
+        float[] holeVerts = hole.getVertices();
+
+        if (outerVerts.length < 6 || holeVerts.length < 6) return outer;
+
+        int bestOuterIdx = 0;
+        int bestHoleIdx = 0;
+        float minDistSq = Float.MAX_VALUE;
+
+        for (int o = 0; o < outerVerts.length; o += 2) {
+            float ox = outerVerts[o];
+            float oy = outerVerts[o + 1];
+
+            for (int h = 0; h < holeVerts.length; h += 2) {
+                float hx = holeVerts[h];
+                float hy = holeVerts[h + 1];
+
+                float dx = ox - hx;
+                float dy = oy - hy;
+                float distSq = dx * dx + dy * dy;
+
+                if (distSq < minDistSq) {
+                    minDistSq = distSq;
+                    bestOuterIdx = o;
+                    bestHoleIdx = h;
+                }
+            }
+        }
+
+        int outerNumPoints = outerVerts.length / 2;
+        int holeNumPoints = holeVerts.length / 2;
+
+        int oPointIdx = bestOuterIdx / 2;
+        int hPointIdx = bestHoleIdx / 2;
+
+        List<Float> mergedList = new ArrayList<>();
+
+        for (int p = 0; p <= oPointIdx; p++) {
+            mergedList.add(outerVerts[p * 2]);
+            mergedList.add(outerVerts[p * 2 + 1]);
+        }
+
+        for (int p = 0; p < holeNumPoints; p++) {
+            int idx = (hPointIdx + p) % holeNumPoints;
+            mergedList.add(holeVerts[idx * 2]);
+            mergedList.add(holeVerts[idx * 2 + 1]);
+        }
+
+        mergedList.add(holeVerts[hPointIdx * 2]);
+        mergedList.add(holeVerts[hPointIdx * 2 + 1]);
+
+        mergedList.add(outerVerts[oPointIdx * 2]);
+        mergedList.add(outerVerts[oPointIdx * 2 + 1]);
+
+        for (int p = oPointIdx + 1; p < outerNumPoints; p++) {
+            mergedList.add(outerVerts[p * 2]);
+            mergedList.add(outerVerts[p * 2 + 1]);
+        }
+
+        float[] mergedArray = new float[mergedList.size()];
+        for (int i = 0; i < mergedList.size(); i++) {
+            mergedArray[i] = mergedList.get(i);
+        }
+
+        return new Polygon(mergedArray);
+    }
+
+    public static Array<Polygon> decompose(Polygon concavePolygon) {
+        List<Polygon> singleList = new ArrayList<>();
+        singleList.add(concavePolygon);
+        Polygon[] res = decompose(singleList);
+        Array<Polygon> gdxArray = new Array<>();
+        for (Polygon p : res) {
+            gdxArray.add(p);
+        }
+        return gdxArray;
     }
 }

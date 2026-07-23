@@ -630,38 +630,54 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 		dialog.show(fragmentManager, null);
 	}
 
-	private void showColorPickerDialog(View view) {
-		AppCompatActivity activity = UiUtils.getActivityFromView(view);
-		if (activity == null) {
-			return;
-		}
-		FragmentManager fragmentManager = activity.getSupportFragmentManager();
-		if (fragmentManager.isStateSaved()) {
-			return;
-		}
-		showColorPicker(new ShowFormulaEditorStrategy.Callback() {
-			@Override
-			public void showFormulaEditor(View view) {
-			}
+    private void showColorPickerDialog(View view) {
+        AppCompatActivity activity = UiUtils.getActivityFromView(view);
+        if (activity == null) {
+            return;
+        }
+        FragmentManager fragmentManager = activity.getSupportFragmentManager();
+        if (fragmentManager.isStateSaved()) {
+            return;
+        }
+        showColorPicker(new ShowFormulaEditorStrategy.Callback() {
+            @Override
+            public void showFormulaEditor(View view) {
+            }
 
-			@Override
-			public void setValue(int value) {
-				addString(String.format("#%06X", (0xFFFFFF & value)));
-			}
+            @Override
+            public void setValue(int value) {
+                if ((value & 0xFF000000) == 0xFF000000) {
+                    addString(String.format("#%06X", (0xFFFFFF & value)));
+                } else {
+                    addString(String.format("#%08X", value));
+                }
+            }
 
-			@Override
-			public int getValue() {
-				String currentValue = getSelectedFormulaText();
-				if (currentValue != null && currentValue.matches("^#[0-9A-Fa-f]{6}$")) {
-					return Color.parseColor(currentValue);
-				} else if (currentValue != null && currentValue.matches("^#[0-9A-Fa-f]{8}$")) {
-					return Color.parseColor(currentValue);
-				} else {
-					return 0;
-				}
-			}
-		}, fragmentManager);
-	}
+            @Override
+            public int getValue() {
+                String currentValue = getSelectedFormulaText();
+                if (currentValue != null) {
+                    currentValue = currentValue.trim().replace("'", "").replace("\"", "");
+                    if (currentValue.matches("^#[0-9A-Fa-f]{6}$")) {
+                        return Color.parseColor(currentValue);
+                    } else if (currentValue.matches("^#[0-9A-Fa-f]{8}$")) {
+                        try {
+                            return Color.parseColor(currentValue);
+                        } catch (IllegalArgumentException e) {
+                            try {
+                                String hex = currentValue.substring(1);
+                                String argb = "#" + hex.substring(6, 8) + hex.substring(0, 6);
+                                return Color.parseColor(argb);
+                            } catch (Exception ex) {
+                                return 0;
+                            }
+                        }
+                    }
+                }
+                return 0;
+            }
+        }, fragmentManager);
+    }
 
     public void toggleFunctionalButtons() {
         View row1 = getActivity().findViewById(R.id.tableRow11);

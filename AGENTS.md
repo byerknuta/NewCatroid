@@ -68,7 +68,7 @@
 о файлах проекта: в проектах есть свое отдельное хранилище - файлы проекта. туда пользователь может класть любые файлы. например загрузить все для пайтона, в коде подключить это в окружение и запустить того же телеграм бота.
 получить файл можно через scope?.project?.getFile(String)
 
-а теперь покажу как добавлять блоки (нам в принципе не нужно ничего кроме полей ввода, поэтому примеры будут только с ними)
+а теперь покажу как добавлять блоки
 
 1. создать Action
    вот пример
@@ -129,7 +129,7 @@ var text: Formula? = null
 }
 ```
 
-2. добавляем переводы (я использую только русский и английский)
+2. добавляем переводы (я использую только русский, английский и бразильский португальский)
 ```xml
    <string formatted="false" name="dialog_default">Default text</string>
    <string formatted="false" name="dialog_positive">Add button \"Yes\"</string>
@@ -314,7 +314,7 @@ private static final long serialVersionUID = 1L;
 ```
 *обязательно создай конструктор, чтобы можно было создать блок из обычных строк / чисел, а не только из формул.
 
-6. Далее мы добавляем описание блока в BrickInfo:
+6. Далее мы добавляем описание блока в BrickInfo (нужно написать 3 описания: на русском, английском и бразильском португальском):
    add(AddEditBrick.class, "Добавляет поле ввода в диалог (возвращает: написанное значение)");
 
 
@@ -324,6 +324,237 @@ private static final long serialVersionUID = 1L;
 
 8. Ну и в CategoryBricksFactory:
    looksBrickList.add(AddEditBrick("myDialog", "это текстовое поле"))
+
+Так же можно добавлять, к примеру, выпадающие списки как тут:
+```java
+package org.catrobat.catroid.content.bricks;
+
+import android.content.Context;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import org.catrobat.catroid.R;
+import org.catrobat.catroid.content.Sprite;
+import org.catrobat.catroid.content.actions.ScriptSequenceAction;
+import org.catrobat.catroid.formulaeditor.Formula;
+
+public class SetPhysicsStateBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
+    private int stateSelection = 0; // 0: None, 1: Static, 2: Dynamic
+    private int shapeSelection = 0; // 0: Box, 1: Sphere, 2: Capsule
+
+    public SetPhysicsStateBrick() {
+
+        addAllowedBrickField(BrickField.VALUE_1, R.id.brick_set_physics_state_id);
+        addAllowedBrickField(BrickField.VALUE_2, R.id.brick_set_physics_state_mass_value);
+    }
+
+    public SetPhysicsStateBrick(String objectId, int state, int shape, double mass) {
+        this();
+        setFormulaWithBrickField(BrickField.VALUE_1, new Formula(objectId));
+        setFormulaWithBrickField(BrickField.VALUE_2, new Formula(mass));
+        this.stateSelection = state;
+        this.shapeSelection = shape;
+    }
+
+    @Override
+    public int getViewResource() {
+        return R.layout.brick_set_physics_state;
+    }
+
+    @Override
+    public View getView(Context context) {
+        super.getView(context);
+
+        Spinner stateSpinner = view.findViewById(R.id.brick_set_physics_state_spinner);
+        Spinner shapeSpinner = view.findViewById(R.id.brick_set_physics_shape_spinner);
+        LinearLayout shapeLayout = view.findViewById(R.id.brick_set_physics_shape_layout);
+        LinearLayout massLayout = view.findViewById(R.id.brick_set_physics_state_mass_layout);
+
+        ArrayAdapter<CharSequence> stateAdapter = ArrayAdapter.createFromResource(context, R.array.brick_physics_states, android.R.layout.simple_spinner_item);
+        stateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        stateSpinner.setAdapter(stateAdapter);
+
+        ArrayAdapter<CharSequence> shapeAdapter = ArrayAdapter.createFromResource(context, R.array.brick_physics_shapes, android.R.layout.simple_spinner_item);
+        shapeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        shapeSpinner.setAdapter(shapeAdapter);
+
+        stateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                stateSelection = position;
+                updateVisibility();
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        shapeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                shapeSelection = position;
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        stateSpinner.setSelection(stateSelection);
+        shapeSpinner.setSelection(shapeSelection);
+        updateVisibility();
+
+        return view;
+    }
+
+    private void updateVisibility() {
+        LinearLayout shapeLayout = view.findViewById(R.id.brick_set_physics_shape_layout);
+        LinearLayout massLayout = view.findViewById(R.id.brick_set_physics_state_mass_layout);
+
+        shapeLayout.setVisibility(stateSelection == 1 || stateSelection == 2 ? View.VISIBLE : View.GONE);
+        massLayout.setVisibility(stateSelection == 2 ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
+        sequence.addAction(sprite.getActionFactory()
+                .createSetPhysicsStateAction(sprite, sequence,
+                        getFormulaWithBrickField(BrickField.VALUE_1),
+                        stateSelection,
+                        shapeSelection,
+                        getFormulaWithBrickField(BrickField.VALUE_2)
+                ));
+    }
+}
+
+```
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_set_physics_state_layout"
+        style="@style/BrickContainer.Threed.Big">
+
+        <include layout="@layout/icon_brick_category_threed" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_set_physics_state_of" />
+        <TextView
+            android:id="@+id/brick_set_physics_state_id"
+            style="@style/BrickEditText"
+            app:layout_newLine="true"/>
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_set_physics_state_to"
+            app:layout_newLine="true" />
+        <Spinner
+            android:id="@+id/brick_set_physics_state_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textDirection="locale" />
+
+        <LinearLayout
+            android:id="@+id/brick_set_physics_shape_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_newLine="true"
+            android:visibility="gone">
+
+            <TextView
+                style="@style/BrickText.SingleLine"
+                android:text="@string/brick_set_physics_state_shape" />
+            <Spinner
+                android:id="@+id/brick_set_physics_shape_spinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/brick_set_physics_state_mass_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_newLine="true"
+            android:visibility="gone">
+
+            <TextView
+                style="@style/BrickText.SingleLine"
+                android:text="@string/brick_set_physics_state_mass" />
+            <TextView
+                android:id="@+id/brick_set_physics_state_mass_value"
+                style="@style/BrickEditText" />
+        </LinearLayout>
+
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>
+```
+
+```java
+package org.catrobat.catroid.content.actions;
+
+import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction;
+import org.catrobat.catroid.content.Scope;
+import org.catrobat.catroid.formulaeditor.Formula;
+import org.catrobat.catroid.raptor.ThreeDManager;
+import org.catrobat.catroid.stage.StageActivity;
+
+public class SetPhysicsStateAction extends TemporalAction {
+    public Scope scope;
+    public Formula objectId;
+    public int stateSelection; // 0: None, 1: Static, 2: Dynamic
+    public int shapeSelection; // 0: Box, 1: Sphere, 2: Capsule
+    public Formula mass;
+
+    @Override
+    protected void update(float percent) {
+        var threeDManager = StageActivity.getActiveStageListener().getThreeDManager();
+        if (threeDManager == null) return;
+
+        try {
+            String id = objectId.interpretString(scope);
+            if (id.isEmpty()) return;
+
+            float m = mass.interpretFloat(scope);
+
+            ThreeDManager.PhysicsState state;
+            switch (stateSelection) {
+                case 0: state = ThreeDManager.PhysicsState.NONE; break;
+                case 1: state = ThreeDManager.PhysicsState.STATIC; break;
+                case 2: state = ThreeDManager.PhysicsState.DYNAMIC; break;
+                case 3: state = ThreeDManager.PhysicsState.MESH_STATIC; break;
+                case 4: state = ThreeDManager.PhysicsState.KINEMATIC; break;
+                default: return;
+            }
+
+            ThreeDManager.PhysicsShape shape;
+            switch (shapeSelection) {
+                case 1: shape = ThreeDManager.PhysicsShape.SPHERE; break;
+                case 2: shape = ThreeDManager.PhysicsShape.CAPSULE; break;
+                case 0:
+                default: shape = ThreeDManager.PhysicsShape.BOX; break;
+            }
+
+            threeDManager.setPhysicsState(id, state, shape, m);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
 
 
 

@@ -1156,6 +1156,30 @@ public class Look extends Image {
         return hitboxPolygon.getBoundingRectangle();
     }
 
+    public synchronized void setLookDataKeepHitbox(LookData newLookData) {
+        if (this.lookData != newLookData) {
+            if (this.lookData2 == null) {
+                this.lookData2 = this.lookData;
+            }
+            this.lookData = newLookData;
+            collisionDirty.set(true);
+            refreshTextures(false);
+
+            if (sprite != null && sprite.getLookList() != null && sprite.getLookList().size() > 100) {
+                int size = sprite.getLookList().size();
+                int currentIndex = sprite.getLookList().indexOf(newLookData);
+                if (currentIndex != -1) {
+                    for (int i = 0; i < size; i++) {
+                        int diff = Math.abs(i - currentIndex);
+                        diff = Math.min(diff, size - diff);
+                        if (diff > 30) {
+                            sprite.getLookList().get(i).dispose();
+                        }
+                    }
+                }
+            }
+        }
+    }
 	public void setMotionDirectionInUserInterfaceDimensionUnit(float degrees) {
 		rotation = (-degrees + DEGREE_UI_OFFSET) % 360;
 		realRotation = convertStageAngleToCatroidAngle(rotation);

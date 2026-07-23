@@ -194,11 +194,11 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 
     private static final List<Integer> PT_FUNCTIONS = asList(
             R.string.formula_pt_argmax, R.string.formula_pt_value, R.string.formula_pt_valuend,
-            R.string.formula_pt_shape, R.string.formula_pt_dump, R.string.formula_pt_totalsize
+            R.string.formula_pt_shape, R.string.formula_pt_dump, R.string.formula_pt_totalsize, R.string.formula_pt_sample
     );
     private static final List<Integer> PT_PARAMS = asList(
             R.string.formula_pt_argmax_param, R.string.formula_pt_value_param, R.string.formula_pt_valuennd_param,
-            R.string.formula_pt_shape_param, R.string.formula_pt_dump_param, R.string.formula_pt_totalsize_param
+            R.string.formula_pt_shape_param, R.string.formula_pt_dump_param, R.string.formula_pt_totalsize_param, R.string.formula_pt_sample_param
     );
 
     private static final List<Integer> F2D_FUNCTIONS = asList(

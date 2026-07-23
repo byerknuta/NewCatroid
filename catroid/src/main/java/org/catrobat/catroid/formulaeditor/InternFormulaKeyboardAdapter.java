@@ -413,6 +413,8 @@ public class InternFormulaKeyboardAdapter {
 				return buildDoubleParameterFunction(Functions.INDEX_OF_ITEM,
 						NUMBER, "1",
 						USER_LIST, "list_name");
+            case R.string.formula_pt_sample:
+                return buildSingleParameterFunction(Functions.PT_SAMPLE, STRING, "tensor");
 			case R.string.formula_editor_function_json_get:
 				return buildDoubleParameterFunction(Functions.JSON_GET, STRING, "{\"id\": 1, \"data\": {\"value\": \"text\"}}", STRING, "data.value");
 			case R.string.formula_editor_function_json_set:

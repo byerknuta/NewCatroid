@@ -120,6 +120,7 @@ import org.catrobat.catroid.formulaeditor.SensorHandler;
 import org.catrobat.catroid.formulaeditor.UserDataWrapper;
 import org.catrobat.catroid.io.SoundCacheManager;
 import org.catrobat.catroid.io.SoundManager;
+import org.catrobat.catroid.ml.MLBridge;
 import org.catrobat.catroid.physics.PhysicsDebugSettings;
 import org.catrobat.catroid.physics.PhysicsLook;
 import org.catrobat.catroid.physics.PhysicsObject;
@@ -371,6 +372,8 @@ public class StageListener implements ApplicationListener {
 
 		threeDManager = new ThreeDManager();
 		threeDManager.init();
+
+        MLBridge.nativeResetEngine();
 
 		sceneManager = new SceneManager(threeDManager);
 
@@ -874,39 +877,50 @@ public class StageListener implements ApplicationListener {
 
 	private VmMonitorActor vmMonitorActor;
 
-	private void initActors(List<Sprite> sprites) {
-		vmMonitorActor = new VmMonitorActor(vncSwizzleShader);
+    private void initActors(List<Sprite> sprites) {
+        vmMonitorActor = new VmMonitorActor(vncSwizzleShader);
 
-		vmMonitorActor.setSize(virtualWidth, virtualHeight);
-		vmMonitorActor.setPosition(-virtualWidthHalf, -virtualHeightHalf);
+        vmMonitorActor.setSize(virtualWidth, virtualHeight);
+        vmMonitorActor.setPosition(-virtualWidthHalf, -virtualHeightHalf);
 
-		stage.addActor(vmMonitorActor);
-		vmMonitorActor.setZIndex(0);
+        stage.addActor(vmMonitorActor);
+        vmMonitorActor.setZIndex(0);
 
-		if (sprites.isEmpty()) {
-			return;
-		}
+        if (sprites.isEmpty()) {
+            penActor = new PenActor();
+            stage.addActor(penActor);
 
-		for (Sprite sprite : sprites) {
-			sprite.resetSprite();
-			sprite.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
+            plotActor = new PlotActor();
+            stage.addActor(plotActor);
 
-			stage.addActor(sprite.look);
-		}
+            float screenRatio = calculateScreenRatio();
+            EmbroideryActor embroideryActor = new EmbroideryActor(screenRatio, embroideryPatternManager, shapeRenderer);
+            stage.addActor(embroideryActor);
+            return;
+        }
 
-		penActor = new PenActor();
-		stage.addActor(penActor);
-		penActor.setZIndex(Z_LAYER_PEN_ACTOR);
+        Sprite backgroundSprite = sprites.get(0);
+        backgroundSprite.resetSprite();
+        backgroundSprite.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
+        stage.addActor(backgroundSprite.look);
 
-		plotActor = new PlotActor();
-		stage.addActor(plotActor);
-		plotActor.setZIndex(Z_LAYER_PEN_ACTOR);
+        penActor = new PenActor();
+        stage.addActor(penActor);
 
-		float screenRatio = calculateScreenRatio();
-		EmbroideryActor embroideryActor = new EmbroideryActor(screenRatio, embroideryPatternManager, shapeRenderer);
-		stage.addActor(embroideryActor);
-		embroideryActor.setZIndex(Z_LAYER_EMBROIDERY_ACTOR);
-	}
+        plotActor = new PlotActor();
+        stage.addActor(plotActor);
+
+        float screenRatio = calculateScreenRatio();
+        EmbroideryActor embroideryActor = new EmbroideryActor(screenRatio, embroideryPatternManager, shapeRenderer);
+        stage.addActor(embroideryActor);
+
+        for (int i = 1; i < sprites.size(); i++) {
+            Sprite sprite = sprites.get(i);
+            sprite.resetSprite();
+            sprite.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
+            stage.addActor(sprite.look);
+        }
+    }
 
     public void onNotificationClicked(String clickedId) {
         if (sprites == null || clickedId == null) return;
@@ -2113,6 +2127,7 @@ public class StageListener implements ApplicationListener {
 
 		RenderManager.INSTANCE.dispose();
         org.catrobat.catroid.utils.NewCatroidMqttManager.INSTANCE.disconnectAll();
+        MLBridge.nativeResetEngine();
 
         try {
             if (MainMenuActivity.pythonEngine != null) {

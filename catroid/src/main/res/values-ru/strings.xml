@@ -23,6 +23,17 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="formula_pt_sample" formatted="false">PT_выбрать_действие</string>
+    <string name="formula_pt_sample_param" formatted="false">(\'тензор\')</string>
+
+    <string name="pt_zero_grad" formatted="false">Сбросить градиенты (Zero Grad)</string>
+
+    <string formatted="false" name="pt_layer_linear">Слой Linear</string>
+    <string formatted="false" name="pt_layer_linear_in">Входной тензор</string>
+    <string formatted="false" name="pt_layer_linear_out">Выходной тензор</string>
+    <string formatted="false" name="pt_layer_linear_in_f">Входов (in_features)</string>
+    <string formatted="false" name="pt_layer_linear_out_f">Выходов (out_features)</string>
+
     <string name="brick_replace_3d_model_title">Заменить 3D модель</string>
     <string name="brick_replace_3d_model_object">ID объекта</string>
     <string name="brick_replace_3d_model_model">Файл модели</string>
@@ -1736,19 +1747,39 @@
     <string name="pt_backward">Backward (ошибка)</string>
     <string name="pt_step">Шаг обучения (Step)</string>
     <string name="pt_lr">Скорость (LR):</string>
-
-    <string-array name="pt_ops_array">
-        <item>add</item>
-        <item>sub</item>
-        <item>mul</item>
-        <item>matmul</item>
-        <item>relu</item>
-        <item>sigmoid</item>
-        <item>tanh</item>
-        <item>softmax</item>
-        <item>mse_loss</item>
-        <item>sum</item>
-    </string-array>
+    <string name="pt_layer_gru_cell" formatted="false">Ячейка GRU</string>
+    <string name="pt_layer_lstm_cell" formatted="false">Ячейка LSTM</string>
+    <string name="pt_lstm_hin" formatted="false">Вход H (H_in)</string>
+    <string name="pt_lstm_cin" formatted="false">Вход C (C_in)</string>
+    <string name="pt_lstm_hout" formatted="false">Выход H (H_out)</string>
+    <string name="pt_lstm_cout" formatted="false">Выход C (C_out)</string>
+    <string name="pt_lstm_hiddendim" formatted="false">Размер скрытого состояния</string>
+    <string name="pt_dropout_res" formatted="false">Dropout результат</string>
+    <string name="pt_drop_prob" formatted="false">Шанс отбросить (0-1)</string>
+    <string name="pt_step_adamw" formatted="false">Шаг AdamW</string>
+    <string name="pt_weight_decay" formatted="false">Затухание весов (decay)</string>
+    <string name="pt_maxpool2d_res" formatted="false">MaxPool2D результат</string>
+    <string name="pt_pool_size" formatted="false">Размер окна (pool)</string>
+    <string name="pt_layer_conv2d" formatted="false">Слой Conv2D</string>
+    <string name="pt_conv_in_c" formatted="false">Каналов входа</string>
+    <string name="pt_conv_out_c" formatted="false">Каналов выхода</string>
+    <string name="pt_conv_ksize" formatted="false">Размер ядра</string>
+    <string name="pt_conv_stride" formatted="false">Шаг (stride)</string>
+    <string name="pt_clip_grad" formatted="false">Ограничить градиенты (ClipGrad)</string>
+    <string name="pt_layer_attention" formatted="false">Слой Self-Attention</string>
+    <string name="pt_attn_dim" formatted="false">Размер фич (embed_dim)</string>
+    <string name="pt_slice_res" formatted="false">Срез тензора</string>
+    <string name="pt_slice_input" formatted="false">Из тензора</string>
+    <string name="pt_slice_from" formatted="false">Столбец от</string>
+    <string name="pt_slice_to" formatted="false">До</string>
+    <string name="pt_create_normal_tensor" formatted="false">Создать тензор Гаусса</string>
+    <string name="pt_tensor_shape" formatted="false">Размер</string>
+    <string name="pt_tensor_mean" formatted="false">Среднее</string>
+    <string name="pt_tensor_std" formatted="false">Отклонение</string>
+    <string name="pt_tensor_trainable" formatted="false">Обучаемый (1/0)</string>
+    <string name="pt_layer_embedding" formatted="false">Слой Embedding</string>
+    <string name="pt_emb_vocab" formatted="false">Размер словаря</string>
+    <string name="pt_emb_dim" formatted="false">Длина вектора</string>
     <string formatted="false" name="brick_shadows_label">Включить тени</string>
     <string formatted="false" name="recovery_desc">Сканировать память на наличие проектов, не отображаемых в меню</string>
     <string formatted="false" name="recovery_btn">Найти потерянные проекты</string>

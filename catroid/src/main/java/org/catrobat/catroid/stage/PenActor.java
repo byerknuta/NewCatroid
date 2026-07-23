@@ -35,7 +35,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.ui.Image;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.content.PenConfiguration;
@@ -63,24 +62,42 @@ public class PenActor extends Actor {
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        buffer.begin();
+        boolean hasLinesToDraw = false;
         for (Sprite sprite : StageActivity.getActiveStageListener().getSpritesFromStage()) {
-            PenConfiguration pen = sprite.penConfiguration;
-            pen.drawLinesForSprite(screenRatio, getStage().getViewport().getCamera());
+            if (sprite.penConfiguration != null && sprite.penConfiguration.hasLinesToDraw()) {
+                hasLinesToDraw = true;
+                break;
+            }
         }
-        buffer.end();
 
-        batch.end();
+        if (hasLinesToDraw) {
+            batch.end();
+
+            buffer.begin();
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            Gdx.gl.glBlendFuncSeparate(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+            for (Sprite sprite : StageActivity.getActiveStageListener().getSpritesFromStage()) {
+                PenConfiguration pen = sprite.penConfiguration;
+                if (pen != null) {
+                    pen.drawLinesForSprite(screenRatio, camera);
+                }
+            }
+            buffer.end();
+
+            batch.begin();
+        }
+
         TextureRegion region = new TextureRegion(buffer.getColorBufferTexture());
         region.flip(false, true);
-        Image image = new Image(region);
-        image.setPosition(-buffer.getWidth() / 2, -buffer.getHeight() / 2);
-        batch.begin();
-        image.draw(batch, parentAlpha);
+
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        batch.draw(region, -buffer.getWidth() / 2f, -buffer.getHeight() / 2f, buffer.getWidth(), buffer.getHeight());
     }
 
     public void reset() {
         buffer.begin();
+        Gdx.gl20.glClearColor(0f, 0f, 0f, 0f);
         Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT);
         buffer.end();
     }
@@ -90,7 +107,7 @@ public class PenActor extends Actor {
         bufferBatch.begin();
         for (Sprite sprite : StageActivity.getActiveStageListener().getSpritesFromStage()) {
             PenConfiguration pen = sprite.penConfiguration;
-            if (pen.hasStamp()) {
+            if (pen != null && pen.hasStamp()) {
                 sprite.look.draw(bufferBatch, 1.0f);
                 pen.setStamp(false);
             }

@@ -29,47 +29,27 @@ import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
 object FormulaSpannableStringBuilder {
 
     private const val BITMAP_SIZE_MULTIPLIER = 1.25f
+    private val COLOR_STRING_REGEX = Regex("'#[0-9a-fA-F]{6}'|'#[0-9a-fA-F]{8}'")
 
     @JvmStatic
     fun buildSpannableFormulaString(context: Context, formulaString: String, textSize: Float):
-        SpannableStringBuilder {
-        val stringBuilder = SpannableStringBuilder()
-        val formulaStringList = formulaString.split(" ")
-        for (variable in formulaStringList) {
-            if (isColorString(variable)) {
-                addColoredSquareToColorString(
-                    context,
-                    variable,
-                    textSize * BITMAP_SIZE_MULTIPLIER,
-                    stringBuilder
+            SpannableStringBuilder {
+        val stringBuilder = SpannableStringBuilder(formulaString)
+
+        COLOR_STRING_REGEX.findAll(formulaString).forEach { matchResult ->
+            val colorString = matchResult.value
+            val start = matchResult.range.first
+            if (start + 2 <= stringBuilder.length) {
+                val colorSquare = VisualizeColorString(context, colorString, textSize * BITMAP_SIZE_MULTIPLIER)
+                stringBuilder.setSpan(
+                    colorSquare.imageSpan,
+                    start + 1,
+                    start + 2,
+                    SPAN_EXCLUSIVE_EXCLUSIVE
                 )
-            } else if (variable.isEmpty()) {
-                continue
-            } else {
-                stringBuilder.append("$variable ")
             }
         }
+
         return stringBuilder
-    }
-
-    private fun isColorString(colorString: String): Boolean =
-        colorString.matches(Regex("^'#.{6}'$"))
-
-    private fun addColoredSquareToColorString(
-        context: Context,
-        colorString: String,
-        bitmapSize: Float,
-        stringBuilder: SpannableStringBuilder
-    ) {
-        val colorStringCut = colorString.substring(0, colorString.length - 1)
-        stringBuilder.append("$colorStringCut ")
-        val colorSquare = VisualizeColorString(context, colorString, bitmapSize)
-        stringBuilder.setSpan(
-            colorSquare.imageSpan,
-            stringBuilder.length - 1,
-            stringBuilder.length,
-            SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        stringBuilder.append("' ")
     }
 }

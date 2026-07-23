@@ -446,10 +446,16 @@ public class Sprite implements Nameable, Serializable {
                         UserList oldList = (UserList) val;
                         UserList activeList = findOrCreateUserList(oldList, sprite, project);
                         field.set(obj, activeList);
+                    } else if (val instanceof Sprite) {
+                        Sprite oldSprite = (Sprite) val;
+                        Sprite activeSprite = findSpriteByName(oldSprite.getName(), sprite, project);
+                        if (activeSprite != null) {
+                            field.set(obj, activeSprite);
+                        }
                     } else if (val instanceof Iterable) {
                         for (Object item : (Iterable<?>) val) {
                             if (item != null) {
-                                if (item instanceof UserVariable || item instanceof UserList) {
+                                if (item instanceof UserVariable || item instanceof UserList || item instanceof Sprite) {
                                     resolveReferencesRecursive(obj, sprite, project, visited);
                                 } else {
                                     resolveReferencesRecursive(item, sprite, project, visited);
@@ -467,6 +473,33 @@ public class Sprite implements Nameable, Serializable {
             }
             clazz = clazz.getSuperclass();
         }
+    }
+
+    private static Sprite findSpriteByName(String spriteName, Sprite currentSprite, Project project) {
+        if (spriteName == null) {
+            return null;
+        }
+
+        if (org.catrobat.catroid.ProjectManager.getInstance() != null) {
+            Scene activeScene = org.catrobat.catroid.ProjectManager.getInstance().getCurrentlyEditedScene();
+            if (activeScene != null) {
+                Sprite s = activeScene.getSprite(spriteName);
+                if (s != null) {
+                    return s;
+                }
+            }
+        }
+
+        if (project != null && project.getSceneList() != null) {
+            for (Scene scene : project.getSceneList()) {
+                Sprite s = scene.getSprite(spriteName);
+                if (s != null) {
+                    return s;
+                }
+            }
+        }
+
+        return null;
     }
 
     private static UserVariable findOrCreateUserVariable(UserVariable oldVar, Sprite sprite, Project project) {

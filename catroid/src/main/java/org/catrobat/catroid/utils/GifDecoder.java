@@ -5,7 +5,9 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
+
 import java.io.InputStream;
+import java.nio.IntBuffer;
 import java.util.Vector;
 
 public class GifDecoder {
@@ -21,7 +23,7 @@ public class GifDecoder {
     public static Animation<TextureRegion> loadGIFAnimation(Animation.PlayMode playMode, InputStream is) {
         GifDecoder decoder = new GifDecoder();
         int err = decoder.read(is);
-        if (err != 0) return null;
+        if (err != 0 || decoder.getFrameCount() <= 0) return null;
 
         Array<TextureRegion> frames = new Array<>();
         float totalDelay = 0;
@@ -33,7 +35,9 @@ public class GifDecoder {
                 Texture texture = new Texture(pixmap);
                 TextureRegion region = new TextureRegion(texture);
                 frames.add(region);
-                totalDelay += decoder.getDelay(i) / 1000f;
+                int delay = decoder.getDelay(i);
+                if (delay <= 0) delay = 100;
+                totalDelay += delay / 1000f;
                 pixmap.dispose();
             }
         }
@@ -72,6 +76,12 @@ public class GifDecoder {
     private boolean transColor;
     private int gceDelay;
     private int dispose = 0;
+
+    private int[] masterCanvas;
+    private int[] previousCanvas;
+    private int lastDispose = 0;
+    private int lastIx, lastIy, lastIw, lastIh;
+    private boolean interlace = false;
 
     public int getDelay(int n) {
         gceDelay = -1;
@@ -113,6 +123,10 @@ public class GifDecoder {
         frames.clear();
         gct = null;
         lct = null;
+        masterCanvas = null;
+        previousCanvas = null;
+        lastDispose = 0;
+        lastIx = 0; lastIy = 0; lastIw = 0; lastIh = 0;
     }
 
     private boolean err() {
@@ -215,6 +229,9 @@ public class GifDecoder {
         readByte();
         int packed = readByte();
         dispose = (packed & 0x1C) >> 2;
+        if (dispose == 0) {
+            dispose = 1;
+        }
         transColor = (packed & 1) != 0;
         gceDelay = readShort() * 10;
         transIndex = readByte();
@@ -228,6 +245,7 @@ public class GifDecoder {
         ih = readShort();
         int packed = readByte();
         lctFlag = (packed & 0x80) != 0;
+        interlace = (packed & 0x40) != 0;
         lctSize = 2 << (packed & 7);
         if (lctFlag) {
             lct = readColorTable(lctSize);
@@ -236,7 +254,7 @@ public class GifDecoder {
             act = gct;
         }
         int save = 0;
-        if (transColor) {
+        if (transColor && act != null && transIndex < act.length) {
             save = act[transIndex];
             act[transIndex] = 0;
         }
@@ -248,7 +266,7 @@ public class GifDecoder {
         skip();
         if (err()) return;
         setPixmapFrame();
-        if (transColor) {
+        if (transColor && act != null && transIndex < act.length) {
             act[transIndex] = save;
         }
     }
@@ -368,44 +386,92 @@ public class GifDecoder {
     }
 
     private void setPixmapFrame() {
-        Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+        if (width <= 0 || height <= 0) return;
 
-        if (frames.size() > 0) {
-            Pixmap.Blending bgBlend = pixmap.getBlending();
-            pixmap.setBlending(Pixmap.Blending.None);
-
-            Pixmap prev = frames.elementAt(frames.size() - 1).image;
-            if (prev != null) {
-                pixmap.drawPixmap(prev, 0, 0);
-            }
-
-            pixmap.setBlending(bgBlend);
+        if (masterCanvas == null || masterCanvas.length != width * height) {
+            masterCanvas = new int[width * height];
+            previousCanvas = new int[width * height];
         }
 
-        int destX = ix;
-        int destY = iy;
-        int destW = iw;
-        int destH = ih;
+        if (lastDispose == 2) {
+            int endX = Math.min(width, lastIx + lastIw);
+            int endY = Math.min(height, lastIy + lastIh);
+            for (int y = Math.max(0, lastIy); y < endY; y++) {
+                int rowOffset = y * width;
+                for (int x = Math.max(0, lastIx); x < endX; x++) {
+                    masterCanvas[rowOffset + x] = 0;
+                }
+            }
+        } else if (lastDispose == 3 && previousCanvas != null) {
+            System.arraycopy(previousCanvas, 0, masterCanvas, 0, masterCanvas.length);
+        }
+
+        if (dispose == 3) {
+            if (previousCanvas == null || previousCanvas.length != masterCanvas.length) {
+                previousCanvas = new int[masterCanvas.length];
+            }
+            System.arraycopy(masterCanvas, 0, previousCanvas, 0, masterCanvas.length);
+        }
 
         int i = 0;
-        for (int y = 0; y < destH; y++) {
-            for (int x = 0; x < destW; x++) {
-                int index = pixels[i++] & 0xff;
+        int line = 0;
+        int inc = 8;
+        int pass = 1;
 
-                if (transColor && index == transIndex) {
-                    continue;
+        for (int y = 0; y < ih; y++) {
+            int row = y;
+            if (interlace) {
+                if (line >= ih) {
+                    pass++;
+                    switch (pass) {
+                        case 2: line = 4; break;
+                        case 3: line = 2; inc = 4; break;
+                        case 4: line = 1; inc = 2; break;
+                    }
                 }
+                row = line;
+                line += inc;
+            }
 
-                int color = act[index];
-                pixmap.setColor(
-                        ((color >> 16) & 0xff) / 255f,
-                        ((color >> 8) & 0xff) / 255f,
-                        (color & 0xff) / 255f,
-                        ((color >> 24) & 0xff) / 255f
-                );
-                pixmap.drawPixel(destX + x, destY + y);
+            int targetY = iy + row;
+            if (targetY >= 0 && targetY < height) {
+                int rowOffset = targetY * width;
+                for (int x = 0; x < iw; x++) {
+                    int index = pixels[i++] & 0xff;
+                    int targetX = ix + x;
+
+                    if (targetX >= 0 && targetX < width) {
+                        if (!transColor || index != transIndex) {
+                            int color = act[index];
+                            int r = (color >> 16) & 0xff;
+                            int g = (color >> 8) & 0xff;
+                            int b = color & 0xff;
+                            int a = (color >> 24) & 0xff;
+
+                            int rgba8888 = (r << 24) | (g << 16) | (b << 8) | a;
+                            masterCanvas[rowOffset + targetX] = rgba8888;
+                        }
+                    }
+                }
+            } else {
+                i += iw;
             }
         }
+
+        Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+        IntBuffer intBuffer = pixmap.getPixels().asIntBuffer();
+        intBuffer.put(masterCanvas);
+        pixmap.getPixels().rewind();
+
+        lastDispose = dispose;
+        lastIx = ix;
+        lastIy = iy;
+        lastIw = iw;
+        lastIh = ih;
+
+        dispose = 0;
+        transColor = false;
+
         frames.addElement(new GifFrame(pixmap, gceDelay));
     }
 }

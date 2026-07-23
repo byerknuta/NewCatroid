@@ -859,6 +859,10 @@ public class FormulaElement implements Serializable {
                 String roomId = String.valueOf(arg0);
                 return NewCatroidMqttManager.INSTANCE.getLatestMessage(roomId);
             }
+            case PT_SAMPLE: {
+                String tensorName = String.valueOf(arg0);
+                return (double) MLBridge.nativeSampleCategorical(tensorName);
+            }
             case READ_FILE: {
                 String filename = String.valueOf(arg0);
                 java.io.File file = org.catrobat.catroid.ProjectManager.getInstance().getCurrentProject().getFile(filename);

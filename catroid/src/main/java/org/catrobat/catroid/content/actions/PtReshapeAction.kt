@@ -14,7 +14,6 @@ class PtReshapeAction : TemporalAction() {
         val name = nameFormula?.interpretString(scope) ?: ""
         val shapeStr = shapeFormula?.interpretString(scope) ?: ""
 
-        // Превращаем "28, 28" в [28, 28]
         val shapeIntArray = shapeStr.split(",")
             .mapNotNull { it.trim().toIntOrNull() }
             .toIntArray()

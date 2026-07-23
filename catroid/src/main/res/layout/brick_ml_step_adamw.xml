@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_ml_step_adamw_layout"
+        style="@style/BrickContainer.Pocketensor.Medium">
+
+        <include layout="@layout/icon_brick_category_pocketensor" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/pt_step_adamw" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/pt_lr"
+            app:layout_newLine="true" />
+
+        <TextView
+            android:id="@+id/brick_ml_adamw_lr"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/pt_weight_decay"
+            app:layout_newLine="true" />
+
+        <TextView
+            android:id="@+id/brick_ml_adamw_decay"
+            style="@style/BrickEditText" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

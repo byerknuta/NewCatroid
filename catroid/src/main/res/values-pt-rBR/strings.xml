@@ -22,6 +22,18 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
+
+    <string name="formula_pt_sample" formatted="false">PT_amostrar_acao</string>
+    <string name="formula_pt_sample_param" formatted="false">(\'tensor\')</string>
+
+    <string name="pt_zero_grad" formatted="false">Limpar Gradientes (Zero Grad)</string>
+
+    <string name="pt_layer_linear">Camada Linear</string>
+    <string name="pt_layer_linear_in">Entrada:</string>
+    <string name="pt_layer_linear_out">Saída:</string>
+    <string name="pt_layer_linear_in_f">Entradas:</string>
+    <string name="pt_layer_linear_out_f">Saídas:</string>
+
     <!-- 3D Models & Logging -->
     <string name="brick_replace_3d_model_title">Substituir modelo 3D</string>
     <string name="brick_replace_3d_model_object">ID do objeto</string>
@@ -1830,18 +1842,39 @@
     <string name="pt_backward">Backward (erro)</string>
     <string name="pt_step">Passo de treinamento (Step)</string>
     <string name="pt_lr">Velocidade (LR):</string>
-    <string-array name="pt_ops_array">
-        <item>add</item>
-        <item>sub</item>
-        <item>mul</item>
-        <item>matmul</item>
-        <item>relu</item>
-        <item>sigmoid</item>
-        <item>tanh</item>
-        <item>softmax</item>
-        <item>mse_loss</item>
-        <item>sum</item>
-    </string-array>
+    <string name="pt_layer_gru_cell" formatted="false">Célula GRU</string>
+    <string name="pt_layer_lstm_cell" formatted="false">Célula LSTM</string>
+    <string name="pt_lstm_hin" formatted="false">Entrada H (H_in)</string>
+    <string name="pt_lstm_cin" formatted="false">Entrada C (C_in)</string>
+    <string name="pt_lstm_hout" formatted="false">Saída H (H_out)</string>
+    <string name="pt_lstm_cout" formatted="false">Saída C (C_out)</string>
+    <string name="pt_lstm_hiddendim" formatted="false">Dimensão oculta</string>
+    <string name="pt_dropout_res" formatted="false">Dropout resultado</string>
+    <string name="pt_drop_prob" formatted="false">Taxa de descarte (0-1)</string>
+    <string name="pt_step_adamw" formatted="false">Passo AdamW</string>
+    <string name="pt_weight_decay" formatted="false">Decaimento de peso</string>
+    <string name="pt_maxpool2d_res" formatted="false">MaxPool2D resultado</string>
+    <string name="pt_pool_size" formatted="false">Tamanho do pool</string>
+    <string name="pt_layer_conv2d" formatted="false">Camada Conv2D</string>
+    <string name="pt_conv_in_c" formatted="false">Canais de entrada</string>
+    <string name="pt_conv_out_c" formatted="false">Canais de saída</string>
+    <string name="pt_conv_ksize" formatted="false">Tamanho do núcleo</string>
+    <string name="pt_conv_stride" formatted="false">Passo (stride)</string>
+    <string name="pt_clip_grad" formatted="false">Limitar Gradientes (ClipGrad)</string>
+    <string name="pt_layer_attention" formatted="false">Camada Self-Attention</string>
+    <string name="pt_attn_dim" formatted="false">Dimensão de recursos</string>
+    <string name="pt_slice_res" formatted="false">Fatiar tensor</string>
+    <string name="pt_slice_input" formatted="false">Do tensor</string>
+    <string name="pt_slice_from" formatted="false">Coluna de</string>
+    <string name="pt_slice_to" formatted="false">Até</string>
+    <string name="pt_layer_embedding" formatted="false">Camada Embedding</string>
+    <string name="pt_emb_vocab" formatted="false">Tamanho do vocabulário</string>
+    <string name="pt_emb_dim" formatted="false">Dimensão do vetor</string>
+    <string name="pt_create_normal_tensor" formatted="false">Criar Tensor Gaussiano</string>
+    <string name="pt_tensor_shape" formatted="false">Forma</string>
+    <string name="pt_tensor_mean" formatted="false">Média</string>
+    <string name="pt_tensor_std" formatted="false">Desvio Padrão</string>
+    <string name="pt_tensor_trainable" formatted="false">Treinável (1/0)</string>
 
     <!-- Project Recovery & IDE plugins -->
     <string formatted="false" name="brick_shadows_label">Ativar sombras</string>

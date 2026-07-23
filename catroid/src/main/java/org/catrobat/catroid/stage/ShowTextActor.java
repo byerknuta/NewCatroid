@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
@@ -16,7 +17,6 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import org.catrobat.catroid.CatroidApplication;
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
-import org.catrobat.catroid.common.ScreenValues;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.formulaeditor.UserVariable;
 import org.catrobat.catroid.utils.ShowTextUtils;
@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Locale;
 
 public class ShowTextActor extends Actor {
+
+    private static int maxGpuTextureSize = 0;
 
     private float textSize;
     private float xPosition;
@@ -63,6 +65,23 @@ public class ShowTextActor extends Actor {
         this.sprite = sprite;
         this.alignment = alignment;
         this.androidStringProvider = androidStringProvider;
+    }
+
+    private static int getMaxGpuTextureSize() {
+        if (maxGpuTextureSize <= 0) {
+            try {
+                int[] params = new int[1];
+                GLES20.glGetIntegerv(GLES20.GL_MAX_TEXTURE_SIZE, params, 0);
+                if (params[0] > 0) {
+                    maxGpuTextureSize = params[0];
+                } else {
+                    maxGpuTextureSize = 8192;
+                }
+            } catch (Exception e) {
+                maxGpuTextureSize = 8192;
+            }
+        }
+        return maxGpuTextureSize;
     }
 
     public String getVariableNameToCompare() {
@@ -158,6 +177,49 @@ public class ShowTextActor extends Actor {
         }
     }
 
+    private int parseColorWithAlpha(String colorStr) {
+        if (colorStr == null || colorStr.trim().isEmpty()) {
+            return Color.BLACK;
+        }
+
+        String cleanColor = colorStr.trim().toUpperCase(Locale.getDefault());
+
+        if (!cleanColor.startsWith("#")) {
+            if (cleanColor.matches("^[0-9A-FA-F]{6}$") || cleanColor.matches("^[0-9A-FA-F]{8}$")) {
+                cleanColor = "#" + cleanColor;
+            }
+        }
+
+        if (cleanColor.startsWith("#")) {
+            String hex = cleanColor.substring(1);
+            if (hex.length() == 6) {
+                try {
+                    return Color.parseColor(cleanColor);
+                } catch (Exception ignored) {}
+            } else if (hex.length() == 8) {
+                try {
+                    return Color.parseColor(cleanColor);
+                } catch (IllegalArgumentException e) {
+                    try {
+                        String argb = "#" + hex.substring(6, 8) + hex.substring(0, 6);
+                        return Color.parseColor(argb);
+                    } catch (Exception ignored) {}
+                }
+            }
+        }
+
+        try {
+            return Color.parseColor(cleanColor);
+        } catch (Exception e) {
+            if (ShowTextUtils.isValidColorString(colorStr)) {
+                int[] rgb = ShowTextUtils.calculateColorRGBs(cleanColor);
+                return (0xFF000000) | (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2]);
+            }
+        }
+
+        return Color.BLACK;
+    }
+
     private void generateTexture(String textToDraw) {
         if (cachedTexture != null) {
             cachedTexture.dispose();
@@ -166,15 +228,11 @@ public class ShowTextActor extends Actor {
 
         Paint paint = new Paint();
         paint.setAntiAlias(true);
-        paint.setTextSize(ShowTextUtils.sanitizeTextSize(textSize));
+        float sanitizedSize = ShowTextUtils.sanitizeTextSize(textSize);
+        paint.setTextSize(sanitizedSize);
         if (typeface != null) paint.setTypeface(typeface);
 
-        if (ShowTextUtils.isValidColorString(colorStr)) {
-            int[] rgb = ShowTextUtils.calculateColorRGBs(colorStr.toUpperCase(Locale.getDefault()));
-            paint.setColor((0xFF000000) | (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2]));
-        } else {
-            paint.setColor(Color.BLACK);
-        }
+        paint.setColor(parseColorWithAlpha(colorStr));
 
         String[] lines = textToDraw.split("\n");
         Paint.FontMetrics fm = paint.getFontMetrics();
@@ -182,36 +240,42 @@ public class ShowTextActor extends Actor {
         float totalHeight = lineHeight * lines.length;
 
         float maxWidth = 0;
+        Rect bounds = new Rect();
+
         for (String line : lines) {
-            maxWidth = Math.max(maxWidth, paint.measureText(line));
+            float measureW = paint.measureText(line);
+            paint.getTextBounds(line, 0, line.length(), bounds);
+            float boundsW = bounds.width();
+            float lineW = Math.max(measureW, boundsW);
+            maxWidth = Math.max(maxWidth, lineW);
         }
 
         if (maxWidth <= 0 || totalHeight <= 0) return;
 
-        final int MAX_TEXTURE_SIZE = 2048;
-        int bitmapWidth = (int) Math.ceil(maxWidth);
-        int bitmapHeight = (int) Math.ceil(totalHeight);
+        int paddingX = Math.max(32, (int) (sanitizedSize * 0.4f));
+        int paddingY = Math.max(16, (int) (sanitizedSize * 0.2f));
 
-        if (bitmapWidth > MAX_TEXTURE_SIZE) {
-            bitmapWidth = MAX_TEXTURE_SIZE;
-        }
-        if (bitmapHeight > MAX_TEXTURE_SIZE) {
-            bitmapHeight = MAX_TEXTURE_SIZE;
-        }
+        int maxAllowedSize = getMaxGpuTextureSize();
+        int bitmapWidth = Math.min(maxAllowedSize, (int) Math.ceil(maxWidth) + (paddingX * 2));
+        int bitmapHeight = Math.min(maxAllowedSize, (int) Math.ceil(totalHeight) + (paddingY * 2));
 
         try {
             Bitmap bitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
 
-            float y = -fm.ascent;
+            float y = -fm.ascent + paddingY;
             for (String line : lines) {
-                float xOffset = 0;
+                float xOffset = paddingX;
                 float lineWidth = paint.measureText(line);
 
                 if (alignment == ShowTextUtils.ALIGNMENT_STYLE_CENTERED) {
                     xOffset = (bitmapWidth - lineWidth) / 2f;
                 } else if (alignment == ShowTextUtils.ALIGNMENT_STYLE_RIGHT) {
-                    xOffset = bitmapWidth - lineWidth;
+                    xOffset = bitmapWidth - paddingX - lineWidth;
+                }
+
+                if (xOffset < 0) {
+                    xOffset = 0;
                 }
 
                 canvas.drawText(line, xOffset, y, paint);
@@ -224,11 +288,12 @@ public class ShowTextActor extends Actor {
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
             bitmap.recycle();
 
-            drawX = 0;
             if (alignment == ShowTextUtils.ALIGNMENT_STYLE_CENTERED) {
                 drawX = -bitmapWidth / 2f;
             } else if (alignment == ShowTextUtils.ALIGNMENT_STYLE_RIGHT) {
-                drawX = -bitmapWidth;
+                drawX = -(bitmapWidth - paddingX);
+            } else {
+                drawX = -paddingX;
             }
             drawY = -bitmapHeight / 2f;
 

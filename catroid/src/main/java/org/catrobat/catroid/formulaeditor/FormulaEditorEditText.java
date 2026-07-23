@@ -84,70 +84,48 @@ public class FormulaEditorEditText extends EditText implements OnTouchListener {
 			return true;
 		}
 
-		@Override
-		public boolean onSingleTapUp(MotionEvent motion) {
-			Layout layout = getLayout();
-			if (layout != null) {
+        @Override
+        public boolean onSingleTapUp(MotionEvent motion) {
+            Layout layout = getLayout();
+            if (layout != null) {
+                int x = (int) motion.getX() - getPaddingLeft() + getScrollX();
+                int y = (int) motion.getY() - getPaddingTop() + getScrollY();
 
-				float lineHeight = getLineHeight();
-				int yCoordinate = (int) motion.getY();
-				int cursorY = 0;
+                if (y < 0) {
+                    y = 0;
+                }
+                if (y >= layout.getHeight()) {
+                    y = Math.max(0, layout.getHeight() - 1);
+                }
 
-				int paddingLeft = getPaddingLeft();
+                int line = layout.getLineForVertical(y);
+                int tempCursorPosition = layout.getOffsetForHorizontal(line, x);
 
-				int cursorXOffset = (int) motion.getX() - paddingLeft;
+                if (tempCursorPosition < 0) {
+                    tempCursorPosition = 0;
+                }
+                if (tempCursorPosition > length()) {
+                    tempCursorPosition = length();
+                }
 
-				int initialScrollY = getScrollY();
-				int firstLineSize = (int) (initialScrollY % lineHeight);
-				int numberOfVisibleLines = (int) (getHeight() / lineHeight);
+                if (!isDoNotMoveCursorOnTab()) {
+                    absoluteCursorPosition = tempCursorPosition;
+                }
+                absoluteCursorPosition = Math.min(absoluteCursorPosition, length());
+                setSelection(absoluteCursorPosition);
+                postInvalidate();
 
-				if (yCoordinate <= lineHeight - firstLineSize) {
-					scrollBy(0, (int) (initialScrollY > lineHeight ? -1 * (firstLineSize + lineHeight / 2) : -1
-							* firstLineSize));
-				} else if (yCoordinate >= numberOfVisibleLines * lineHeight - lineHeight / 2) {
-					if (!(yCoordinate > layout.getLineCount() * lineHeight - getScrollY() - getPaddingTop())) {
-						scrollBy(0, (int) (lineHeight - firstLineSize + lineHeight / 2));
-					}
-					cursorY = numberOfVisibleLines;
-				} else {
-					for (int i = 1; i <= numberOfVisibleLines; i++) {
-						if (yCoordinate <= ((lineHeight - firstLineSize) + getPaddingTop() + i * lineHeight)) {
-							cursorY = i;
-							break;
-						}
-					}
-				}
+                internFormula.setCursorAndSelection(absoluteCursorPosition, false);
 
-				int linesDown = (int) (initialScrollY / lineHeight);
+                highlightSelection();
+                history.updateCurrentSelection(internFormula.getSelection());
+                history.updateCurrentCursor(absoluteCursorPosition);
 
-				while (cursorY + linesDown >= layout.getLineCount()) {
-					linesDown--;
-				}
-
-				int tempCursorPosition = layout.getOffsetForHorizontal(cursorY + linesDown, cursorXOffset);
-
-				if (tempCursorPosition > length()) {
-					tempCursorPosition = length();
-				}
-
-				if (!isDoNotMoveCursorOnTab()) {
-					absoluteCursorPosition = tempCursorPosition;
-				}
-				absoluteCursorPosition = Math.min(absoluteCursorPosition, length());
-				setSelection(absoluteCursorPosition);
-				postInvalidate();
-
-				internFormula.setCursorAndSelection(absoluteCursorPosition, false);
-
-				highlightSelection();
-				history.updateCurrentSelection(internFormula.getSelection());
-				history.updateCurrentCursor(absoluteCursorPosition);
-
-				formulaEditorFragment.refreshFormulaPreviewString(internFormula.getExternFormulaString());
-				formulaEditorFragment.updateButtonsOnKeyboardAndInvalidateOptionsMenu();
-			}
-			return true;
-		}
+                formulaEditorFragment.refreshFormulaPreviewString(internFormula.getExternFormulaString());
+                formulaEditorFragment.updateButtonsOnKeyboardAndInvalidateOptionsMenu();
+            }
+            return true;
+        }
 	});
 
 	public FormulaEditorEditText(Context context) {
@@ -160,26 +138,13 @@ public class FormulaEditorEditText extends EditText implements OnTouchListener {
 		this.context = context;
 	}
 
-	/**
-	 * Добавляет список токенов в текущую позицию (или выделение) формулы.
-	 * Этот метод вызывается из FormulaEditorFragment при добавлении кастомных функций.
-	 * @param tokensToAdd Список токенов для добавления.
-	 */
 	public void addTokensToActiveFormula(List<InternToken> tokensToAdd) {
 		if (internFormula == null || tokensToAdd == null || tokensToAdd.isEmpty()) {
 			Log.w(TAG, "addTokensToActiveFormula: internFormula is null or tokensToAdd is null/empty");
 			return;
 		}
 
-
-
-
-
 		internFormula.insertTokens(context, tokensToAdd);
-
-
-
-
 
 		pushToHistoryAndRefreshPreviewString();
 		if (formulaEditorFragment != null) {
@@ -322,11 +287,11 @@ public class FormulaEditorEditText extends EditText implements OnTouchListener {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        absoluteCursorPosition = Math.min(absoluteCursorPosition, length());
+        absoluteCursorPosition = Math.min(Math.max(0, absoluteCursorPosition), length());
         paint.setStrokeWidth(3);
 
         Layout layout = getLayout();
-        if (layout != null) {
+        if (layout != null && length() > 0 && absoluteCursorPosition <= length()) {
             int line = layout.getLineForOffset(absoluteCursorPosition);
             float xCoordinate = layout.getPrimaryHorizontal(absoluteCursorPosition) + getPaddingLeft();
             float startYCoordinate = layout.getLineBaseline(line) + layout.getLineAscent(line) + getPaddingTop();
@@ -337,28 +302,33 @@ public class FormulaEditorEditText extends EditText implements OnTouchListener {
         }
     }
 
-	public void highlightSelection() {
-		Spannable highlightSpan = this.getText();
-		highlightSpan.removeSpan(COLOR_HIGHLIGHT);
-		highlightSpan.removeSpan(COLOR_ERROR);
+    public void highlightSelection() {
+        Spannable highlightSpan = this.getText();
+        highlightSpan.removeSpan(COLOR_HIGHLIGHT);
+        highlightSpan.removeSpan(COLOR_ERROR);
 
-		int selectionStartIndex = internFormula.getExternSelectionStartIndex();
-		int selectionEndIndex = internFormula.getExternSelectionEndIndex();
-		TokenSelectionType selectionType = internFormula.getExternSelectionType();
+        if (internFormula == null) {
+            return;
+        }
 
-		if (selectionStartIndex == -1 || selectionEndIndex == -1 || selectionEndIndex == selectionStartIndex
-				|| selectionEndIndex > highlightSpan.length()) {
-			return;
-		}
+        int selectionStartIndex = internFormula.getExternSelectionStartIndex();
+        int selectionEndIndex = internFormula.getExternSelectionEndIndex();
+        TokenSelectionType selectionType = internFormula.getExternSelectionType();
 
-		if (selectionType == TokenSelectionType.USER_SELECTION) {
-			highlightSpan.setSpan(COLOR_HIGHLIGHT, selectionStartIndex, selectionEndIndex,
-					Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-		} else {
-			highlightSpan.setSpan(COLOR_ERROR, selectionStartIndex, selectionEndIndex,
-					Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-		}
-	}
+        if (selectionStartIndex < 0 || selectionEndIndex < 0
+                || selectionStartIndex >= selectionEndIndex
+                || selectionEndIndex > highlightSpan.length()) {
+            return;
+        }
+
+        if (selectionType == TokenSelectionType.USER_SELECTION) {
+            highlightSpan.setSpan(COLOR_HIGHLIGHT, selectionStartIndex, selectionEndIndex,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        } else {
+            highlightSpan.setSpan(COLOR_ERROR, selectionStartIndex, selectionEndIndex,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+    }
 
 	public void setParseErrorCursorAndSelection() {
 		internFormula.selectParseErrorTokenAndSetCursor();

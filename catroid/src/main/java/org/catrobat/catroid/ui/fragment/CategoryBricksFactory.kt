@@ -274,6 +274,7 @@ import org.catrobat.catroid.content.bricks.LunoScriptBrick
 import org.catrobat.catroid.content.bricks.MLLoadBrick
 import org.catrobat.catroid.content.bricks.MLSaveBrick
 import org.catrobat.catroid.content.bricks.MLStepAdamBrick
+import org.catrobat.catroid.content.bricks.MLStepAdamWBrick
 import org.catrobat.catroid.content.bricks.MouseEventBrick
 import org.catrobat.catroid.content.bricks.MoveDownloadsBrick
 import org.catrobat.catroid.content.bricks.MoveFilesBrick
@@ -340,14 +341,26 @@ import org.catrobat.catroid.content.bricks.PrepareSoundBrick
 import org.catrobat.catroid.content.bricks.PrepareSoundBrick2
 import org.catrobat.catroid.content.bricks.PreviousLookBrick
 import org.catrobat.catroid.content.bricks.PromoteLightBrick
+import org.catrobat.catroid.content.bricks.PtAttentionBrick
 import org.catrobat.catroid.content.bricks.PtBackwardBrick
+import org.catrobat.catroid.content.bricks.PtClipGradBrick
+import org.catrobat.catroid.content.bricks.PtConv2DBrick
+import org.catrobat.catroid.content.bricks.PtCreateNormalTensorBrick
 import org.catrobat.catroid.content.bricks.PtCreateTensorBrick
+import org.catrobat.catroid.content.bricks.PtDropoutBrick
+import org.catrobat.catroid.content.bricks.PtEmbeddingBrick
+import org.catrobat.catroid.content.bricks.PtGruCellBrick
+import org.catrobat.catroid.content.bricks.PtLayerLinearBrick
+import org.catrobat.catroid.content.bricks.PtLstmCellBrick
+import org.catrobat.catroid.content.bricks.PtMaxPool2DBrick
 import org.catrobat.catroid.content.bricks.PtOpBrick
 import org.catrobat.catroid.content.bricks.PtReshapeBrick
 import org.catrobat.catroid.content.bricks.PtSetByIndexBrick
 import org.catrobat.catroid.content.bricks.PtSetTensorBrick
 import org.catrobat.catroid.content.bricks.PtSetTrainingBrick
+import org.catrobat.catroid.content.bricks.PtSliceBrick
 import org.catrobat.catroid.content.bricks.PtStepBrick
+import org.catrobat.catroid.content.bricks.PtZeroGradBrick
 import org.catrobat.catroid.content.bricks.PutFloatBrick
 import org.catrobat.catroid.content.bricks.RaspiIfLogicBeginBrick
 import org.catrobat.catroid.content.bricks.RaspiPwmBrick
@@ -2200,6 +2213,7 @@ bot.polling()""", "myVar"))
         deviceBrickList.add(OrientationBrick())
         deviceBrickList.add(VibrationBrick(BrickValues.VIBRATE_SECONDS))
         deviceBrickList.add(ScreenShotBrick())
+        deviceBrickList.add(TestBrick())
         deviceBrickList.add(HideStatusBarBrick())
         if (ProjectManager.getInstance().currentProject != null && !ProjectManager.getInstance().currentProject.isCastProject) {
             deviceBrickList.add(CameraBrick())
@@ -2243,7 +2257,6 @@ bot.polling()""", "myVar"))
 
         deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_misc), template))
         deviceBrickList.add(ResetTimerBrick())
-        deviceBrickList.add(TestBrick())
         deviceBrickList.add(ApplyShaderToImageBrick("image.png", """attribute vec4 a_position;
 attribute vec4 a_color;
 attribute vec2 a_texCoord0;
@@ -2508,13 +2521,26 @@ void main() {
 
         pocketensorBrickList.add(PtSetTrainingBrick(1))
         pocketensorBrickList.add(PtCreateTensorBrick("tensor", "10,4", 0f, true))
-        pocketensorBrickList.add(PtOpBrick())
-        pocketensorBrickList.add(PtBackwardBrick("loss"))
-        pocketensorBrickList.add(PtStepBrick(0.01f))
-        pocketensorBrickList.add(MLStepAdamBrick(Formula(0.01f)))
+        pocketensorBrickList.add(PtCreateNormalTensorBrick("noise", "1,10", 0f, 1f, false))
         pocketensorBrickList.add(PtSetTensorBrick("tensor", "1,2,3"))
         pocketensorBrickList.add(PtSetByIndexBrick("tensor", 0, 1f))
+        pocketensorBrickList.add(PtOpBrick())
         pocketensorBrickList.add(PtReshapeBrick("tensor", "20,2"))
+        pocketensorBrickList.add(PtSliceBrick("res", "in", 0, 5))
+        pocketensorBrickList.add(PtDropoutBrick("drop", "x", 0.2f))
+        pocketensorBrickList.add(PtBackwardBrick("loss"))
+        pocketensorBrickList.add(PtZeroGradBrick())
+        pocketensorBrickList.add(PtClipGradBrick(5f))
+        pocketensorBrickList.add(PtStepBrick(0.01f))
+        pocketensorBrickList.add(MLStepAdamBrick(Formula(0.01f)))
+        pocketensorBrickList.add(MLStepAdamWBrick(0.001f, 0.01f))
+        pocketensorBrickList.add(PtLayerLinearBrick("fc1", "x", "out", 10, 5))
+        pocketensorBrickList.add(PtConv2DBrick("conv1", "img", "features", 1, 16, 3, 1))
+        pocketensorBrickList.add(PtMaxPool2DBrick("pooled", "features", 2, 2))
+        pocketensorBrickList.add(PtGruCellBrick("gru1", "x", "hin", "hout", 8, 16))
+        pocketensorBrickList.add(PtLstmCellBrick("lstm1", "x", "hin", "cin", "hout", "cout", 8, 16))
+        pocketensorBrickList.add(PtEmbeddingBrick("emb1", "tokens", "vectors", 100, 16))
+        pocketensorBrickList.add(PtAttentionBrick("attn1", "x", "context", 8))
         pocketensorBrickList.add(MLSaveBrick("model.bin"))
         pocketensorBrickList.add(MLLoadBrick("model.bin"))
 

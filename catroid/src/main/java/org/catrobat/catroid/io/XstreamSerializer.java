@@ -732,6 +732,7 @@ public final class XstreamSerializer {
 		xstream.alias("brick", LookFromTableBrick.class);
 		xstream.alias("brick", WriteBaseBrick.class);
         xstream.alias("brick", PtCreateTensorBrick.class);
+        xstream.alias("brick", PtLayerLinearBrick.class);
         xstream.alias("brick", MLStepAdamBrick.class);
         xstream.alias("brick", MLSaveBrick.class);
         xstream.alias("brick", MLLoadBrick.class);
@@ -742,6 +743,18 @@ public final class XstreamSerializer {
         xstream.alias("brick", PtBackwardBrick.class);
         xstream.alias("brick", PtStepBrick.class);
         xstream.alias("brick", PtOpBrick.class);
+        xstream.alias("brick", PtGruCellBrick.class);
+        xstream.alias("brick", PtLstmCellBrick.class);
+        xstream.alias("brick", PtDropoutBrick.class);
+        xstream.alias("brick", MLStepAdamWBrick.class);
+        xstream.alias("brick", PtMaxPool2DBrick.class);
+        xstream.alias("brick", PtConv2DBrick.class);
+        xstream.alias("brick", PtClipGradBrick.class);
+        xstream.alias("brick", PtAttentionBrick.class);
+        xstream.alias("brick", PtEmbeddingBrick.class);
+        xstream.alias("brick", PtSliceBrick.class);
+        xstream.alias("brick", PtCreateNormalTensorBrick.class);
+        xstream.alias("brick", PtZeroGradBrick.class);
 		xstream.alias("brick", WriteToFilesBrick.class);
 		xstream.alias("brick", ReadFromFilesBrick.class);
 		xstream.alias("brick", DeleteFilesBrick.class);

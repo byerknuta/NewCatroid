@@ -23,6 +23,17 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="formula_pt_sample" formatted="false">PT_sample_action</string>
+    <string name="formula_pt_sample_param" formatted="false">(\'tensor\')</string>
+
+    <string name="pt_zero_grad" formatted="false">Clear Gradients (Zero Grad)</string>
+
+    <string formatted="false" name="pt_layer_linear">Linear Layer</string>
+    <string formatted="false" name="pt_layer_linear_in">Input tensor</string>
+    <string formatted="false" name="pt_layer_linear_out">Output tensor</string>
+    <string formatted="false" name="pt_layer_linear_in_f">In features</string>
+    <string formatted="false" name="pt_layer_linear_out_f">Out features</string>
+
     <string name="brick_replace_3d_model_title">Replace 3D model</string>
     <string name="brick_replace_3d_model_object">Object ID</string>
     <string name="brick_replace_3d_model_model">Model file</string>
@@ -1746,7 +1757,51 @@
         <item>softmax</item>
         <item>mse_loss</item>
         <item>sum</item>
+        <item>concat</item>
+        <item>cross_entropy</item>
+        <item>transpose</item>
+        <item>layernorm</item>
+        <item>gelu</item>
+        <item>leaky_relu</item>
+        <item>sqrt</item>
+        <item>exp</item>
+        <item>log</item>
+        <item>clamp</item>
+        <item>flatten</item>
     </string-array>
+    <string name="pt_layer_gru_cell" formatted="false">GRU Cell</string>
+    <string name="pt_layer_lstm_cell" formatted="false">LSTM Cell</string>
+    <string name="pt_lstm_hin" formatted="false">Input H (H_in)</string>
+    <string name="pt_lstm_cin" formatted="false">Input C (C_in)</string>
+    <string name="pt_lstm_hout" formatted="false">Output H (H_out)</string>
+    <string name="pt_lstm_cout" formatted="false">Output C (C_out)</string>
+    <string name="pt_lstm_hiddendim" formatted="false">Hidden dim</string>
+    <string name="pt_dropout_res" formatted="false">Dropout result</string>
+    <string name="pt_drop_prob" formatted="false">Drop rate (0-1)</string>
+    <string name="pt_step_adamw" formatted="false">AdamW Step</string>
+    <string name="pt_weight_decay" formatted="false">Weight decay</string>
+    <string name="pt_maxpool2d_res" formatted="false">MaxPool2D result</string>
+    <string name="pt_pool_size" formatted="false">Pool size</string>
+    <string name="pt_layer_conv2d" formatted="false">Conv2D Layer</string>
+    <string name="pt_conv_in_c" formatted="false">In channels</string>
+    <string name="pt_conv_out_c" formatted="false">Out channels</string>
+    <string name="pt_conv_ksize" formatted="false">Kernel size</string>
+    <string name="pt_conv_stride" formatted="false">Stride</string>
+    <string name="pt_clip_grad" formatted="false">Clip Gradients (ClipGrad)</string>
+    <string name="pt_layer_attention" formatted="false">Self-Attention Layer</string>
+    <string name="pt_attn_dim" formatted="false">Feature dimension</string>
+    <string name="pt_slice_res" formatted="false">Slice tensor</string>
+    <string name="pt_slice_input" formatted="false">From tensor</string>
+    <string name="pt_slice_from" formatted="false">Column from</string>
+    <string name="pt_slice_to" formatted="false">To</string>
+    <string name="pt_create_normal_tensor" formatted="false">Create Gaussian Tensor</string>
+    <string name="pt_tensor_shape" formatted="false">Shape</string>
+    <string name="pt_tensor_mean" formatted="false">Mean</string>
+    <string name="pt_tensor_std" formatted="false">StdDev</string>
+    <string name="pt_layer_embedding" formatted="false">Embedding Layer</string>
+    <string name="pt_emb_vocab" formatted="false">Vocab size</string>
+    <string name="pt_emb_dim" formatted="false">Embedding dim</string>
+    <string name="pt_tensor_trainable" formatted="false">Trainable (1/0)</string>
     <string formatted="false" name="recovery_desc">Scan memory for projects not displayed in the menu</string>
     <string formatted="false" name="recovery_btn">Recover lost projects</string>
     <string formatted="false" name="recovery">Recovery</string>

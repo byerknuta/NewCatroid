@@ -4,6 +4,7 @@ import androidx.appcompat.app.AlertDialog;
 import android.graphics.Color;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -106,104 +107,108 @@ public class InspectorManager {
             return;
         }
 
-        inspectorTitle.setText(go.name);
+        try {
+            inspectorTitle.setText(go.name);
 
-        View headerView = inflater.inflate(R.layout.inspector_active_toggle, container, false);
+            View headerView = inflater.inflate(R.layout.inspector_active_toggle, container, false);
 
-        CheckBox activeCheckbox = headerView.findViewById(R.id.checkbox_is_active);
-        activeCheckbox.setChecked(go.isActive);
-        activeCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (selectedObject != null) {
-                sceneManager.setObjectActive(selectedObject, isChecked);
-                activity.updateHierarchy();
-            }
-        });
-
-        EditText nameEditor = headerView.findViewById(R.id.edit_object_name);
-        nameEditor.setText(go.name);
-        nameEditor.setOnFocusChangeListener((v, hasFocus) -> {
-            if (!hasFocus && selectedObject != null) {
-                String newName = nameEditor.getText().toString();
-                String oldName = selectedObject.name;
-
-                if (newName.equals(oldName)) return;
-
-                if (sceneManager.renameGameObject(selectedObject, newName)) {
-
+            CheckBox activeCheckbox = headerView.findViewById(R.id.checkbox_is_active);
+            activeCheckbox.setChecked(go.isActive);
+            activeCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (selectedObject != null) {
+                    sceneManager.setObjectActive(selectedObject, isChecked);
                     activity.updateHierarchy();
-                } else {
-                    Toast.makeText(activity, "Invalid or duplicate name!", Toast.LENGTH_SHORT).show();
-                    nameEditor.setText(oldName);
                 }
-            }
-        });
+            });
 
-        container.addView(headerView);
+            EditText nameEditor = headerView.findViewById(R.id.edit_object_name);
+            nameEditor.setText(go.name);
+            nameEditor.setOnFocusChangeListener((v, hasFocus) -> {
+                if (!hasFocus && selectedObject != null) {
+                    String newName = nameEditor.getText().toString();
+                    String oldName = selectedObject.name;
 
-        createTransformView(go);
-        if (go.hasComponent(RenderComponent.class)) createRenderView(go);
-        if (go.hasComponent(PhysicsComponent.class)) createPhysicsView(go);
-        if (go.hasComponent(LightComponent.class)) createLightView(go);
-        if (go.hasComponent(AnimationComponent.class)) createAnimationView(go);
-        if (go.hasComponent(CameraComponent.class)) createCameraView(go);
-        if (go.hasComponent(MaterialComponent.class)) createMaterialView(go);
-        if (go.hasComponent(PostProcessingComponent.class)) createPostProcessingView(go);
-        if (go.hasComponent(ParticleComponent.class)) createParticleView(go);
-        if (go.hasComponent(ParticleSystem3DComponent.class)) createParticleSystem3DView(go);
-        if (go.hasComponent(FogComponent.class)) createFogView(go);
-        if (go.hasComponent(KeyframeComponent.class)) createKeyframeView(go);
-        if (go.hasComponent(PrefabComponent.class)) createPrefabView(go);
-        List<ScriptComponent> scripts = go.getComponents(ScriptComponent.class);
-        for (ScriptComponent script : scripts) {
-            createScriptView(go, script);
-        }
+                    if (newName.equals(oldName)) return;
 
-        View footerView = inflater.inflate(R.layout.inspector_footer, container, false);
-        footerView.findViewById(R.id.btn_add_component).setOnClickListener(v -> showAddComponentDialog(go));
-        container.addView(footerView);
+                    if (sceneManager.renameGameObject(selectedObject, newName)) {
 
-        View divider = new View(activity);
-        int marginPx = (int) (16 * activity.getResources().getDisplayMetrics().density);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
-        params.setMargins(0, marginPx, 0, marginPx);
-        divider.setLayoutParams(params);
-        divider.setBackgroundColor(0x40FFFFFF);
-        container.addView(divider);
-
-        Button duplicateButton = new Button(activity, null, 0, R.style.Widget_App_Button_Outlined);
-        duplicateButton.setText(R.string.editor_3d_clone);
-        duplicateButton.setOnClickListener(v -> {
-            GameObject newObject = sceneManager.duplicateGameObject(go);
-            if (newObject != null) {
-                activity.onObjectSelected(newObject);
-                activity.updateHierarchy();
-            }
-        });
-        container.addView(duplicateButton);
-
-
-        Button deleteObjectButton = new Button(activity);
-        LinearLayout.LayoutParams deleteParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        deleteParams.setMargins(0, (int) (8 * activity.getResources().getDisplayMetrics().density), 0, 0);
-        deleteObjectButton.setLayoutParams(deleteParams);
-
-        deleteObjectButton.setText(R.string.editor_3d_delete_object);
-        deleteObjectButton.setTextColor(Color.parseColor("#FF5252"));
-
-        deleteObjectButton.setOnClickListener(v -> {
-            new AlertDialog.Builder(activity)
-                    .setTitle(R.string.editor_3d_delete_object)
-                    .setMessage(activity.getString(R.string.editor_3d_delete_object_confirm, go.name))
-                    .setPositiveButton(R.string.delete, (dialog, which) -> {
-                        sceneManager.removeGameObject(go);
-                        activity.onObjectSelected(null);
                         activity.updateHierarchy();
-                    })
-                    .setNegativeButton(R.string.cancel, null)
-                    .show();
-        });
-        container.addView(deleteObjectButton);
+                    } else {
+                        Toast.makeText(activity, "Invalid or duplicate name!", Toast.LENGTH_SHORT).show();
+                        nameEditor.setText(oldName);
+                    }
+                }
+            });
+
+            container.addView(headerView);
+
+            createTransformView(go);
+            if (go.hasComponent(RenderComponent.class)) createRenderView(go);
+            if (go.hasComponent(PhysicsComponent.class)) createPhysicsView(go);
+            if (go.hasComponent(LightComponent.class)) createLightView(go);
+            if (go.hasComponent(AnimationComponent.class)) createAnimationView(go);
+            if (go.hasComponent(CameraComponent.class)) createCameraView(go);
+            if (go.hasComponent(MaterialComponent.class)) createMaterialView(go);
+            if (go.hasComponent(PostProcessingComponent.class)) createPostProcessingView(go);
+            if (go.hasComponent(ParticleComponent.class)) createParticleView(go);
+            if (go.hasComponent(ParticleSystem3DComponent.class)) createParticleSystem3DView(go);
+            if (go.hasComponent(FogComponent.class)) createFogView(go);
+            if (go.hasComponent(KeyframeComponent.class)) createKeyframeView(go);
+            if (go.hasComponent(PrefabComponent.class)) createPrefabView(go);
+            List<ScriptComponent> scripts = go.getComponents(ScriptComponent.class);
+            for (ScriptComponent script : scripts) {
+                createScriptView(go, script);
+            }
+
+            View footerView = inflater.inflate(R.layout.inspector_footer, container, false);
+            footerView.findViewById(R.id.btn_add_component).setOnClickListener(v -> showAddComponentDialog(go));
+            container.addView(footerView);
+
+            View divider = new View(activity);
+            int marginPx = (int) (16 * activity.getResources().getDisplayMetrics().density);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
+            params.setMargins(0, marginPx, 0, marginPx);
+            divider.setLayoutParams(params);
+            divider.setBackgroundColor(0x40FFFFFF);
+            container.addView(divider);
+
+            Button duplicateButton = new Button(activity, null, 0, R.style.Widget_App_Button_Outlined);
+            duplicateButton.setText(R.string.editor_3d_clone);
+            duplicateButton.setOnClickListener(v -> {
+                GameObject newObject = sceneManager.duplicateGameObject(go);
+                if (newObject != null) {
+                    activity.onObjectSelected(newObject);
+                    activity.updateHierarchy();
+                }
+            });
+            container.addView(duplicateButton);
+
+
+            Button deleteObjectButton = new Button(activity);
+            LinearLayout.LayoutParams deleteParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            deleteParams.setMargins(0, (int) (8 * activity.getResources().getDisplayMetrics().density), 0, 0);
+            deleteObjectButton.setLayoutParams(deleteParams);
+
+            deleteObjectButton.setText(R.string.editor_3d_delete_object);
+            deleteObjectButton.setTextColor(Color.parseColor("#FF5252"));
+
+            deleteObjectButton.setOnClickListener(v -> {
+                new AlertDialog.Builder(activity)
+                        .setTitle(R.string.editor_3d_delete_object)
+                        .setMessage(activity.getString(R.string.editor_3d_delete_object_confirm, go.name))
+                        .setPositiveButton(R.string.delete, (dialog, which) -> {
+                            sceneManager.removeGameObject(go);
+                            activity.onObjectSelected(null);
+                            activity.updateHierarchy();
+                        })
+                        .setNegativeButton(R.string.cancel, null)
+                        .show();
+            });
+            container.addView(deleteObjectButton);
+        } catch (Exception e) {
+            Log.e("InspectorManager", "Error populating inspector for: " + go.name, e);
+        }
     }
 
     private void createPrefabView(GameObject go) {
@@ -639,6 +644,9 @@ public class InspectorManager {
     }
 
     private void createMaterialView(GameObject go) {
+        MaterialComponent material = go.getComponent(MaterialComponent.class);
+        if (material == null) return;
+
         addComponentHeader(R.string.component_material, true, false, () -> {
             go.components.removeIf(c -> c instanceof MaterialComponent);
 
@@ -650,9 +658,6 @@ public class InspectorManager {
         });
         View view = inflater.inflate(R.layout.inspector_material, container, false);
         setWhiteTextToAllChildren((ViewGroup) view);
-
-        MaterialComponent material = go.getComponent(MaterialComponent.class);
-
 
         setupColorPicker(go, view.findViewById(R.id.btn_material_color), material.baseColor,
                 newColor -> material.baseColor.set(newColor));
@@ -3261,29 +3266,54 @@ public class InspectorManager {
     }
 
     private void setupTextureSlot(GameObject go, View textureSlotLayout, String currentPath, StringConsumer onUpdate) {
+        if (textureSlotLayout == null) return;
+
         TextView pathText = textureSlotLayout.findViewById(R.id.text_texture_path);
         Button selectButton = textureSlotLayout.findViewById(R.id.btn_select_texture);
         ImageButton clearButton = textureSlotLayout.findViewById(R.id.btn_clear_texture);
 
+        if (pathText == null) return;
+
         if (currentPath != null && !currentPath.isEmpty()) {
-            pathText.setText(currentPath);
-            clearButton.setVisibility(View.VISIBLE);
+            try {
+                File file = ProjectManager.getInstance().getCurrentProject().getFile(currentPath);
+                if (file == null || !file.exists()) {
+                    pathText.setText(currentPath + " (File Missing)");
+                    pathText.setTextColor(Color.RED);
+                } else {
+                    pathText.setText(currentPath);
+                    pathText.setTextColor(Color.WHITE);
+                }
+            } catch (Exception e) {
+                pathText.setText(currentPath);
+                pathText.setTextColor(Color.WHITE);
+            }
+            if (clearButton != null) clearButton.setVisibility(View.VISIBLE);
         } else {
             pathText.setText("None");
-            clearButton.setVisibility(View.GONE);
+            pathText.setTextColor(Color.GRAY);
+            if (clearButton != null) clearButton.setVisibility(View.GONE);
         }
 
-        selectButton.setOnClickListener(v -> showTexturePicker(fileName -> {
-            onUpdate.accept(fileName);
-            sceneManager.setMaterialComponent(go, go.getComponent(MaterialComponent.class));
-            populateInspector(go);
-        }));
+        if (selectButton != null) {
+            selectButton.setOnClickListener(v -> showTexturePicker(fileName -> {
+                onUpdate.accept(fileName);
+                if (go.hasComponent(MaterialComponent.class)) {
+                    sceneManager.setMaterialComponent(go, go.getComponent(MaterialComponent.class));
+                }
+                populateInspector(go);
+            }));
+        }
 
-        clearButton.setOnClickListener(v -> {
-            onUpdate.accept(null);
-            sceneManager.setMaterialComponent(go, go.getComponent(MaterialComponent.class));
-            populateInspector(go);
-        });
+        if (clearButton != null) {
+            clearButton.setOnClickListener(v -> {
+                onUpdate.accept(null);
+                if (go.hasComponent(MaterialComponent.class)) {
+                    sceneManager.setMaterialComponent(go, go.getComponent(MaterialComponent.class));
+                }
+                populateInspector(go);
+            });
+        }
     }
 
     private void showTexturePicker(StringConsumer onTextureSelected) {
