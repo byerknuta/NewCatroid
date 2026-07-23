@@ -86,6 +86,8 @@ public class Project implements Serializable {
 	private List<UserVariable> multiplayerVariables = new ArrayList<>();
 	@XStreamAlias("programListOfLists")
 	private List<UserList> userLists = new ArrayList<>();
+	private transient java.util.HashMap<String, UserVariable> variableCache = new java.util.HashMap<>();
+	private transient java.util.HashMap<String, UserList> listCache = new java.util.HashMap<>();
 	@XStreamAlias("scenes")
 	private List<Scene> sceneList = new ArrayList<>();
     @XStreamAlias("disableScientificNotation")
@@ -338,8 +340,14 @@ public class Project implements Serializable {
 	}
 
 	public UserVariable getUserVariable(String name) {
+		UserVariable cached = variableCache.get(name);
+		if (cached != null) {
+			return cached;
+		}
+
 		for (UserVariable variable : userVariables) {
 			if (variable.getName().equals(name)) {
+				variableCache.put(name, variable);
 				return variable;
 			}
 		}
@@ -347,12 +355,14 @@ public class Project implements Serializable {
 	}
 
 	public boolean addUserVariable(UserVariable userVariable) {
+		variableCache.put(userVariable.getName(), userVariable);
 		return userVariables.add(userVariable);
 	}
 
 	public boolean removeUserVariable(String name) {
 		for (UserVariable variable : userVariables) {
 			if (variable.getName().equals(name)) {
+				variableCache.remove(name);
 				return userVariables.remove(variable);
 			}
 		}
@@ -380,8 +390,14 @@ public class Project implements Serializable {
 	}
 
 	public UserList getUserList(String name) {
+		UserList cached = listCache.get(name);
+		if (cached != null) {
+			return cached;
+		}
+
 		for (UserList list : userLists) {
 			if (list.getName().equals(name)) {
+				listCache.put(name, list);
 				return list;
 			}
 		}
@@ -389,12 +405,14 @@ public class Project implements Serializable {
 	}
 
 	public boolean addUserList(UserList userList) {
+		listCache.put(userList.getName(), userList);
 		return userLists.add(userList);
 	}
 
 	public boolean removeUserList(String name) {
 		for (UserList list : userLists) {
 			if (list.getName().equals(name)) {
+				listCache.remove(name);
 				return userLists.remove(list);
 			}
 		}

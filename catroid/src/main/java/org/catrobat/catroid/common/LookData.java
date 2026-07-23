@@ -24,6 +24,8 @@ package org.catrobat.catroid.common;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.badlogic.gdx.Gdx;
@@ -46,6 +48,9 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
@@ -59,6 +64,9 @@ public class LookData implements Cloneable, Nameable, Serializable {
 	private static final transient int THUMBNAIL_WIDTH = 150;
 	private static final transient int THUMBNAIL_HEIGHT = 150;
 
+	private static final transient ExecutorService THUMBNAIL_EXECUTOR = Executors.newFixedThreadPool(2);
+	private static final transient Handler THUMBNAIL_MAIN_HANDLER = new Handler(Looper.getMainLooper());
+
 	@XStreamAsAttribute
 	private String lookId;
 
@@ -69,7 +77,7 @@ public class LookData implements Cloneable, Nameable, Serializable {
 
 	protected transient File file;
 
-	private transient Bitmap thumbnailBitmap;
+	private transient volatile Bitmap thumbnailBitmap;
 
 	protected transient Integer width;
 	protected transient Integer height;
@@ -220,6 +228,18 @@ public class LookData implements Cloneable, Nameable, Serializable {
 					ImageEditing.ResizeType.STAY_IN_RECTANGLE_WITH_SAME_ASPECT_RATIO, false);
 		}
 		return thumbnailBitmap;
+	}
+
+	public void getThumbnailBitmapAsync(Consumer<Bitmap> callback) {
+		Bitmap cached = thumbnailBitmap;
+		if (cached != null || file == null) {
+			callback.accept(cached);
+			return;
+		}
+		THUMBNAIL_EXECUTOR.execute(() -> {
+			Bitmap bitmap = getThumbnailBitmap();
+			THUMBNAIL_MAIN_HANDLER.post(() -> callback.accept(bitmap));
+		});
 	}
 
 	public void invalidateThumbnailBitmap() {

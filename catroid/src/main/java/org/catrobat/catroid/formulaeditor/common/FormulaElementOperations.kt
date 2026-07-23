@@ -68,9 +68,11 @@ object FormulaElementOperations {
     fun interpretOperatorEqual(left: Any, right: Any): Boolean {
         val leftString = left.toString()
         val rightString = right.toString()
-        return try {
-            equalsDoubleIEEE754(leftString.toDouble(), rightString.toDouble())
-        } catch (_: NumberFormatException) {
+        val leftDouble = leftString.toDoubleOrNull()
+        val rightDouble = rightString.toDoubleOrNull()
+        return if (leftDouble != null && rightDouble != null) {
+            equalsDoubleIEEE754(leftDouble, rightDouble)
+        } else {
             leftString == rightString
         }
     }

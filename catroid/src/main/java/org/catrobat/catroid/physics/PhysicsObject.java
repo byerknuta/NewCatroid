@@ -90,6 +90,10 @@ public class PhysicsObject {
 		setType(Type.NONE);
 
 		tmpVertice = new Vector2();
+		bodyAabbLowerLeft = new Vector2();
+		bodyAabbUpperRight = new Vector2();
+		fixtureAabbLowerLeft = new Vector2();
+		fixtureAabbUpperRight = new Vector2();
 	}
 
     private float sanitize(float value) {
@@ -452,8 +456,8 @@ public class PhysicsObject {
 	}
 
 	private void calculateAabb() {
-		bodyAabbLowerLeft = new Vector2(Integer.MAX_VALUE, Integer.MAX_VALUE);
-		bodyAabbUpperRight = new Vector2(Integer.MIN_VALUE, Integer.MIN_VALUE);
+		bodyAabbLowerLeft.set(Integer.MAX_VALUE, Integer.MAX_VALUE);
+		bodyAabbUpperRight.set(Integer.MIN_VALUE, Integer.MIN_VALUE);
 		Transform transform = body.getTransform();
 		int len = body.getFixtureList().size;
 		Array<Fixture> fixtures = body.getFixtureList();
@@ -470,8 +474,8 @@ public class PhysicsObject {
 	}
 
 	private void calculateAabb(Fixture fixture, Transform transform) {
-		fixtureAabbLowerLeft = new Vector2(Integer.MAX_VALUE, Integer.MAX_VALUE);
-		fixtureAabbUpperRight = new Vector2(Integer.MIN_VALUE, Integer.MIN_VALUE);
+		fixtureAabbLowerLeft.set(Integer.MAX_VALUE, Integer.MAX_VALUE);
+		fixtureAabbUpperRight.set(Integer.MIN_VALUE, Integer.MIN_VALUE);
 		if (fixture.getType() == Shape.Type.Circle) {
 			CircleShape shape = (CircleShape) fixture.getShape();
 			float radius = shape.getRadius();
