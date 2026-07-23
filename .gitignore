@@ -78,3 +78,5 @@ Gemfile
 *.personal_life
 # Не коммитить здравый смысл, пж
 /sanity_logic/
+/catroid/.cxx/Debug
+/vncclient/.cxx/Debug
