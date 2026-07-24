@@ -1314,11 +1314,7 @@ public class FormulaElement implements Serializable {
         if (child.getElementType() != ElementType.USER_LIST) {
             return null;
         }
-        if (child.cachedUserList == null || child.cachedScope != scope) {
-            child.cachedUserList = UserDataWrapper.getUserList(child.value, scope);
-            child.cachedScope = scope;
-        }
-        return child.cachedUserList;
+        return UserDataWrapper.getUserList(child.value, scope);
     }
 
     private static String interpretFunctionJoin(Scope scope, FormulaElement leftChild, FormulaElement rightChild) {
