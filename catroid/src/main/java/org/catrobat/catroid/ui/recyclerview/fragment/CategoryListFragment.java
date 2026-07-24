@@ -159,7 +159,10 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_flatten, R.string.formula_editor_function_connect,
 			R.string.formula_editor_function_lua,
 			R.string.formula_editor_function_json_get, R.string.formula_editor_function_json_set, R.string.formula_editor_function_json_is_valid,
-            R.string.formula_md5, R.string.formula_sha256);
+            R.string.formula_md5, R.string.formula_sha256,
+            R.string.formula_char_to_unicode,
+            R.string.formula_unicode_to_char,
+            R.string.formula_unescape_utf);
 	private static final List<Integer> STRING_PARAMS = asList(R.string.formula_editor_function_length_parameter,
 			R.string.formula_editor_function_letter_parameter,
 			R.string.formula_editor_function_subtext_parameter,
@@ -180,7 +183,10 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_connect_parameter,
 			R.string.formula_editor_function_lua_parameter,
             R.string.formula_editor_function_json_get_parameter, R.string.formula_editor_function_json_set_parameter, R.string.formula_editor_function_json_is_valid_parameter,
-            R.string.formula_md5_param, R.string.formula_sha256_param);
+            R.string.formula_md5_param, R.string.formula_sha256_param,
+            R.string.formula_char_to_unicode_param,
+            R.string.formula_unicode_to_char_param,
+            R.string.formula_unescape_utf_param);
 	private static final List<Integer> LIST_FUNCTIONS = asList(R.string.formula_editor_function_number_of_items,
 			R.string.formula_editor_function_list_item, R.string.formula_editor_function_contains,
 			R.string.formula_editor_function_index_of_item, R.string.formula_editor_function_flatten, R.string.formula_editor_function_connect, R.string.formula_editor_function_find);

@@ -49,6 +49,7 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Operators.MULT.name(), R.string.formula_editor_operator_mult);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Operators.MINUS.name(), R.string.formula_editor_operator_minus);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Operators.PLUS.name(), R.string.formula_editor_operator_plus);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Operators.STRING_CONCAT.name(), R.string.formula_editor_operator_concat);
 
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(".", R.string.formula_editor_decimal_mark);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SIN.name(), R.string.formula_editor_function_sin);
@@ -449,6 +450,9 @@ public class InternToExternGenerator {
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SHA256.name(), R.string.formula_sha256);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_MD5.name(), R.string.formula_file_md5);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_SHA256.name(), R.string.formula_file_sha256);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CHAR_TO_UNICODE.name(), R.string.formula_char_to_unicode);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.UNICODE_TO_CHAR.name(), R.string.formula_unicode_to_char);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.UNESCAPE_UTF.name(), R.string.formula_unescape_utf);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_LOOK_NUMBER.name(), R.string
 				.formula_editor_object_look_number);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_LOOK_WIDTH.name(), R.string

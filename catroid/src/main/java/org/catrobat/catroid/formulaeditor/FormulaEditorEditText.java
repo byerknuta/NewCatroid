@@ -337,6 +337,39 @@ public class FormulaEditorEditText extends EditText implements OnTouchListener {
 	}
 
 	public void handleKeyEvent(int resource, String name) {
+        if (resource == R.id.formula_editor_keyboard_decimal_mark) {
+            int cursor = getSelectionStart();
+            String text = getText().toString();
+
+            if (cursor > 0 && cursor <= text.length() && text.charAt(cursor - 1) == '.') {
+                try {
+                    boolean autoZeroInserted = false;
+
+                    if (cursor >= 2 && text.charAt(cursor - 2) == '0') {
+                        if (cursor >= 3) {
+                            char charBeforeZero = text.charAt(cursor - 3);
+                            if (!Character.isDigit(charBeforeZero)) {
+                                autoZeroInserted = true;
+                            }
+                        }
+                    }
+
+                    internFormula.handleKeyInput(R.id.formula_editor_keyboard_delete, context, "");
+
+                    if (autoZeroInserted) {
+                        internFormula.handleKeyInput(R.id.formula_editor_keyboard_delete, context, "");
+                    }
+
+                    addTokens(java.util.Collections.singletonList(
+                            new InternToken(InternTokenType.OPERATOR, Operators.STRING_CONCAT.name())
+                    ));
+                    return;
+                } catch (Exception e) {
+                    Log.e(TAG, "Ошибка при автозамене на STRING_CONCAT", e);
+                }
+            }
+        }
+
 		internFormula.handleKeyInput(resource, context, name);
 		pushToHistoryAndRefreshPreviewString();
 	}

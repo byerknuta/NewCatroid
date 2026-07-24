@@ -491,7 +491,43 @@ public class FormulaElement implements Serializable {
         if (operator == null) {
             return false;
         }
+        if (operator == Operators.STRING_CONCAT) {
+            Object leftObj = tryInterpretElementRecursive(leftChild, scope);
+            Object rightObj = tryInterpretElementRecursive(rightChild, scope);
+
+            return formatValueForStringConcat(leftObj) + formatValueForStringConcat(rightObj);
+        }
         return interpretOperator(operator, scope);
+    }
+
+    private static String formatValueForStringConcat(Object rawValue) {
+        if (rawValue == null) {
+            return "";
+        }
+
+        if (rawValue instanceof Double) {
+            double d = (Double) rawValue;
+            if (Double.isNaN(d)) {
+                return "";
+            }
+            if (d == (long) d) {
+                return String.valueOf((long) d);
+            }
+            return String.valueOf(d);
+        }
+
+        String str = String.valueOf(rawValue);
+
+        if (str.endsWith(".0")) {
+            try {
+                double d = Double.parseDouble(str);
+                if (d == (long) d) {
+                    return String.valueOf((long) d);
+                }
+            } catch (NumberFormatException ignored) {}
+        }
+
+        return str;
     }
 
     private Object interpretFunction(String name, Scope scope) {
@@ -1009,6 +1045,106 @@ public class FormulaElement implements Serializable {
             case CAMERA_ZOOM: {
                 StageListener listener = StageActivity.getActiveStageListener();
                 return listener != null ? (double) listener.getCameraZoom() : 1.0;
+            }
+            case CHAR_TO_UNICODE: {
+                try {
+                    if (arg0 == null) {
+                        return 0.0;
+                    }
+                    String str = String.valueOf(arg0);
+                    if (str.isEmpty()) {
+                        return 0.0;
+                    }
+                    return (double) str.codePointAt(0);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return 0.0;
+                }
+            }
+
+            case UNICODE_TO_CHAR: {
+                try {
+                    if (arg0 == null) {
+                        return "";
+                    }
+                    String valStr = String.valueOf(arg0).trim();
+                    if (valStr.isEmpty()) {
+                        return "";
+                    }
+
+                    int codePoint = 0;
+                    String lowerStr = valStr.toLowerCase();
+
+                    if (lowerStr.startsWith("u+") || lowerStr.startsWith("\\u")) {
+                        codePoint = Integer.parseInt(valStr.substring(2), 16);
+                    } else if (lowerStr.startsWith("u")) {
+                        codePoint = Integer.parseInt(valStr.substring(1), 16);
+                    } else if (lowerStr.startsWith("0x")) {
+                        codePoint = Integer.parseInt(valStr.substring(2), 16);
+                    } else {
+                        try {
+                            codePoint = (int) Double.parseDouble(valStr);
+                        } catch (NumberFormatException nfe) {
+                            codePoint = Integer.parseInt(valStr, 16);
+                        }
+                    }
+
+                    if (Character.isValidCodePoint(codePoint)) {
+                        return new String(Character.toChars(codePoint));
+                    }
+                    return "";
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return "";
+                }
+            }
+
+            case UNESCAPE_UTF: {
+                try {
+                    if (arg0 == null) {
+                        return "";
+                    }
+                    String str = String.valueOf(arg0);
+                    if (str.isEmpty()) {
+                        return "";
+                    }
+
+                    StringBuilder sb = new StringBuilder();
+                    int i = 0;
+                    int len = str.length();
+
+                    while (i < len) {
+                        char c = str.charAt(i);
+
+                        if (c == '\\' && i + 5 < len && (str.charAt(i + 1) == 'u' || str.charAt(i + 1) == 'U')) {
+                            String hex = str.substring(i + 2, i + 6);
+                            try {
+                                int code = Integer.parseInt(hex, 16);
+                                sb.append((char) code);
+                                i += 6;
+                                continue;
+                            } catch (NumberFormatException ignored) {}
+                        }
+                        else if ((c == 'u' || c == 'U') && i + 4 < len) {
+                            boolean prevIsLetterOrDigit = (i > 0) && Character.isLetterOrDigit(str.charAt(i - 1));
+                            if (!prevIsLetterOrDigit) {
+                                String hex = str.substring(i + 1, i + 5);
+                                try {
+                                    int code = Integer.parseInt(hex, 16);
+                                    sb.append((char) code);
+                                    i += 5;
+                                    continue;
+                                } catch (NumberFormatException ignored) {}
+                            }
+                        }
+                        sb.append(c);
+                        i++;
+                    }
+                    return sb.toString();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return String.valueOf(arg0);
+                }
             }
             case VOXEL_GET_ID: {
                 String worldId = String.valueOf(arg0);

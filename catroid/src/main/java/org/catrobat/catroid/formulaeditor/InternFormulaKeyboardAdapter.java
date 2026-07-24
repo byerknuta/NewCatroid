@@ -908,6 +908,12 @@ public class InternFormulaKeyboardAdapter {
 				return buildSensor(Sensors.INTERNET);
 			case R.string.formula_editor_sensor_architecture:
 				return buildSensor(Sensors.ARCH);
+            case R.string.formula_char_to_unicode:
+                return buildSingleParameterFunction(Functions.CHAR_TO_UNICODE, STRING, "A");
+            case R.string.formula_unicode_to_char:
+                return buildSingleParameterFunction(Functions.UNICODE_TO_CHAR, NUMBER, "65");
+            case R.string.formula_unescape_utf:
+                return buildSingleParameterFunction(Functions.UNESCAPE_UTF, STRING, "\\u0430\\u0431\\u0432");
 
 			case R.string.formula_editor_function_get_id_of_detected_object:
 				return buildSingleParameterFunction(Functions.ID_OF_DETECTED_OBJECT, NUMBER, "1");
@@ -989,7 +995,7 @@ public class InternFormulaKeyboardAdapter {
 	public List<InternToken> buildCustomJsFunction(String customFunctionName) {
 		CustomFormula customFormula = CustomFormulaManager.INSTANCE.getFormulaByUniqueName(customFunctionName);
 		if (customFormula == null) {
-			return null; // или бросить исключение
+			return null;
 		}
 
 		List<InternToken> returnList = new LinkedList<InternToken>();
@@ -1001,7 +1007,6 @@ public class InternFormulaKeyboardAdapter {
 				if (i > 0) {
 					returnList.add(new InternToken(FUNCTION_PARAMETER_DELIMITER));
 				}
-				// Используем тип и значение по умолчанию из CustomFormula
 				InternTokenType paramType = customFormula.getDefaultParamTypes().get(i);
 				String paramValue = customFormula.getDefaultParamValues().get(i);
 				returnList.add(new InternToken(paramType, paramValue));

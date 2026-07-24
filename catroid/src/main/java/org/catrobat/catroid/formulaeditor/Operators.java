@@ -27,7 +27,8 @@ import org.catrobat.catroid.utils.EnumUtils;
 public enum Operators {
 	LOGICAL_AND(2, true), LOGICAL_OR(1, true), EQUAL(3, true), NOT_EQUAL(4, true), SMALLER_OR_EQUAL(4, true),
 	GREATER_OR_EQUAL(4, true), SMALLER_THAN(4, true), GREATER_THAN(4, true), PLUS(5), MINUS(5), MULT(6), DIVIDE(6),
-	MOD(6), POW(7), LOGICAL_NOT(4, true);
+	MOD(6), POW(7), LOGICAL_NOT(4, true),
+    STRING_CONCAT(5);
 
 	private static final String TAG = Operators.class.getSimpleName();
 

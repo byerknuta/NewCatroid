@@ -23,6 +23,15 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="formula_char_to_unicode" formatted="false">символ_в_юникод</string>
+    <string name="formula_char_to_unicode_param" formatted="false">(\'A\')</string>
+
+    <string name="formula_unicode_to_char" formatted="false">юникод_в_символ</string>
+    <string name="formula_unicode_to_char_param" formatted="false">(65)</string>
+
+    <string name="formula_unescape_utf" formatted="false">декодировать_utf</string>
+    <string name="formula_unescape_utf_param" formatted="false">(\'\\u0430\')</string>
+
     <string name="formula_pt_sample" formatted="false">PT_выбрать_действие</string>
     <string name="formula_pt_sample_param" formatted="false">(\'тензор\')</string>
 

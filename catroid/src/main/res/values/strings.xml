@@ -23,6 +23,17 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="formula_editor_operator_concat" formatted="false"> .. </string>
+
+    <string name="formula_char_to_unicode" formatted="false">char_to_unicode</string>
+    <string name="formula_char_to_unicode_param" formatted="false">(\'A\')</string>
+
+    <string name="formula_unicode_to_char" formatted="false">unicode_to_char</string>
+    <string name="formula_unicode_to_char_param" formatted="false">(65)</string>
+
+    <string name="formula_unescape_utf" formatted="false">unescape_utf</string>
+    <string name="formula_unescape_utf_param" formatted="false">(\'\\u0430\')</string>
+
     <string name="formula_pt_sample" formatted="false">PT_sample_action</string>
     <string name="formula_pt_sample_param" formatted="false">(\'tensor\')</string>
 
