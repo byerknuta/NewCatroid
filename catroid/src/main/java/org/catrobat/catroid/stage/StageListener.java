@@ -1872,6 +1872,15 @@ public class StageListener implements ApplicationListener {
 		batch.end();
 	}
 
+    public void setActorZIndexSafely(com.badlogic.gdx.scenes.scene2d.Actor actor, int desiredZIndex) {
+        if (actor == null || stage == null) return;
+        com.badlogic.gdx.utils.Array<com.badlogic.gdx.scenes.scene2d.Actor> actors = stage.getActors();
+        if (actors == null || actors.size == 0) return;
+
+        int safeZIndex = Math.max(0, Math.min(desiredZIndex, actors.size - 1));
+        actor.setZIndex(safeZIndex);
+    }
+
 	public PenActor getPenActor() {
 		return penActor;
 	}

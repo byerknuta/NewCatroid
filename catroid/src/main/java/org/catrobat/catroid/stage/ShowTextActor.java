@@ -22,6 +22,7 @@ import org.catrobat.catroid.formulaeditor.UserVariable;
 import org.catrobat.catroid.utils.ShowTextUtils;
 import org.catrobat.catroid.utils.ShowTextUtils.AndroidStringProvider;
 
+import java.io.File;
 import java.util.List;
 import java.util.Locale;
 
@@ -52,6 +53,10 @@ public class ShowTextActor extends Actor {
 
     private boolean drawOnlyInBuffer = false;
 
+    private float scaleX = 1f;
+    private float scaleY = 1f;
+    private float alpha = 1f;
+
     public ShowTextActor(Boolean isText, UserVariable userVariable, String rawText, float xPosition, float yPosition, float relativeSize,
                          String color, Sprite sprite, int alignment, AndroidStringProvider androidStringProvider) {
         this.isText = isText;
@@ -65,6 +70,53 @@ public class ShowTextActor extends Actor {
         this.sprite = sprite;
         this.alignment = alignment;
         this.androidStringProvider = androidStringProvider;
+    }
+
+    public void setPositionX(float x) { this.xPosition = x; }
+    public void setPositionY(float y) { this.yPosition = y; }
+    public void setScaleX(float scaleX) { this.scaleX = scaleX; }
+    public void setScaleY(float scaleY) { this.scaleY = scaleY; }
+    public void setAlphaValue(float alpha) { this.alpha = Math.max(0f, Math.min(1f, alpha)); }
+    public void setRotationDegrees(float degrees) { setRotation(degrees); }
+
+    public void setRelativeSize(float relativeSize) {
+        float newSize = ShowTextUtils.DEFAULT_TEXT_SIZE * relativeSize;
+        if (this.textSize != newSize) {
+            this.textSize = newSize;
+            this.needsTextureUpdate = true;
+        }
+    }
+
+    public void setColorStr(String color) {
+        if (color != null && !color.equals(this.colorStr)) {
+            this.colorStr = color;
+            this.needsTextureUpdate = true;
+        }
+    }
+
+    public void setRawText(String text) {
+        if (text != null && !text.equals(this.rawText)) {
+            this.rawText = text;
+            this.needsTextureUpdate = true;
+        }
+    }
+
+    public void setAlignment(int alignment) {
+        if (this.alignment != alignment) {
+            this.alignment = alignment;
+            this.needsTextureUpdate = true;
+        }
+    }
+
+    public void setFontFromFile(File fontFile) {
+        if (fontFile != null && fontFile.exists()) {
+            try {
+                Typeface tf = Typeface.createFromFile(fontFile);
+                setFont(tf);
+            } catch (Exception e) {
+                android.util.Log.e("ShowTextActor", "Error setting typeface", e);
+            }
+        }
     }
 
     private static int getMaxGpuTextureSize() {
@@ -166,12 +218,12 @@ public class ShowTextActor extends Actor {
         }
 
         if (cachedTexture != null) {
-            batch.setColor(1, 1, 1, parentAlpha);
+            batch.setColor(1f, 1f, 1f, parentAlpha * alpha);
             batch.draw(cachedTexture,
                     xPosition + drawX, yPosition + drawY,
                     -drawX, -drawY,
                     cachedTexture.getWidth(), cachedTexture.getHeight(),
-                    1f, 1f, getRotation(),
+                    scaleX, scaleY, getRotation(),
                     0, 0, cachedTexture.getWidth(), cachedTexture.getHeight(),
                     false, false);
         }

@@ -23,6 +23,63 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="brick_set_pen_property_title">Set for pen</string>
+    <string name="brick_set_pen_property_to">Value</string>
+
+    <string-array name="brick_pen_properties">
+        <item>Layer (Z-Index)</item>
+        <item>Transparency (%)</item>
+        <item>Blend Mode (0-Norm, 1-Glow, 2-Eraser)</item>
+        <item>Auto-Update (0-Off, 1-On)</item>
+    </string-array>
+
+    <string name="brick_pen_draw_line">Draw line from X</string>
+    <string name="brick_pen_draw_line_y1">Y</string>
+    <string name="brick_pen_draw_line_x2">to X</string>
+    <string name="brick_pen_draw_line_y2">Y</string>
+    <string name="brick_pen_thickness">Thickness</string>
+
+    <string name="brick_pen_draw_triangle">Triangle X1</string>
+    <string name="brick_pen_triangle_y1">Y1</string>
+    <string name="brick_pen_triangle_x2">X2</string>
+    <string name="brick_pen_triangle_y2">Y2</string>
+    <string name="brick_pen_triangle_x3">X3</string>
+    <string name="brick_pen_triangle_y3">Y3</string>
+    <string name="brick_pen_fill">Fill (1/0)</string>
+
+    <string name="brick_pen_draw_rect">Rectangle X</string>
+    <string name="brick_pen_rect_y">Y</string>
+    <string name="brick_pen_rect_w">Width</string>
+    <string name="brick_pen_rect_h">Height</string>
+
+    <string name="brick_pen_draw_circle">Arc/Circle X</string>
+    <string name="brick_pen_circle_y">Y</string>
+    <string name="brick_pen_circle_radius">Radius</string>
+    <string name="brick_pen_circle_start_angle">Angle</string>
+    <string name="brick_pen_circle_sweep_angle">Arc (°)</string>
+
+    <string name="brick_pen_clear_color">Clear with color</string>
+    <string name="brick_pen_clear_alpha">Transparency (%)</string>
+    <string name="brick_pen_flush">Flush screen</string>
+
+    <string name="brick_set_text_property_title">Set for text</string>
+    <string name="brick_set_text_property_to">Value</string>
+
+    <string-array name="brick_text_properties">
+        <item>Position X</item>
+        <item>Position Y</item>
+        <item>Size (%)</item>
+        <item>Width (%)</item>
+        <item>Height (%)</item>
+        <item>Color (#HEX)</item>
+        <item>Rotation</item>
+        <item>Layer</item>
+        <item>Transparency (%)</item>
+        <item>Alignment (0-2)</item>
+        <item>Text</item>
+        <item>Font file</item>
+    </string-array>
+
     <string name="formula_editor_operator_concat" formatted="false"> .. </string>
 
     <string name="formula_char_to_unicode" formatted="false">char_to_unicode</string>

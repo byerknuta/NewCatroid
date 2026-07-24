@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_pen_draw_rect_layout"
+        style="@style/BrickContainer.Pen.Big">
+
+        <include layout="@layout/icon_brick_category_pen" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_pen_draw_rect" />
+        <TextView android:id="@+id/brick_pen_rect_x" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_pen_rect_y" />
+        <TextView android:id="@+id/brick_pen_rect_y" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_pen_rect_w" app:layout_newLine="true" />
+        <TextView android:id="@+id/brick_pen_rect_w" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_pen_rect_h" />
+        <TextView android:id="@+id/brick_pen_rect_h" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_pen_fill" app:layout_newLine="true" />
+        <TextView android:id="@+id/brick_pen_rect_fill" style="@style/BrickEditText" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+
+</LinearLayout>

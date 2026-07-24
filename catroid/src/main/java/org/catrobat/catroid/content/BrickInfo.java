@@ -449,6 +449,14 @@ public final class BrickInfo {
         add(PlaySpritesheetBrick.class, "Запустить циклическое воспроизведение анимации из текстурной сетки (спрайтшита) текущего образа.");
         add(StopSpritesheetBrick.class, "Остановить анимацию спрайтшита и вернуться к статическому отображению образа.");
         add(Replace3DModelBrick.class, "Заменяет 3D модель объекта (по ID)");
+        add(SetTextPropertyBrick.class, "Изменяет указанное свойство текста (позиция, размер, ширина, высота, цвет, поворот, слой, прозрачность, выравнивание, значение, шрифт)");
+        add(SetPenPropertyBrick.class, "Изменяет указанное свойство пера (слой, прозрачность, режим смешивания, авто-обновление");
+        add(PenDrawLineBrick.class, "Быстро рисует векторную линию прямо на холсте пера");
+        add(PenDrawTriangleBrick.class, "Рисует треугольник с заливкой или без (идеально для 3D графики)");
+        add(PenClearColorBrick.class, "Очищает холст указанным цветом и прозрачностью");
+        add(PenFlushBrick.class, "Мгновенно выводит все нарисованные объектами линии и фигуры на экран");
+        add(PenDrawRectBrick.class, "Рисует прямоугольник с заливкой или без прямо на холсте пера");
+        add(PenDrawCircleBrick.class, "Рисует круг, полукруг, сектор или конус с настройкой направления и градуса дуги");
     }
 
     private static void initEnglishDescriptions() {
@@ -859,6 +867,14 @@ public final class BrickInfo {
         add(PlaySpritesheetBrick.class, "Starts looping playback of an animation from the texture grid (spritesheet) of the current look.");
         add(StopSpritesheetBrick.class, "Stops the spritesheet animation and returns to the static look display.");
         add(Replace3DModelBrick.class, "Replaces the 3D model of an object (by ID).");
+        add(SetTextPropertyBrick.class, "Changes the specified text property (position, size, width, height, color, rotation, layer, transparency, alignment, text, font)");
+        add(SetPenPropertyBrick.class, "Changes the specified pen property (layer, transparency, blend mode, auto-update)");
+        add(PenDrawLineBrick.class, "Fast draws a vector line directly on the pen canvas");
+        add(PenDrawTriangleBrick.class, "Draws a triangle with or without fill (ideal for 3D graphics)");
+        add(PenClearColorBrick.class, "Clears canvas with specified color and transparency");
+        add(PenFlushBrick.class, "Instantly renders all drawn lines and shapes to the screen");
+        add(PenDrawRectBrick.class, "Draws a rectangle with or without fill directly on the pen canvas");
+        add(PenDrawCircleBrick.class, "Draws a circle, semicircle, sector, or cone with direction and arc degree settings");
     }
 
     private static void initPortugueseDescriptions() {
@@ -1253,6 +1269,14 @@ public final class BrickInfo {
         add(PlaySpritesheetBrick.class, "Inicia a reprodução em loop de uma animação a partir da grade de textura (spritesheet) da aparência atual.");
         add(StopSpritesheetBrick.class, "Interrompe a animação do spritesheet e retorna à exibição estática da aparência.");
         add(Replace3DModelBrick.class, "Substitui o modelo 3D de um objeto (por ID).");
+        add(SetTextPropertyBrick.class, "Altera a propriedade especificada do texto (posição, tamanho, largura, altura, cor, rotação, camada, transparência, alinhamento, texto, fonte)");
+        add(SetPenPropertyBrick.class, "Altera a propriedade especificada da caneta (camada, transparência, modo de mistura, auto-atualização)");
+        add(PenDrawLineBrick.class, "Desenha rapidamente uma linha vetorial no canvas da caneta");
+        add(PenDrawTriangleBrick.class, "Desenha um triângulo com ou sem preenchimento (ideal para gráficos 3D)");
+        add(PenClearColorBrick.class, "Limpa o canvas com a cor e transparência especificadas");
+        add(PenFlushBrick.class, "Renderiza instantaneamente todas as linhas e formas desenhadas na tela");
+        add(PenDrawRectBrick.class, "Desenha um retângulo com ou sem preenchimento no canvas da caneta");
+        add(PenDrawCircleBrick.class, "Desenha um círculo, semicírculo, setor ou cone com configurações de direção e arco");
     }
     private static void initChineseDescriptions() {
         add(SetGeminiKeyBrick.class, "设置个人 Gemini API 密钥。您可以从 Google AI Studio 获取。");
@@ -1662,6 +1686,14 @@ public final class BrickInfo {
         add(PlaySpritesheetBrick.class, "开始从当前造型的纹理网格（精灵表单）循环播放动画。");
         add(StopSpritesheetBrick.class, "停止精灵表单动画并恢复到静态造型显示。");
         add(Replace3DModelBrick.class, "替换对象的 3D 模型（按 ID）。");
+        add(SetTextPropertyBrick.class, "更改指定的文本属性（位置、大小、宽度、高度、颜色、旋转、图层、透明度、对齐方式、文本、字体）");
+        add(SetPenPropertyBrick.class, "更改指定的画笔属性（图层、透明度、混合模式、自动更新）");
+        add(PenDrawLineBrick.class, "快速在画笔画布上直接绘制矢量直线");
+        add(PenDrawTriangleBrick.class, "绘制带填充或无填充的三角形（非常适合3D图形）");
+        add(PenClearColorBrick.class, "用指定的颜色和透明度清除画布");
+        add(PenFlushBrick.class, "立即将所有绘制的线条和形状渲染到屏幕上");
+        add(PenDrawRectBrick.class, "直接在画笔画布上绘制带填充或无填充的矩形");
+        add(PenDrawCircleBrick.class, "绘制圆形、半圆、扇形或光锥，支持方向和弧度角设置");
     }
 
     private static <T extends Brick> void add(Class<T> brickClass, String description) {

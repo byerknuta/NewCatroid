@@ -23,6 +23,63 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="brick_set_pen_property_title">Definir para caneta</string>
+    <string name="brick_set_pen_property_to">Valor</string>
+
+    <string-array name="brick_pen_properties">
+        <item>Camada (Z-Index)</item>
+        <item>Transparência (%)</item>
+        <item>Modo de Mistura (0-Norm, 1-Brilho, 2-Borracha)</item>
+        <item>Auto-Atualizar (0-Desl, 1-Lig)</item>
+    </string-array>
+
+    <string name="brick_pen_draw_line">Desenhar linha de X</string>
+    <string name="brick_pen_draw_line_y1">Y</string>
+    <string name="brick_pen_draw_line_x2">até X</string>
+    <string name="brick_pen_draw_line_y2">Y</string>
+    <string name="brick_pen_thickness">Espessura</string>
+
+    <string name="brick_pen_draw_triangle">Triângulo X1</string>
+    <string name="brick_pen_triangle_y1">Y1</string>
+    <string name="brick_pen_triangle_x2">X2</string>
+    <string name="brick_pen_triangle_y2">Y2</string>
+    <string name="brick_pen_triangle_x3">X3</string>
+    <string name="brick_pen_triangle_y3">Y3</string>
+    <string name="brick_pen_fill">Preencher (1/0)</string>
+
+    <string name="brick_pen_draw_rect">Retângulo X</string>
+    <string name="brick_pen_rect_y">Y</string>
+    <string name="brick_pen_rect_w">Largura</string>
+    <string name="brick_pen_rect_h">Altura</string>
+
+    <string name="brick_pen_draw_circle">Arco/Círculo X</string>
+    <string name="brick_pen_circle_y">Y</string>
+    <string name="brick_pen_circle_radius">Raio</string>
+    <string name="brick_pen_circle_start_angle">ângulo</string>
+    <string name="brick_pen_circle_sweep_angle">Arco (°)</string>
+
+    <string name="brick_pen_clear_color">Limpar com cor</string>
+    <string name="brick_pen_clear_alpha">Transparência (%)</string>
+    <string name="brick_pen_flush">Atualizar tela</string>
+
+    <string name="brick_set_text_property_title">Definir para o texto</string>
+    <string name="brick_set_text_property_to">Valor</string>
+
+    <string-array name="brick_text_properties">
+        <item>Posição X</item>
+        <item>Posição Y</item>
+        <item>Tamanho (%)</item>
+        <item>Largura (%)</item>
+        <item>Altura (%)</item>
+        <item>Cor (#HEX)</item>
+        <item>Rotação</item>
+        <item>Camada</item>
+        <item>Transparência (%)</item>
+        <item>Alinhamento (0-2)</item>
+        <item>Texto</item>
+        <item>Arquivo de fonte</item>
+    </string-array>
+
     <string name="formula_char_to_unicode" formatted="false">caractere_para_unicode</string>
     <string name="formula_char_to_unicode_param" formatted="false">(\'A\')</string>
 

@@ -557,6 +557,9 @@ public final class XstreamSerializer {
 		xstream.alias("brick", NoteBrick.class);
 		xstream.alias("brick", PenDownBrick.class);
 		xstream.alias("brick", PenUpBrick.class);
+        xstream.alias("brick", PenDrawCircleBrick.class);
+        xstream.alias("brick", PenFlushBrick.class);
+        xstream.alias("brick", PenDrawRectBrick.class);
 		xstream.alias("brick", PlaceAtBrick.class);
 		xstream.alias("brick", GoToBrick.class);
 		xstream.alias("brick", PlaySoundBrick.class);
@@ -693,6 +696,7 @@ public final class XstreamSerializer {
 		xstream.alias("brick", ExitStageBrick.class);
 		xstream.alias("brick", ParameterizedBrick.class);
 		xstream.alias("brick", ParameterizedEndBrick.class);
+        xstream.alias("brick", SetTextPropertyBrick.class);
 
 		xstream.alias("brick", OpenUrlBrick.class);
 		xstream.alias("brick", TapAtBrick.class);
@@ -846,6 +850,10 @@ public final class XstreamSerializer {
         xstream.alias("brick", JavaCompileBrick.class);
         xstream.alias("brick", JavaLoadAndRunBrick.class);
         xstream.alias("brick", OpenAppBrick.class);
+        xstream.alias("brick", SetPenPropertyBrick.class);
+        xstream.alias("brick", PenDrawLineBrick.class);
+        xstream.alias("brick", PenDrawTriangleBrick.class);
+        xstream.alias("brick", PenClearColorBrick.class);
         xstream.alias("brick", JavaDownloadDepBrick.class);
         xstream.alias("brick", Export3dObjectToGlbBrick.class);
         xstream.alias("script", WhenMqttMessageScript.class);

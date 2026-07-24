@@ -23,6 +23,63 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="brick_set_pen_property_title">Изменить для пера</string>
+    <string name="brick_set_pen_property_to">Значение</string>
+
+    <string-array name="brick_pen_properties">
+        <item>Слой (Z-Index)</item>
+        <item>Прозрачность (%)</item>
+        <item>Режим смешивания (0-Обыч, 1-Свечение, 2-Ластик)</item>
+        <item>Авто-обновление (0-Выкл, 1-Вкл)</item>
+    </string-array>
+
+    <string name="brick_pen_draw_line">Нарисовать линию от X</string>
+    <string name="brick_pen_draw_line_y1">Y</string>
+    <string name="brick_pen_draw_line_x2">до X</string>
+    <string name="brick_pen_draw_line_y2">Y</string>
+    <string name="brick_pen_thickness">Толщина</string>
+
+    <string name="brick_pen_draw_triangle">Треугольник X1</string>
+    <string name="brick_pen_triangle_y1">Y1</string>
+    <string name="brick_pen_triangle_x2">X2</string>
+    <string name="brick_pen_triangle_y2">Y2</string>
+    <string name="brick_pen_triangle_x3">X3</string>
+    <string name="brick_pen_triangle_y3">Y3</string>
+    <string name="brick_pen_fill">Заливка (1/0)</string>
+
+    <string name="brick_pen_draw_rect">Прямоугольник X</string>
+    <string name="brick_pen_rect_y">Y</string>
+    <string name="brick_pen_rect_w">Ширина</string>
+    <string name="brick_pen_rect_h">Высота</string>
+
+    <string name="brick_pen_draw_circle">Дуга/Круг X</string>
+    <string name="brick_pen_circle_y">Y</string>
+    <string name="brick_pen_circle_radius">Радиус</string>
+    <string name="brick_pen_circle_start_angle">Угол</string>
+    <string name="brick_pen_circle_sweep_angle">Дуга (°)</string>
+
+    <string name="brick_pen_clear_color">Очистить цветом</string>
+    <string name="brick_pen_clear_alpha">Прозрачность (%)</string>
+    <string name="brick_pen_flush">Обновить экран</string>
+
+    <string name="brick_set_text_property_title">Изменить для текста</string>
+    <string name="brick_set_text_property_to">Значение</string>
+
+    <string-array name="brick_text_properties">
+        <item>Позиция X</item>
+        <item>Позиция Y</item>
+        <item>Размер (%)</item>
+        <item>Ширина (%)</item>
+        <item>Высота (%)</item>
+        <item>Цвет (#HEX)</item>
+        <item>Поворот</item>
+        <item>Слой</item>
+        <item>Прозрачность (%)</item>
+        <item>Выравнивание (0-2)</item>
+        <item>Текст</item>
+        <item>Файл шрифта</item>
+    </string-array>
+
     <string name="formula_char_to_unicode" formatted="false">символ_в_юникод</string>
     <string name="formula_char_to_unicode_param" formatted="false">(\'A\')</string>
 

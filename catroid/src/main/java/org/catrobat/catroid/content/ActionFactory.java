@@ -5529,4 +5529,69 @@ public class ActionFactory extends Actions {
         action.setHiddenDimFormula(hiddenDim);
         return action;
     }
+
+    public Action createSetTextPropertyAction(Sprite sprite, SequenceAction sequence,
+                                              Formula nameFormula, int propertySelection, Formula valueFormula) {
+        SetTextPropertyAction action = action(SetTextPropertyAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setNameFormula(nameFormula);
+        action.setPropertySelection(propertySelection);
+        action.setValueFormula(valueFormula);
+        return action;
+    }
+
+    public Action createSetPenPropertyAction(Sprite sprite, SequenceAction sequence, int propertySelection, Formula valueFormula) {
+        SetPenPropertyAction action = action(SetPenPropertyAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setPropertySelection(propertySelection);
+        action.setValueFormula(valueFormula);
+        return action;
+    }
+
+    public Action createPenDrawLineAction(Sprite sprite, SequenceAction sequence, Formula x1, Formula y1, Formula x2, Formula y2, Formula thick) {
+        PenDrawLineAction action = action(PenDrawLineAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setFormulas(x1, y1, x2, y2, thick);
+        return action;
+    }
+
+    public Action createPenDrawTriangleAction(Sprite sprite, SequenceAction sequence, Formula x1, Formula y1, Formula x2, Formula y2, Formula x3, Formula y3, Formula fill) {
+        PenDrawTriangleAction action = action(PenDrawTriangleAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setFormulas(x1, y1, x2, y2, x3, y3, fill);
+        return action;
+    }
+
+    public Action createPenClearColorAction(Sprite sprite, SequenceAction sequence, Formula color, Formula alpha) {
+        PenClearColorAction action = action(PenClearColorAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setFormulas(color, alpha);
+        return action;
+    }
+
+    public Action createPenFlushAction(Sprite sprite, SequenceAction sequence) {
+        PenFlushAction action = action(PenFlushAction.class);
+        return action;
+    }
+
+    public Action createPenDrawRectAction(Sprite sprite, SequenceAction sequence, Formula x, Formula y, Formula width, Formula height, Formula fill) {
+        PenDrawRectAction action = action(PenDrawRectAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setFormulas(x, y, width, height, fill);
+        return action;
+    }
+
+    public Action createPenDrawCircleAction(Sprite sprite, SequenceAction sequence, Formula x, Formula y, Formula radius, Formula startAngle, Formula degrees, Formula fill) {
+        PenDrawCircleAction action = action(PenDrawCircleAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setFormulas(x, y, radius, startAngle, degrees, fill);
+        return action;
+    }
 }

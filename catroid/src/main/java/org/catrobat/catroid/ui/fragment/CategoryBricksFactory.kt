@@ -309,7 +309,13 @@ import org.catrobat.catroid.content.bricks.ParameterizedEndBrick
 import org.catrobat.catroid.content.bricks.ParticleEffectAdditivityBrick
 import org.catrobat.catroid.content.bricks.PauseForBeatsBrick
 import org.catrobat.catroid.content.bricks.PauseVideoBrick
+import org.catrobat.catroid.content.bricks.PenClearColorBrick
 import org.catrobat.catroid.content.bricks.PenDownBrick
+import org.catrobat.catroid.content.bricks.PenDrawCircleBrick
+import org.catrobat.catroid.content.bricks.PenDrawLineBrick
+import org.catrobat.catroid.content.bricks.PenDrawRectBrick
+import org.catrobat.catroid.content.bricks.PenDrawTriangleBrick
+import org.catrobat.catroid.content.bricks.PenFlushBrick
 import org.catrobat.catroid.content.bricks.PenUpBrick
 import org.catrobat.catroid.content.bricks.PerformRayCastBrick
 import org.catrobat.catroid.content.bricks.PhiroIfLogicBeginBrick
@@ -484,6 +490,7 @@ import org.catrobat.catroid.content.bricks.SetParentBrick
 import org.catrobat.catroid.content.bricks.SetParticleColorBrick
 import org.catrobat.catroid.content.bricks.SetParticleEmissionBrick
 import org.catrobat.catroid.content.bricks.SetPenColorBrick
+import org.catrobat.catroid.content.bricks.SetPenPropertyBrick
 import org.catrobat.catroid.content.bricks.SetPenSizeBrick
 import org.catrobat.catroid.content.bricks.SetPhysicsObjectTypeBrick
 import org.catrobat.catroid.content.bricks.SetPhysicsStateBrick
@@ -513,6 +520,7 @@ import org.catrobat.catroid.content.bricks.SetSpotLightBrick
 import org.catrobat.catroid.content.bricks.SetStopSoundsBrick
 import org.catrobat.catroid.content.bricks.SetTempoBrick
 import org.catrobat.catroid.content.bricks.SetTextBufferOnlyBrick
+import org.catrobat.catroid.content.bricks.SetTextPropertyBrick
 import org.catrobat.catroid.content.bricks.SetTextureTilingBrick
 import org.catrobat.catroid.content.bricks.SetThirdPersonCameraBrick
 import org.catrobat.catroid.content.bricks.SetThreadColorBrick
@@ -1597,7 +1605,14 @@ void main() {
             penBrickList.add(PenUpBrick())
             penBrickList.add(SetPenSizeBrick(BrickValues.PEN_SIZE))
             penBrickList.add(SetPenColorBrick(BrickValues.PEN_COLOR_R, BrickValues.PEN_COLOR_G, BrickValues.PEN_COLOR_B))
+            penBrickList.add(SetPenPropertyBrick(0, "1"))
+            penBrickList.add(PenDrawLineBrick(0.0, 0.0, 100.0, 100.0, 5.0))
+            penBrickList.add(PenDrawTriangleBrick(-50.0, -50.0, 0.0, 50.0, 50.0, -50.0, 1))
+            penBrickList.add(PenDrawRectBrick(0.0, 0.0, 100.0, 100.0, 1))
+            penBrickList.add(PenDrawCircleBrick(0.0, 0.0, 50.0, 0.0, 360.0, 1));
+            penBrickList.add(PenFlushBrick())
             penBrickList.add(StampBrick())
+            penBrickList.add(PenClearColorBrick("#FFFFFF", 50.0))
         }
         penBrickList.add(ClearBackgroundBrick())
         return penBrickList
@@ -1625,6 +1640,7 @@ void main() {
                 dataBrickList.add(ShowText3Brick("myText", "Hello!", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
                 dataBrickList.add(ShowTextFontBrick("myText", "Ababuy!", "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
                 dataBrickList.add(ShowTextRotationBrick("myText", "Ababuy!", 90f, "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
+                dataBrickList.add(SetTextPropertyBrick("myText", 0, "100"))
                 dataBrickList.add(HideTextBrick())
                 dataBrickList.add(HideText3Brick("myText"))
                 dataBrickList.add(WriteVariableOnDeviceBrick())
@@ -1720,6 +1736,7 @@ void main() {
         dataBrickList.add(ShowText3Brick("myText", "Hello!", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
         dataBrickList.add(ShowTextFontBrick("myText", "Ababuy!", "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
         dataBrickList.add(ShowTextRotationBrick("myText", "Ababuy!", 90f, "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
+        dataBrickList.add(SetTextPropertyBrick("myText", 0, "100"))
         dataBrickList.add(HideTextBrick())
         dataBrickList.add(HideText3Brick("myText"))
         dataBrickList.add(ShowToastBlock("Hello World!"))

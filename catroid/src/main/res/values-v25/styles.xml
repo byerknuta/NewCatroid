@@ -345,7 +345,7 @@
 
     <style name="BrickContainer.Pen.Big" tools:ignore="UnusedResources">
         <item name="android:minHeight">@dimen/brick_height_big</item>
-        <item name="android:background">@drawable/brick_green_3h</item>
+        <item name="android:background">@drawable/brick_darkgreen_2h</item>
     </style>
 
     <style name="BrickContainer.Plot" />

@@ -33,6 +33,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Queue;
 
 import org.catrobat.catroid.common.BrickValues;
+import org.catrobat.catroid.stage.PenActor;
 import org.catrobat.catroid.stage.StageActivity;
 
 public class PenConfiguration {
@@ -51,18 +52,17 @@ public class PenConfiguration {
         return currentQueueHasJobToHandle();
     }
 
-    public void drawLinesForSprite(Float screenRatio, Camera camera) {
+    public void drawLinesForSprite(Float screenRatio, Camera camera, float globalPenAlpha, int blendMode) {
         if (!currentQueueHasJobToHandle()) {
             return;
         }
 
         ShapeRenderer renderer = StageActivity.getActiveStageListener().shapeRenderer;
         renderer.setProjectionMatrix(camera.combined);
-        renderer.setColor(new Color(penColor.r, penColor.g, penColor.b, penColor.a));
+        renderer.setColor(new Color(penColor.r, penColor.g, penColor.b, penColor.a * globalPenAlpha));
         renderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFuncSeparate(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        PenActor.applyBlendMode(blendMode);
 
         while (currentQueueHasJobToHandle()) {
             drawLine(screenRatio, renderer, camera);
@@ -70,6 +70,14 @@ public class PenConfiguration {
         }
 
         renderer.end();
+    }
+
+    public void drawLinesForSprite(Float screenRatio, Camera camera, float globalPenAlpha) {
+        drawLinesForSprite(screenRatio, camera, globalPenAlpha, 0);
+    }
+
+    public void drawLinesForSprite(Float screenRatio, Camera camera) {
+        drawLinesForSprite(screenRatio, camera, 1f, 0);
     }
 
     private boolean currentQueueHasJobToHandle() {
@@ -186,5 +194,9 @@ public class PenConfiguration {
 
     public Queue<Queue<PointF>> getPositions() {
         return positions;
+    }
+
+    public PenColor getPenColor() {
+        return penColor;
     }
 }
