@@ -43,16 +43,17 @@ public final class CollisionDetection {
             return false;
         }
 
-        Rectangle firstHitbox = firstLook.getHitbox();
-        Rectangle secondHitbox = secondLook.getHitbox();
-        if (firstHitbox == null || secondHitbox == null || !firstHitbox.overlaps(secondHitbox)) {
-            return false;
-        }
-
         Polygon[] firstPolygons = firstLook.getCurrentCollisionPolygon();
         Polygon[] secondPolygons = secondLook.getCurrentCollisionPolygon();
 
         if (firstPolygons == null || secondPolygons == null || firstPolygons.length == 0 || secondPolygons.length == 0) {
+            return false;
+        }
+
+        Rectangle firstBox = getAccurateBoundingBox(firstPolygons, 1.5f);
+        Rectangle secondBox = getAccurateBoundingBox(secondPolygons, 1.5f);
+
+        if (!firstBox.overlaps(secondBox)) {
             return false;
         }
 
@@ -73,34 +74,70 @@ public final class CollisionDetection {
         }
     }
 
+    private static Rectangle getAccurateBoundingBox(Polygon[] polygons, float padding) {
+        float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
+        float maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE;
 
-	private static boolean checkCollisionBetweenPolygonArrays(Polygon[] first, Polygon[] second) {
+        for (Polygon poly : polygons) {
+            if (poly == null) continue;
+            float[] verts = poly.getTransformedVertices();
+            for (int i = 0; i < verts.length; i += 2) {
+                if (verts[i] < minX) minX = verts[i];
+                if (verts[i] > maxX) maxX = verts[i];
+                if (verts[i + 1] < minY) minY = verts[i + 1];
+                if (verts[i + 1] > maxY) maxY = verts[i + 1];
+            }
+        }
 
-		Rectangle[] firstBoxes = createBoundingBoxesOfCollisionPolygons(first);
-		Rectangle[] secondBoxes = createBoundingBoxesOfCollisionPolygons(second);
+        if (minX > maxX || minY > maxY) {
+            return new Rectangle(0, 0, 0, 0);
+        }
+
+        return new Rectangle(
+                minX - padding,
+                minY - padding,
+                (maxX - minX) + (padding * 2f),
+                (maxY - minY) + (padding * 2f)
+        );
+    }
 
 
-		for (int firstIndex = 0; firstIndex < first.length; firstIndex++) {
-			for (int secondIndex = 0; secondIndex < second.length; secondIndex++) {
+    private static boolean checkCollisionBetweenPolygonArrays(Polygon[] first, Polygon[] second) {
+        if (first == null || second == null || first.length == 0 || second.length == 0) {
+            return false;
+        }
 
-				if (firstBoxes[firstIndex].overlaps(secondBoxes[secondIndex])) {
+        Rectangle[] firstBoxes = createBoundingBoxesOfCollisionPolygons(first);
+        Rectangle[] secondBoxes = createBoundingBoxesOfCollisionPolygons(second);
 
-					if (intersectPolygons(first[firstIndex], second[secondIndex])) {
-						return true;
-					}
-				}
-			}
-		}
+        for (int firstIndex = 0; firstIndex < first.length; firstIndex++) {
+            Polygon poly1 = first[firstIndex];
+            if (poly1 == null) continue;
 
+            for (int secondIndex = 0; secondIndex < second.length; secondIndex++) {
+                Polygon poly2 = second[secondIndex];
+                if (poly2 == null) continue;
 
+                if (firstBoxes[firstIndex] != null && secondBoxes[secondIndex] != null &&
+                        firstBoxes[firstIndex].overlaps(secondBoxes[secondIndex])) {
 
-		if (checkContainment(first, second, firstBoxes, secondBoxes)) {
-			return true;
-		}
+                    if (Intersector.overlapConvexPolygons(poly1, poly2)) {
+                        return true;
+                    }
 
-		return false;
-	}
+                    if (intersectPolygons(poly1, poly2)) {
+                        return true;
+                    }
+                }
+            }
+        }
 
+        if (checkContainment(first, second, firstBoxes, secondBoxes)) {
+            return true;
+        }
+
+        return false;
+    }
 
 
 	private static boolean checkCollisionBetweenPolygonArraysSAT(Polygon[] first, Polygon[] second, Rectangle[] firstBoxes, Rectangle[] secondBoxes) {

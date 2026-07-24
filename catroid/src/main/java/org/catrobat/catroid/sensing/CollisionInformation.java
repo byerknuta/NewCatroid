@@ -192,7 +192,7 @@ public class CollisionInformation {
             return;
         }
 
-        float epsilon = Constants.COLLISION_POLYGON_CREATION_EPSILON;
+        float epsilon = 1.0f;
         collisionPolygons = new Polygon[0];
 
         do {

@@ -2,7 +2,6 @@ package org.catrobat.catroid.utils;
 
 import com.badlogic.gdx.math.EarClippingTriangulator;
 import com.badlogic.gdx.math.Polygon;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ShortArray;
 
@@ -52,24 +51,50 @@ public final class PolygonDecomposer {
         }
 
         List<Polygon> resultList = new ArrayList<>();
-        EarClippingTriangulator triangulator = new EarClippingTriangulator();
 
         for (int i = 0; i < outerPolygons.size(); i++) {
             Polygon outer = outerPolygons.get(i);
             List<Polygon> holes = holesForOuter.get(i);
 
-            Polygon merged = outer;
-            for (Polygon hole : holes) {
-                merged = mergeHoleIntoOuter(merged, hole);
+            if (holes.isEmpty()) {
+                resultList.addAll(triangulatePolygon(outer));
+            } else {
+                Polygon merged = outer;
+                for (Polygon hole : holes) {
+                    merged = mergeHoleIntoOuter(merged, hole);
+                }
+                merged = cleanPolygon(merged);
+                if (merged != null && merged.getVertices().length >= 6) {
+                    resultList.addAll(triangulatePolygon(merged));
+                }
             }
+        }
 
-            merged = cleanPolygon(merged);
-            if (merged == null || merged.getVertices().length < 6) continue;
+        if (resultList.isEmpty()) {
+            for (Polygon p : cleanedInputs) {
+                resultList.addAll(triangulatePolygon(p));
+            }
+        }
 
-            try {
-                float[] verts = merged.getVertices();
-                ShortArray indices = triangulator.computeTriangles(verts);
+        return resultList.toArray(new Polygon[0]);
+    }
 
+    private static List<Polygon> triangulatePolygon(Polygon poly) {
+        List<Polygon> tris = new ArrayList<>();
+        if (poly == null) return tris;
+        float[] verts = poly.getVertices();
+        if (verts.length < 6) return tris;
+
+        if (verts.length == 6) {
+            tris.add(poly);
+            return tris;
+        }
+
+        try {
+            EarClippingTriangulator triangulator = new EarClippingTriangulator();
+            ShortArray indices = triangulator.computeTriangles(verts);
+
+            if (indices.size >= 3) {
                 for (int t = 0; t < indices.size; t += 3) {
                     int i1 = indices.get(t) * 2;
                     int i2 = indices.get(t + 1) * 2;
@@ -80,14 +105,19 @@ public final class PolygonDecomposer {
                             verts[i2], verts[i2 + 1],
                             verts[i3], verts[i3 + 1]
                     };
-                    resultList.add(new Polygon(triVerts));
+
+                    if (Math.abs(calculateSignedArea(triVerts)) > 0.0001f) {
+                        tris.add(new Polygon(triVerts));
+                    }
                 }
-            } catch (Exception e) {
-                resultList.addAll(triangulateByFan(merged));
+                if (!tris.isEmpty()) {
+                    return tris;
+                }
             }
+        } catch (Exception ignored) {
         }
 
-        return resultList.toArray(new Polygon[0]);
+        return triangulateByFan(poly);
     }
 
     private static List<Polygon> triangulateByFan(Polygon poly) {
@@ -103,7 +133,9 @@ public final class PolygonDecomposer {
                     verts[i * 2], verts[i * 2 + 1],
                     verts[(i + 1) * 2], verts[(i + 1) * 2 + 1]
             };
-            tris.add(new Polygon(tri));
+            if (Math.abs(calculateSignedArea(tri)) > 0.0001f) {
+                tris.add(new Polygon(tri));
+            }
         }
         return tris;
     }

@@ -1,10 +1,13 @@
 package org.catrobat.catroid.physics.shapebuilder;
 
+import android.graphics.BitmapFactory;
+
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.Shape;
 
+import org.catrobat.catroid.common.LookData;
 import org.catrobat.catroid.physics.PhysicsWorldConverter;
 
 import java.util.ArrayList;
@@ -12,129 +15,105 @@ import java.util.List;
 
 public final class PhysicsShapeBuilderStrategyConcave implements PhysicsShapeBuilderStrategy {
 
-    private static final int ALPHA_THRESHOLD = 10;
-    private static final int GRID_SIZE = 6;
+    private LookData currentLookData;
+
+    public void setLookData(LookData lookData) {
+        this.currentLookData = lookData;
+    }
 
     @Override
     public Shape[] build(Pixmap pixmap, float scale) {
-        if (pixmap == null || pixmap.getWidth() < 1 || pixmap.getHeight() < 1) {
+        if (pixmap == null) {
             return null;
         }
 
         int imgWidth = pixmap.getWidth();
         int imgHeight = pixmap.getHeight();
 
-        int cols = (int) Math.ceil((double) imgWidth / GRID_SIZE);
-        int rows = (int) Math.ceil((double) imgHeight / GRID_SIZE);
+        try {
+            com.badlogic.gdx.math.Polygon[] colPolys = null;
 
-        boolean[][] grid = new boolean[cols][rows];
-
-        for (int gx = 0; gx < cols; gx++) {
-            for (int gy = 0; gy < rows; gy++) {
-                grid[gx][gy] = cellHasOpaquePixels(pixmap, gx * GRID_SIZE, gy * GRID_SIZE, GRID_SIZE, imgWidth, imgHeight);
+            if (currentLookData != null && currentLookData.getCollisionInformation() != null) {
+                currentLookData.getCollisionInformation().loadCollisionPolygon();
+                colPolys = currentLookData.getCollisionInformation().collisionPolygons;
             }
-        }
 
-        List<RectBox> rects = new ArrayList<>();
-        boolean[][] visited = new boolean[cols][rows];
+            if (colPolys != null && colPolys.length > 0) {
+                List<Shape> shapes = new ArrayList<>();
 
-        for (int gy = 0; gy < rows; gy++) {
-            for (int gx = 0; gx < cols; gx++) {
-                if (grid[gx][gy] && !visited[gx][gy]) {
-                    int w = 1;
-                    while (gx + w < cols && grid[gx + w][gy] && !visited[gx + w][gy]) {
-                        w++;
+                int rawImgWidth = imgWidth;
+                int rawImgHeight = imgHeight;
+
+                if (currentLookData != null && currentLookData.getFile() != null) {
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inJustDecodeBounds = true;
+                    BitmapFactory.decodeFile(currentLookData.getFile().getAbsolutePath(), options);
+                    if (options.outWidth > 0 && options.outHeight > 0) {
+                        rawImgWidth = options.outWidth;
+                        rawImgHeight = options.outHeight;
                     }
+                }
 
-                    int h = 1;
-                    boolean canExpand = true;
-                    while (gy + h < rows && canExpand) {
-                        for (int k = 0; k < w; k++) {
-                            if (!grid[gx + k][gy + h] || visited[gx + k][gy + h]) {
-                                canExpand = false;
-                                break;
-                            }
+                float centerX = rawImgWidth / 2.0f;
+                float centerY = rawImgHeight / 2.0f;
+
+                float scaleFactorX = (float) imgWidth / rawImgWidth;
+                float scaleFactorY = (float) imgHeight / rawImgHeight;
+
+                for (com.badlogic.gdx.math.Polygon poly : colPolys) {
+                    float[] verts = poly.getVertices();
+                    int numPoints = verts.length / 2;
+
+                    if (numPoints >= 3 && numPoints <= 8) {
+                        Vector2[] boxCorners = new Vector2[numPoints];
+                        for (int i = 0; i < numPoints; i++) {
+                            float px = (verts[i * 2] - centerX) * scaleFactorX;
+                            float py = (verts[i * 2 + 1] - centerY) * scaleFactorY;
+
+                            boxCorners[i] = PhysicsWorldConverter.convertCatroidToBox2dVector(new Vector2(px, py));
                         }
-                        if (canExpand) {
-                            h++;
+
+                        if (calculateSignedArea(boxCorners) < 0) {
+                            reverseArray(boxCorners);
+                        }
+
+                        float area = Math.abs(calculateSignedArea(boxCorners));
+                        if (area > 0.00001f) {
+                            PolygonShape polygon = new PolygonShape();
+                            polygon.set(boxCorners);
+                            polygon.setRadius(0.0001f);
+                            shapes.add(polygon);
                         }
                     }
+                }
 
-                    for (int dy = 0; dy < h; dy++) {
-                        for (int dx = 0; dx < w; dx++) {
-                            visited[gx + dx][gy + dy] = true;
-                        }
-                    }
-
-                    float pxLeft = gx * GRID_SIZE;
-                    float pxTop = gy * GRID_SIZE;
-                    float pxRight = Math.min(imgWidth, (gx + w) * GRID_SIZE);
-                    float pxBottom = Math.min(imgHeight, (gy + h) * GRID_SIZE);
-
-                    rects.add(new RectBox(pxLeft, pxTop, pxRight - pxLeft, pxBottom - pxTop));
+                if (!shapes.isEmpty()) {
+                    return shapes.toArray(new Shape[0]);
                 }
             }
+        } catch (Exception e) {
         }
 
-        if (rects.isEmpty()) {
-            return new PhysicsShapeBuilderStrategyFastHull().build(pixmap, scale);
-        }
-
-        float centerX = imgWidth / 2.0f;
-        float centerY = imgHeight / 2.0f;
-
-        List<Shape> shapes = new ArrayList<>();
-
-        for (RectBox rect : rects) {
-            float x1 = rect.x - centerX;
-            float y1 = centerY - rect.y;
-
-            float x2 = (rect.x + rect.width) - centerX;
-            float y2 = centerY - (rect.y + rect.height);
-
-            Vector2 b1 = PhysicsWorldConverter.convertCatroidToBox2dVector(new Vector2(x1, y1));
-            Vector2 b2 = PhysicsWorldConverter.convertCatroidToBox2dVector(new Vector2(x2, y2));
-
-            Vector2 boxCenterMeters = new Vector2((b1.x + b2.x) / 2.0f, (b1.y + b2.y) / 2.0f);
-            float hx = Math.abs(b2.x - b1.x) / 2.0f;
-            float hy = Math.abs(b1.y - b2.y) / 2.0f;
-
-            if (hx > 0.0001f && hy > 0.0001f) {
-                PolygonShape boxShape = new PolygonShape();
-                boxShape.setAsBox(hx, hy, boxCenterMeters, 0f);
-                shapes.add(boxShape);
-            }
-        }
-
-        if (shapes.isEmpty()) {
-            return new PhysicsShapeBuilderStrategyFastHull().build(pixmap, scale);
-        }
-
-        return shapes.toArray(new Shape[0]);
+        return new PhysicsShapeBuilderStrategyFastHull().build(pixmap, scale);
     }
 
-    private boolean cellHasOpaquePixels(Pixmap pixmap, int startX, int startY, int size, int maxW, int maxH) {
-        int endX = Math.min(maxW, startX + size);
-        int endY = Math.min(maxH, startY + size);
-
-        for (int y = startY; y < endY; y++) {
-            for (int x = startX; x < endX; x++) {
-                if ((pixmap.getPixel(x, y) & 0xff) >= ALPHA_THRESHOLD) {
-                    return true;
-                }
-            }
+    private float calculateSignedArea(Vector2[] points) {
+        float area = 0f;
+        int n = points.length;
+        for (int i = 0; i < n; i++) {
+            Vector2 p1 = points[i];
+            Vector2 p2 = points[(i + 1) % n];
+            area += p1.x * p2.y - p2.x * p1.y;
         }
-        return false;
+        return area * 0.5f;
     }
 
-    private static class RectBox {
-        float x, y, width, height;
-
-        RectBox(float x, float y, float width, float height) {
-            this.x = x;
-            this.y = y;
-            this.width = width;
-            this.height = height;
+    private void reverseArray(Vector2[] points) {
+        int n = points.length;
+        for (int i = 0; i < n / 2; i++) {
+            Vector2 temp = points[i];
+            points[i] = points[n - 1 - i];
+            points[n - 1 - i] = temp;
         }
     }
 }
