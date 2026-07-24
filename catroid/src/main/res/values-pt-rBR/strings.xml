@@ -23,6 +23,13 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="brick_if_then">então</string>
+    <string name="dialog_delete_else_if_title">Excluir ramificação?</string>
+    <string name="dialog_delete_else_if_message">Tem certeza de que deseja excluir esta ramificação \'senão se\' e seus blocos?</string>
+
+    <string name="brick_else_if">Senão se</string>
+    <string name="brick_add_else_if">+ condição</string>
+
     <string name="brick_set_pen_property_title">Definir para caneta</string>
     <string name="brick_set_pen_property_to">Valor</string>
 

@@ -610,6 +610,10 @@ public class ScriptFragment extends ListFragment implements
         AnalysisManager.INSTANCE.clearResults();
     }
 
+    public BrickAdapter getAdapter() {
+        return adapter;
+    }
+
     private void runCodeAnalysis() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
         boolean isAnalysisEnabled = prefs.getBoolean("pref_code_analysis_enabled", true);

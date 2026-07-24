@@ -135,33 +135,67 @@ public class Formula implements Serializable {
         }
     }
 
-	public void flattenAllLists() {
-		formulaTree.insertFlattenForAllUserLists(formulaTree, null);
-		formulaTree = formulaTree.getRoot();
-		internFormula.setInternTokenFormulaList(formulaTree.getInternTokenList());
-	}
+    private void ensureInternFormula() {
+        if (internFormula == null) {
+            if (formulaTree != null) {
+                internFormula = new InternFormula(formulaTree.getInternTokenList());
+            } else {
+                init(ElementType.NUMBER, "0");
+            }
+        }
+    }
 
-	public void updateCollisionFormulasToVersion() {
-		internFormula.updateCollisionFormulaToVersion(CatroidApplication.getAppContext());
-		formulaTree.updateCollisionFormulaToVersion(ProjectManager.getInstance().getCurrentProject());
-	}
+    public void flattenAllLists() {
+        if (formulaTree == null) return;
+        formulaTree.insertFlattenForAllUserLists(formulaTree, null);
+        formulaTree = formulaTree.getRoot();
+        ensureInternFormula();
+        if (internFormula != null) {
+            internFormula.setInternTokenFormulaList(formulaTree.getInternTokenList());
+        }
+    }
 
-	public void updateDirectionPropertyToVersion() {
-		String oldName = "OBJECT_ROTATION";
-		String newName = "MOTION_DIRECTION";
-		internFormula.updateSensorTokens(oldName, newName, CatroidApplication.getAppContext());
-		formulaTree.updateElementByName(oldName, newName, ElementType.SENSOR);
-	}
+    public void updateCollisionFormulasToVersion() {
+        ensureInternFormula();
+        if (internFormula != null) {
+            internFormula.updateCollisionFormulaToVersion(CatroidApplication.getAppContext());
+        }
+        if (formulaTree != null) {
+            formulaTree.updateCollisionFormulaToVersion(ProjectManager.getInstance().getCurrentProject());
+        }
+    }
 
-	public void updateVariableName(String oldName, String newName) {
-		internFormula.updateVariableReferences(oldName, newName, CatroidApplication.getAppContext());
-		formulaTree.updateElementByName(oldName, newName, ElementType.USER_VARIABLE);
-	}
+    public void updateDirectionPropertyToVersion() {
+        String oldName = "OBJECT_ROTATION";
+        String newName = "MOTION_DIRECTION";
+        ensureInternFormula();
+        if (internFormula != null) {
+            internFormula.updateSensorTokens(oldName, newName, CatroidApplication.getAppContext());
+        }
+        if (formulaTree != null) {
+            formulaTree.updateElementByName(oldName, newName, ElementType.SENSOR);
+        }
+    }
 
-	public void updateUserlistName(String oldName, String newName) {
-		internFormula.updateListReferences(oldName, newName, CatroidApplication.getAppContext());
-		formulaTree.updateElementByName(oldName, newName, ElementType.USER_LIST);
-	}
+    public void updateVariableName(String oldName, String newName) {
+        ensureInternFormula();
+        if (internFormula != null) {
+            internFormula.updateVariableReferences(oldName, newName, CatroidApplication.getAppContext());
+        }
+        if (formulaTree != null) {
+            formulaTree.updateElementByName(oldName, newName, ElementType.USER_VARIABLE);
+        }
+    }
+
+    public void updateUserlistName(String oldName, String newName) {
+        ensureInternFormula();
+        if (internFormula != null) {
+            internFormula.updateListReferences(oldName, newName, CatroidApplication.getAppContext());
+        }
+        if (formulaTree != null) {
+            formulaTree.updateElementByName(oldName, newName, ElementType.USER_LIST);
+        }
+    }
 
 	public boolean containsSpriteInCollision(String name) {
 		return formulaTree.containsSpriteInCollision(name);

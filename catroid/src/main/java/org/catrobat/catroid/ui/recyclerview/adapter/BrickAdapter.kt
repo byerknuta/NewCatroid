@@ -880,7 +880,7 @@ class BrickAdapter(private val sprite: Sprite) :
         if (brick is CompositeBrick) return false
         if (brick is EndBrick) return true
         val name = brick.javaClass.simpleName
-        return name.endsWith("EndBrick") || name.endsWith("ElseBrick")
+        return name.endsWith("EndBrick") || name.endsWith("ElseBrick") || name.endsWith("ElseIfSeparatorBrick")
     }
 
     override fun getCount(): Int = items.size

@@ -23,6 +23,13 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="brick_if_then">then</string>
+    <string name="dialog_delete_else_if_title">Delete branch?</string>
+    <string name="dialog_delete_else_if_message">Are you sure you want to delete this \'else if\' branch and its bricks?</string>
+
+    <string name="brick_else_if">Else if</string>
+    <string name="brick_add_else_if">+ condition</string>
+
     <string name="brick_set_pen_property_title">Set for pen</string>
     <string name="brick_set_pen_property_to">Value</string>
 

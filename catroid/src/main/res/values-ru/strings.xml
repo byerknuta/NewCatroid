@@ -23,6 +23,13 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="brick_if_then">то</string>
+    <string name="dialog_delete_else_if_title">Удалить ветку?</string>
+    <string name="dialog_delete_else_if_message">Вы уверены, что хотите удалить ветку \'иначе если\' и её содержимое?</string>
+
+    <string name="brick_else_if">Иначе если</string>
+    <string name="brick_add_else_if">+ условие</string>
+
     <string name="brick_set_pen_property_title">Изменить для пера</string>
     <string name="brick_set_pen_property_to">Значение</string>
 

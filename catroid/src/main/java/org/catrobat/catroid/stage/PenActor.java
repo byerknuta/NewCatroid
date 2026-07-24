@@ -46,7 +46,6 @@ import org.catrobat.catroid.content.XmlHeader;
 
 public class PenActor extends Actor {
 
-    // Внутренний класс для хранения команд
     private static class PenCommand {
         int type; // 0=Line, 1=Tri, 2=Circle, 3=Rect, 4=Arc, 5=Clear
         float[] p = new float[7];
@@ -65,10 +64,9 @@ public class PenActor extends Actor {
 
     private boolean autoRedraw = true;
     private float penAlpha = 1f;
-    private int currentBlendMode = 0; // 0: Normal, 1: Glow, 2: Eraser
+    private int currentBlendMode = 0;
     private boolean needsFlush = false;
 
-    // Очередь команд
     private final Array<PenCommand> commandQueue = new Array<>(false, 1000);
 
     public PenActor() {
@@ -95,7 +93,6 @@ public class PenActor extends Actor {
     public void setBlendMode(int mode) { this.currentBlendMode = mode; }
     public void flush() { this.needsFlush = true; }
 
-    // Тот самый публичный статический метод для PenConfiguration
     public static void applyBlendMode(int mode) {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         switch (mode) {
@@ -177,7 +174,7 @@ public class PenActor extends Actor {
             if (commandQueue.size > 0) {
                 int currentBlend = -1;
                 boolean srActive = false;
-                int currentType = -1; // 0=Filled, 1=Line
+                int currentType = -1;
 
                 for (PenCommand cmd : commandQueue) {
                     if (cmd.type == 5) {
@@ -200,7 +197,7 @@ public class PenActor extends Actor {
 
                     if (cmd.blendMode != currentBlend) {
                         if (srActive) { shapeRenderer.end(); srActive = false; }
-                        applyBlendMode(cmd.blendMode); // Вызов нашего статического метода
+                        applyBlendMode(cmd.blendMode);
                         currentBlend = cmd.blendMode;
                     }
 
