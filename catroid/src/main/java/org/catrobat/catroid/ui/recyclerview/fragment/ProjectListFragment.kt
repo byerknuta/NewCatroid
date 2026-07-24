@@ -715,70 +715,94 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
 
     private fun showProjectOptionsFragment(item: ProjectData?) {
         item ?: return
-        try {
-            val project = XstreamSerializer.getInstance().loadProject(
-                item.directory,
-                requireContext()
-            )
-            projectManager.currentProject = project
-            requireActivity().supportFragmentManager.beginTransaction()
-                .replace(
-                    R.id.fragment_container, ProjectOptionsFragment(), ProjectOptionsFragment.TAG
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val project = XstreamSerializer.getInstance().loadProject(
+                    item.directory,
+                    requireContext()
                 )
-                .addToBackStack(ProjectOptionsFragment.TAG)
-                .commit()
-        } catch (exception: IOException) {
-            ToastUtil.showError(requireContext(), R.string.error_load_project)
-            Log.e(TAG, Log.getStackTraceString(exception))
-        } catch (exception: LoadingProjectException) {
-            ToastUtil.showError(requireContext(), R.string.error_load_project)
-            Log.e(TAG, Log.getStackTraceString(exception))
+                withContext(Dispatchers.Main) {
+                    projectManager.currentProject = project
+                    requireActivity().supportFragmentManager.beginTransaction()
+                        .replace(
+                            R.id.fragment_container, ProjectOptionsFragment(), ProjectOptionsFragment.TAG
+                        )
+                        .addToBackStack(ProjectOptionsFragment.TAG)
+                        .commit()
+                }
+            } catch (exception: IOException) {
+                withContext(Dispatchers.Main) {
+                    ToastUtil.showError(requireContext(), R.string.error_load_project)
+                }
+                Log.e(TAG, Log.getStackTraceString(exception))
+            } catch (exception: LoadingProjectException) {
+                withContext(Dispatchers.Main) {
+                    ToastUtil.showError(requireContext(), R.string.error_load_project)
+                }
+                Log.e(TAG, Log.getStackTraceString(exception))
+            }
         }
     }
 
     private fun showProjectLibsFragment(item: ProjectData?) {
         item ?: return
-        try {
-            val project = XstreamSerializer.getInstance().loadProject(
-                item.directory,
-                requireContext()
-            )
-            projectManager.currentProject = project
-            requireActivity().supportFragmentManager.beginTransaction()
-                .replace(
-                    R.id.fragment_container, ProjectLibsFragment(), ProjectOptionsFragment.TAG
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val project = XstreamSerializer.getInstance().loadProject(
+                    item.directory,
+                    requireContext()
                 )
-                .addToBackStack(ProjectOptionsFragment.TAG)
-                .commit()
-        } catch (exception: IOException) {
-            ToastUtil.showError(requireContext(), R.string.error_load_project)
-            Log.e(TAG, Log.getStackTraceString(exception))
-        } catch (exception: LoadingProjectException) {
-            ToastUtil.showError(requireContext(), R.string.error_load_project)
-            Log.e(TAG, Log.getStackTraceString(exception))
+                withContext(Dispatchers.Main) {
+                    projectManager.currentProject = project
+                    requireActivity().supportFragmentManager.beginTransaction()
+                        .replace(
+                            R.id.fragment_container, ProjectLibsFragment(), ProjectOptionsFragment.TAG
+                        )
+                        .addToBackStack(ProjectOptionsFragment.TAG)
+                        .commit()
+                }
+            } catch (exception: IOException) {
+                withContext(Dispatchers.Main) {
+                    ToastUtil.showError(requireContext(), R.string.error_load_project)
+                }
+                Log.e(TAG, Log.getStackTraceString(exception))
+            } catch (exception: LoadingProjectException) {
+                withContext(Dispatchers.Main) {
+                    ToastUtil.showError(requireContext(), R.string.error_load_project)
+                }
+                Log.e(TAG, Log.getStackTraceString(exception))
+            }
         }
     }
 
     private fun showProjectFilesFragment(item: ProjectData?) {
         item ?: return
-        try {
-            val project = XstreamSerializer.getInstance().loadProject(
-                item.directory,
-                requireContext()
-            )
-            projectManager.currentProject = project
-            requireActivity().supportFragmentManager.beginTransaction()
-                .replace(
-                    R.id.fragment_container, ProjectFilesFragment(), ProjectOptionsFragment.TAG
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val project = XstreamSerializer.getInstance().loadProject(
+                    item.directory,
+                    requireContext()
                 )
-                .addToBackStack(ProjectOptionsFragment.TAG)
-                .commit()
-        } catch (exception: IOException) {
-            ToastUtil.showError(requireContext(), R.string.error_load_project)
-            Log.e(TAG, Log.getStackTraceString(exception))
-        } catch (exception: LoadingProjectException) {
-            ToastUtil.showError(requireContext(), R.string.error_load_project)
-            Log.e(TAG, Log.getStackTraceString(exception))
+                withContext(Dispatchers.Main) {
+                    projectManager.currentProject = project
+                    requireActivity().supportFragmentManager.beginTransaction()
+                        .replace(
+                            R.id.fragment_container, ProjectFilesFragment(), ProjectOptionsFragment.TAG
+                        )
+                        .addToBackStack(ProjectOptionsFragment.TAG)
+                        .commit()
+                }
+            } catch (exception: IOException) {
+                withContext(Dispatchers.Main) {
+                    ToastUtil.showError(requireContext(), R.string.error_load_project)
+                }
+                Log.e(TAG, Log.getStackTraceString(exception))
+            } catch (exception: LoadingProjectException) {
+                withContext(Dispatchers.Main) {
+                    ToastUtil.showError(requireContext(), R.string.error_load_project)
+                }
+                Log.e(TAG, Log.getStackTraceString(exception))
+            }
         }
     }
 

@@ -33,6 +33,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceActionWithWaiter;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 
 import androidx.annotation.IntDef;
@@ -83,8 +84,22 @@ public class ThreadScheduler {
 		}
 	}
 
+	private static final int STOP_QUEUE_SET_THRESHOLD = 4;
+
 	private void stopThreadsInStopQueue(Array<Action> actions) {
-		actions.removeAll(stopQueue, true);
+		if (stopQueue.size > STOP_QUEUE_SET_THRESHOLD) {
+			IdentityHashMap<Action, Boolean> toRemove = new IdentityHashMap<>(stopQueue.size);
+			for (Action action : stopQueue) {
+				toRemove.put(action, Boolean.TRUE);
+			}
+			for (int i = actions.size - 1; i >= 0; i--) {
+				if (toRemove.containsKey(actions.get(i))) {
+					actions.removeIndex(i);
+				}
+			}
+		} else {
+			actions.removeAll(stopQueue, true);
+		}
 		for (Action action : stopQueue) {
 			if (action instanceof ScriptSequenceActionWithWaiter) {
 				((ScriptSequenceActionWithWaiter) action).notifyWaiter();

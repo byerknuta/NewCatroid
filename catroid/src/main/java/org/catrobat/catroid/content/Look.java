@@ -157,6 +157,7 @@ public class Look extends Image {
     private transient com.badlogic.gdx.graphics.g2d.Animation<TextureRegion> activeSheetAnimation = null;
     private float sheetStateTime = 0f;
     private transient String cachedSheetKey = "";
+    private transient TextureRegionDrawable animationDrawable;
     private transient TextureRegion[][] cachedSplitRegions = null;
 
 	public Look(final Sprite sprite) {
@@ -753,17 +754,26 @@ public class Look extends Image {
 		globalFrameTicker++;
 	}
 
+	private TextureRegionDrawable getOrUpdateAnimationDrawable(TextureRegion currentFrame) {
+		if (animationDrawable == null) {
+			animationDrawable = new TextureRegionDrawable(currentFrame);
+		} else {
+			animationDrawable.setRegion(currentFrame);
+		}
+		return animationDrawable;
+	}
+
 	@Override
 	public void act(float delta) {
 		scheduler.tick(delta);
         if (activeGifAnimation != null) {
             gifStateTime += delta;
             TextureRegion currentFrame = activeGifAnimation.getKeyFrame(gifStateTime, true);
-            setDrawable(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(currentFrame));
+            setDrawable(getOrUpdateAnimationDrawable(currentFrame));
         } else if (activeSheetAnimation != null) {
             sheetStateTime += delta;
             TextureRegion currentFrame = activeSheetAnimation.getKeyFrame(sheetStateTime, true);
-            setDrawable(new com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable(currentFrame));
+            setDrawable(getOrUpdateAnimationDrawable(currentFrame));
         }
 		if (sprite != null) {
 			if (myUpdateBucket == globalFrameTicker % UPDATE_BUCKETS) {

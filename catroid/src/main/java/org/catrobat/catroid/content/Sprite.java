@@ -106,7 +106,22 @@ public class Sprite implements Nameable, Serializable {
 	private transient List<Integer> usedTouchPointer = new ArrayList<>();
 	private transient Color embroideryThreadColor = Color.BLACK;
 
-	private transient java.util.HashMap<String, UserVariable> variableCache = new java.util.HashMap<>();
+	private transient java.util.HashMap<String, UserVariable> variableCache;
+	private transient java.util.HashMap<String, UserList> listCache;
+
+	private java.util.HashMap<String, UserVariable> getVariableCache() {
+		if (variableCache == null) {
+			variableCache = new java.util.HashMap<>();
+		}
+		return variableCache;
+	}
+
+	private java.util.HashMap<String, UserList> getListCache() {
+		if (listCache == null) {
+			listCache = new java.util.HashMap<>();
+		}
+		return listCache;
+	}
 
 	@XStreamAsAttribute
 	private String spriteId;
@@ -305,14 +320,14 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	public UserVariable getUserVariable(String name) {
-		UserVariable cached = variableCache.get(name);
+		UserVariable cached = getVariableCache().get(name);
 		if (cached != null) {
 			return cached;
 		}
 
 		for (UserVariable variable : userVariables) {
 			if (variable.getName().equals(name)) {
-				variableCache.put(name, variable);
+				getVariableCache().put(name, variable);
 				return variable;
 			}
 		}
@@ -320,7 +335,7 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	public boolean addUserVariable(UserVariable userVariable) {
-		variableCache.put(userVariable.getName(), userVariable);
+		getVariableCache().put(userVariable.getName(), userVariable);
 		return userVariables.add(userVariable);
 	}
 
@@ -342,8 +357,14 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	public UserList getUserList(String name) {
+		UserList cached = getListCache().get(name);
+		if (cached != null) {
+			return cached;
+		}
+
 		for (UserList list : userLists) {
 			if (list.getName().equals(name)) {
+				getListCache().put(name, list);
 				return list;
 			}
 		}
@@ -351,6 +372,7 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	public boolean addUserList(UserList userList) {
+		getListCache().put(userList.getName(), userList);
 		return userLists.add(userList);
 	}
 
@@ -365,7 +387,8 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	public void resetUserData() {
-		variableCache.clear();
+		getVariableCache().clear();
+		getListCache().clear();
 		for (UserVariable userVariable : userVariables) {
 			userVariable.reset();
 		}
@@ -391,7 +414,8 @@ public class Sprite implements Nameable, Serializable {
 			look.setLookData(getLookList().get(0));
 		}
 
-		variableCache.clear();
+		getVariableCache().clear();
+		getListCache().clear();
 
 		penConfiguration = new PenConfiguration();
 		plot = new Plot();

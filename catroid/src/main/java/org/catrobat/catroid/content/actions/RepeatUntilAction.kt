@@ -34,35 +34,21 @@ class RepeatUntilAction : LoopAction() {
     var repeatCondition: Formula? = null
     private var isCurrentLoopInitialized = false
 
-    private fun isValidConditionFormula(): Boolean {
-        try {
-            repeatCondition?.interpretDouble(scope) ?: return false
-        } catch (interpretationException: InterpretationException) {
-            Log.d(
-                javaClass.simpleName, "Formula interpretation for this specific Brick failed.",
-                interpretationException
-            )
-            return false
-        }
-        return true
-    }
-
-    private fun isConditionTrue(): Boolean = try {
-        repeatCondition?.interpretDouble(scope) != 0.0
+    private fun evaluateCondition(): Boolean? = try {
+        val value = repeatCondition?.interpretDouble(scope)
+        value != 0.0
     } catch (interpretationException: InterpretationException) {
         Log.d(
             javaClass.simpleName, "Formula interpretation for this specific Brick failed.",
             interpretationException
         )
-        true
+        null
     }
 
     public override fun delegate(delta: Float): Boolean {
-        if (!isValidConditionFormula()) {
-            return true
-        }
+        val conditionResult = evaluateCondition() ?: return true
         if (!isCurrentLoopInitialized) {
-            if (isConditionTrue()) {
+            if (conditionResult) {
                 return true
             }
             currentTime = 0f
@@ -71,7 +57,8 @@ class RepeatUntilAction : LoopAction() {
         currentTime += delta
         if (action.act(delta) && !isLoopDelayNeeded()) {
             executedCount++
-            if (isConditionTrue()) {
+            val finalConditionResult = evaluateCondition()
+            if (finalConditionResult == null || finalConditionResult) {
                 return true
             }
             isCurrentLoopInitialized = false

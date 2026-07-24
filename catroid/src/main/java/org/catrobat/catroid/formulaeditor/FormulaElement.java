@@ -116,6 +116,10 @@ public class FormulaElement implements Serializable {
     private static final java.util.Map<String, org.luaj.vm2.LuaValue> compiledLuaCache =
             new java.util.concurrent.ConcurrentHashMap<>();
 
+    private static final int MAX_CACHED_REGEX_PATTERNS = 200;
+    private static final java.util.Map<String, Pattern> compiledRegexCache =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
     public enum ElementType {
         OPERATOR, FUNCTION, NUMBER, SENSOR, USER_VARIABLE, USER_LIST, USER_DEFINED_BRICK_INPUT, BRACKET, STRING, COLLISION_FORMULA
     }
@@ -1364,7 +1368,7 @@ public class FormulaElement implements Serializable {
 
     private Object interpretFunctionNumberOfItems(Object left, Scope scope) {
         if (leftChild.type == ElementType.USER_LIST) {
-            UserList userList = UserDataWrapper.getUserList(leftChild.value, scope);
+            UserList userList = getUserListOfChild(leftChild, scope);
             return (double) handleNumberOfItemsOfUserListParameter(userList);
         }
         return interpretFunctionLength(left, scope);
@@ -1392,7 +1396,7 @@ public class FormulaElement implements Serializable {
 
     private Object interpretFunctionIndexOfItem(Object left, Scope scope) {
         if (rightChild.getElementType() == ElementType.USER_LIST) {
-            UserList userList = UserDataWrapper.getUserList(rightChild.value, scope);
+            UserList userList = getUserListOfChild(rightChild, scope);
             return (double) (userList.getIndexOf(left) + 1);
         }
         return FALSE;
@@ -1479,7 +1483,13 @@ public class FormulaElement implements Serializable {
     }
 
     private static String interpretFunctionRegex(String patternString, String matcherString) {
-        Pattern pattern = Pattern.compile(patternString, Pattern.DOTALL | Pattern.MULTILINE);
+        Pattern pattern = compiledRegexCache.get(patternString);
+        if (pattern == null) {
+            pattern = Pattern.compile(patternString, Pattern.DOTALL | Pattern.MULTILINE);
+            if (compiledRegexCache.size() < MAX_CACHED_REGEX_PATTERNS) {
+                compiledRegexCache.put(patternString, pattern);
+            }
+        }
         Matcher matcher = pattern.matcher(matcherString);
         if (matcher.find()) {
             int groupIndex = matcher.groupCount() == 0 ? 0 : 1;

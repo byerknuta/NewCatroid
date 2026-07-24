@@ -242,6 +242,7 @@ public class StageListener implements ApplicationListener {
 	}
 
 	public boolean axesOn = false;
+	private final GlyphLayout axesLabelLayout = new GlyphLayout();
 	private static final Color AXIS_COLOR = new Color(0xff000cff);
 
 	private static final int Z_LAYER_PEN_ACTOR = 1;
@@ -1851,7 +1852,7 @@ public class StageListener implements ApplicationListener {
     }
 
 	private void drawAxes() {
-		GlyphLayout layout = new GlyphLayout();
+		GlyphLayout layout = axesLabelLayout;
 		layout.setText(font, String.valueOf((int) virtualWidthHalf));
 
 		batch.setProjectionMatrix(camera.combined);

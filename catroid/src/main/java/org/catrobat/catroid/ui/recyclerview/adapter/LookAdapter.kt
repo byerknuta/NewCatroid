@@ -33,7 +33,13 @@ class LookAdapter(items: List<LookData?>?) : ExtendedRVAdapter<LookData?>(items)
     override fun onBindViewHolder(holder: ExtendedViewHolder, position: Int) {
         val item = items[position]
         holder.title.text = item?.name
-        holder.image.setImageBitmap(item?.thumbnailBitmap)
+        holder.image.setImageBitmap(null)
+        holder.image.tag = item
+        item?.getThumbnailBitmapAsync { bitmap ->
+            if (holder.image.tag === item) {
+                holder.image.setImageBitmap(bitmap)
+            }
+        }
         if (showDetails) {
             val measure = item?.measure
             val measureString = measure?.get(0).toString() + " x " + measure?.get(1)

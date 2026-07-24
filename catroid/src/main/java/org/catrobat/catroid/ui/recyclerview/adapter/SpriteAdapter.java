@@ -24,10 +24,10 @@
 package org.catrobat.catroid.ui.recyclerview.adapter;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.view.View;
 
 import org.catrobat.catroid.R;
+import org.catrobat.catroid.common.LookData;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.ui.recyclerview.viewholder.ExtendedViewHolder;
 
@@ -45,14 +45,19 @@ public class SpriteAdapter extends ExtendedRVAdapter<Sprite> {
 		Context context = holder.itemView.getContext();
 
 		Sprite item = items.get(position);
-		Bitmap lookData = null;
+		holder.image.setImageBitmap(null);
 
 		if (!item.getLookList().isEmpty()) {
-			lookData = item.getLookList().get(0).getThumbnailBitmap();
+			LookData lookData = item.getLookList().get(0);
+			holder.image.setTag(lookData);
+			lookData.getThumbnailBitmapAsync(bitmap -> {
+				if (holder.image.getTag() == lookData) {
+					holder.image.setImageBitmap(bitmap);
+				}
+			});
 		}
 
 		holder.title.setText(item.getName());
-		holder.image.setImageBitmap(lookData);
 
 		if (showDetails) {
 			holder.details.setText(String.format(Locale.getDefault(),
