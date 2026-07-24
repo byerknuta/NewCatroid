@@ -35,7 +35,7 @@ class RepeatUntilAction : LoopAction() {
     private var isCurrentLoopInitialized = false
 
     private fun evaluateCondition(): Boolean? = try {
-        val value = repeatCondition?.interpretDouble(scope) ?: return null
+        val value = repeatCondition?.interpretDouble(scope)
         value != 0.0
     } catch (interpretationException: InterpretationException) {
         Log.d(
