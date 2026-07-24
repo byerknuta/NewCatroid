@@ -1498,6 +1498,8 @@ std::vector<uint32_t> triangulate(const std::vector<double>& vertices) {
 }
 
 bool polygons_overlap(const double* vertsA, int countA, const double* vertsB, int countB) {
+    const double TOUCH_TOLERANCE = 1.0;
+
     for (int i = 0; i < countA; i += 2) {
         double p1x = vertsA[i];
         double p1y = vertsA[i + 1];
@@ -1523,7 +1525,7 @@ bool polygons_overlap(const double* vertsA, int countA, const double* vertsB, in
             minB = std::min(minB, dot);
             maxB = std::max(maxB, dot);
         }
-        if (maxA < minB || maxB < minA) return false;
+        if (maxA < minB - TOUCH_TOLERANCE || maxB < minA - TOUCH_TOLERANCE) return false;
     }
 
     for (int i = 0; i < countB; i += 2) {
@@ -1551,7 +1553,7 @@ bool polygons_overlap(const double* vertsA, int countA, const double* vertsB, in
             minB = std::min(minB, dot);
             maxB = std::max(maxB, dot);
         }
-        if (maxA < minB || maxB < minA) return false;
+        if (maxA < minB - TOUCH_TOLERANCE || maxB < minA - TOUCH_TOLERANCE) return false;
     }
     return true;
 }

@@ -211,10 +211,18 @@ public class PhysicsLook extends Look {
     public void setRotation(float degrees) {
         super.setRotation(degrees);
         if (null != physicsObject) {
-            if (getRotationMode() == ROTATION_STYLE_ALL_AROUND) {
-                physicsObject.setDirection(super.getRotation() % FULL_CIRCLE_DEGREE);
-            }
+            physicsObject.setDirection(super.getRotation() % FULL_CIRCLE_DEGREE);
         }
+    }
+
+    @Override
+    public void setRotationMode(int mode) {
+        super.setRotationMode(mode);
+        if (physicsObject != null) {
+            physicsObject.setDirection(getMotionDirectionInUserInterfaceDimensionUnit());
+            physicsObject.setFixedRotation(mode != ROTATION_STYLE_ALL_AROUND);
+        }
+        updatePhysicsObjectState(true);
     }
 
     @Override
@@ -239,12 +247,6 @@ public class PhysicsLook extends Look {
             lookData.getTextureRegion().flip(true, false);
         }
     }
-
-	@Override
-	public void setRotationMode(int mode) {
-		super.setRotationMode(mode);
-		updatePhysicsObjectState(true);
-	}
 
 	@Override
 	public void setScale(float scaleX, float scaleY) {

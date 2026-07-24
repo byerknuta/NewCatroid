@@ -71,9 +71,13 @@ public final class PhysicsShapeBuilder {
             return null;
         }
 
+        if (strategy instanceof PhysicsShapeBuilderStrategyConcave) {
+            ((PhysicsShapeBuilderStrategyConcave) strategy).setLookData(lookData);
+        }
+
         String imageIdentifier = Utils.md5Checksum(lookData.getFile());
         if (!imageShapesMap.containsKey(imageIdentifier)) {
-            imageShapesMap.put(imageIdentifier, new ImageShapes(pixmap));
+            imageShapesMap.put(imageIdentifier, new ImageShapes(lookData));
         }
 
         float accuracyLevel = getAccuracyLevel(scaleFactor);
@@ -105,22 +109,21 @@ public final class PhysicsShapeBuilder {
         return ACCURACY_LEVELS[ACCURACY_LEVELS.length - 1];
     }
 
-    /**
-     * Saves computed shapes in different accuracies for one image. (All in baseline -> 100%)
-     */
     private class ImageShapes {
 
         private static final int MAX_ORIGINAL_PIXMAP_SIZE = 512;
 
         private Map<String, Shape[]> shapeMap = new HashMap<>();
+        private LookData lookData;
         private Pixmap pixmap;
         private float sizeAdjustmentScaleFactor = 1;
 
-        ImageShapes(Pixmap pixmap) {
-            if (pixmap == null) {
-                throw new RuntimeException("Pixmap must not null");
+        ImageShapes(LookData lookData) {
+            if (lookData == null || lookData.getPixmap() == null) {
+                throw new RuntimeException("LookData / Pixmap must not null");
             }
-            this.pixmap = pixmap;
+            this.lookData = lookData;
+            this.pixmap = lookData.getPixmap();
             int width = this.pixmap.getWidth();
             int height = this.pixmap.getHeight();
             if (width > MAX_ORIGINAL_PIXMAP_SIZE || height > MAX_ORIGINAL_PIXMAP_SIZE) {
@@ -150,8 +153,11 @@ public final class PhysicsShapeBuilder {
             }
 
             if (strategy instanceof PhysicsShapeBuilderStrategyConcave) {
+                ((PhysicsShapeBuilderStrategyConcave) strategy).setLookData(lookData);
                 Shape[] shapes = strategy.build(pixmap, 1.0f);
-                return PhysicsShapeScaleUtils.scaleShapes(shapes, 1.0f, 1.0f);
+                if (shapes != null && shapes.length > 0) {
+                    return PhysicsShapeScaleUtils.scaleShapes(shapes, 1.0f, 1.0f);
+                }
             }
 
             Pixmap scaledPixmap = new Pixmap(scaledWidth, scaledHeight, pixmap.getFormat());

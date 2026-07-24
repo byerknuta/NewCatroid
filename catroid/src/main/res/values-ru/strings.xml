@@ -3936,7 +3936,7 @@
         <item quantity="many">"секунд"</item>
         <item quantity="other">"секунд "</item>
     </plurals>
-    <string formatted="false" name="brick_collision_receive">При столкновении с</string>
+    <string formatted="false" name="brick_collision_receive">Когда отталкиваешься от</string>
     <string formatted="false" name="collision_with_anything">любым краем, актером, или объектом</string>
     <string formatted="false" name="brick_broadcast_receive">Когда будет получено</string>
     <string formatted="false" name="brick_broadcast">Вещать всем</string>
